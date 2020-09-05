@@ -3,3 +3,4 @@ def _yadm(args, stdin=None):
         nvim @(args)[1:]
     else:
         yadm @(args)
+aliases["yadm"] = _yadm
