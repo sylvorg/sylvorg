@@ -3,4 +3,4 @@ def _yadm(args, stdin=None):
         nvim @(f"{args[1]}##template")
     else:
         yadm @(args)
-aliases["psn"] = _yadm
+aliases["rawr"] = _yadm
