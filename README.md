@@ -8,23 +8,8 @@ from baker.y import echo, cowsay, lolcat
 echo.bake_all_(_frozen = True)
 hello = echo("I'm supposed to be rainbow, but whatever. Hello!") | cowsay( f = "meow") | lolcat()
 hello(_run = True, _frozen = False)
-
- _________________________________
-/ I'm supposed to be rainbow, but \
-\                whatever. Hello! /
- ---------------------------------
-  \
-   \ ,   _ ___.--'''`--''//-,-_--_.
-      \`"' ` || \\ \ \\/ / // / ,-\\`,_
-     /'`  \ \ || Y  | \|/ / // / - |__ `-,
-    /@"\  ` \ `\ |  | ||/ // | \/  \  `-._`-,_.,
-   /  _.-. `.-\,___/\ _/|_/_\_\/|_/ |     `-._._)
-   `-'``/  /  |  // \__/\__  /  \__/ \
-        `-'  /-\/  | -|   \__ \   |-' |
-          __/\ / _/ \/ __,-'   ) ,' _|'
-         (((__/(((_.' ((___..-'((__,'
-
 ```
+![](./carbon.svg)
 
 <!--
 **shadowrylander/shadowrylander** is a ✨ _special_ ✨ repository because its `README.md` (this file) appears on your GitHub profile.
