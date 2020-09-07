@@ -4,3 +4,4 @@ def _yadm(args, stdin=None):
     else:
         yadm @(args)
 aliases["psn"] = _yadm
+aliases["resource"] = lambda args, stdin=None: $(source @(f"/home/{$(whoami)}/.xonshrc"))
