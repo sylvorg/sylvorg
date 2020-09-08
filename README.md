@@ -1,16 +1,15 @@
 #!/usr/bin/env mdsh
 
-### Hello! 👋
-
 ```python
 from baker.y import echo, cowsay, lolcat
 
+# echo "I'm supposed to be rainbow, but whatever. Hello!" | cowsay -f meow | lolcat
+
 echo.bake_all_(_frozen = True)
-hello = echo("I'm supposed to be rainbow, but whatever. Hello!") | cowsay() | lolcat()
+hello = echo("I'm supposed to be rainbow, but whatever. Hello!") | cowsay( f = "meow") | lolcat()
 hello(_run = True, _frozen = False)
-
-
 ```
+![](https://github.com/shadowrylander/shadowrylander/blob/master/carbon.png)
 
 <!--
 **shadowrylander/shadowrylander** is a ✨ _special_ ✨ repository because its `README.md` (this file) appears on your GitHub profile.
