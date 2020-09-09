@@ -5,4 +5,4 @@ def _yadm(args, stdin=None):
         yadm @(args)
 aliases["psn"] = _yadm
 aliases["resource"] = lambda args, stdin=None: $(source @(f"/home/{$(whoami)}/.xonshrc"))
-aliases["brew"] = lambda args, stdin=None: $(/home/linuxbrew/.linuxbrew/bin/brew @(args))
+aliases["brew"] = lambda args, stdin=None: $(/home/linuxbrew/.linuxbrew/Homebrew/bin/brew.sh @(args))
