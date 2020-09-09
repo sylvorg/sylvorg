@@ -6,7 +6,7 @@ from baker.y import echo, cowsay, lolcat
 # echo "I'm supposed to be rainbow, but whatever. Hello!" | cowsay -f meow | lolcat
 
 echo.bake_all_(_frozen = True)
-hello = echo("I'm supposed to be rainbow, but whatever. Hello!") | cowsay( f = "meow") | lolcat()
+hello = echo("I'm supposed to be rainbow, but whatever. Hello!") | cowsay( f = "meow" ) | lolcat()
 hello(_run = True, _frozen = False)
 ```
 ![](https://github.com/shadowrylander/shadowrylander/blob/master/carbon.png)
