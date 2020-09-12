@@ -1,0 +1,15 @@
+imports:
+    # We're going to merge Pathogen's autoload directory into our own.
+    pathogen: .vim/autoload/
+    # The Solarized plugin gets its own directory, where Pathogen expects it.
+    vim-mountaineer: .vim/bundle/mountaineer/
+
+curl module pathogen:
+    url: https://codeload.github.com/tpope/vim-pathogen/tar.gz/v2.4
+    # Untar the archive after fetching.
+    unpack: tar
+    # After the unpack, use this subdirectory as the root of the module.
+    export: vim-pathogen-2.4/autoload/
+
+git module vim-mountaineer:
+    url: https://github.com/co1ncidence/mountaineer.vim
