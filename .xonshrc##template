@@ -1,8 +1,61 @@
+# Note that type hints cannot be used
+
+xontrib load autojump
+xontrib load bashisms
+xontrib load coreutils
+xontrib load direnv
+xontrib load jedi
+xontrib load vox
+xontrib load powerline2
+
+python_ver = "3.8"
+vox create base -p $(which @(f"python{python_ver}")) 2> /dev/null
+vox enter base 2> /dev/null
+
+from sty import fg
+from webcolors import hex_to_rgb
+from nanite import fullpath
+from os import path as os_path, sep as os_sep, getcwd
+from inspect import getsourcefile
+
+if getcwd() == "/":
+    cd ~
+    
 def _yadm(args, stdin=None):
     if args[0] == "edit":
         nvim @(f"{args[1]}##template")
     else:
         yadm @(args)
 aliases["psn"] = _yadm
+
+home = fullpath("/home/shadowrylander")
+fzf_dir_file = fullpath(home, ".xonsh", "fzf_tmux_dir_file.sh")
+
+source telegram_chat_vars.sec
+
+# GIT Settings
+$GIT_AUTHOR_NAME = "shadowrylander"
+$GIT_AUTHOR_EMAIL = "aiern@protonmail.com"
+$GIT_COMMITTER_NAME = "shadowrylander"
+$GIT_COMMITTER_EMAIL = "aiern@protonmail.com"
+
+extra_paths = [
+    f"{home}/.nimble/bin",
+    f"{home}/go/bin",
+    "/usr/lib/node_modules",
+]
+$PATH += extra_paths
+if os_path.exists(fullpath("~/git-annex.linux")):
+   $PATH += fullpath("~/git-annex.linux")
+$DIRENV_WARN_TIMEOUT = "100y"
+$VI_MODE = True
+$LESSOPEN = "| /usr/share/source-highlight/src-hilite-lesspipe.sh %s"
+$LESS = " -R "
+$TERM = "xterm-256color"
+
+$XONSH_SHOW_TRACEBACK = True
+$XONSH_DEBUG = True
+$SHELL_TYPE = "prompt_toolkit"
+$AUTO_SUGGEST = True
+
 aliases["resource"] = lambda args, stdin=None: $(source @(f"/home/{$(whoami)}/.xonshrc"))
-aliases["brew"] = lambda args, stdin=None: $(/home/linuxbrew/.linuxbrew/Homebrew/bin/brew.sh @(args))
