@@ -14,7 +14,7 @@ vox enter base 2> /dev/null
 
 from sty import fg
 from webcolors import hex_to_rgb
-from nanite import fullpath
+from nanite import fullpath as fp
 from os import path as os_path, sep as os_sep, getcwd
 from inspect import getsourcefile
 
@@ -28,10 +28,12 @@ def _yadm(args, stdin=None):
         yadm @(args)
 aliases["psn"] = _yadm
 
-home = fullpath("/home/shadowrylander")
-fzf_dir_file = fullpath(home, ".xonsh", "fzf_tmux_dir_file.sh")
+home = fp("/home/shadowrylander")
+extras = fp(home, ".e")
+xtras = fp(extras, "xonsh")
+fzf_dir_file = fp(xtras, "fzf_tmux_dir_file.sh")
 
-source telegram_chat_vars.sec
+# source @(fp(xtras, telegram_chat_vars.sec))
 
 # GIT Settings
 $GIT_AUTHOR_NAME = "shadowrylander"
@@ -45,8 +47,8 @@ extra_paths = [
     "/usr/lib/node_modules",
 ]
 $PATH += extra_paths
-if os_path.exists(fullpath("~/git-annex.linux")):
-   $PATH += fullpath("~/git-annex.linux")
+if os_path.exists(fp("~/git-annex.linux")):
+   $PATH += fp("~/git-annex.linux")
 $DIRENV_WARN_TIMEOUT = "100y"
 $VI_MODE = True
 $LESSOPEN = "| /usr/share/source-highlight/src-hilite-lesspipe.sh %s"
