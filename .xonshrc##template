@@ -36,10 +36,10 @@ fzf_dir_file = fp(xtras, "fzf_tmux_dir_file.sh")
 # source @(fp(xtras, telegram_chat_vars.sec))
 
 # GIT Settings
-$GIT_AUTHOR_NAME = "shadowrylander"
-$GIT_AUTHOR_EMAIL = "aiern@protonmail.com"
-$GIT_COMMITTER_NAME = "shadowrylander"
-$GIT_COMMITTER_EMAIL = "aiern@protonmail.com"
+$GIT_AUTHOR_NAME = $(yadm config --get user.name)
+$GIT_AUTHOR_EMAIL = $(yadm config --get user.email)
+$GIT_COMMITTER_NAME = $GIT_AUTHOR_NAME
+$GIT_COMMITTER_EMAIL = $GIT_AUTHOR_EMAIL
 
 extra_paths = [
     f"{home}/.nimble/bin",
