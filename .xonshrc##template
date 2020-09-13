@@ -8,10 +8,6 @@ xontrib load jedi
 xontrib load vox
 xontrib load powerline2
 
-python_ver = "3.8"
-vox create base -p $(which @(f"python{python_ver}")) 2> /dev/null
-vox enter base 2> /dev/null
-
 from sty import fg
 from webcolors import hex_to_rgb
 from nanite import fullpath as fp
@@ -20,13 +16,10 @@ from inspect import getsourcefile
 
 if getcwd() == "/":
     cd ~
-    
-def _yadm(args, stdin=None):
-    if args[0] == "edit":
-        nvim @(f"{args[1]}##template")
-    else:
-        yadm @(args)
-aliases["psn"] = _yadm
+
+python_ver = "3.8"
+vox create base -p $(which @(f"python{python_ver}")) 2> /dev/null
+vox enter base 2> /dev/null
 
 home = fp("/home/shadowrylander")
 extras = fp(home, ".e")
@@ -59,5 +52,21 @@ $XONSH_SHOW_TRACEBACK = True
 $XONSH_DEBUG = True
 $SHELL_TYPE = "prompt_toolkit"
 $AUTO_SUGGEST = True
+    
+def _yadm(args, stdin=None):
+    if args[0] == "edit":
+        nvim @(f"{args[1]}##template")
+    else:
+        yadm @(args)
+aliases["psn"] = _yadm
+
+# aliases["evim"] = lambda args, stdin=None: $(emacsclient --socket-name=spacemacsd -t @(args))
+# $EDITOR = "emacsclient --socket-name=spacemacsd -t"
+$EDITOR = "nvim"
+
+aliases["la"] = lambda args, stdin=None: $(exa -la @(args)) if args else $(exa -la)
+aliases["s"] = lambda args, stdin=None: $(sudo @(args))
+aliases["ve"] = lambda args, stdin=None: $(vox enter @(args)) if args else $(vox exit)
+aliases["md"] = lambda args, stdin=None: $(mkdir -p @(args))
 
 aliases["resource"] = lambda args, stdin=None: $(source @(f"/home/{$(whoami)}/.xonshrc"))
