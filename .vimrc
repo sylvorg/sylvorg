@@ -1,9 +1,9 @@
 set runtimepath+=~/vimrc
 
-source ~/vimrc/vimrcs/basic.vim
-source ~/vimrc/vimrcs/extended.vim
-source ~/vimrc/vimrcs/filetypes.vim
-source ~/vimrc/vimrcs/plugins_config.vim
+source ~/.e/vim/vimrc/vimrcs/basic.vim
+source ~/.e/vim/vimrc/vimrcs/extended.vim
+source ~/.e/vim/vimrc/vimrcs/filetypes.vim
+source ~/.e/vim/vimrc/vimrcs/plugins_config.vim
 
 execute pathogen#infect()
 syntax on

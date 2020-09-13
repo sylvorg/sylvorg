@@ -1,3 +1,4 @@
-[submodule "vimrc"]
-	path = vimrc
-	url = https://github.com/shadowrylander/vimrc.git
+
+[submodule ".e/vim/vimrc"]
+	path = .e/vim/vimrc
+	url = https://github.com/shadowrylander/vimrc
