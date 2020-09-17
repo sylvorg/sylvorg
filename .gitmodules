@@ -8,6 +8,3 @@
 [submodule "/home/shadowrylander/.e/xonsh/bash-completion"]
 	path = /home/shadowrylander/.e/xonsh/bash-completion
 	url = https://github.com/scop/bash-completion.git
-[submodule "/home/shadowrylander/.e/kitty/themes"]
-	path = /home/shadowrylander/.e/kitty/themes
-	url = https://github.com/dexpota/kitty-themes.git

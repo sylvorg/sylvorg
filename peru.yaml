@@ -5,6 +5,7 @@ imports:
     vim-mountaineer: .vim/bundle/mountaineer/
     vim-gunmetal: .vim/bundle/gunmetal/
     vim-true: .vim/bundle/true/
+    kitty-themes: .e/kitty/themes
 
 curl module pathogen:
     url: https://codeload.github.com/tpope/vim-pathogen/tar.gz/v2.4
@@ -21,3 +22,6 @@ git module vim-gunmetal:
 
 git module vim-true:
     url: https://github.com/megantiu/true.vim
+
+git module kitty-themes:
+    url: https://github.com/dexpota/kitty-themes
