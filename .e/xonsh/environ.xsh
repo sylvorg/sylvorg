@@ -25,16 +25,9 @@ $XONSH_DEBUG = True
 $XONSH_SHOW_TRACEBACK = True
 
 # Xonsh Prompt
-$PROMPT_FIELDS["prompt_end"] = "Wheee!"
-$PROMPT = "{branch_color}{gitstatus} {BOLD_#FF4081}{prompt_end} "
+$PROMPT_FIELDS["prompt_end"] = "Wheee! 😹 "
+$PROMPT = "{BOLD_#FF4081}{prompt_end}"
 $RIGHT_PROMPT = "{BOLD_#E5004D}{env_name}{BOLD_#FC9F71}{user}@{hostname}"
-$BOTTOM_TOOLBAR = "{BOLD_#FCFDF7}{cwd} || {BOLD_#FF4081}" + str(datetime.now())
-
-# GIT Settings
-$GIT_AUTHOR_NAME = $(yadm config --get user.name)
-$GIT_AUTHOR_EMAIL = $(yadm config --get user.email)
-$GIT_COMMITTER_NAME = $GIT_AUTHOR_NAME
-$GIT_COMMITTER_EMAIL = $GIT_AUTHOR_EMAIL
 
 # Path
 sys_path.insert(0, "")

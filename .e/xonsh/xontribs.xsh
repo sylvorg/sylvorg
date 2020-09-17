@@ -8,7 +8,7 @@ xontrib load coreutils
 xontrib load fzf-widgets
 xontrib load kitty
 xontrib load pipeliner
-xontrib load prompt_bar
+# xontrib load prompt_bar
 xontrib load prompt_ret_code
 xontrib load readable-traceback
 xontrib load schedule
