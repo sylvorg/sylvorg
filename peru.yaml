@@ -4,6 +4,7 @@ imports:
     # The Solarized plugin gets its own directory, where Pathogen expects it.
     vim-mountaineer: .vim/bundle/mountaineer/
     vim-gunmetal: .vim/bundle/gunmetal/
+    vim-true: .vim/bundle/true/
 
 curl module pathogen:
     url: https://codeload.github.com/tpope/vim-pathogen/tar.gz/v2.4
@@ -17,3 +18,6 @@ git module vim-mountaineer:
 
 git module vim-gunmetal:
     url: https://github.com/co1ncidence/gunmetal.vim
+
+git module vim-true:
+    url: https://github.com/megantiu/true.vim

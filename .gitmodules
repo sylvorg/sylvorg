@@ -2,3 +2,6 @@
 [submodule ".e/vim/vimrc"]
 	path = .e/vim/vimrc
 	url = https://github.com/shadowrylander/vimrc
+[submodule "/home/shadowrylander/.config/qtile"]
+	path = /home/shadowrylander/.config/qtile
+	url = git@github.com:shadowrylander/qtile-config.git

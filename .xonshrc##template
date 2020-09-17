@@ -1,72 +1,47 @@
 # Note that type hints cannot be used
 
-xontrib load autojump
-xontrib load bashisms
-xontrib load coreutils
-xontrib load direnv
-xontrib load jedi
-xontrib load vox
-xontrib load powerline2
-
-from sty import fg
-from webcolors import hex_to_rgb
 from nanite import fullpath as fp
-from os import path as os_path, sep as os_sep, getcwd
-from inspect import getsourcefile
+from os import getcwd
 
 if getcwd() == "/":
     cd ~
 
 python_ver = "3.8"
-vox create base -p $(which @(f"python{python_ver}")) 2> /dev/null
-vox enter base 2> /dev/null
-
 home = fp("/home/shadowrylander")
 extras = fp(home, ".e")
 xtras = fp(extras, "xonsh")
 fzf_dir_file = fp(xtras, "fzf_tmux_dir_file.sh")
 
-# source @(fp(xtras, telegram_chat_vars.sec))
+# source @(fp(xtras, "telegram_chat_vars.sec"))
+source @(fp(xtras, "environ.xsh"))
+source @(fp(xtras, "functions.xsh"))
+source @(fp(xtras, "xontribs.xsh"))
 
-# GIT Settings
-$GIT_AUTHOR_NAME = $(yadm config --get user.name)
-$GIT_AUTHOR_EMAIL = $(yadm config --get user.email)
-$GIT_COMMITTER_NAME = $GIT_AUTHOR_NAME
-$GIT_COMMITTER_EMAIL = $GIT_AUTHOR_EMAIL
+{% if yadm.distro == "nixos" %}
+source @(fp(xtras, "nixos.xsh"))
 
-extra_paths = [
-    f"{home}/.nimble/bin",
-    f"{home}/go/bin",
-    "/usr/lib/node_modules",
-]
-$PATH += extra_paths
-if os_path.exists(fp("~/git-annex.linux")):
-   $PATH += fp("~/git-annex.linux")
-$DIRENV_WARN_TIMEOUT = "100y"
-$VI_MODE = True
-$LESSOPEN = "| /usr/share/source-highlight/src-hilite-lesspipe.sh %s"
-$LESS = " -R "
-$TERM = "xterm-256color"
-
-$XONSH_SHOW_TRACEBACK = True
-$XONSH_DEBUG = True
-$SHELL_TYPE = "prompt_toolkit"
-$AUTO_SUGGEST = True
-    
-def _yadm(args, stdin=None):
-    if args[0] == "edit":
-        nvim @(f"{args[1]}##template")
-    else:
-        yadm @(args)
-aliases["psn"] = _yadm
+# vox create base -p $(which @(f"python{python_ver}")) 2> /dev/null
+# vox enter base 2> /dev/null
 
 # aliases["evim"] = lambda args, stdin=None: $(emacsclient --socket-name=spacemacsd -t @(args))
-# $EDITOR = "emacsclient --socket-name=spacemacsd -t"
-$EDITOR = "nvim"
-
+aliases[".."] = "cd .."
+aliases["."] = "la ."
+aliases["amosh"] = lambda args, stdin=None: $(mosh --experimental-remote-ip=remote @(args))
+aliases["ba"] = "byobu attach"
+aliases["bd"] = "byobu detach"
+aliases["bda"] = "byobu detach-client -a"
+aliases["c"] = "clear"
+aliases["emd"] = "/usr/bin/emacs --bg-daemon=spacemacsd"
+aliases["ex"] = "vim '~/.xonshrc##template'"
+aliases["kemd"] = "emacsclient --socket-name=spacemacsd -e '(kill-emacs)'"
 aliases["la"] = lambda args, stdin=None: $(exa -la @(args)) if args else $(exa -la)
-aliases["s"] = lambda args, stdin=None: $(sudo @(args))
-aliases["ve"] = lambda args, stdin=None: $(vox enter @(args)) if args else $(vox exit)
 aliases["md"] = lambda args, stdin=None: $(mkdir -p @(args))
-
-aliases["resource"] = lambda args, stdin=None: $(source @(f"/home/{$(whoami)}/.xonshrc"))
+aliases["mdg"] = mdg
+aliases["n"] = "exit"
+aliases["psn"] = _yadm
+aliases["v"] = _vim
+aliases["remd"] = "emacsclient --socket-name=spacemacsd -e '(kill-emacs)' && /usr/bin/emacs --bg-daemon=spacemacsd"
+aliases["s"] = lambda args, stdin=None: $(sudo @(args))
+aliases["ssh"] = lambda args, stdin=None: $(assh wrapper ssh @(args))
+aliases["sx"] = "yadm alt && source ~/.xonshrc"
+aliases["ve"] = lambda args, stdin=None: $(vox enter @(args)) if args else $(vox exit)
