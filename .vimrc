@@ -23,3 +23,5 @@ colorscheme true
 
 " for kitty
 let &t_ut=''
+
+set foldcolumn=0
