@@ -6,13 +6,10 @@ def _yadm(args, stdin=None):
     if args[0] == "edit":
         vim @(fp(f"{args[1]}##template"))
     else:
-
         # From https://github.com/xonsh/xonsh/issues/3159#issuecomment-500364622
         $(which -s yadm) @(args)
 
-    return 
-
-def mdg(args, stdin=None):
+def _mdg(args, stdin=None):
     mkdir -p @(args)
     cd @(args[0])
 

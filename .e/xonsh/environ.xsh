@@ -26,8 +26,8 @@ $XONSH_SHOW_TRACEBACK = True
 
 # Xonsh Prompt
 $PROMPT_FIELDS["prompt_end"] = "Wheee! 😹 "
-$PROMPT = "{BOLD_#FF4081}{prompt_end}"
-$RIGHT_PROMPT = "{BOLD_#E5004D}{env_name}{BOLD_#FC9F71}{user}@{hostname}"
+$PROMPT = "{BOLD_#E5004D}{env_name} {BOLD_#FF4081}{prompt_end}"
+$RIGHT_PROMPT = "{BOLD_#FC9F71}{user}@{hostname} || {cwd}"
 
 # Path
 sys_path.insert(0, "")

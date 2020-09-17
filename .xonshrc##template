@@ -4,7 +4,7 @@ from nanite import fullpath as fp
 from os import getcwd
 
 if getcwd() == "/":
-    cd ~
+	cd ~
 
 python_ver = "3.8"
 home = fp("/home/shadowrylander")
@@ -16,6 +16,7 @@ fzf_dir_file = fp(xtras, "fzf_tmux_dir_file.sh")
 source @(fp(xtras, "environ.xsh"))
 source @(fp(xtras, "functions.xsh"))
 source @(fp(xtras, "xontribs.xsh"))
+source-zsh $(fasd --init auto)
 
 {% if yadm.distro == "nixos" %}
 source @(fp(xtras, "nixos.xsh"))
@@ -24,9 +25,9 @@ source @(fp(xtras, "nixos.xsh"))
 # vox enter base 2> /dev/null
 
 # aliases["evim"] = lambda args, stdin=None: $(emacsclient --socket-name=spacemacsd -t @(args))
+aliases["-"] = "pushd"
 aliases[".."] = "cd .."
 aliases["."] = "la ."
-aliases["amosh"] = lambda args, stdin=None: $(mosh --experimental-remote-ip=remote @(args))
 aliases["ba"] = "byobu attach"
 aliases["bd"] = "byobu detach"
 aliases["bda"] = "byobu detach-client -a"
@@ -36,12 +37,22 @@ aliases["ex"] = "vim '~/.xonshrc##template'"
 aliases["kemd"] = "emacsclient --socket-name=spacemacsd -e '(kill-emacs)'"
 aliases["la"] = lambda args, stdin=None: $(exa -la @(args)) if args else $(exa -la)
 aliases["md"] = lambda args, stdin=None: $(mkdir -p @(args))
-aliases["mdg"] = mdg
+aliases["mdg"] = _mdg
+aliases["mosh"] = lambda args, stdin=None: $($(which -s mosh) --experimental-remote-ip=remote @(args))
 aliases["n"] = "exit"
-aliases["yadm"] = _yadm
-aliases["v"] = _vim
 aliases["remd"] = "emacsclient --socket-name=spacemacsd -e '(kill-emacs)' && /usr/bin/emacs --bg-daemon=spacemacsd"
-aliases["s"] = lambda args, stdin=None: $(sudo @(args))
 aliases["ssh"] = lambda args, stdin=None: $(assh wrapper ssh @(args))
 aliases["sx"] = "yadm alt && source ~/.xonshrc"
+aliases["v"] = _vim
 aliases["ve"] = lambda args, stdin=None: $(vox enter @(args)) if args else $(vox exit)
+aliases["yadm"] = _yadm
+
+_fzf_df_alias = "..."
+def _fzf(args, stdin=True):
+	args = list(args)
+	dir_file = $(sh @(fzf_dir_file) @(fp(args.pop(0)))).rstrip()
+	if args[0] == _fzf_df_alias:
+		_fzf([dir_file] + args[1::])
+	else:
+		@(args) @(dir_file)
+aliases[_fzf_df_alias] = _fzf
