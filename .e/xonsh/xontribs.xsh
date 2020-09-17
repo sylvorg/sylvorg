@@ -12,7 +12,7 @@ xontrib load prompt_bar
 xontrib load prompt_ret_code
 xontrib load readable-traceback
 xontrib load schedule
-xontrib load ssh_agent
+# xontrib load ssh_agent
 xontrib load vox
 # xontrib load vox_tabcomplete
 xontrib load whole_word_jumping
