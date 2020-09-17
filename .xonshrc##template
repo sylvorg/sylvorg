@@ -38,7 +38,7 @@ aliases["la"] = lambda args, stdin=None: $(exa -la @(args)) if args else $(exa -
 aliases["md"] = lambda args, stdin=None: $(mkdir -p @(args))
 aliases["mdg"] = mdg
 aliases["n"] = "exit"
-aliases["psn"] = _yadm
+aliases["yadm"] = _yadm
 aliases["v"] = _vim
 aliases["remd"] = "emacsclient --socket-name=spacemacsd -e '(kill-emacs)' && /usr/bin/emacs --bg-daemon=spacemacsd"
 aliases["s"] = lambda args, stdin=None: $(sudo @(args))
