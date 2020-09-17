@@ -16,7 +16,7 @@ endif
 
 " enable the theme
 syntax enable
-colorscheme mountaineer
+colorscheme true
 
 " let g:true_airline = 1
 " let g:airline_theme='true'
