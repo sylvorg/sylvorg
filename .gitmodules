@@ -5,3 +5,6 @@
 [submodule "/home/shadowrylander/.config/qtile"]
 	path = /home/shadowrylander/.config/qtile
 	url = git@github.com:shadowrylander/qtile-config.git
+[submodule "/home/shadowrylander/.e/xonsh/bash-completion"]
+	path = /home/shadowrylander/.e/xonsh/bash-completion
+	url = https://github.com/scop/bash-completion.git
