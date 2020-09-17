@@ -4,7 +4,7 @@ xontrib load autoxsh
 xontrib load bashisms
 xontrib load coreutils
 xontrib load direnv
-xontrib load docker_tabcomplete
+# xontrib load docker_tabcomplete
 xontrib load fzf-widgets
 xontrib load kitty
 xontrib load pipeliner
