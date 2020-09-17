@@ -5,7 +5,8 @@ imports:
     vim-mountaineer: .vim/bundle/mountaineer/
     vim-gunmetal: .vim/bundle/gunmetal/
     vim-true: .vim/bundle/true/
-    kitty-themes: .e/kitty/themes
+    kitty-themes: .p/kitty/themes/
+    bash-completions: .p/xonsh/bash-completions
 
 curl module pathogen:
     url: https://codeload.github.com/tpope/vim-pathogen/tar.gz/v2.4
@@ -25,3 +26,6 @@ git module vim-true:
 
 git module kitty-themes:
     url: https://github.com/dexpota/kitty-themes
+
+git module bash-completions:
+    url: https://github.com/scop/bash-completion.git
