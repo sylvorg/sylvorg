@@ -3,6 +3,8 @@
 yadm remote set-url origin git@github.com/shadowrylander/shadowrylander.git
 yadm crypt unlock
 
+ssh-add
+
 sr = "/home/shadowrylander/shadowrylander"
 
 git clone -b system git@github.com/shadowrylander/shadowrylander.git @(sr)

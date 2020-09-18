@@ -54,7 +54,7 @@ aliases["ve"] = lambda args, stdin=None: $(vox enter @(args)) if args else $(vox
 aliases["yadm"] = _yadm
 
 # fasd aliases
-aliases["o"] = lambda args, stdin=None: $(fasd -ae xdg-open @(args))) # quick opening files with xdg-open
+aliases["o"] = lambda args, stdin=None: $(fasd -ae xdg-open @(args)) # quick opening files with xdg-open
 aliases["v"] = _fasdv # quick opening files with vim
 
 _fzf_df_alias = "..."

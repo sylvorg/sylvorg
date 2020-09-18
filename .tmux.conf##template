@@ -1,0 +1,50 @@
+#########################
+
+# key bindings
+unbind C-b
+unbind C-z
+unbind C-x
+set -g prefix C-Space
+
+{% if yadm.class == "client" %}
+set -g prefix M-s
+
+#########################
+
+run-shell "powerline-daemon -q"
+source "{repo directory}/powerline/bindings/tmux/powerline.conf"
+
+set -g visual-activity off
+
+# List of plugins
+set -g @plugin 'tmux-plugins/tpm'
+set -g @plugin 'tmux-plugins/tmux-sensible'
+# set -g @plugin 'tmux-plugins/tmux-resurrect'
+# set -g @plugin 'tmux-plugins/tmux-continuum'
+set -g @plugin 'tmux-plugins/tmux-pain-control'
+set -g @plugin 'tmux-plugins/tmux-battery'
+set -g @plugin 'tmux-plugins/tmux-prefix-highlight'
+
+# Other examples:
+# set -g @plugin 'github_username/plugin_name'
+# set -g @plugin 'git@github.com/user/plugin'
+# set -g @plugin 'git@bitbucket.com/user/plugin'
+
+# Tmux Resurrect and Continuum Settings:
+# set -g @continuum-boot 'on'
+# set -g @resurrect-save-bash-history 'on'
+# set -g @resurrect-dir '~/.byobu/tmux_resurrect'
+# set -g @continuum-save-interval '10'
+# set -g @continuum-restore 'on'
+# set -g @resurrect-processes 'vi vim nvim emacs man less more tail top htop irssi weechat mutt syncthing emacs ssh mosh 'mc "--nocolor"' gotop zsh ipython xsh xonsh 'tail "-f"' docker'
+# set -g @resurrect-capture-pane-contents 'on'
+# set -g @resurrect-strategy-vim 'session'
+# set -g @resurrect-strategy-nvim 'session'
+
+set -g status-right '#{prefix_highlight} | %a %Y-%m-%d %H:%M'
+
+# Spacemacs Settings:
+set -gs escape-time 10
+
+# Initialize TMUX plugin manager (keep this line at the very bottom of tmux.conf)
+run '~/.tmux/plugins/tpm/tpm'
