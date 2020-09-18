@@ -1,3 +1,4 @@
+syntax: glob
 _gsdata_
 .git
 .boar
@@ -14,3 +15,5 @@ _gsdata_
 **/deprecated
 **/unfinished
 **/.vscode
+
+syntax: regexp

@@ -5,6 +5,8 @@ imports:
     vim-mountaineer: .vim/bundle/mountaineer/
     vim-gunmetal: .vim/bundle/gunmetal/
     vim-true: .vim/bundle/true/
+    vim-eunuch: .vim/bundle/eunuch/
+    vim-auto-mkdir2: .vim/bundle/auto-mkdir2/
     kitty-themes: .p/kitty/themes/
     bash-completions: .p/xonsh/bash-completions
 
@@ -29,3 +31,11 @@ git module kitty-themes:
 
 git module bash-completions:
     url: https://github.com/scop/bash-completion.git
+
+git module vim-eunuch:
+    url: https://github.com/tpope/vim-eunuch
+
+# From: https://vi.stackexchange.com/questions/678/how-do-i-save-a-file-in-a-directory-that-does-not-yet-exist/679#679
+# By: https://vi.stackexchange.com/users/51/martin-tournoij
+git module vim-auto-mkdir2:
+    url: https://github.com/arp242/auto_mkdir2.vim
