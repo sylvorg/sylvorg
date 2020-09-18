@@ -1,3 +1,2 @@
 *.sec filter=git-crypt diff=git-crypt
 id_ecdsa filter=git-crypt diff=git-crypt
-id_ecdsa.pub filter=git-crypt diff=git-crypt
