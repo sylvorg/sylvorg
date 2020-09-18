@@ -1,5 +1,8 @@
 # Note that type hints cannot be used
 
+byobu attach -t client &> /dev/null
+byobu attach -t server &> /dev/null
+
 from nanite import fullpath as fp
 from os import getcwd
 
