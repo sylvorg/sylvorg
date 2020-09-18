@@ -13,5 +13,55 @@ def _mdg(args, stdin=None):
     mkdir -p @(args)
     cd @(args[0])
 
-def _vim(args, stdin=None):
-    $(which -s vim) @(args)
+# quick opening files with vim
+def _fasdv(args, stdin=None):
+    fasd -fe vim @(args)
+
+def hgsetup(args, stdin=None):
+    hg bookmark master
+    hg checkout master
+    hg add .hgignore
+    hg ci -m .hgignore
+    hg ci -Am @(args)
+    hg push
+
+def _alacritty_change_themes(args, stdin=None):
+    _alc = "alacritty"
+    _alc_theme = fullpath(
+        config_dir,
+        _alc,
+        "themes",
+        args[0]+".yaml"
+    )
+    _alc_config = fullpath(
+        "~",
+        ".config",
+        _alc,
+        _alc+".yml"
+    )
+    rsync @(_alc_theme) @(_alc_config)
+
+def _compile(args, stdin=None):
+    clear
+    name = args.pop(0)
+    g++ @(name + ".cpp")
+    ./a.out @(name) @(args)
+
+def _compile_only(args, stdin=None):
+    g++ @(args[0] + ".cpp")
+
+def _compile_header(args, stdin=None):
+    g++ @(args[0] + ".h")
+
+def _compile_link(args, stdin=None):
+    for arg in args:
+        g++ @(arg + ".cpp") -c
+    args = [arg + ".o" for arg in args]
+    g++ @(args) -o a.out
+
+def _direnv_allow(args, stdin=None):
+    if args:
+        for argument in args:
+            direnv allow @(argument)
+    else:
+        direnv allow

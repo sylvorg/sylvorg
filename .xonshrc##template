@@ -24,7 +24,9 @@ source @(fp(xtras, "nixos.xsh"))
 # vox create base -p $(which @(f"python{python_ver}")) 2> /dev/null
 # vox enter base 2> /dev/null
 
+# aliases["act"] = _alacritty_change_themes
 # aliases["evim"] = lambda args, stdin=None: $(emacsclient --socket-name=spacemacsd -t @(args))
+# aliases["hgsetup"] = hgsetup
 aliases["-"] = "pushd"
 aliases[".."] = "cd .."
 aliases["."] = "la ."
@@ -32,6 +34,11 @@ aliases["ba"] = "byobu attach"
 aliases["bd"] = "byobu detach"
 aliases["bda"] = "byobu detach-client -a"
 aliases["c"] = "clear"
+aliases["compile-header"] = _compile_header
+aliases["compile-link"] = _compile_link
+aliases["compile-only"] = _compile_only
+aliases["compile"] = _compile
+aliases["da"] = _direnv_allow
 aliases["emd"] = "/usr/bin/emacs --bg-daemon=spacemacsd"
 aliases["ex"] = "vim '~/.xonshrc##template'"
 aliases["kemd"] = "emacsclient --socket-name=spacemacsd -e '(kill-emacs)'"
@@ -43,9 +50,12 @@ aliases["n"] = "exit"
 aliases["remd"] = "emacsclient --socket-name=spacemacsd -e '(kill-emacs)' && /usr/bin/emacs --bg-daemon=spacemacsd"
 aliases["ssh"] = lambda args, stdin=None: $(assh wrapper ssh @(args))
 aliases["sx"] = "yadm alt && source ~/.xonshrc"
-aliases["v"] = _vim
 aliases["ve"] = lambda args, stdin=None: $(vox enter @(args)) if args else $(vox exit)
 aliases["yadm"] = _yadm
+
+# fasd aliases
+aliases["o"] = lambda args, stdin=None: $(fasd -ae xdg-open @(args))) # quick opening files with xdg-open
+aliases["v"] = _fasdv # quick opening files with vim
 
 _fzf_df_alias = "..."
 def _fzf(args, stdin=True):

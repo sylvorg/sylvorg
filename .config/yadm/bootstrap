@@ -1,3 +1,27 @@
 #!/usr/bin/env xonsh
 
+yadm remote set-url origin git@github.com/shadowrylander/shadowrylander.git
+yadm crypt unlock
+
+sr = "/home/shadowrylander/shadowrylander"
+
+git clone -b system git@github.com/shadowrylander/shadowrylander.git @(sr)
+
+for command in (
+    "remote add local /",
+    "add " + sr,
+    'commit --allow-empty-message -am ""',
+):
+    git -C @(sr) @(command)
+
+for command in (
+    "init",
+    "remote add local " + sr,
+    "remote add origin git@github.com/shadowrylander/shadowrylander.git",
+    "checkout -b system",
+    "fetch local system",
+    "reset --hard",
+):
+    sudo git -C / @(command)
+
 peru sync
