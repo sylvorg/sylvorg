@@ -37,12 +37,18 @@ set copyindent      " copy indent from the previous line
 set number
 
 " Insert Toggle
-imap kk <ESC>
-map kk i <BACKSPACE>
+imap ;; <ESC>
+map ;; i <BACKSPACE>
 
 " Change two spaces to four
-map jj :set ts=2 sts=2 noet <bar> :retab! <bar> :set ts=4 sts=4 et <bar> :retab <CR>
-imap jj <ESC> :set ts=2 sts=2 noet <bar> :retab! <bar> :set ts=4 sts=4 et <bar> :retab <CR>
+map \\ :set ts=2 sts=2 noet <bar> :retab! <bar> :set ts=4 sts=4 et <bar> :retab <CR>
+imap \\ <ESC> :set ts=2 sts=2 noet <bar> :retab! <bar> :set ts=4 sts=4 et <bar> :retab <CR>
+
+" Change movement keys to <space>wasd
+" noremap <Space-a> h
+" noremap <Space-s> j
+" noremap <Space-w> k
+" noremap <Space-d> l
 
 " Set Paste
 command SMP :set paste <CR>
