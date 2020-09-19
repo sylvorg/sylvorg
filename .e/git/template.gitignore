@@ -1,0 +1,8 @@
+_gsdata_
+.sync
+.*.swp
+*.!sync
+*.bts
+.stversions
+*.tmp
+.hg
