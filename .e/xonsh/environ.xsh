@@ -43,9 +43,10 @@ if os_path.exists(fp("~/git-annex.linux")):
 # Shell
 # $EDITOR = "emacsclient --socket-name=spacemacsd -t"
 $EDITOR = "vim"
+$TERM = "xterm-kitty"
+$GPG_TTY=$(tty)
 
 # Etc
 $DIRENV_WARN_TIMEOUT = "100y"
 $LESSOPEN = "| /usr/share/source-highlight/src-hilite-lesspipe.sh %s"
 $LESS = " -R "
-$TERM = "xterm-kitty"

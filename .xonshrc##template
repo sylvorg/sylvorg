@@ -15,7 +15,7 @@ extras = fp(home, ".e")
 xtras = fp(extras, "xonsh")
 fzf_dir_file = fp(xtras, "fzf_tmux_dir_file.sh")
 
-# source @(fp(xtras, "telegram_chat_vars.sec"))
+source @(fp(xtras, "passwords.sec"))
 source @(fp(xtras, "environ.xsh"))
 source @(fp(xtras, "functions.xsh"))
 source @(fp(xtras, "xontribs.xsh"))
