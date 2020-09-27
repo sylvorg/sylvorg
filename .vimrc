@@ -34,7 +34,7 @@ set expandtab       " tabs are space
 set autoindent
 set copyindent      " copy indent from the previous line
 
-set number
+set number relativenumber
 
 " Insert Toggle
 imap ;; <ESC>
@@ -45,10 +45,10 @@ map \\ :set ts=2 sts=2 noet <bar> :retab! <bar> :set ts=4 sts=4 et <bar> :retab 
 imap \\ <ESC> :set ts=2 sts=2 noet <bar> :retab! <bar> :set ts=4 sts=4 et <bar> :retab <CR>
 
 " Change movement keys to <space>wasd
-" noremap <Space-a> h
-" noremap <Space-s> j
-" noremap <Space-w> k
-" noremap <Space-d> l
+noremap <Space-a> h
+noremap <Space-s> j
+noremap <Space-w> k
+noremap <Space-d> l
 
 " Set Paste
 command SMP :set paste <CR>

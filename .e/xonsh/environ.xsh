@@ -47,6 +47,13 @@ $TERM = "xterm-kitty"
 $GPG_TTY=$(tty)
 
 # Etc
-$DIRENV_WARN_TIMEOUT = "100y"
+# $DIRENV_WARN_TIMEOUT = "100y"
 $LESSOPEN = "| /usr/share/source-highlight/src-hilite-lesspipe.sh %s"
 $LESS = " -R "
+
+# Linuxbrew
+# $LINUXBREWHOME = "/home/linuxbrew/.linuxbrew"
+# $PATH.append("$LINUXBREWHOME/bin")
+# $MANPATH = ["$LINUXBREWHOME/man"]
+# $PKG_CONFIG_PATH = ["$LINUXBREWHOME/lib64/pkgconfig", "$LINUXBREWHOME/lib/pkgconfig"]
+# $LD_LIBRARY_PATH = ["$LINUXBREWHOME/lib64", "$LINUXBREWHOME/lib"]

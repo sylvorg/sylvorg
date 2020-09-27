@@ -20,6 +20,7 @@ source @(fp(xtras, "environ.xsh"))
 source @(fp(xtras, "functions.xsh"))
 source @(fp(xtras, "xontribs.xsh"))
 source-zsh $(fasd --init auto)
+source-zsh @(fp(home, ".nix-profile", "etc", "profile.d", "hm-session-vars.sh"))
 
 {% if yadm.distro == "nixos" %}
 source @(fp(xtras, "nixos.xsh"))
@@ -45,7 +46,7 @@ aliases["da"] = _direnv_allow
 aliases["emd"] = "/usr/bin/emacs --bg-daemon=spacemacsd"
 aliases["ex"] = "vim '~/.xonshrc##template'"
 aliases["kemd"] = "emacsclient --socket-name=spacemacsd -e '(kill-emacs)'"
-aliases["la"] = lambda args, stdin=None: $(exa -la @(args)) if args else $(exa -la)
+aliases["la"] = _la
 aliases["md"] = lambda args, stdin=None: $(mkdir -p @(args))
 aliases["mdg"] = _mdg
 aliases["mosh"] = lambda args, stdin=None: $($(which -s mosh) --experimental-remote-ip=remote @(args))
@@ -55,7 +56,7 @@ aliases["ssh"] = lambda args, stdin=None: $(assh wrapper ssh @(args))
 aliases["sx"] = "yadm alt && source ~/.xonshrc"
 aliases["ve"] = lambda args, stdin=None: $(vox enter @(args)) if args else $(vox exit)
 aliases["yadm"] = _yadm
-aliases["git"] = lambda args, stdin=None: $(hub @(args)) 
+aliases["git"] = _git
 
 # fasd aliases
 aliases["o"] = lambda args, stdin=None: $(fasd -ae xdg-open @(args)) # quick opening files with xdg-open

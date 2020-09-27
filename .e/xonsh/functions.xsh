@@ -65,3 +65,14 @@ def _direnv_allow(args, stdin=None):
             direnv allow @(argument)
     else:
         direnv allow
+
+def _la(args, stdin=None):
+    if "-t" in args:
+        args = list(args)
+        args.remove("-t")
+        exa -laT @(args)
+    else:
+        exa -la @(args)
+
+def _git(args, stdin=None):
+    $(which -s hub) @(args)
