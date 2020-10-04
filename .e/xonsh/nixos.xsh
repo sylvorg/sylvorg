@@ -1,1 +1,1 @@
-/nix/store/g7f9m2c2rv22kvi0z62dgmxhaw23s641-home-manager-files/.e/xonsh/nixos.xsh
+/nix/store/k19mzciwz5kkrlv3mndzh4xnsjnn2ang-home-manager-files/.e/xonsh/nixos.xsh
