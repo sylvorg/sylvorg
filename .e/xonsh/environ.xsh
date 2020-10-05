@@ -31,7 +31,7 @@ $XONSH_SHOW_TRACEBACK = True
 $PROMPT_FIELDS["prompt_end"] = "Wheee! 😹 "
 # $PROMPT = "{BOLD_#E5004D}{env_name} {BOLD_#FF4081}{prompt_end}"
 $PROMPT = lambda: $(starship prompt)
-$RIGHT_PROMPT = "{BOLD_#E5004D} {env_name}{BOLD_#FC9F71} || {BOLD_#E5004D} {prompt_end} {BOLD_#FC9F71} || {BOLD_#E5004D} {user}@{hostname} {BOLD_#FC9F71} || {BOLD_#E5004D} {cwd} "
+$RIGHT_PROMPT = "{BOLD_#E5004D} {prompt_end}{BOLD_#FC9F71} || {BOLD_#E5004D} {user}@{hostname} "
 # $BOTTOM_TOOLBAR = $RIGHT_PROMPT
 
 # Path
