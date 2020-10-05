@@ -76,3 +76,6 @@ def _la(args, stdin=None):
 
 def _git(args, stdin=None):
     $(which -s hub) @(args)
+
+def _ssh(args, stdin=None):
+    $(which -s assh) wrapper ssh @(args)

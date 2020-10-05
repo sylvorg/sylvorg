@@ -21,7 +21,10 @@ $UPDATE_OS_ENVIRON = True
 $VI_MODE = True
 $XONSH_AUTOPAIR = True
 $XONSH_CACHE_EVERYTHING = True
-$XONSH_DEBUG = True
+
+# This enumerates all history files when set to true
+$XONSH_DEBUG = False
+
 $XONSH_SHOW_TRACEBACK = True
 
 # Xonsh Prompt

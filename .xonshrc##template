@@ -19,8 +19,8 @@ fzf_dir_file = fp(xtras, "fzf_tmux_dir_file.sh")
 source @(fp(xtras, "environ.xsh"))
 source @(fp(xtras, "functions.xsh"))
 source @(fp(xtras, "xontribs.xsh"))
-source-zsh $(fasd --init auto)
-source-zsh @(fp(home, ".nix-profile", "etc", "profile.d", "hm-session-vars.sh"))
+# source-zsh $(fasd --init auto)
+# source-zsh @(fp(home, ".nix-profile", "etc", "profile.d", "hm-session-vars.sh"))
 
 {% if yadm.distro == "nixos" %}
 source @(fp(xtras, "nixos.xsh"))
@@ -52,7 +52,7 @@ aliases["mdg"] = _mdg
 aliases["mosh"] = lambda args, stdin=None: $($(which -s mosh) --experimental-remote-ip=remote @(args))
 aliases["n"] = "exit"
 aliases["remd"] = "emacsclient --socket-name=spacemacsd -e '(kill-emacs)' && /usr/bin/emacs --bg-daemon=spacemacsd"
-aliases["ssh"] = lambda args, stdin=None: $(assh wrapper ssh @(args))
+# aliases["ssh"] = _ssh
 aliases["sx"] = "yadm alt && source ~/.xonshrc"
 aliases["ve"] = lambda args, stdin=None: $(vox enter @(args)) if args else $(vox exit)
 aliases["yadm"] = _yadm
