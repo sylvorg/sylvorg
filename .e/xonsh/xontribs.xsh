@@ -5,7 +5,6 @@
 # xontrib load prompt_ret_code
 # xontrib load ssh_agent
 # xontrib load vox_tabcomplete
-# xontrib load z
 xontrib load abbrevs
 xontrib load autoxsh
 xontrib load bashisms
@@ -17,6 +16,7 @@ xontrib load readable-traceback
 xontrib load schedule
 xontrib load vox
 xontrib load whole_word_jumping
+xontrib load z
 
 # Jedi was what was causing the python function completions
 # instead of the path completions
