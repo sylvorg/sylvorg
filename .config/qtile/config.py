@@ -109,20 +109,19 @@ dgroups_key_binder = simple_key_binder("mod4")
 
 layouts = [
     layout.TreeTab(
-            font='Liberation Sans',
-            name="looking good",
-            bg_color="#31363D",
-            inactive_bg="151515",
-            panel_width=100,
+            font='Cartograph CF Light Italic',
+            name="tree tab",
+            bg_color="#222222",
+            inactive_bg="#AB5DEE",
+            panel_width=150,
             margin_left=0,
             margin_y=0,
             sections=['TreeTab'],
             section_left=0,
             padding_x=4,
-            active_bg="#69B2B8",
+            active_bg="#FFB86C",
             rounded=False,
         ),
-    layout.Max(),
     layout.MonadTall(
             name="xmonad tall",
             ratio=0.5,
@@ -152,9 +151,9 @@ floating_layout = layout.Floating(
         )
 
 widget_defaults = dict(
-    font='Liberation Sans',
+    font='Cartograph CF Light Italic',
     fontsize=12,
-    background="#974E69",
+    background="#222222",
     markup=True,
 )
 
@@ -167,15 +166,15 @@ screens = [
                         margin=0,
                         padding=6,
                         active="FFFFFF",
-                        inactive="BABABA",
+                        inactive="FFB86C",
                         highlight_method="block",
-                        this_current_screen_border="#335260",
+                        this_current_screen_border="#AB5DEE",
                         invert_mouse_wheel=True,
                         rounded=False,
                     ),
                 widget.Prompt(),
                 widget.CurrentLayout(
-                        background="#69B2B8",
+                        background="#E11B22",
                     ),
                 widget.Spacer(),
                 #widget.WindowName(),
