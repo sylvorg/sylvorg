@@ -1,6 +1,8 @@
 _gsdata_
 .git
 .boar
+temp
+_build
 **/*.sync
 **/*.swp
 **/*.!sync
