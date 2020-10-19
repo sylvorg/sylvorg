@@ -2,7 +2,7 @@ _gsdata_
 .git
 .boar
 temp
-_build
+**/_build
 **/*.sync
 **/*.swp
 **/*.!sync
@@ -10,9 +10,5 @@ _build
 **/*.tmp
 **/__pycache__
 **/*.test.*
-**/*.envrc
 **/dist
-**/tests
-**/deprecated
-**/unfinished
 **/.vscode
