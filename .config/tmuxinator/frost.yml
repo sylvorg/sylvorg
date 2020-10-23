@@ -43,3 +43,4 @@ windows:
   - master: clear
   - gotop: gotop
   - glances: glances
+  - wtf: wtf
