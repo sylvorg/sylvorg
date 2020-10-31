@@ -1,3 +1,7 @@
 [submodule "/home/shadowrylander/.s/vim/vimrc"]
 	path = /home/shadowrylander/.s/vim/vimrc
 	url = git@github.com:shadowrylander/vimrc
+[submodule "/home/shadowrylander/shadowrylander"]
+	path = /home/shadowrylander/shadowrylander
+	url = git@github.com:shadowrylander/shadowrylander
+	branch = system
