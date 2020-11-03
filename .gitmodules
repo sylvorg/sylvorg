@@ -5,3 +5,6 @@
 	path = /home/shadowrylander/shadowrylander
 	url = git@github.com:shadowrylander/shadowrylander
 	branch = system
+[submodule "/home/shadowrylander/.emacs.d"]
+	path = /home/shadowrylander/.emacs.d
+	url = git@github.com:shadowrylander/doom-emacs.git
