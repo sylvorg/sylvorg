@@ -1,1 +1,1 @@
-/nix/store/7h0wbqr02cl2pq8s5lqn0iwi2dswf2qr-home-manager-files/.e/direnv/nixos.sh
+/nix/store/s8i197x23a40l9iz0d1j582g1y5qim1h-home-manager-files/.e/direnv/nixos.sh
