@@ -3,11 +3,32 @@
 ;; Place your private configuration here! Remember, you do not need to run 'doom
 ;; sync' after modifying this file!
 
+;;
+
+;; Follow symlinks
+(setq vc-follow-symlinks t)
+
+;; Use Python Syntax Highlighting for ".xonshrc" files
+(setq auto-mode-alist 
+      (append '((".*\\.xonshrc\\'" . python-mode))
+              auto-mode-alist))
+(setq auto-mode-alist 
+      (append '((".*\\.xsh\\'" . python-mode))
+              auto-mode-alist))
+(setq auto-mode-alist 
+      (append '((".*\\.borg\\'" . toml-mode))
+              auto-mode-alist))
+
+;; Themes
+
+
+
+;;
 
 ;; Some functionality uses this to identify you, e.g. GPG configuration, email
 ;; clients, file templates and snippets.
-(setq user-full-name "John Doe"
-      user-mail-address "john@doe.com")
+(setq user-full-name "Jeet Ray"
+      user-mail-address "aiern@protonmail.com")
 
 ;; Doom exposes five (optional) variables for controlling fonts in Doom. Here
 ;; are the three important ones:
@@ -20,7 +41,8 @@
 ;; They all accept either a font-spec, font string ("Input Mono-12"), or xlfd
 ;; font string. You generally only need these two:
 ;; (setq doom-font (font-spec :family "monospace" :size 12 :weight 'semi-light)
-;;       doom-variable-pitch-font (font-spec :family "sans" :size 13))
+(setq doom-font (font-spec :family "Cartograph CF" :size 15 :weight 'light)
+      doom-variable-pitch-font (font-spec :family "sans" :size 13))
 
 ;; There are two ways to load a theme. Both assume the theme is installed and
 ;; available. You can either set `doom-theme' or manually load a theme with the
