@@ -29,7 +29,7 @@ source @(fp(xtras, "nixos.xsh"))
 # vox enter base 2> /dev/null
 
 # aliases["act"] = _alacritty_change_themes
-# aliases["evim"] = lambda args, stdin=None: $(emacsclient --socket-name=spacemacsd -t @(args))
+aliases["evim"] = _evim
 # aliases["hgsetup"] = hgsetup
 aliases["-"] = "pushd"
 aliases[".."] = "cd .."
@@ -43,15 +43,15 @@ aliases["compile-link"] = _compile_link
 aliases["compile-only"] = _compile_only
 aliases["compile"] = _compile
 aliases["da"] = _direnv_allow
-aliases["emd"] = "/usr/bin/emacs --bg-daemon=spacemacsd"
+aliases["emd"] = "emacs --bg-daemon=doom"
 aliases["ex"] = "vim '~/.xonshrc##template'"
-aliases["kemd"] = "emacsclient --socket-name=spacemacsd -e '(kill-emacs)'"
+aliases["kemd"] = "emacsclient --socket-name=doom -e '(kill-emacs)'"
 aliases["la"] = _la
 aliases["md"] = lambda args, stdin=None: $(mkdir -p @(args))
 aliases["mdg"] = _mdg
 aliases["mosh"] = lambda args, stdin=None: $($(which -s mosh) --experimental-remote-ip=remote @(args))
 aliases["n"] = "exit"
-aliases["remd"] = "emacsclient --socket-name=spacemacsd -e '(kill-emacs)' && /usr/bin/emacs --bg-daemon=spacemacsd"
+aliases["remd"] = "emacsclient --socket-name=doom -e '(kill-emacs)' && emacs --bg-daemon=doom"
 # aliases["ssh"] = _ssh
 aliases["sx"] = "yadm alt && source ~/.xonshrc"
 aliases["ve"] = lambda args, stdin=None: $(vox enter @(args)) if args else $(vox exit)

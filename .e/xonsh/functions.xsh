@@ -74,6 +74,9 @@ def _la(args, stdin=None):
     else:
         exa -la @(args)
 
+def _evim(args, stdin=None):
+    emacsclient --socket-name=doom -t @(args)
+
 def _git(args, stdin=None):
     $(which -s hub) @(args)
 
