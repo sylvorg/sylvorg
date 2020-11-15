@@ -1,5 +1,3 @@
 #!/usr/bin/env xonsh
 
-yadm remote set-url origin git@github.com/shadowrylander/shadowrylander.git
-
 peru sync
