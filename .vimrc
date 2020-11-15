@@ -16,7 +16,7 @@ endif
 
 " enable the theme
 syntax enable
-colorscheme mountaineer
+colorscheme fairyfloss
 
 " let g:true_airline = 1
 " let g:airline_theme='true'
@@ -58,3 +58,12 @@ command SNP :set nopaste <CR>
 
 " Tab to insert
 map <TAB> i <TAB>
+
+" Vim Signit
+let g:signit_initials = "JR"
+let g:signit_name = "Jeet Ray"
+" let g:signit_extra_1
+" let g:signit_extra_2
+" let g:signit_position
+let g:signit_ascii_font = "isometric1.flf"
+" let g:signit_ascii_spacing

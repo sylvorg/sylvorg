@@ -1,13 +1,15 @@
 imports:
     # We're going to merge Pathogen's autoload directory into our own.
     pathogen: .vim/autoload/
-    # The Solarized plugin gets its own directory, where Pathogen expects it.
+    # The Mountaineer plugin gets its own directory, where Pathogen expects it.
     vim-mountaineer: .vim/bundle/mountaineer/
     vim-gunmetal: .vim/bundle/gunmetal/
     vim-true: .vim/bundle/true/
+    vim-fairyfloss: .vim/bundle/fairyfloss/
     vim-eunuch: .vim/bundle/eunuch/
     vim-commentary: .vim/bundle/commentary/
     vim-auto-mkdir2: .vim/bundle/auto-mkdir2/
+    vim-signit: .vim/bundle/vim-signit/
     jupyter-vim: .vim/bundle/jupyter-vim/
     kitty-themes: .p/kitty/themes/
     bash-completions: .p/xonsh/bash-completions
@@ -28,6 +30,9 @@ git module vim-gunmetal:
 git module vim-true:
     url: https://github.com/megantiu/true.vim
 
+git module vim-fairyfloss:
+    url: https://github.com/tssm/fairyfloss.vim
+
 git module kitty-themes:
     url: https://github.com/dexpota/kitty-themes
 
@@ -44,6 +49,9 @@ git module vim-commentary:
 # By: https://vi.stackexchange.com/users/51/martin-tournoij
 git module vim-auto-mkdir2:
     url: https://github.com/arp242/auto_mkdir2.vim
+
+git module vim-signit:
+    url: https://github.com/johannesthyssen/vim-signit
 
 git module jupyter-vim:
     url: https://github.com/jupyter-vim/jupyter-vim.git
