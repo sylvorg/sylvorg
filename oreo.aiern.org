@@ -4172,7 +4172,7 @@ init:
 
        ;; TODO
        (org +roam)               ; organize your plain life in plain text
-
+       ;;org               ; organize your plain life in plain text
 
        ;; org               ; organize your plain life in plain text
        ;;(php +lsp)               ; perl's insecure younger brother
@@ -5550,6 +5550,8 @@ Mostly from [[Emux's After Installing Section][https://github.com/re5et/emux#aft
 
 Adapted from [[Ergoemacs' Emacs Lisp Code for Setting PATH and exec-path section][http://ergoemacs.org/emacs/emacs_env_var_paths.html]]:
 
+# TODO: Combine the current `$PATH' with `exec-path'
+
 #+call: hash("")
 
 #+RESULTS:
@@ -5557,16 +5559,18 @@ Adapted from [[Ergoemacs' Emacs Lisp Code for Setting PATH and exec-path section
 
 #+name: 8df0b63f0fd76eebb81255e9cb13e72f
 #+begin_src emacs-lisp
-(eval `(let ((mypaths
-    '(
-        ,(concat "/home/" (getenv "USER") "/.nix-profile/bin")
-        "/home/linuxbrew/.linuxbrew/bin"
-        "/usr/bin"
-        ,(concat "/home/" (getenv "USER") "/.emacs.d/bin")
-        ,(concat "/home/" (getenv "USER") "/.doom.d"))))
-    ;; (setenv "PATH" (mapconcat 'identity mypaths ";") )
-    (setq exec-path (append mypaths (list "." exec-directory)) )
-))
+;; (eval `(let ((mypaths
+;;     '(
+;;         ,(concat "/home/" (getenv "USER") "/.nix-profile/bin")
+;;         "/home/linuxbrew/.linuxbrew/bin"
+;;         "/usr/bin"
+;;         "/usr/sbin"
+;;         ,(concat "/home/" (getenv "USER") "/.emacs.d/bin")
+;;         ,(concat "/home/" (getenv "USER") "/.doom.d"))))
+;;     ;; (setenv "PATH" (mapconcat 'identity mypaths ";") )
+;;     (setq exec-path (append mypaths (list "." exec-directory)) )
+;; ))
+(use-package! exec-path-from-shell :demand t)
 #+end_src
 
 ***** etc
@@ -5674,6 +5678,8 @@ Adapted from [[Ergoemacs' Emacs Lisp Code for Setting PATH and exec-path section
     :recipe (:host github :repo "re5et/emux" :branch "master"))
 (package! elscreen
     :recipe (:host github :repo "knu/elscreen" :branch "master"))
+(package! exec-path-from-shell
+    :recipe (:host github :repo "purcell/exec-path-from-shell" :branch "master"))
 #+end_src
 
 *** org-tangle

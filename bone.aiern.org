@@ -2043,7 +2043,7 @@ If you click elsewhere in a buffer other than the minibuffer, then
 ;;; help+20.el ends here
 #+end_src
 
-*** elscreen.el
+*** escreen.el
 
 #+call: hash("")
 

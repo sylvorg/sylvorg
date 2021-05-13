@@ -141,7 +141,7 @@
 
        ;; TODO
        (org +roam)               ; organize your plain life in plain text
-
+       ;;org               ; organize your plain life in plain text
 
        ;; org               ; organize your plain life in plain text
        ;;(php +lsp)               ; perl's insecure younger brother

@@ -1,3 +1,4 @@
 system/etc/nixos/config/**/*
 !system/etc/nixos/config/**/README.*
 !system/etc/nixos/config/**/*.org
+/doom-sandbox

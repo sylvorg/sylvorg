@@ -47,3 +47,5 @@
     :recipe (:host github :repo "re5et/emux" :branch "master"))
 (package! elscreen
     :recipe (:host github :repo "knu/elscreen" :branch "master"))
+(package! exec-path-from-shell
+    :recipe (:host github :repo "purcell/exec-path-from-shell" :branch "master"))

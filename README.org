@@ -61,7 +61,7 @@ switch:
 * previous projects
 ** bakery
 
-My pride and joy; based off of [[Andrew Moffat's][https://github.com/amoffat]] [[sh][https://amoffat.github.io/sh/]],
+My pride and joy; based off of [[https://github.com/amoffat][Andrew Moffat's]] [[https://amoffat.github.io/sh/][sh]],
 this python module allows you to import shell commands as modules as well. For example:
 
 # How does the code below work exactly, again? Revise it!
