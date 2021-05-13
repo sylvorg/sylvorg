@@ -1,0 +1,822 @@
+#+setupfile: /README.org
+#+include: /README.org
+* Emacs
+
+To save on startup time, I used a few of the tips from [[here][https://blog.d46.us/advanced-emacs-startup/]], scattered throughout the code.
+
+** Ingests
+
+These are files required to complete the tangle:
+
+# Get all files in the current file's directory and ingest them; put this function in /README.org
+#+name: ingests
+#+begin_src elisp :results none
+(org-babel-lob-ingest "doom-modeline.org")
+#+end_src
+
+** Use-Package & Straight
+
+*** Bootstraping Straight
+
+This snippet is taken from the [[getting started][https://github.com/raxod502/straight.el#getting-started]] section of
+[[https://github.com/raxod502/straight.el][straight's GitHub README]]:
+
+#+name: straight-bootstrap
+#+begin_src elisp
+;; From: https://www.emacswiki.org/emacs/GccEmacs
+(setq package-native-compile t)
+(setq comp-deferred-compilation t)
+
+(defvar bootstrap-version)
+(let ((bootstrap-file
+       (expand-file-name "straight/repos/straight.el/bootstrap.el" user-emacs-directory))
+      (bootstrap-version 5))
+  (unless (file-exists-p bootstrap-file)
+    (with-current-buffer
+        (url-retrieve-synchronously
+         "https://raw.githubusercontent.com/raxod502/straight.el/develop/install.el"
+         'silent 'inhibit-cookies)
+      (goto-char (point-max))
+      (eval-print-last-sexp)))
+  (load bootstrap-file nil 'nomessage))
+<<use-straight>>
+#+end_src
+
+*** Configuring Use-Package to Use-Straight :P
+
+This is from [[Switching to straight.el from Emacs 26 builtin package.el
+][https://github.crookster.org/switching-to-straight.el-from-emacs-26-builtin-package.el/#step-1-bootstrap-straightel]]:
+
+#+name: use-straight
+#+begin_src elisp
+;; Effectively replace use-package with straight-use-package
+;; https://github.com/raxod502/straight.el/blob/develop/README.md#integration-with-use-package
+(setq straight-use-package-by-default t)
+
+;; From: https://github.com/hartzell/straight.el/commit/882649137f73998d60741c7c8c993c7ebbe0f77a#diff-b335630551682c19a781afebcf4d07bf978fb1f8ac04c6bf87428ed5106870f5R1649
+;; NOTE: THIS DOES NOT WORK WITH GCCEMACS, RESULTING IN "Symbol's value as variable is void: comp-deferred-compilation-black-list"!
+(setq straight-disable-byte-compilation t)
+#+end_src
+
+*** Always Defer Package Loading
+
+Quoted from [[Use-Package's Loading packages in sequence
+][https://github.com/jwiegley/use-package#loading-packages-in-sequence]]:
+
+#+begin_quote
+NOTE: pay attention if you set use-package-always-defer to t, and also use the :after keyword, as you will need to specify how the
+declared package is to be loaded: e.g., by some :bind. If you're not using one of the mechanisms that registers autoloads, such as
+:bind or :hook, and your package manager does not provide autoloads, it's possible that without adding :defer 2 to those declarations,
+your package will never be loaded.
+#+end_quote
+
+Quoted from [[Use-Package's Notes about lazy loading][https://github.com/jwiegley/use-package#notes-about-lazy-loading]]:
+
+#+begin_quote
+In almost all cases you don't need to manually specify :defer t. This is implied whenever :bind or :mode or :interpreter is used.
+Typically, you only need to specify :defer if you know for a fact that some other package will do something to cause your package to
+load at the appropriate time, and thus you would like to defer loading even though use-package isn't creating any autoloads for you.
+You can override package deferral with the :demand keyword. Thus, even if you use :bind, using :demand will force loading to occur
+immediately and not establish an autoload for the bound key.
+#+end_quote
+
+Quoted from [[RYO-Modal's Use-package keyword][https://github.com/Kungsgeten/ryo-modal#use-package-keyword]]:
+
+#+begin_quote
+Ryo-modal also provides a use-package keyword: :ryo, which is similar to :bind in that it implies :defer t and create autoloads for the bound commands.
+The keyword is followed by one or more key-binding commands, using the same syntax as used by ryo-modal-keys...
+#+end_quote
+
+Quoted from [[General's Use-package Keywords][https://github.com/noctuid/general.el#use-package-keywords]]:
+
+#+begin_quote
+:general is similar to :bind in that it implies :defer t whenever there are bound commands that can be autoloaded
+(e.g. it will not imply :defer t if the only bound command is to a lambda, for example). Whenever autoloadable commands are bound,
+use-package will create autoloads for them (though this is usually not necessary).
+#+end_quote
+
+Also see [[this comment][https://github.com/jwiegley/use-package/issues/738#issuecomment-447631609]].
+
+Note that I assume that [[chords][https://github.com/jwiegley/use-package#use-package-chords]] also defer and create autoloads.
+
+And in my experience... Not a good idea; much too confusing. Use
+[[the arguments here][https://www.reddit.com/r/emacs/comments/j2xezg/usepackage_best_practices/]] to decide whether to use this or =:defer <n>= instead.
+
+#+name: use-package-always-defer
+#+begin_src elisp
+(setq use-package-always-defer t)
+#+end_src
+
+*** Putting It All Together
+
+#+name: use-package-straight
+#+begin_src elisp
+<<straight-bootstrap>>
+(add-to-list 'load-path "~/.emacs.p")
+(straight-use-package '(use-package :host github :repo "jwiegley/use-package" :branch "master"))
+(require 'use-package)
+
+<<use-package-always-defer>>
+
+(use-package use-package-hydra
+    :demand t
+    :straight (:host gitlab :repo "to1ne/use-package-hydra" :branch "master"))
+
+;; Adapted From: https://github.com/jwiegley/use-package#use-package-chords
+;; Important: https://github.com/noctuid/general.el/issues/53#issuecomment-307262154
+(use-package use-package-chords
+    :hook (after-init . key-chord-mode))
+
+;; Example: https://github.com/jwiegley/use-package/issues/679#issuecomment-389953326
+(use-package general
+    :demand t
+    :config
+        (general-auto-unbind-keys t)
+        ;; (general-override-mode t)
+    :straight (:host github :repo "noctuid/general.el" :branch "master"))
+
+;; From: https://github.com/jwiegley/use-package#use-packageel-is-no-longer-needed-at-runtime
+(require 'bind-key)                ;; if you use any :bind variant
+#+end_src
+
+** Org-Mode
+
+*** Visual-Line-Mode
+
+Quoted from [[Beautifying Org Mode in Emacs][https://zzamboni.org/post/beautifying-org-mode-in-emacs/]]:
+
+#+begin_quote
+With visual-line-mode enabled, long lines will flow and adjust to the width of the window.
+This is great for writing prose, because you can choose how wide your lines are by just resizing your window. ...
+You can enable visual-line-mode automatically for org buffers by setting up another hook:
+#+end_quote
+
+#+name: visual-line-mode
+#+begin_src elisp
+(add-hook 'org-mode-hook 'visual-line-mode)
+#+end_src
+
+*** Org-Plus-Contrib
+
+Stolen from [[https://github.com/raxod502/straight.el/pull/535#issuecomment-716030643][this pull request]]:
+
+#+name: org-plus-contrib
+#+begin_src elisp
+(org-plus-contrib
+    :type git
+    :repo "https://code.orgmode.org/bzg/org-mode.git"
+    :local-repo "org"
+    :build (gnu/linux . ("make" "oldorg" "EMACS=/usr/bin/emacs"))
+    :files (:defaults "contrib/lisp/*.el")
+    :includes (org))
+#+end_src
+
+*** Org-Babel-Tangle-Append
+
+This is taken from
+[[https://emacs.stackexchange.com/questions/28098/how-to-change-org-mode-babel-tangle-write-to-file-way-as-append-instead-of-overr/38898#38898][How to change Org-mode babel tangle write to file way as append instead of override by default?
+]], by [[https://emacs.stackexchange.com/users/2370/tobias][Tobias]]:
+
+#+name: org-babel-tangle-append
+#+begin_src elisp
+(defun org-babel-tangle-append nil
+  "Append source code block at point to its tangle file.
+The command works like `org-babel-tangle' with prefix arg
+but `delete-file' is ignored."
+  (interactive)
+  (cl-letf (((symbol-function 'delete-file) #'ignore))
+    (org-babel-tangle '(4))))
+
+(defun org-babel-tangle-append-setup nil
+  "Add key-binding C-c C-v C-t for `org-babel-tangle-append'."
+  (org-defkey org-mode-map (kbd "C-c C-v +") 'org-babel-tangle-append))
+
+(add-hook 'org-mode-hook #'org-babel-tangle-append-setup)
+#+end_src
+
+*** Org-Roam
+
+Taken from [[Org-Roam's GitHub README][https://github.com/org-roam/org-roam#installation]], adapted by yours truely:
+
+#+name: org-roam
+#+begin_src elisp
+(use-package org-roam
+    :after org
+    :hook
+        (after-init . org-roam-mode)
+    :custom
+        (org-roam-directory org-directory)
+    :general
+        (:keymaps 'org-roam-mode-map
+            "C-c n l" 'org-roam
+            "C-c n f" 'org-roam-find-file
+            "C-c n g" 'org-roam-graph)
+        (:keymaps 'org-mode-map
+            "C-c n i" 'org-roam-insert
+            "C-c n I" 'org-roam-insert-immediate))
+#+end_src
+
+*** Putting It All Together
+
+#+name: org-mode
+#+begin_src elisp
+;; Adapted From: https://github.com/NixOS/nix-mode/blob/master/nix-mode.org
+(use-package nix-mode
+    :mode ("\\.nix\\'" "\\.nix.in\\'")
+    :preface
+        ;; Adapted From:
+        ;; Answer: https://emacs.stackexchange.com/a/61442
+        ;; User: https://emacs.stackexchange.com/users/20061/zeta
+        (defun org-babel-execute:nix (body params)
+            "Execute a block of Nix code with org-babel."
+            (message "executing Nix source code block")
+            (let ((in-file (org-babel-temp-file "n" ".nix"))
+                (json (or (cdr (assoc :json params)) nil))
+                (opts (or (cdr (assoc :opts params)) ""))
+                (args (or (cdr (assoc :args params)) ""))
+                (read-write-mode (or (cdr (assoc :read-write-mode params)) nil))
+                (eval (or (cdr (assoc :eval params)) nil))
+                (show-trace (or (cdr (assoc :show-trace params)) nil)))
+            (with-temp-file in-file
+                (insert body))
+            (org-babel-eval
+                (format "nix-instantiate %s %s %s %s %s %s %s"
+                    (if (xor (eq json nil) (<= json 0)) "" "--json")
+                    (if (xor (eq show-trace nil) (<= show-trace 0)) "" "--show-trace")
+                    (if (xor (eq read-write-mode nil) (<= read-write-mode 0)) "" "--read-write-mode")
+                    (if (xor (eq eval nil) (<= eval 0)) "" "--eval")
+                    (opts)
+                    (args)
+                    (org-babel-process-file-name in-file))
+            "")))
+    :commands
+        (org-babel-execute:nix
+        org-babel-expand-body:nix))
+;; (use-package nix-drv-mode
+;;   :ensure nix-mode
+;;   :mode "\\.drv\\'")
+;; (use-package nix-shell
+;;   :ensure nix-mode
+;;   :commands (nix-shell-unpack nix-shell-configure nix-shell-build))
+;; (use-package nix-repl
+;;   :ensure nix-mode
+;;   :commands (nix-repl))
+
+(use-package vimrc-mode
+    :commands
+        (org-babel-execute:vimrc
+        org-babel-expand-body:vimrc)
+    :mode "\\.vim\\(rc\\)?\\'"
+    :straight (:host github :repo "mcandre/vimrc-mode" :branch "master"))
+
+(use-package dockerfile-mode
+    :commands
+        (org-babel-execute:dockerfile
+        org-babel-expand-body:dockerfile)
+    :mode "\\Dockerfile\\'"
+    :straight (:host github :repo "spotify/dockerfile-mode" :branch "master"))
+
+(use-package xonsh-mode
+    :commands
+        (org-babel-execute:xonsh
+        org-babel-expand-body:xonsh)
+    :mode ("\\.xonshrc\\'" "\\.xsh\\'")
+    :straight (:host github :repo "seanfarley/xonsh-mode" :branch "master"))
+
+(use-package org
+    :preface
+        (setq straight-fix-org nil)
+    :hook
+        (kill-emacs . org-babel-tangle)
+    :init
+        (setq org-directory "/tmp")
+    :custom
+        (org-descriptive-links nil)
+        (org-confirm-babel-evaluate nil)
+    :config
+        (org-babel-lob-ingest "/README.org")
+        <<visual-line-mode>>
+        <<org-babel-tangle-append>>
+    :ryo
+        ("o" :hydra
+        '(hydra-org nil
+            "A hydra for org-mode!"
+            ("o" org-babel-tangle "tangle")
+            ("a" org-babel-tangle-append "tangle append")
+            ("f" org-babel-tangle-file "tangle file")
+            ("i" ryo-modal-mode "cancel" :color blue)
+            ("q" nil "cancel" :color blue)))
+    :straight
+        <<org-plus-contrib>>
+    :commands
+        (org-babel-execute:emacs-lisp
+        org-babel-expand-body:emacs-lisp
+        org-babel-execute:sh
+        org-babel-expand-body:sh
+        org-babel-execute:bash
+        org-babel-expand-body:bash
+        org-babel-execute:python
+        org-babel-expand-body:python))
+
+<<org-roam>>
+
+(use-package alpha-org
+    :demand t
+    :after org
+    :straight (:host github :repo "alphapapa/alpha-org" :branch "master"))
+#+end_src
+
+** Modal Modes
+
+... What? I like modal modes...
+
+*** Hail Hydra!
+
+#+name: hydra
+#+begin_src elisp
+(use-package hydra
+    :straight (:host github :repo "abo-abo/hydra" :branch "master"))
+#+end_src
+
+**** Hail Hercules...?
+
+#+name: hercules
+#+begin_src elisp
+(use-package hercules
+    :demand t
+    :straight (:host gitlab :repo "jjzmajic/hercules.el" :branch "master"))
+#+end_src
+
+*** RYO Modal
+
+#+name: ryo-modal
+#+begin_src elisp
+(use-package ryo-modal
+    :demand t
+    :general
+        (:keymaps 'override
+            (general-chord "kk") 'start-ryo)
+    :config
+        ;; From: https://github.com/Kungsgeten/ryo-modal#which-key-integration
+        (push '((nil . "ryo:.*:") . (nil . "")) which-key-replacement-alist)
+    :straight
+        (:host github :repo "kungsgeten/ryo-modal" :branch "master"))
+
+;; (let ((wq (cdr (assoc "wq" evil-ex-commands))))
+;;     (ryo-modal-key "ll" 'wq))
+#+end_src
+
+*** God Mode
+
+#+name: god
+#+begin_src elisp
+(use-package god-mode
+    :general
+        (:keymaps 'override
+            (general-chord "jj") 'start-god
+            (general-chord "';") 'god-execute-with-current-bindings))
+#+end_src
+
+*** Xah-Fly-Keys
+
+#+name: xah
+#+begin_src elisp
+(use-package xah-fly-keys
+    :demand t
+    :general
+        (:keymaps 'override
+            (general-chord "[[") 'start-xah))
+#+end_src
+
+*** Evil
+
+I HAVE SPENT SO LONG SEARCHING FOR THIS! Basically, I want to have my cake and eat it too, i.e. use =RYO Modal=, =Emacs Mode=,
+=God Mode=, =Modalka=, =Xah-Fly-Keys=, etc. , and =Evil Mode=, at the same time. I searched for so long for to be able to override =evil='s keybindings
+in =ryo-modal-mode=, and eventually found [[the function to define an overriding keymap][https://github.com/noctuid/evil-guide#evils-tools]]
+(directed from [[here][https://github.com/emacs-evil/evil/issues/511#issuecomment-273754917]], THOUGH NOTE THAT THE FUNCTION IS INCORRECT!),
+which allows me to force =ryo-modal-mode='s keybindings to have a higher priority compared to =evil='s.
+
+#+name: evil
+#+begin_src elisp
+(use-package evil
+    :general
+        ;; Answer: https://emacs.stackexchange.com/a/38324
+        ;; User: https://emacs.stackexchange.com/users/16441/aquaactress
+        (:states '(normal motion) "SPC" nil)
+        ;; ("S-\" S-:" 'evil-execute-in-emacs-state)
+
+    :ryo
+        (let ((wq (cdr (assoc "wq" evil-ex-commands))))
+            ("ll" 'wq))
+    ;; :ryo ("ll" (cdr (assoc "wq" evil-ex-commands)))
+    ;; :ryo ("ll" '(cdr (assoc "wq" evil-ex-commands)))
+
+    ;; All variable-controlled keybindings go here
+    :init
+        (setq evil-want-keybinding nil)
+
+    ;; All function-controlled keybindings go here
+    :config
+        ;; (ryo-modal-key "ll" (cdr (assoc "wq" evil-ex-commands)))
+        ;; (ryo-modal-key "ll" '(cdr (assoc "wq" evil-ex-commands)))
+        ;; (ryo-modal-key "ll" '(lambda nil (interactive) (cdr (assoc "wq" evil-ex-commands))))
+        (ryo-modal-keys
+            ;; First argument to ryo-modal-keys may be a list of keywords.
+            ;; These keywords will be applied to all keybindings.
+            (:norepeat t)
+
+            ;; Adapted From The Comments:
+            ;; Answer: https://emacs.stackexchange.com/a/21364
+            ;; User: https://emacs.stackexchange.com/users/8578/pyrocrasty
+            ;; ("pp" save-buffers-kill-emacs)
+            ;; ("pp" (cdr (assoc "q" evil-ex-commands)))
+            ;; ("oo" save-buffer)
+            ;; ("oo" (cdr (assoc "w" evil-ex-commands)))
+
+            ;; ("ll" (cdr (assoc "wq" evil-ex-commands)))
+
+            ;; ("qq" kill-emacs)
+            ;; ("qq" (cdr (assoc "q!" evil-ex-commands)))
+            ("kk" start-ryo)
+        )
+        ;; (defun override (mode hook-map) (interactive)
+        ;;     ;; From: https://github.com/emacsorphanage/god-mode#usage-with-evil
+        ;;     (with-eval-after-load mode
+        ;;         (evil-make-overriding-map (cdr hook-map) 'normal)
+        ;;         ;; (evil-make-intercept-map (cdr hook-map) 'normal)
+        ;;         (add-hook (car hook-map) 'evil-normalize-keymaps)))
+
+        ;; (mapc (lambda (mmcons) (interactive) (override (car mmcons) (cdr mmcons))) '(
+        ;;     ;; How do I simplify these?
+        ;;     (ryo-modal-mode ryo-modal-mode-hook . ryo-modal-mode-map)
+        ;;     (god-mode god-local-mode-hook . god-local-mode-map)))
+
+        ;; How do I convert these into a loop?
+        ;; From: https://github.com/emacsorphanage/god-mode#usage-with-evil
+        (with-eval-after-load 'god-mode
+            (evil-make-overriding-map god-local-mode-map 'normal)
+            ;; (evil-make-intercept-map god-local-mode-map 'normal)
+            (add-hook 'god-local-mode-hook 'evil-normalize-keymaps))
+
+        (with-eval-after-load 'ryo-modal
+            (evil-make-overriding-map ryo-modal-mode-map 'normal)
+            ;; (evil-make-intercept-map ryo-modal-mode-map 'normal)
+            (add-hook 'ryo-modal-mode-hook 'evil-normalize-keymaps))
+
+    :hook
+        (after-init . evil-mode))
+
+(use-package evil-collection
+    :after evil
+    :hook (after-init . evil-collection-init))
+
+;; Adapted From: https://github.com/mohsenil85/evil-evilified-state and https://github.com/syl20bnr/spacemacs
+(use-package bind-map
+    :demand t)
+(use-package evil-evilified-state
+    :demand t
+    :after evil
+    :straight (:host github :repo "shadowrylander/evil-evilified-state" :branch "master"))
+#+end_src
+
+*** Putting It All Together
+
+#+name: modals
+#+begin_src elisp
+(setq modal-modes '(
+    god-local-mode
+    ryo-modal-mode
+    xah-fly-keys
+))
+
+;; Adapted From:
+;; Answer: https://emacs.stackexchange.com/a/42240
+;; User: user12563
+(defun disable-all-modal-modes nil
+  (interactive)
+  (mapc
+   (lambda (mode-symbol)
+     (when (functionp mode-symbol)
+       ;; some symbols are functions which aren't normal mode functions
+       (ignore-errors 
+         (funcall mode-symbol -1))))
+   modal-modes))
+
+(defun start-ryo nil (interactive)
+    (let ((mode-on (bound-and-true-p ryo-modal-mode)))
+        (disable-all-modal-modes)
+        (unless mode-on (ryo-modal-mode 1))))
+
+(defun start-god nil (interactive)
+    (let ((mode-on (bound-and-true-p god-local-mode)))
+        (disable-all-modal-modes)
+        (unless mode-on (god-local-mode 1))))
+
+(defun start-xah nil (interactive)
+    (let ((mode-on (bound-and-true-p xah-fly-keys)))
+        (disable-all-modal-modes)
+        (unless mode-on (xah-fly-keys))))
+
+<<hydra>>
+<<hercules>>
+<<ryo-modal>>
+<<god>>
+<<xah>>
+<<evil>>
+#+end_src
+
+** Ivy
+
+#+name: ivy
+#+begin_src elisp
+;; Adapted From: https://www.reddit.com/r/emacs/comments/910pga/tip_how_to_use_ivy_and_its_utilities_in_your/
+(use-package counsel
+    :after ivy
+    ;; :general ("M-a M-a" 'counsel-M-x)
+    :hook (after-init . counsel-mode))
+
+(use-package ivy
+    :diminish
+    :general
+        ("C-c C-r" 'ivy-resume
+        "C-x B" 'ivy-switch-buffer-other-window)
+    :custom
+        (ivy-count-format "(%d/%d) ")
+        (ivy-use-virtual-buffers t)
+    :hook
+        (after-init . ivy-mode))
+
+(use-package ivy-hydra
+    :demand t
+    :after ivy)
+
+(use-package ivy-rich
+    :demand t
+    :after ivy
+    :custom
+        (ivy-virtual-abbreviate 'full
+            ivy-rich-switch-buffer-align-virtual-buffer t
+            ivy-rich-path-style 'abbrev)
+    :config
+        (ivy-set-display-transformer 'ivy-switch-buffer
+            'ivy-rich-switch-buffer-transformer))
+
+(use-package swiper
+    :after ivy
+    :general
+        ("C-s" 'swiper
+        "C-r" 'swiper))
+
+;; Adapted From: https://oremacs.com/2016/01/06/ivy-flx/
+(use-package flx
+    :demand t
+    :after
+        (ivy counsel)
+    :custom
+        (ivy-re-builders-alist
+            '((ivy-switch-buffer . ivy--regex-plus)
+            (t . ivy--regex-fuzzy))
+    :config
+        ;; Answer: https://emacs.stackexchange.com/a/38842
+        ;; User: https://emacs.stackexchange.com/users/15575/mkcms
+        (setcdr (assoc 'counsel-M-x ivy-initial-inputs-alist) "")))
+#+end_src
+
+** Helm
+
+Adapted from the [[Helm-Ido-Like Guide][https://github.com/clemera/helm-ido-like-guide]]:
+
+#+name: helm
+#+begin_src elisp
+(use-package helm-swoop :demand t)
+(use-package helm-flx :demand t)
+(use-package helm-fuzzier :demand t)
+(use-package helm-smex :demand t)
+(use-package smex :demand t)
+(use-package dash :demand t)
+
+(use-package helm-ido-like
+    ;; :straight (helm-ido-like :local-package "~/.emacs.p/helm-ido-like" :type built-in)
+    :straight (:host github :repo "shadowrylander/helm-ido-like-guide" :branch "master")
+    :hook (after-init . helm-ido-like)
+    ;; :general
+    ;;     ("M-A M-A" 'helm-smex-major-mode-commands
+    ;;     "M-S M-S" 'helm-smex)
+    :after
+        (helm-swoop
+        helm-flx
+        helm-fuzzier
+        helm-smex
+        smex
+        dash))
+#+end_src
+
+** Putting It All Together
+
+A few of the comments are from [[https://github.com/hlissner/doom-emacs][hlissner's doom-emacs]].
+
+#+begin_src elisp :tangle init.el
+;; Adapted From: https://www.reddit.com/r/emacs/comments/lkfuk5/how_to_cut_emacs_start_up_time_in_half_emacs_from/gnk42ta?utm_source=share&utm_medium=web2x&context=3
+(setq last-file-name-handler-alist file-name-handler-alist
+          file-name-handler-alist nil)
+
+;; From: https://www.reddit.com/r/emacs/comments/3kqt6e/2_easy_little_known_steps_to_speed_up_emacs_start/
+(let (
+    ;; Adapted From: https://blog.d46.us/advanced-emacs-startup/#/.emacs.d/init.el
+    ;; Make startup faster by reducing the frequency of garbage
+    ;; collection.  The default is 800 kilobytes.  Measured in bytes.
+    ;; (gc-cons-threshold (* 50 1000 1000))
+    (gc-cons-threshold most-positive-fixnum)
+)
+
+;; Answer: https://stackoverflow.com/a/57075163
+;; User: https://stackoverflow.com/users/2708138/tobias
+(defun eval-after-load-all (my-features form)
+    "Run FORM after all MY-FEATURES are loaded.
+    See `eval-after-load' for the possible formats of FORM."
+    (if (null my-features)
+        (if (functionp form)
+        (funcall form)
+    (eval form))
+    (eval-after-load (car my-features)
+        `(lambda nil
+    (eval-after-load-all
+        (quote ,(cdr my-features))
+        (quote ,form))))))
+
+;; Adapted From:
+;; Answer: https://stackoverflow.com/a/57075163
+;; User: https://stackoverflow.com/users/2708138/tobias
+;; (defun eval-after-load-some (my-features form)
+;;     "Run FORM after all MY-FEATURES are loaded.
+;;     See `eval-after-load' for the possible formats of FORM."
+;;     (if (any my-features)
+;;         (if (functionp form)
+;;         (funcall form)
+;;     (eval form))
+;;     (eval-after-load (car my-features)
+;;         `(lambda nil
+;;     (eval-after-load-all
+;;         (quote ,(cdr my-features))
+;;         (quote ,form))))))
+
+;; From: https://www.masteringemacs.org/article/speed-up-emacs-libjansson-native-elisp-compilation
+
+(if (and (fboundp 'native-comp-available-p)
+       (native-comp-available-p))
+  (message "Native compilation is available")
+(message "Native complation is *not* available"))
+(if (functionp 'json-serialize)
+  (message "Native JSON is available")
+(message "Native JSON is *not* available"))
+
+;; Adapted From:
+;; From: https://emacs.stackexchange.com/a/19507
+;; User: https://emacs.stackexchange.com/users/50/malabarba
+(setq byte-compile-warnings (not t))
+;; (setq byte-compile warnings (not obsolete))
+
+;; <<ingests()>>
+<<use-package-straight>>
+
+;; (use-package graphene
+;;     :demand t
+;;     :straight (:host github :repo "rdallasgray/graphene" :branch "master"))
+
+;; From: https://emacsredux.com/blog/2014/07/25/configure-the-scratch-buffers-mode/
+(setq initial-major-mode 'org-mode)
+(setq initial-scratch-message "\
+# This buffer is for notes you don't want to save.
+# If you want to create a file, visit that file with C-x C-f,
+# then enter the text in that file's own buffer.")
+
+<<modals>>
+
+;; (message evil-ex-commands)
+
+<<doom-modeline>>
+
+<<org-mode>>
+
+;; (add-to-list 'org-src-lang-modes '("nix-repl" . nix-mode))
+;; (org-babel-do-load-languages 'org-babel-load-languages '((nix-mode . t)))
+;; (json (if (assoc :json params) (nth (+ (cl-position :json params) 1) params) nil))
+;; (optargs (if (assoc '-- params) (nthcdr (+ (cl-position '-- params) 1) params) nil))
+;; (if (or (eq json nil) (<= json 0)) "" "--json")
+;; (if optargs (format "%s" optargs) "")
+;; (format "%s" (cdr params))
+
+(ryo-modal-key
+    "g" :hydra
+    '(hydra-git nil
+        "A hydra for git!"
+        
+        ;; TODO: Actually install magit... Sigh...
+        ;; ("g" magit-status "magit" :color blue)
+        
+        ("j" git-gutter:next-hunk "next")
+        ("k" git-gutter:previous-hunk "previous")
+        ("d" git-gutter:popup-hunk "diff")
+        ("s" git-gutter:stage-hunk "stage")
+        ("r" git-gutter:revert-hunk "revert")
+        ("m" git-gutter:mark-hunk "mark")
+        ("q" nil "cancel" :color blue)))
+
+;; Follow symlinks
+(setq vc-follow-symlinks t)
+
+;; Use Python Syntax Highlighting for ".xonshrc" files
+;; (setq auto-mode-alist 
+;;       (append '(".*\\.xonshrc\\'" . python-mode)
+;;               auto-mode-alist))
+;; (setq auto-mode-alist 
+;;       (append '(".*\\.xsh\\'" . python-mode)
+;;              auto-mode-alist))
+
+;; The package is "python" but the mode is "python-mode":
+(use-package python
+    :demand t
+    :mode
+        (("\\.py\\'" . python-mode)
+        ("\\.xonshrc\\'" . python-mode)
+        ("\\.xsh\\'" . python-mode))
+    :interpreter ("python" . python-mode))
+
+<<ivy>>
+<<helm>>
+
+;; From: https://kundeveloper.com/blog/autorevert/
+;; Auto revert files when they change
+(global-auto-revert-mode t)
+;; Also auto refresh dired, but be quiet about it
+(setq global-auto-revert-non-file-buffers t)
+(setq auto-revert-verbose nil)
+
+;; Some functionality uses this to identify you, e.g. GPG configuration, email
+;; clients, file templates and snippets.
+(setq user-full-name "Jeet Ray"
+      user-mail-address "aiern@protonmail.com")
+
+;; This determines the style of line numbers in effect. If set to `nil', line
+;; numbers are disabled. For relative line numbers, set this to `relative'.
+;; Adapted From: https://www.reddit.com/r/emacs/comments/8fz6x2/relative_number_with_line_folding/dy7lmh7?utm_source=share&utm_medium=web2x&context=3
+(setq-default display-line-numbers 'relative)
+
+(setq visible-bell t)
+
+;; Answer: https://unix.stackexchange.com/a/152151
+;; User: https://unix.stackexchange.com/users/72170/ole
+;; Makes *scratch* empty.
+;; (setq initial-scratch-message "")
+
+;; Removes *scratch* from buffer after the mode has been set.
+;; (defun remove-scratch-buffer nil
+;;   (if (get-buffer "*scratch*")
+;;       (kill-buffer "*scratch*")))
+;; (add-hook 'after-change-major-mode-hook 'remove-scratch-buffer)
+
+;; Removes *messages* from the buffer.
+;; (setq-default message-log-max nil)
+;; (kill-buffer "*Messages*")
+
+;; Removes *Completions* from buffer after you've opened a file.
+;; (add-hook 'minibuffer-exit-hook
+;;       '(lambda nil
+;;          (let ((buffer "*Completions*"))
+;;            (and (get-buffer buffer)
+;;                 (kill-buffer buffer)))))
+
+;; Don't show *Buffer list* when opening multiple files at the same time.
+;; (setq inhibit-startup-buffer-menu t)
+
+;; Show only one active window when opening multiple files at the same time.
+;; (add-hook 'window-setup-hook 'delete-other-windows)
+
+;; No more typing the whole yes or no. Just y or n will do.
+(fset 'yes-or-no-p 'y-or-n-p)
+
+;; Answer: https://emacs.stackexchange.com/a/51829
+;; User: https://emacs.stackexchange.com/users/2370/tobias
+;; (defun set-buffer-save-without-query nil
+;;     "Set `buffer-save-without-query' to t."
+;;     (unless (variable-binding-locus 'buffer-save-without-query)
+;;         (setq buffer-save-without-query t)))
+
+;; (add-hook #'find-file-hook #'set-buffer-save-without-query)
+
+;; The following avoids being ask to allow the file local
+;; setting of `buffer-save-without-query'.
+;; IMHO it is not a big risk:
+;; The malicious code that must not be saved
+;; should never be allowed to enter Emacs in the first place.
+;; (put 'buffer-save-without-query 'safe-local-variable #'booleanp)
+
+) ;; Adapted From: https://www.reddit.com/r/emacs/comments/lkfuk5/how_to_cut_emacs_start_up_time_in_half_emacs_from/gnk42ta?utm_source=share&utm_medium=web2x&context=3
+(setq file-name-handler-alist (append last-file-name-handler-alist file-name-handler-alist)) 
+(cl-delete-duplicates file-name-handler-alist :test 'equal) 
+(makunbound 'last-file-name-handler-alist)
+
+;; Adapted From: https://blog.d46.us/advanced-emacs-startup/#/.emacs.d/init.el
+;; Make gc pauses faster by decreasing the threshold.
+(setq gc-cons-threshold (* 2 1000 1000))
+#+end_src

@@ -1,0 +1,54 @@
+#!/usr/bin/env mdsh
+
+# TODO: Implement saku as well
+
+#+property: header-args -n -r -l "[{(<%s>)}]" :tangle-mode (identity 0444) :noweb yes :mkdirp yes
+
+# Adapted From:
+# Answer: https://stackoverflow.com/a/65232183/10827766
+# User: https://stackoverflow.com/users/776405/whil
+#+startup: show2levels
+
+#+name: hash
+#+begin_src emacs-lisp :var name="" :exports none
+(md5 (concat (replace-regexp-in-string "/" "" (
+    org-format-outline-path (org-get-outline-path))) (
+        nth 4 (org-heading-components)) name))
+#+end_src
+
+* current projects
+
+# !!! Local projects are in the `inca' directory !!!
+
+#+call: hash("")
+
+#+RESULTS:
+: 00321739e2bcd1e57750b641564afebe
+
+#+name: 00321739e2bcd1e57750b641564afebe
+#+begin_src text
+shadowrylander/shadowrylander home/shadowrylander
+#+end_src
+
+* makefile
+
+#+call: hash("")
+
+#+RESULTS:
+: cd5dbf3629c558b0104ba8f0937d6816
+
+#+name: cd5dbf3629c558b0104ba8f0937d6816
+#+begin_src makefile :tangle (jr/tangle-path)
+init:
+    -git clone --recurse-submodule https://github.com/<<00321739e2bcd1e57750b641564afebe>>
+.DEFAULT_GOAL := init
+
+rebuild:
+    chmod +x ./wheee
+    ./wheee --use-hash ${HASH} -H make
+
+switch:
+    chmod +x ./wheee
+    ./wheee --use-hash ${HMASH} -H make --home-manager
+    ./wheee --use-hash ${RMASH} -H make --home-manager
+#+end_src

@@ -1,9 +1,0 @@
-[user]
-	email = aiern@protonmail.com
-	name = shadowrylander
-[core]
-	excludesfile = /home/shadowrylander/.gitignore
-[include]
-    path = /home/shadowrylander/.config/git/config
-[annex]
-	largefiles = include=**/__pycache__/* or include=**/dist/* or include=**/tests/* or include=**/deprecated/* or include=**/unfinished/* or include=**/.vscode/* or include=**/*.test.* or include=**/*.envrc
