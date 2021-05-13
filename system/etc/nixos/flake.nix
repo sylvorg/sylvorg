@@ -1,5 +1,5 @@
 {
-    description = "Wheee!"
+    description = "Wheee!";
 
     inputs = rec {
         home-manager-flake = {

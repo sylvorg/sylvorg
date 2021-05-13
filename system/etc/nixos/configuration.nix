@@ -1,14 +1,14 @@
-inputs@{ config, pkgs, ... } : let
+inputs@{ config, pkgs, ... } : with builtins; let
     source = fetchGit {
-        url = "https://github.com/${attrs.users.primary}/${attrs.users.primary}";
+        url = "https://github.com/shadowrylander/shadowrylander";
         ref = "master";
     };
 
-    flake = (import (
-        let
-            flakePath = "${source}/system/etc/nixos";
-            lock = builtins.fromJSON (builtins.readFile "${flakePath}/flake.lock");
-        in fetchTarball {
+    flake = let
+        flakePath = "${source}/system/etc/nixos";
+        lock = builtins.fromJSON (builtins.readFile "${flakePath}/flake.lock");
+    in (import (
+        fetchTarball {
             url = "https://github.com/edolstra/flake-compat/archive/${lock.nodes.flake-compat.locked.rev}.tar.gz";
             sha256 = lock.nodes.flake-compat.locked.narHash; }
         ) { src =  flakePath; }).defaultNix;
@@ -26,9 +26,9 @@ inputs@{ config, pkgs, ... } : let
         zfs = null;
     };
 
-    integer-default-truths = mapAttrs (
+    integer-default-truths = lib.mapAttrs (
         n: v: v == 1
-    ) (filterAttrs (n: v: isInt v) stc-home);
+    ) (lib.filterAttrs (n: v: isInt v) stc-home);
 
     home-manager' = fetchGit {
         url = "https://github.com/nix-community/home-manager";
@@ -40,7 +40,6 @@ inputs@{ config, pkgs, ... } : let
     };
     hash = user: lib.j.hostName { stc = stc-home // { inherit user; }; };
 in
-with builtins;
 with lib;
 with j;
 with stc;
