@@ -3,7 +3,8 @@
 
 This can be used with =GNU Stow= as well! :D
 
-The tangle functions are adapted from [[https://emacs.stackexchange.com/a/29884/31428][this answer on the emacs Stack Exchange]], which was written by [[https://emacs.stackexchange.com/users/2710/andrew-swann][Andrew Swann]].
+The tangle functions are adapted from [[https://emacs.stackexchange.com/a/29884/31428][this answer on the emacs Stack Exchange]],
+which was written by [[https://emacs.stackexchange.com/users/2710/andrew-swann][Andrew Swann]].
 
 * .config
 *** yadm
@@ -3991,8 +3992,8 @@ in
 
 #+name: 13efb36a9b3eacd11a9f3b4b7385f96b
 #+begin_src text
-shadowrylander/emacs-bankruptcy
-chenyanming/spacemacs_module_for_doom modules/private/spacemacs
+shadowrylander/emacs-bankruptcy home/.doom.d/emacs-bankruptcy
+chenyanming/spacemacs_module_for_doom home/.doom.d/modules/private/spacemacs
 #+end_src
 
 #+call: hash("gitlab")
@@ -4002,8 +4003,8 @@ chenyanming/spacemacs_module_for_doom modules/private/spacemacs
 
 #+name: 99d6a6f01dc482dc4142659f4b7a250a
 #+begin_src text
-picotech/use-package-hydra
-shadowrylander/use-package-hercules
+picotech/use-package-hydra home/.doom.d/use-package-hydra
+shadowrylander/use-package-hercules home/.doom.d/use-package-hercules
 #+end_src
 
 #+call: hash("")
@@ -5835,13 +5836,13 @@ trees with the :notangle: tag."
 
 #+name: ed55930dc36029c49a46d842fd0ffc1b
 #+begin_src emacs-lisp :tangle (jr/tangle-oreo)
-(defun jr/tangle-oreo nil (interactive)
+(defun jr/tangle-path nil (interactive)
     (string-remove-prefix "/" (concat
         (org-format-outline-path (org-get-outline-path)) "/"
             (nth 4 (org-heading-components)))))
 (defun jr/tangle-oreo nil (interactive)
     (org-babel-lob-ingest "./strange.aiern.org")
-    (jr/tangle-oreo))
+    (jr/tangle-path))
 #+end_src
 
 ** .gitattributes

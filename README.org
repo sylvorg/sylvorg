@@ -9,6 +9,11 @@
 # User: https://stackoverflow.com/users/776405/whil
 #+startup: show2levels
 
+#+name: username
+#+begin_src text :exports none
+shadowrylander
+#+end_src
+
 #+name: hash
 #+begin_src emacs-lisp :var name="" :exports none
 (md5 (concat (replace-regexp-in-string "/" "" (
@@ -27,7 +32,7 @@
 
 #+name: 00321739e2bcd1e57750b641564afebe
 #+begin_src text
-shadowrylander/shadowrylander home/shadowrylander
+<<username>>/<<username>> home/<<username>>
 #+end_src
 
 * makefile
@@ -52,3 +57,78 @@ switch:
     ./wheee --use-hash ${HMASH} -H make --home-manager
     ./wheee --use-hash ${RMASH} -H make --home-manager
 #+end_src
+
+* previous projects
+** bakery
+
+My pride and joy; based off of [[Andrew Moffat's][https://github.com/amoffat]] [[sh][https://amoffat.github.io/sh/]],
+this python module allows you to import shell commands as modules as well. For example:
+
+# How does the code below work exactly, again? Revise it!
+
+#+begin_src python
+<<55cd2acb7ad806fd92712b939e778c43>>
+<<063c7e217d5d2bc6b70a3fd3633eca26>>
+<<c67b0687e4684ea7b068fc3e90e3d2b6>>
+#+end_src
+
+You might be thinking to yourself, "Cool!" And also, "...Wait what?"
+
+*** breaking it down
+
+-----
+
+#+call: hash("from baker.y import git")
+
+#+RESULTS:
+: 55cd2acb7ad806fd92712b939e778c43
+
+#+name: 55cd2acb7ad806fd92712b939e778c43
+#+begin_src python
+from baker.y import git
+#+end_src
+
+This will import the =git= utility from your path as a =bakery= object;
+note, however, that while the statement is importing =git= from =baker.y=,
+there are actually two submodules in play here: =baker= with a =y=,
+and =baker= with an =i=.
+
+To facilitate the use of =git(C = [path]).status()=, the latter submodule must be used.
+This also prevents the use of something like =git()=, but, since that just shows the help text,
+one can simply use =git.help()= instead.
+
+-----
+
+#+call: hash("git.clone")
+
+#+RESULTS:
+: 063c7e217d5d2bc6b70a3fd3633eca26
+
+#+name: 063c7e217d5d2bc6b70a3fd3633eca26
+#+begin_src python
+git.clone(
+    b = "master",
+    recurse_submodule = True,
+    "https://github.com/<<username>>/<<username>>",
+    "~/<<username>>",
+    _run = True,
+)
+#+end_src
+
+-----
+
+#+call: hash("print(git(C = "~/<<username>>").status())")
+
+#+RESULTS:
+: c67b0687e4684ea7b068fc3e90e3d2b6
+
+#+name: c67b0687e4684ea7b068fc3e90e3d2b6
+#+begin_src python
+print(git(C = "~/<<username>>").status())
+#+end_src
+
+*** want more information?
+
+Get it here! https://gitlab.com/picotech/bakery
+
+Also: eh heh heh... yeah... I like =gitlab's= grouping system... */sheepish grin/*
