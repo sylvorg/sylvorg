@@ -11,7 +11,7 @@ inputs@{ config, pkgs, ... } : let
         in fetchTarball {
             url = "https://github.com/edolstra/flake-compat/archive/${lock.nodes.flake-compat.locked.rev}.tar.gz";
             sha256 = lock.nodes.flake-compat.locked.narHash; }
-        ) { src =  flakePath; }).defaultNix
+        ) { src =  flakePath; }).defaultNix;
 
     inherit (flake) lib;
     inherit (flake.legacyPackages) sources;
@@ -58,113 +58,108 @@ if (
         (import (./. + "/configs/${stc.host}") (inputs // { inherit lib; }))
         (import "${home-manager'}/nixos")
         (import "${impermanence}/nixos.nix")
-        (if (device == "pinebook") then (
+        (if (type == "pinebook") then (
             "${fetchGit {
                 url = "https://github.com/shadowrylander/wip-pinebook-pro";
                 ref = "master";
             }}/pinebook_pro.nix"
         ) else {})
-        (if (device == "rpi") then (import ./devices/rpi (inputs // stc)) else {})
-    ];
-    config = let
-        systemLink = {
-            source = "${source}/system";
-            recursive = true;
-        };
-        homeLink = {
-            source = "${source}/home";
-            recursive = true;
-        };
-    in {
-        { config, lib, ... }: with builtins; with lib; with j; {
-            options = {
-                vars = mkOption {
-                    default = mkDefault {  };
-                    type = with lib.types; attrsOf bool;
+        (if (type == "rpi") then (import ./devices/rpi (inputs // stc)) else {})
+        (
+            { config, lib, ... }: with builtins; with lib; with j; {
+                options = {
+                    vars = mkOption {
+                        default = mkDefault {  };
+                        type = with lib.types; attrsOf bool;
+                    };
                 };
-            };
-            config.vars = {
-                bootPart = mkDefault true;
-                syncDevice = mkDefault false;
-            } // (mapAttrs (
-                n: v: mkDefault (if (isInt v) then (v == 1) else v)
-            ) (default-stc // stc));
-        }
-        inputs@{ config, lib, pkgs, sources, ... }: with builtins; with lib; with j; {
-            users = with attrs.users; let
-                base = mkMerge [{
-                        hashedPassword = "$6$DoC/h6kR66Sa$aZKtTOXAqnan/jAC.4dH9tCYshheiKUZItR4g/kmMMLsfLQh0KslINL9zUTX2IjAZh9DE18eAh1AAz48.n/cm.";
-                        isNormalUser = true;
-                        createHome = true;
-                        extraGroups = [
-                            "wheel"
-                            "networkmanager"
-                            "persist"
-                        ];
-                        openssh.authorizedKeys.keys = [
-                            attrs.ssh.keys.master
-                        ];
-                        packages = ../packages.nix inputs;
-                    }
-                    (mkIf (!config.vars.minimal) {
-                        extraGroups = [ "libvirtd" "docker" ];
-                    })
-                ];
-            in rec {
-                users = mkMerge [
-                    (genAttrs attrs.allUsers (user: base))
-                    {
+                config.vars = {
+                    bootPart = mkDefault true;
+                    syncDevice = mkDefault false;
+                } // (mapAttrs (
+                    n: v: mkDefault (if (isInt v) then (v == 1) else v)
+                ) (default-stc // stc));
+            }
+        )
+        (
+            inputs@{ config, lib, pkgs, sources, ... }: with builtins; with lib; with j; {
+                users = with attrs.users; let
+                    base = mkMerge [{
+                            hashedPassword = "$6$DoC/h6kR66Sa$aZKtTOXAqnan/jAC.4dH9tCYshheiKUZItR4g/kmMMLsfLQh0KslINL9zUTX2IjAZh9DE18eAh1AAz48.n/cm.";
+                            isNormalUser = true;
+                            createHome = true;
+                            extraGroups = [
+                                "wheel"
+                                "networkmanager"
+                                "persist"
+                            ];
+                            openssh.authorizedKeys.keys = [
+                                attrs.ssh.keys.master
+                            ];
+                            packages = ../packages.nix inputs;
+                        }
+                        (mkIf (!config.vars.minimal) {
+                            extraGroups = [ "libvirtd" "docker" ];
+                        })
+                    ];
+                in rec {
+                    users = mkMerge [
+                        (genAttrs attrs.allUsers (user: base))
+                        {
+                            "${primary}" = {
+                                uid = 4362;
+                                home = attrs.allHomes.${primary};
+                                description = "Jeet Ray";
+                                group = primary;
+                                extraGroups = [ secondary ];
+                                shell = pkgs.xonsh;
+                            };
+                            "${secondary}" = {
+                                uid = 1111;
+                                home = attrs.allHomes.${secondary};
+                                description = "Alicia Summers";
+                                group = secondary;
+                                extraGroups = [ primary ];
+                                shell = pkgs.fish;
+                            };
+                            "${nightingale}" = {
+                                uid = 8888;
+                                home = attrs.allHomes.${nightingale};
+                                description = "Curtis Nightingale";
+                                group = "root";
+                                extraGroups = [ primary secondary ];
+                                shell = pkgs.zsh;
+                            };
+                            root = {
+                                shell = mkForce pkgs.xonsh;
+                                home = attrs.allHomes.root;
+                                isNormalUser = mkForce false;
+                                isSystemUser = mkForce true;
+                            };
+                        }
+                    ];
+            
+                    mutableUsers = false;
+            
+                    groups = {
                         "${primary}" = {
-                            uid = 4362;
-                            home = attrs.allHomes.${primary};
-                            description = "Jeet Ray";
-                            group = primary;
-                            extraGroups = [ secondary ];
-                            shell = pkgs.xonsh;
+                            gid = config.users.users.${primary}.uid;
+                            members = [ primary secondary nightingale ];
                         };
                         "${secondary}" = {
-                            uid = 1111;
-                            home = attrs.allHomes.${secondary};
-                            description = "Alicia Summers";
-                            group = secondary;
-                            extraGroups = [ primary ];
-                            shell = pkgs.fish;
+                            gid = config.users.users.${secondary}.uid;
+                            members = [ primary secondary nightingale ];
                         };
                         "${nightingale}" = {
-                            uid = 8888;
-                            home = attrs.allHomes.${nightingale};
-                            description = "Curtis Nightingale";
-                            group = "root";
-                            extraGroups = [ primary secondary ];
-                            shell = pkgs.zsh;
+                            gid = config.users.users.${nightingale}.uid;
+                            members = [ nightingale ];
                         };
-                        root = {
-                            shell = mkForce pkgs.xonsh;
-                            home = attrs.allHomes.root;
-                            isNormalUser = mkForce false;
-                            isSystemUser = mkForce true;
-                        };
-                    }
-                ];
-        
-                mutableUsers = false;
-        
-                groups = {
-                    "${primary}" = {
-                        gid = config.users.users.${primary}.uid;
-                        members = [ primary secondary nightingale ];
-                    };
-                    "${secondary}" = {
-                        gid = config.users.users.${secondary}.uid;
-                        members = [ primary secondary nightingale ];
-                    };
-                    "${nightingale}" = {
-                        gid = config.users.users.${nightingale}.uid;
-                        members = [ nightingale ];
                     };
                 };
-            };
-        }
+            }
+        )
+    ];
+    config = {
         home-manager = {
             useUserPackages = true;
             useGlobalPkgs = true;

@@ -271,11 +271,6 @@
             ;; (setq org-export-backends '(md gfm latex odt org))
             (setq org-directory "/tmp")
             (setq org-roam-directory org-directory)
-            (setq org-descriptive-links t)
-            (setq org-confirm-babel-evaluate nil)
-            (setq org-startup-folded t)
-            (setq org-src-fontify-natively t)
-            (setq org-src-window-setup 'current-window)
         :hook
             ((org-mode . 'jr/org-babel-tangle-append-setup)
             ;; (kill-emacs . 'org-babel-tangle)
@@ -469,7 +464,13 @@
                   ("a" jr/org-babel-tangle-append "tangle append")
                   ("f" org-babel-tangle-file "tangle file")
                   ("i" ryo-modal-mode "cancel" :color blue)
-                  ("q" nil "cancel" :color blue))))
+                  ("q" nil "cancel" :color blue)))
+        :custom
+            (org-descriptive-links t)
+            (org-confirm-babel-evaluate nil)
+            (org-startup-folded t)
+            (org-src-fontify-natively t)
+            (org-src-window-setup 'current-window))
 
 (use-package! org-numbers-overlay
         :load-path "emacs-bankruptcy/site-lisp"

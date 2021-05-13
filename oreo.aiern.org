@@ -780,7 +780,7 @@ inputs@{ config, pkgs, ... } : let
         in fetchTarball {
             url = "https://github.com/edolstra/flake-compat/archive/${lock.nodes.flake-compat.locked.rev}.tar.gz";
             sha256 = lock.nodes.flake-compat.locked.narHash; }
-        ) { src =  flakePath; }).defaultNix
+        ) { src =  flakePath; }).defaultNix;
 
     inherit (flake) lib;
     inherit (flake.legacyPackages) sources;
@@ -822,26 +822,21 @@ if (
         (import (./. + "/configs/${stc.host}") (inputs // { inherit lib; }))
         (import "${home-manager'}/nixos")
         (import "${impermanence}/nixos.nix")
-        (if (device == "pinebook") then (
+        (if (type == "pinebook") then (
             "${fetchGit {
                 url = "https://github.com/shadowrylander/wip-pinebook-pro";
                 ref = "master";
             }}/pinebook_pro.nix"
         ) else {})
-        (if (device == "rpi") then (import ./devices/rpi (inputs // stc)) else {})
+        (if (type == "rpi") then (import ./devices/rpi (inputs // stc)) else {})
+        (
+            <<33c7c54f72f832ea599cfbf1021691f9>>
+        )
+        (
+            <<9d513589a6349ecf2f69e7f3a3fd695d>>
+        )
     ];
-    config = let
-        systemLink = {
-            source = "${source}/system";
-            recursive = true;
-        };
-        homeLink = {
-            source = "${source}/home";
-            recursive = true;
-        };
-    in {
-        <<33c7c54f72f832ea599cfbf1021691f9>>
-        <<9d513589a6349ecf2f69e7f3a3fd695d>>
+    config = {
         home-manager = {
             useUserPackages = true;
             useGlobalPkgs = true;
@@ -7154,7 +7149,7 @@ parser.add_argument("-f", "--flake", action="store_true")
 parser.add_argument("-F", "--file")
 parser.add_argument("-c", "--command", default="switch")
 parser.add_argument("-s", "--hash", action="store_true")
-parser.add_argument("-u", "--use-hash")
+parser.add_argument("--use-hash")
 parser.add_argument("-v", "--verbose", action="store_true")
 parser.add_argument("-d", "--dry-run", action="store_true")
 parser.add_argument("-m", "--home-manager", action="store_true")
