@@ -713,7 +713,7 @@ if (swap := (raw_input('''
 
 #+name: 4c712913b902da3ab3e4d6a6c4b61f4e
 #+begin_src nix
-{ config, lib, ... }: with lib.j; {
+{ config, lib, ... }: with lib; with j; {
     imports = flatten [
         (imprelib.list { dir = ./.; })
         (imprelib.list { dir = ../../config; })
@@ -1603,13 +1603,13 @@ inputs@{
     lib ? pkgs.lib,
     preattrs ? (import ./_preattrs.nix lib),
     prelib ? (import ./_prelib.nix preattrs lib),
-    primprelib ? (import ./_primprelib preattrs prelib lib),
+    primprelib ? (import ./_primprelib.nix preattrs prelib lib),
     ...
 }: with builtins; with lib; let
     templib = self: prelib
         // (with prelib; {
-            attrs = preattrs // (import _attrs.nix inputs);
-            imprelib = primprelib // (import _imprelib.nix inputs);
+            attrs = preattrs // (import ./_attrs.nix (inputs // { inherit preattrs primprelib; }));
+            imprelib = primprelib // (import ./_imprelib.nix (inputs // { inherit primprelib; }));
         })
         // (listToAttrs (map (file: nameValuePair
             file
@@ -3578,7 +3578,7 @@ map (ver: let
         <<ff(name="flake-compat", ur="edolstra/flake-compat/master")>>
         <<ff(name="emacs", ur="nix-community/emacs-overlay/master")>>
         nur.url = "github:nix-community/nur/master";
-        mach-nix.url = "github:davhau/mach-nix/master">
+        mach-nix.url = "github:davhau/mach-nix/master";
         <<ff(name="mozilla", ur="mozilla/nixpkgs-mozilla/master")>>
         nanite = {
             url = "git+https://gitlab.com/picotech/nanotech/nanite.git";

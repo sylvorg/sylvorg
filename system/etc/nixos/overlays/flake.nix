@@ -11,7 +11,7 @@
             flake = false;
         };
         nur.url = "github:nix-community/nur/master";
-        mach-nix.url = "github:davhau/mach-nix/master">
+        mach-nix.url = "github:davhau/mach-nix/master";
         mozilla = {
             url = "github:mozilla/nixpkgs-mozilla/master";
             flake = false;

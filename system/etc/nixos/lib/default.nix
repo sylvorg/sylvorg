@@ -6,13 +6,13 @@ inputs@{
     lib ? pkgs.lib,
     preattrs ? (import ./_preattrs.nix lib),
     prelib ? (import ./_prelib.nix preattrs lib),
-    primprelib ? (import ./_primprelib preattrs prelib lib),
+    primprelib ? (import ./_primprelib.nix preattrs prelib lib),
     ...
 }: with builtins; with lib; let
     templib = self: prelib
         // (with prelib; {
-            attrs = preattrs // (import _attrs.nix inputs);
-            imprelib = primprelib // (import _imprelib.nix inputs);
+            attrs = preattrs // (import ./_attrs.nix (inputs // { inherit preattrs primprelib; }));
+            imprelib = primprelib // (import ./_imprelib.nix (inputs // { inherit primprelib; }));
         })
         // (listToAttrs (map (file: nameValuePair
             file

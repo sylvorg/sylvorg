@@ -1,7 +1,7 @@
-{ config, lib, ... }: with lib.j; {
+{ config, lib, ... }: with lib; with j; {
     imports = flatten [
         (imprelib.list { dir = ./.; })
         (imprelib.list { dir = ../../config; })
     ];
-    config.networking.hostId = "c61508cc";
+    config.networking.hostId = "079915a0";
 }
