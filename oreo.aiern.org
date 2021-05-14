@@ -2483,7 +2483,7 @@ I am currently not using =SWAP= on =ZFS Zvols= due to the issues detailed
 
 #+name: 8c1c76e68a6ad327be798ea5c62a7fc1
 #+begin_src nix
-{ config, lib, ... }: with builtins; with lib; with j; {
+{ config, lib, hostName, ... }: with builtins; with lib; with j; {
     networking = let
         primus = "58a4bafc38c2cc6e91ba27c7f1ca910c8fba857ee02f03648450b963db2519fc";
     in {
