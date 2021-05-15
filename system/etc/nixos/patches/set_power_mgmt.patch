@@ -1,0 +1,14 @@
+--- a/net/wireless/nl80211.c	2019-07-08 00:41:56.000000000 +0200
++++ b/net/wireless/nl80211.c	2020-02-05 19:30:26.352718504 +0100
+@@ -10517,10 +10520,7 @@
+ 	if (!rdev->ops->set_power_mgmt)
+ 		return -EOPNOTSUPP;
+ 
+-	state = (ps_state == NL80211_PS_ENABLED) ? true : false;
+-
+-	if (state == wdev->ps)
+-		return 0;
++	state = false;
+ 
+ 	err = rdev_set_power_mgmt(rdev, dev, state, wdev->ps_timeout);
+ 	if (!err)

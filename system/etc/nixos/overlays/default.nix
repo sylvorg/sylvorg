@@ -3,7 +3,7 @@ with builtins; {
     ...
 } : with stc; let
 
-    sources = (import (
+    flake = (import (
         let
             lock = builtins.fromJSON (builtins.readFile ./flake.lock);
         in fetchTarball {
@@ -11,6 +11,8 @@ with builtins; {
             sha256 = lock.nodes.flake-compat.locked.narHash;
         }
     ) { src =  ./.; }).defaultNix;
+
+    sources = flake.inputs;
 
     nprefix = "nixpkgs";
     prefix = "pkgs";
@@ -77,20 +79,20 @@ in with lib; flatten [
             #         fetchpypi = prev.fetchpypi.overrideAttrs (attrs: { patches = attrs.patches ++ [ ../patches/fetchpypi.patch ];}); }
             # )]
             [
-                # (import sources.emacs)
-                # (final: prev: {
-                #     nur = import sources.nur {
-                #         nurpkgs = prev;
-                #         pkgs = prev;
-                #     };
-                # })
+                (import sources.emacs)
+                (final: prev: {
+                    nur = import sources.nur {
+                        nurpkgs = prev;
+                        pkgs = prev;
+                    };
+                })
                 (import ("${sources.wip-pinebook-pro}/overlay.nix"))
-                sources.emacs.overlay
-                sources.nur.overlay
+                # sources.emacs.overlay
+                # sources.nur.overlay
             ]
             [
-                (final: prev: { nix = sources.nix.packages.${system}.nix; })
-                # (final: prev: { nix = (import sources.nix).packages.${system}.nix; })
+                # (final: prev: { nix = sources.nix.packages.${system}.nix; })
+                (final: prev: { nix = (import sources.nix).packages.${system}.nix; })
                 (final: prev: { niv = (import sources.niv {}).niv; })
                 (final: prev: { emacs-nox = final.emacsGit-nox; })
             ]

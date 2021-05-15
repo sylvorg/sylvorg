@@ -846,7 +846,8 @@
 ;; should never be allowed to enter Emacs in the first place.
 ;; (put 'buffer-save-without-query 'safe-local-variable #'booleanp)
 
-(setq doom-theme 'doom-gruvbox)
+(setq doom-theme 'themer-dark)
+;; (setq doom-theme 'doom-gruvbox)
 ;; (setq doom-theme nil)
 ;; From: https://github.com/hlissner/emacs-doom-themes#common-issues
 ;; (let ((height (face-attribute 'default :height)))

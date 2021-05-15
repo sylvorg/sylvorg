@@ -3193,20 +3193,20 @@ in flatten [
     #         fetchpypi = prev.fetchpypi.overrideAttrs (attrs: { patches = attrs.patches ++ [ ../patches/fetchpypi.patch ];}); }
     # )]
     [
-        # (import sources.emacs)
-        # (final: prev: {
-        #     nur = import sources.nur {
-        #         nurpkgs = prev;
-        #         pkgs = prev;
-        #     };
-        # })
+        (import sources.emacs)
+        (final: prev: {
+            nur = import sources.nur {
+                nurpkgs = prev;
+                pkgs = prev;
+            };
+        })
         (import ("${sources.wip-pinebook-pro}/overlay.nix"))
-        sources.emacs.overlay
-        sources.nur.overlay
+        # sources.emacs.overlay
+        # sources.nur.overlay
     ]
     [
-        (final: prev: { nix = sources.nix.packages.${system}.nix; })
-        # (final: prev: { nix = (import sources.nix).packages.${system}.nix; })
+        # (final: prev: { nix = sources.nix.packages.${system}.nix; })
+        (final: prev: { nix = (import sources.nix).packages.${system}.nix; })
         (final: prev: { niv = (import sources.niv {}).niv; })
         (final: prev: { emacs-nox = final.emacsGit-nox; })
     ]
@@ -3470,7 +3470,7 @@ with builtins; {
     ...
 } : with stc; let
 
-    sources = (import (
+    flake = (import (
         let
             lock = builtins.fromJSON (builtins.readFile ./flake.lock);
         in fetchTarball {
@@ -3478,6 +3478,8 @@ with builtins; {
             sha256 = lock.nodes.flake-compat.locked.narHash;
         }
     ) { src =  ./.; }).defaultNix;
+
+    sources = flake.inputs;
 
     nprefix = "nixpkgs";
     prefix = "pkgs";
@@ -4389,7 +4391,8 @@ init:
 ;; should never be allowed to enter Emacs in the first place.
 ;; (put 'buffer-save-without-query 'safe-local-variable #'booleanp)
 
-(setq doom-theme 'doom-gruvbox)
+(setq doom-theme 'themer-dark)
+;; (setq doom-theme 'doom-gruvbox)
 ;; (setq doom-theme nil)
 ;; From: https://github.com/hlissner/emacs-doom-themes#common-issues
 ;; (let ((height (face-attribute 'default :height)))
