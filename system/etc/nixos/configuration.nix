@@ -39,6 +39,7 @@ inputs@{ config, pkgs, ... } : with builtins; let
         ref = "master";
     };
     hash = user: lib.j.hostName { stc = stc-home // { inherit user; }; };
+    customInputs = inputs // { inherit stc lib sources; };
 in
 with lib;
 with j;
@@ -47,8 +48,16 @@ with integer-default-truths;
 if (
     device == "" || host == "" || type == "" || zfs == null
 ) then (abort "Sorry! The device, host, type, and zfs status must be set!") else {
+    options = {
+        vars = mkOption {
+            default = mkDefault {  };
+            type = with lib.types; attrsOf bool;
+        };
+    };
     imports = [
-        (import (./. + "/configs/${stc.host}") (inputs // { inherit lib; }))
+        (import (./. + "/configs/${stc.host}") customInputs)
+        (import ./modules/variables.nix customInputs)
+        (import ./modules/users.nix customInputs)
         (import "${home-manager'}/nixos")
         (import "${impermanence}/nixos.nix")
         (if (type == "pinebook") then (
@@ -58,10 +67,8 @@ if (
             }}/pinebook_pro.nix"
         ) else {})
         (if (type == "rpi") then (import ./devices/rpi (inputs // stc)) else {})
-        ./modules/variables.nix
     ];
     config = {
-        users = import ./modules/users.nix (inputs // { inherit stc lib; });
         home-manager = {
             useUserPackages = true;
             useGlobalPkgs = true;
@@ -115,7 +122,7 @@ if (
             };
         };
         boot.loader = {
-            systemd-boot.enable = mkForce (if (config.vars ? bootPart) then config.vars.bootPart else true);
+            systemd-boot.enable = mkForce config.vars.bootPart;
             efi.efiSysMountPoint = "/boot/efi";
             efi.canTouchEfiVariables = mkForce true;
             grub.efiInstallAsRemovable = mkForce false;
@@ -137,5 +144,5 @@ if (
         environment.systemPackages = with pkgs; [ vim git rsync tmux byobu xonsh yadm
             # python39
         ];
-    };
+    }
 }
