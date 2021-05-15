@@ -181,7 +181,7 @@ rec {
         };
         mkdir = path: "mkdir -p /persist/${path} &> /dev/null";
     };
-    users = fromJSON (readFile ./resources/users.json);
+    users = fromJSON (readFile ../resources/users.json);
     excludedUsers = [ "root" ];
     mainUsers = attrValues users;
     allUsers = mainUsers ++ excludedUsers;

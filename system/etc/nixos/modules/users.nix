@@ -1,4 +1,4 @@
-inputs@{ config, lib, pkgs, sources, ... }: with builtins; with lib; with j; {
+inputs@{ config, lib, pkgs, sources, stc, ... }: with builtins; with lib; with j; {
     users = with attrs.users; let
         base = mkMerge [{
                 hashedPassword = "$6$DoC/h6kR66Sa$aZKtTOXAqnan/jAC.4dH9tCYshheiKUZItR4g/kmMMLsfLQh0KslINL9zUTX2IjAZh9DE18eAh1AAz48.n/cm.";
@@ -12,7 +12,9 @@ inputs@{ config, lib, pkgs, sources, ... }: with builtins; with lib; with j; {
                 openssh.authorizedKeys.keys = [
                     attrs.ssh.keys.master
                 ];
-                packages = ../packages.nix inputs;
+                packages = import (
+                    if (pathExists ../packages.nix) then ../packages.nix else ./packages.nix
+                ) inputs;
             }
             (mkIf (!config.vars.minimal) {
                 extraGroups = [ "libvirtd" "docker" ];
