@@ -143,7 +143,7 @@ in with pkgs; [
     # (mkifnm exwm)
 ]) ++ (with pkgs."python${versions.python}Packages"; [
     # (myIf.drv (elem system attrs.platforms.imd) pkgs.hello pyls-black)
-    pyls-black
+    # pyls-black
     # (mkifnm jupyter)
     # nixpkgs
     # poetry

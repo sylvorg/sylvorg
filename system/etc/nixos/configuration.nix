@@ -70,7 +70,10 @@ if (
     ];
     config = {
         home-manager = {
+
+            # TODO
             useUserPackages = true;
+
             useGlobalPkgs = true;
             backupFileExtension = "bak";
             verbose = true;
@@ -93,7 +96,9 @@ if (
                 home = {
                     file = mkMerge [{
                             "${attrs.users.primary}".source = source;
-                            
+                            ".config/nixpkgs/overlays.nix".source = "${homeDirectory}/${primary.user}/home/.config/nixpkgs/overlays.nix";
+                            ".config/nixpkgs/config.nix".source = "${homeDirectory}/${primary.user}/home/.config/nixpkgs/config.nix";
+                            ".config/nix/nix.conf".text = attrs.configs.nix;
                         }
                         (myIf.set (user == "root") (attrs.link "/" "${source}/system"))
                         (attrs.link homeDirectory "${source}/home")

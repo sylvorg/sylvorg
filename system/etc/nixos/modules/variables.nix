@@ -1,4 +1,4 @@
-{ config, lib, ... }: with builtins; with lib; with j; {
+{ config, lib, stc, ... }: with builtins; with lib; with j; {
     options = {
         vars = mkOption {
             default = mkDefault {  };

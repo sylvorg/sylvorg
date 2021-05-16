@@ -33,8 +33,8 @@ index cc055e530..f1c0d2412 100644
 --- a/config/kernel-kmem.m4
 +++ b/config/kernel-kmem.m4
 @@ -56,3 +56,29 @@ AC_DEFUN([SPL_AC_DEBUG_KMEM_TRACKING], [
- 	AC_MSG_CHECKING([whether detailed kmem tracking is enabled])
- 	AC_MSG_RESULT([$enable_debug_kmem_tracking])
+    AC_MSG_CHECKING([whether detailed kmem tracking is enabled])
+    AC_MSG_RESULT([$enable_debug_kmem_tracking])
  ])
 +
 +dnl #
@@ -42,24 +42,24 @@ index cc055e530..f1c0d2412 100644
 +dnl # __vmalloc PAGE_KERNEL removal
 +dnl #
 +AC_DEFUN([ZFS_AC_KERNEL_SRC_VMALLOC_PAGE_KERNEL], [
-+	ZFS_LINUX_TEST_SRC([__vmalloc], [
-+		#include <linux/mm.h>
-+		#include <linux/vmalloc.h>
-+	],[
-+		void *p __attribute__ ((unused));
++   ZFS_LINUX_TEST_SRC([__vmalloc], [
++       #include <linux/mm.h>
++       #include <linux/vmalloc.h>
++   ],[
++       void *p __attribute__ ((unused));
 +
-+		p = __vmalloc(0, GFP_KERNEL, PAGE_KERNEL);
-+	])
++       p = __vmalloc(0, GFP_KERNEL, PAGE_KERNEL);
++   ])
 +])
 +
 +AC_DEFUN([ZFS_AC_KERNEL_VMALLOC_PAGE_KERNEL], [
-+	AC_MSG_CHECKING([whether __vmalloc(ptr, flags, pageflags) is available])
-+	ZFS_LINUX_TEST_RESULT([__vmalloc], [
-+		AC_MSG_RESULT(yes)
-+		AC_DEFINE(HAVE_VMALLOC_PAGE_KERNEL, 1, [__vmalloc page flags exists])
-+	],[
-+		AC_MSG_RESULT(no)
-+	])
++   AC_MSG_CHECKING([whether __vmalloc(ptr, flags, pageflags) is available])
++   ZFS_LINUX_TEST_RESULT([__vmalloc], [
++       AC_MSG_RESULT(yes)
++       AC_DEFINE(HAVE_VMALLOC_PAGE_KERNEL, 1, [__vmalloc page flags exists])
++   ],[
++       AC_MSG_RESULT(no)
++   ])
 +])
 +-
 diff --git a/config/kernel.m4 b/config/kernel.m4
@@ -67,21 +67,21 @@ index b67fcef8c..23edfdcd8 100644
 --- a/config/kernel.m4
 +++ b/config/kernel.m4
 @@ -45,6 +45,7 @@ AC_DEFUN([ZFS_AC_KERNEL_TEST_SRC], [
- 	ZFS_AC_KERNEL_SRC_SCHED
- 	ZFS_AC_KERNEL_SRC_USLEEP_RANGE
- 	ZFS_AC_KERNEL_SRC_KMEM_CACHE
-+	ZFS_AC_KERNEL_SRC_VMALLOC_PAGE_KERNEL
- 	ZFS_AC_KERNEL_SRC_WAIT
- 	ZFS_AC_KERNEL_SRC_INODE_TIMES
- 	ZFS_AC_KERNEL_SRC_INODE_LOCK
+    ZFS_AC_KERNEL_SRC_SCHED
+    ZFS_AC_KERNEL_SRC_USLEEP_RANGE
+    ZFS_AC_KERNEL_SRC_KMEM_CACHE
++   ZFS_AC_KERNEL_SRC_VMALLOC_PAGE_KERNEL
+    ZFS_AC_KERNEL_SRC_WAIT
+    ZFS_AC_KERNEL_SRC_INODE_TIMES
+    ZFS_AC_KERNEL_SRC_INODE_LOCK
 @@ -163,6 +164,7 @@ AC_DEFUN([ZFS_AC_KERNEL_TEST_RESULT], [
- 	ZFS_AC_KERNEL_SCHED
- 	ZFS_AC_KERNEL_USLEEP_RANGE
- 	ZFS_AC_KERNEL_KMEM_CACHE
-+	ZFS_AC_KERNEL_VMALLOC_PAGE_KERNEL
- 	ZFS_AC_KERNEL_WAIT
- 	ZFS_AC_KERNEL_INODE_TIMES
- 	ZFS_AC_KERNEL_INODE_LOCK
+    ZFS_AC_KERNEL_SCHED
+    ZFS_AC_KERNEL_USLEEP_RANGE
+    ZFS_AC_KERNEL_KMEM_CACHE
++   ZFS_AC_KERNEL_VMALLOC_PAGE_KERNEL
+    ZFS_AC_KERNEL_WAIT
+    ZFS_AC_KERNEL_INODE_TIMES
+    ZFS_AC_KERNEL_INODE_LOCK
 diff --git a/include/spl/sys/kmem.h b/include/spl/sys/kmem.h
 index 72d3a7765..ca15bfe7f 100644
 --- a/include/spl/sys/kmem.h
@@ -94,9 +94,9 @@ index 72d3a7765..ca15bfe7f 100644
 + * 5.8 API change, pgprot_t argument removed.
 + */
 +#ifdef HAVE_VMALLOC_PAGE_KERNEL
-+#define	spl_vmalloc(size, flags)	__vmalloc(size, flags, PAGE_KERNEL)
++#define    spl_vmalloc(size, flags)    __vmalloc(size, flags, PAGE_KERNEL)
 +#else
-+#define	spl_vmalloc(size, flags)	__vmalloc(size, flags)
++#define    spl_vmalloc(size, flags)    __vmalloc(size, flags)
 +#endif
 +
  /*
@@ -107,47 +107,47 @@ index d71b4b348..4866b2993 100644
 --- a/module/spl/spl-kmem-cache.c
 +++ b/module/spl/spl-kmem-cache.c
 @@ -203,7 +203,7 @@ kv_alloc(spl_kmem_cache_t *skc, int size, int flags)
- 		ASSERT(ISP2(size));
- 		ptr = (void *)__get_free_pages(lflags, get_order(size));
- 	} else {
--		ptr = __vmalloc(size, lflags | __GFP_HIGHMEM, PAGE_KERNEL);
-+		ptr = spl_vmalloc(size, lflags | __GFP_HIGHMEM);
- 	}
+        ASSERT(ISP2(size));
+        ptr = (void *)__get_free_pages(lflags, get_order(size));
+    } else {
+-       ptr = __vmalloc(size, lflags | __GFP_HIGHMEM, PAGE_KERNEL);
++       ptr = spl_vmalloc(size, lflags | __GFP_HIGHMEM);
+    }
  
- 	/* Resulting allocated memory will be page aligned */
+    /* Resulting allocated memory will be page aligned */
 @@ -1242,7 +1242,7 @@ spl_cache_grow(spl_kmem_cache_t *skc, int flags, void **obj)
- 	 * allocation.
- 	 *
- 	 * However, this can't be applied to KVM_VMEM due to a bug that
--	 * __vmalloc() doesn't honor gfp flags in page table allocation.
-+	 * spl_vmalloc() doesn't honor gfp flags in page table allocation.
- 	 */
- 	if (!(skc->skc_flags & KMC_VMEM)) {
- 		rc = __spl_cache_grow(skc, flags | KM_NOSLEEP);
+     * allocation.
+     *
+     * However, this can't be applied to KVM_VMEM due to a bug that
+-    * __vmalloc() doesn't honor gfp flags in page table allocation.
++    * spl_vmalloc() doesn't honor gfp flags in page table allocation.
+     */
+    if (!(skc->skc_flags & KMC_VMEM)) {
+        rc = __spl_cache_grow(skc, flags | KM_NOSLEEP);
 diff --git a/module/spl/spl-kmem.c b/module/spl/spl-kmem.c
 index cee69ad43..ca1fc145f 100644
 --- a/module/spl/spl-kmem.c
 +++ b/module/spl/spl-kmem.c
 @@ -172,16 +172,15 @@ spl_kmem_alloc_impl(size_t size, int flags, int node)
- 		 * kmem_zalloc() callers.
- 		 *
- 		 * For vmem_alloc() and vmem_zalloc() callers it is permissible
--		 * to use __vmalloc().  However, in general use of __vmalloc()
--		 * is strongly discouraged because a global lock must be
--		 * acquired.  Contention on this lock can significantly
-+		 * to use spl_vmalloc().  However, in general use of
-+		 * spl_vmalloc() is strongly discouraged because a global lock
-+		 * must be acquired.  Contention on this lock can significantly
- 		 * impact performance so frequently manipulating the virtual
- 		 * address space is strongly discouraged.
- 		 */
- 		if ((size > spl_kmem_alloc_max) || use_vmem) {
- 			if (flags & KM_VMEM) {
--				ptr = __vmalloc(size, lflags | __GFP_HIGHMEM,
--				    PAGE_KERNEL);
-+				ptr = spl_vmalloc(size, lflags | __GFP_HIGHMEM);
- 			} else {
- 				return (NULL);
- 			}
+         * kmem_zalloc() callers.
+         *
+         * For vmem_alloc() and vmem_zalloc() callers it is permissible
+-        * to use __vmalloc().  However, in general use of __vmalloc()
+-        * is strongly discouraged because a global lock must be
+-        * acquired.  Contention on this lock can significantly
++        * to use spl_vmalloc().  However, in general use of
++        * spl_vmalloc() is strongly discouraged because a global lock
++        * must be acquired.  Contention on this lock can significantly
+         * impact performance so frequently manipulating the virtual
+         * address space is strongly discouraged.
+         */
+        if ((size > spl_kmem_alloc_max) || use_vmem) {
+            if (flags & KM_VMEM) {
+-               ptr = __vmalloc(size, lflags | __GFP_HIGHMEM,
+-                   PAGE_KERNEL);
++               ptr = spl_vmalloc(size, lflags | __GFP_HIGHMEM);
+            } else {
+                return (NULL);
+            }
 -- 
 2.25.1

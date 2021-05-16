@@ -834,7 +834,10 @@ if (
     ];
     config = {
         home-manager = {
+
+            # TODO
             useUserPackages = true;
+
             useGlobalPkgs = true;
             backupFileExtension = "bak";
             verbose = true;
@@ -3075,7 +3078,7 @@ options = {
 
 #+name: 33c7c54f72f832ea599cfbf1021691f9
 #+begin_src nix :tangle (jr/tangle-oreo)
-{ config, lib, ... }: with builtins; with lib; with j; {
+{ config, lib, stc, ... }: with builtins; with lib; with j; {
     <<e76b4601025ef4ed0071b29a0161182f>>
     config.vars = {
         bootPart = mkDefault true;
@@ -3752,7 +3755,7 @@ in with pkgs; [
     # (mkifnm exwm)
 ]) ++ (with pkgs."python${versions.python}Packages"; [
     # (myIf.drv (elem system attrs.platforms.imd) pkgs.hello pyls-black)
-    pyls-black
+    # pyls-black
     # (mkifnm jupyter)
     # nixpkgs
     # poetry
@@ -4390,7 +4393,8 @@ init:
 ;; should never be allowed to enter Emacs in the first place.
 ;; (put 'buffer-save-without-query 'safe-local-variable #'booleanp)
 
-(setq doom-theme 'themer-dark)
+;; (setq doom-theme 'dracula-orange-dark)
+(setq doom-theme 'dracula-purple-dark)
 ;; (setq doom-theme 'doom-gruvbox)
 ;; (setq doom-theme nil)
 ;; From: https://github.com/hlissner/emacs-doom-themes#common-issues
@@ -6380,7 +6384,7 @@ in getAttrFromPath (attrValues stc) legacyPackages.%o" `((?o . ,oc)))
 #+RESULTS:
 : 43603ebd7da002155f7108935561456a
 
-#+name: nix
+#+name: 43603ebd7da002155f7108935561456a
 #+begin_src nix
 ".config/nixpkgs/overlays.nix".source = "${homeDirectory}/${primary.user}/home/.config/nixpkgs/overlays.nix";
 ".config/nixpkgs/config.nix".source = "${homeDirectory}/${primary.user}/home/.config/nixpkgs/config.nix";
@@ -6581,7 +6585,10 @@ with builtins; let
         nixpkgs = { inherit (stc) system; inherit overlays config; };
         fonts.fontconfig.enable = mkForce true;
         imports = [ "${sources.impermanence}/home-manager.nix" ];
+
+        # TODO
         useUserPackages = true;
+
         useGlobalPkgs = true;
         backupFileExtension = "bak";
         verbose = true;

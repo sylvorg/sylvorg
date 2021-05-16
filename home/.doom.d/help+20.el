@@ -630,64 +630,64 @@ Return the description that was displayed, as a string."
 ;;;###autoload
 (defun describe-function-1 (function parens interactive-p)
   (let* ((def (if (symbolp function)
-		  (symbol-function function)
-		function))
-	 file-name string need-close
-	 (beg (if (commandp def) "an interactive " "a ")))
+          (symbol-function function)
+        function))
+     file-name string need-close
+     (beg (if (commandp def) "an interactive " "a ")))
     (setq string
-	  (cond ((or (stringp def)
-		     (vectorp def))
-		 "a keyboard macro")
-		((subrp def)
-		 (concat beg "built-in function"))
-		((byte-code-function-p def)
-		 (concat beg "compiled Lisp function"))
-		((symbolp def)
-		 (while (symbolp (symbol-function def))
-		   (setq def (symbol-function def)))
-		 (format "an alias for `%s'" def))
-		((eq (car-safe def) 'lambda)
-		 (concat beg "Lisp function"))
-		((eq (car-safe def) 'macro)
-		 "a Lisp macro")
-		((eq (car-safe def) 'mocklisp)
-		 "a mocklisp function")
-		((eq (car-safe def) 'autoload)
-		 (setq file-name (nth 1 def))
-		 (format "%s autoloaded %s"
-			 (if (commandp def) "an interactive" "an")
-			 (if (eq (nth 4 def) 'keymap) "keymap"
-			   (if (nth 4 def) "Lisp macro" "Lisp function"))
-			 ))
-		(t "")))
+      (cond ((or (stringp def)
+             (vectorp def))
+         "a keyboard macro")
+        ((subrp def)
+         (concat beg "built-in function"))
+        ((byte-code-function-p def)
+         (concat beg "compiled Lisp function"))
+        ((symbolp def)
+         (while (symbolp (symbol-function def))
+           (setq def (symbol-function def)))
+         (format "an alias for `%s'" def))
+        ((eq (car-safe def) 'lambda)
+         (concat beg "Lisp function"))
+        ((eq (car-safe def) 'macro)
+         "a Lisp macro")
+        ((eq (car-safe def) 'mocklisp)
+         "a mocklisp function")
+        ((eq (car-safe def) 'autoload)
+         (setq file-name (nth 1 def))
+         (format "%s autoloaded %s"
+             (if (commandp def) "an interactive" "an")
+             (if (eq (nth 4 def) 'keymap) "keymap"
+               (if (nth 4 def) "Lisp macro" "Lisp function"))
+             ))
+        (t "")))
     (when (and parens (not (equal string "")))
       (setq need-close t)
       (princ "("))
     (princ string)
     (with-current-buffer "*Help*"
       (save-excursion
-	(save-match-data
-	  (if (re-search-backward "alias for `\\([^`']+\\)'" nil t)
-	      (help-xref-button 1 #'describe-function def)))))
+    (save-match-data
+      (if (re-search-backward "alias for `\\([^`']+\\)'" nil t)
+          (help-xref-button 1 #'describe-function def)))))
     (or file-name
-	(setq file-name (symbol-file function)))
+    (setq file-name (symbol-file function)))
     (if file-name
-	(progn
-	  (princ " in `")
-	  ;; We used to add .el to the file name,
-	  ;; but that's completely wrong when the user used load-file.
-	  (princ file-name)
-	  (princ "'")
-	  ;; Make a hyperlink to the library.
-	  (with-current-buffer "*Help*"
-	    (save-excursion
-	      (re-search-backward "`\\([^`']+\\)'" nil t)
-	      (help-xref-button 1 #'(lambda (arg)
-				      (let ((location
-					     (find-function-noselect arg)))
-					(pop-to-buffer (car location))
-					(goto-char (cdr location))))
-				function)))))
+    (progn
+      (princ " in `")
+      ;; We used to add .el to the file name,
+      ;; but that's completely wrong when the user used load-file.
+      (princ file-name)
+      (princ "'")
+      ;; Make a hyperlink to the library.
+      (with-current-buffer "*Help*"
+        (save-excursion
+          (re-search-backward "`\\([^`']+\\)'" nil t)
+          (help-xref-button 1 #'(lambda (arg)
+                      (let ((location
+                         (find-function-noselect arg)))
+                    (pop-to-buffer (car location))
+                    (goto-char (cdr location))))
+                function)))))
     (if need-close (princ ")"))
     (princ ".")
     (terpri)
@@ -695,27 +695,27 @@ Return the description that was displayed, as a string."
     (setq def (indirect-function def))
     ;; If definition is a macro, find the function inside it.
     (if (eq (car-safe def) 'macro)
-	(setq def (cdr def)))
+    (setq def (cdr def)))
     (let ((arglist (cond ((byte-code-function-p def)
-			  (car (append def nil)))
-			 ((eq (car-safe def) 'lambda)
-			  (nth 1 def))
-			 (t t))))
+              (car (append def nil)))
+             ((eq (car-safe def) 'lambda)
+              (nth 1 def))
+             (t t))))
       (if (listp arglist)
-	  (progn
-	    (princ (cons (if (symbolp function) function "anonymous")
-			 (mapcar (lambda (arg)
-				   (if (memq arg '(&optional &rest))
-				       arg
-				     (intern (upcase (symbol-name arg)))))
-				 arglist)))
-	    (terpri))))
+      (progn
+        (princ (cons (if (symbolp function) function "anonymous")
+             (mapcar (lambda (arg)
+                   (if (memq arg '(&optional &rest))
+                       arg
+                     (intern (upcase (symbol-name arg)))))
+                 arglist)))
+        (terpri))))
     (let ((doc (condition-case nil (documentation function) (error nil))))
       (if doc
-	  (progn (terpri)
-		 (princ doc)
-		 (help-setup-xref (list #'describe-function function) interactive-p))
-	(princ "not documented")))))
+      (progn (terpri)
+         (princ doc)
+         (help-setup-xref (list #'describe-function function) interactive-p))
+    (princ "not documented")))))
 
 ;;;###autoload
 (defun describe-command (function)
