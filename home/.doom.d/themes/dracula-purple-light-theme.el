@@ -1,4 +1,3 @@
-;; [[file:../../../promethean.aiern.org::1612690d155b9a5604601103ba7c55c8][1612690d155b9a5604601103ba7c55c8]]
 ;;; dracula-purple-light-theme.el
 
 ;; Version: 1.0.1
@@ -232,4 +231,3 @@
 ;; End:
 
 ;;; dracula-purple-light-theme.el ends here
-;; 1612690d155b9a5604601103ba7c55c8 ends here

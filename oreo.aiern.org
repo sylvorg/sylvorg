@@ -1631,9 +1631,9 @@ in __.extend (final: prev: prelib.foldToSet (attrValues prev))
 #+begin_src nix :tangle (jr/tangle-oreo)
 lib: with builtins; with lib; rec {
     integer-defaults = {
-        noSwap = 0;
-        musl = 1;
         minimal = 0;
+        musl = 1;
+        noSwap = 0;
         terminal = 0;
         zfs = 1;
     };
@@ -2017,7 +2017,7 @@ rec {
 
     # Device Types
     types = flatten [
-        (listNames { dir = ./devices; })
+        (listNames { dir = ../devices; })
         [ "def" ]
     ];
 
@@ -2029,7 +2029,7 @@ rec {
         "def"
     ];
 
-    hosts = listNames { dir = ./configs; };
+    hosts = listNames { dir = ../configs; };
 
     # hosts = listToAttrs (flatten [
     #     (map (host: nameValuePair host {}) [
@@ -4393,8 +4393,9 @@ init:
 ;; should never be allowed to enter Emacs in the first place.
 ;; (put 'buffer-save-without-query 'safe-local-variable #'booleanp)
 
+(setq doom-theme 'exo-ui-red-dark)
 ;; (setq doom-theme 'dracula-orange-dark)
-(setq doom-theme 'dracula-purple-dark)
+;; (setq doom-theme 'dracula-purple-dark)
 ;; (setq doom-theme 'doom-gruvbox)
 ;; (setq doom-theme nil)
 ;; From: https://github.com/hlissner/emacs-doom-themes#common-issues
@@ -5842,13 +5843,17 @@ trees with the :notangle: tag."
 
 #+name: ed55930dc36029c49a46d842fd0ffc1b
 #+begin_src emacs-lisp :tangle (jr/tangle-oreo)
+(defun jr/get-header nil (interactive)
+    (nth 4 (org-heading-components)))
 (defun jr/tangle-path nil (interactive)
     (string-remove-prefix "/" (concat
         (org-format-outline-path (org-get-outline-path)) "/"
-            (nth 4 (org-heading-components)))))
+            (jr/get-header))))
 (defun jr/tangle-oreo nil (interactive)
     (org-babel-lob-ingest "./strange.aiern.org")
     (jr/tangle-path))
+(defun jr/get-theme-from-header nil (interactive)
+    (string-remove-suffix "-theme.el" (jr/get-header)))
 #+end_src
 
 ** .gitattributes

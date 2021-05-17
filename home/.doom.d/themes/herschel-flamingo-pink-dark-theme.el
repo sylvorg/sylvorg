@@ -1,4 +1,4 @@
-;;; dracula-orange-light-theme.el
+;;; herschel-flamingo-pink-dark-theme.el
 
 ;; Version: 1.0.1
 ;; Package-Requires: ((emacs "24"))
@@ -9,26 +9,26 @@
 
 ;;; Code:
 
-(deftheme dracula-orange-light)
+(deftheme herschel-flamingo-pink-dark)
 (let ((class '((class color) (min-colors 89)))
-  (shade0 "#ffb86c")
-  (shade1 "#dfa361")
-  (shade2 "#c08d57")
-  (shade3 "#a0784c")
-  (shade4 "#816242")
-  (shade5 "#614d37")
-  (shade6 "#42372d")
-  (shade7 "#222222")
-  (accent0 "#222222")
-  (accent1 "#222222")
-  (accent2 "#222222")
-  (accent3 "#222222")
-  (accent4 "#222222")
-  (accent5 "#222222")
-  (accent6 "#222222")
-  (accent7 "#222222"))
+  (shade0 "#222222")
+  (shade1 "#413531")
+  (shade2 "#604841")
+  (shade3 "#7f5b50")
+  (shade4 "#9f6e60")
+  (shade5 "#be816f")
+  (shade6 "#dd947f")
+  (shade7 "#fca78e")
+  (accent0 "#fca78e")
+  (accent1 "#fca78e")
+  (accent2 "#fca78e")
+  (accent3 "#fca78e")
+  (accent4 "#fca78e")
+  (accent5 "#fca78e")
+  (accent6 "#fca78e")
+  (accent7 "#fca78e"))
 (custom-theme-set-faces
-  'dracula-orange-light
+  'herschel-flamingo-pink-dark
   `(default ((,class (:background ,shade0 :foreground ,shade7))))
   `(font-lock-builtin-face ((,class (:foreground ,accent5))))
   `(font-lock-comment-face ((,class (:foreground ,shade3))))
@@ -224,10 +224,10 @@
   (add-to-list 'custom-theme-load-path
     (file-name-as-directory (file-name-directory load-file-name))))
 
-(provide-theme 'dracula-orange-light)
+(provide-theme 'herschel-flamingo-pink-dark)
 
 ;; Local Variables:
 ;; no-byte-compile: t
 ;; End:
 
-;;; dracula-orange-light-theme.el ends here
+;;; herschel-flamingo-pink-dark-theme.el ends here

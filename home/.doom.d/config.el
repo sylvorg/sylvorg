@@ -437,13 +437,17 @@
             (define-key evil-normal-state-map (kbd "<backtab>") 'jr/evil-close-fold)
             (define-key evil-insert-state-map (kbd "<backtab>") 'jr/evil-close-fold)
 
+            (defun jr/get-header nil (interactive)
+                (nth 4 (org-heading-components)))
             (defun jr/tangle-path nil (interactive)
                 (string-remove-prefix "/" (concat
                     (org-format-outline-path (org-get-outline-path)) "/"
-                        (nth 4 (org-heading-components)))))
+                        (jr/get-header))))
             (defun jr/tangle-oreo nil (interactive)
                 (org-babel-lob-ingest "./strange.aiern.org")
                 (jr/tangle-path))
+            (defun jr/get-theme-from-header nil (interactive)
+                (string-remove-suffix "-theme.el" (jr/get-header)))
         :general
             (:keymaps 'org-roam-mode-map
                   "C-c n" '(:ignore t :which-key "Org-Roam")
@@ -846,8 +850,9 @@
 ;; should never be allowed to enter Emacs in the first place.
 ;; (put 'buffer-save-without-query 'safe-local-variable #'booleanp)
 
+(setq doom-theme 'exo-ui-red-dark)
 ;; (setq doom-theme 'dracula-orange-dark)
-(setq doom-theme 'dracula-purple-dark)
+;; (setq doom-theme 'dracula-purple-dark)
 ;; (setq doom-theme 'doom-gruvbox)
 ;; (setq doom-theme nil)
 ;; From: https://github.com/hlissner/emacs-doom-themes#common-issues

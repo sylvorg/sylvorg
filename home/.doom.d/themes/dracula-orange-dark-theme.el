@@ -1,4 +1,3 @@
-;; [[file:../../../promethean.aiern.org::9043dce1951554244e85c844eb41b812][9043dce1951554244e85c844eb41b812]]
 ;;; dracula-orange-dark-theme.el
 
 ;; Version: 1.0.1
@@ -232,4 +231,3 @@
 ;; End:
 
 ;;; dracula-orange-dark-theme.el ends here
-;; 9043dce1951554244e85c844eb41b812 ends here

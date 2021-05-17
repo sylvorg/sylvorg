@@ -1,8 +1,8 @@
 lib: with builtins; with lib; rec {
     integer-defaults = {
-        noSwap = 0;
-        musl = 1;
         minimal = 0;
+        musl = 1;
+        noSwap = 0;
         terminal = 0;
         zfs = 1;
     };

@@ -119,7 +119,7 @@ rec {
 
     # Device Types
     types = flatten [
-        (listNames { dir = ./devices; })
+        (listNames { dir = ../devices; })
         [ "def" ]
     ];
 
@@ -131,7 +131,7 @@ rec {
         "def"
     ];
 
-    hosts = listNames { dir = ./configs; };
+    hosts = listNames { dir = ../configs; };
 
     # hosts = listToAttrs (flatten [
     #     (map (host: nameValuePair host {}) [
