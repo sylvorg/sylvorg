@@ -109,10 +109,10 @@
                     (funcall mode 1)
                     ;; (internal-push-keymap (symbol-value map) 'overriding-terminal-local-map)
                     (funcall (intern (concat "jr/" prefix "-hercules-show")))))
-
         :general
             (:keymaps 'override
                   (general-chord "  ") 'jr/toggle-ryo
+                  (general-chord "kk") 'jr/toggle-ryo
                   "M-w M-w" 'jr/ryo-hercules-toggle)
         :hercules
             (:show-funs #'jr/ryo-hercules-show
@@ -862,8 +862,8 @@
 ;; should never be allowed to enter Emacs in the first place.
 ;; (put 'buffer-save-without-query 'safe-local-variable #'booleanp)
 
-(setq doom-theme 'exo-ui-red-dark)
-;; (setq doom-theme 'dracula-orange-dark)
+;; (setq doom-theme 'exo-ui-red-dark)
+(setq doom-theme 'dracula-orange-dark)
 ;; (setq doom-theme 'dracula-purple-dark)
 ;; (setq doom-theme 'doom-gruvbox)
 ;; (setq doom-theme nil)

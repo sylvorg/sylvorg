@@ -4394,8 +4394,8 @@ init:
 ;; should never be allowed to enter Emacs in the first place.
 ;; (put 'buffer-save-without-query 'safe-local-variable #'booleanp)
 
-(setq doom-theme 'exo-ui-red-dark)
-;; (setq doom-theme 'dracula-orange-dark)
+;; (setq doom-theme 'exo-ui-red-dark)
+(setq doom-theme 'dracula-orange-dark)
 ;; (setq doom-theme 'dracula-purple-dark)
 ;; (setq doom-theme 'doom-gruvbox)
 ;; (setq doom-theme nil)
