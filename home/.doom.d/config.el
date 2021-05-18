@@ -27,6 +27,7 @@
 (use-package! use-package-chords
         :demand t
         :hook (after-init . key-chord-mode))
+;; (load! "naked.el")
 
 (use-package! use-package-hydra
         :demand t
@@ -99,13 +100,14 @@
 
             ;; Adapted From: https://gitlab.com/jjzmajic/hercules.el/-/blob/master/hercules.el#L83
             (defun jr/toggle-inner (mode prefix mode-on map) (interactive)
+                (setq previous-evil-state evil-state)
                 (jr/disable-all-modal-modes)
                 (funcall (intern (concat "jr/" prefix "-hercules-hide")))
                 (if mode-on
                     (progn
                         (evil-mode 1)
-                        ;; (internal-push-keymap 'evil-mode-map 'overriding-terminal-local-map))
-                        (jr/evil-hercules-show))
+                        ;; (setq evil-state previous-evil-state)
+                        (which-key-show-top-level))
                     (funcall mode 1)
                     ;; (internal-push-keymap (symbol-value map) 'overriding-terminal-local-map)
                     (funcall (intern (concat "jr/" prefix "-hercules-show")))))
@@ -132,14 +134,20 @@
             (push '((nil . "ryo:.*:") . (nil . "")) which-key-replacement-alist))
 
 (use-package! evil
-        :hook (doom-init-ui . jr/evil-hercules-toggle)
+        :hook (doom-init-ui . which-key-show-top-level)
         :init
             ;; From:
             ;; Answer: https://stackoverflow.com/questions/25542097/emacs-evil-mode-how-to-change-insert-state-to-emacs-state-automatically/56206909#56206909
             ;; User: https://stackoverflow.com/users/1259257/mshohayeb
             (setq evil-disable-insert-state-bindings t)
+
+            (setq-default evil-escape-key-sequence nil)
+
             (defun jr/evil-hercules-toggle nil (interactive))
             (defun jr/evil-quit nil (interactive) (funcall (general-simulate-key ":q! <RET>")))
+            (defun jr/evil-show nil (interactive)
+                (evil-normal-state)
+                (which-key-show-top-level))
             ;; (setq evil-want-keybinding nil)
             ;; (setq evil-want-integration t)
         :general
@@ -152,8 +160,7 @@
                 (general-chord ";'") 'evil-execute-in-emacs-state
 
                 ;; NOTE: Will not toggle if hercules is transient
-                (general-chord ";;") 'jr/evil-hercules-toggle)
-
+                (general-chord "kk") 'jr/evil-show)
         :config
             (use-package! god-mode
                     :general
@@ -262,14 +269,7 @@
                         ("`" nil "cancel"))
                     :first '(evil-normal-state)
                     :name "evil exits")
-            (";" jr/ryo-hercules-toggle :name "toggle keymap")
-        :hercules
-            (:show-funs #'jr/evil-hercules-show
-            :hide-funs #'jr/evil-hercules-hide
-            :toggle-funs #'jr/evil-hercules-toggle
-            :keymap 'evil-normal-state-map
-            ;; :transient t
-            ))
+            (";" jr/ryo-hercules-toggle :name "toggle keymap"))
 
 ;; Adapted From: https://github.com/mohsenil85/evil-evilified-state and https://github.com/syl20bnr/spacemacs
 (use-package! evil-evilified-state :after evil)
@@ -442,10 +442,6 @@
             (defun jr/org-cycle nil (interactive) (
                 if (jr/outline-folded-p) (org-cycle) (jr/evil-close-fold)))
 
-            ;; Note: Not in the `:general' section 'cause I have no idea how to define `<backtab>'
-            (define-key evil-normal-state-map (kbd "<backtab>") 'jr/evil-close-fold)
-            (define-key evil-insert-state-map (kbd "<backtab>") 'jr/evil-close-fold)
-
             (defun jr/get-header nil (interactive)
                 (nth 4 (org-heading-components)))
             (defun jr/tangle-path nil (interactive)
@@ -470,6 +466,8 @@
             ;;     "TAB" nil)
             ;; (:keymaps '(override insert)
             ;;     "TAB" 'jr/org-cycle))
+            ;; (:keymaps '(override insert)
+            ;;     (naked "backtab") 'jr/evil-close-fold)
         :ryo ("o" :hydra
             '(hydra-org nil
                   "A hydra for org-mode!"

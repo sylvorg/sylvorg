@@ -50,7 +50,7 @@
   `(show-paren-match-face ((,class (:background ,accent0))))
   `(isearch ((,class (:bold t :foreground ,accent0 :background ,shade2))))
   `(mode-line ((,class (:box (:line-width 1 :color nil) :bold t :foreground ,shade4 :background ,shade0))))
-  `(mode-line-inactive ((,class (:box (:line-width 1 :color nil :style pressed-button) :foreground ,accent7 :background ,shade0 :weight normal))))
+  `(mode-line-inactive ((,class (:box (:line-width 1 :color nil :style pressed-button) :foreground ,accent7 :background ,shade1 :weight normal))))
   `(mode-line-buffer-id ((,class (:bold t :foreground ,accent6 :background nil))))
   `(mode-line-highlight ((,class (:foreground ,accent1 :box nil :weight bold))))
   `(mode-line-emphasis ((,class (:foreground ,shade7))))
