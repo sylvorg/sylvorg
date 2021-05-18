@@ -5062,13 +5062,14 @@ Taken from [[Org-Roam's GitHub README][https://github.com/org-roam/org-roam#inst
                 (if mode-on
                     (progn
                         (evil-mode 1)
-                        (internal-push-keymap 'evil-mode-map 'overriding-terminal-local-map))
+                        ;; (internal-push-keymap 'evil-mode-map 'overriding-terminal-local-map))
+                        (jr/evil-hercules-show))
                     (funcall mode 1)
-                    (internal-push-keymap (symbol-value map) 'overriding-terminal-local-map)
+                    ;; (internal-push-keymap (symbol-value map) 'overriding-terminal-local-map)
                     (funcall (intern (concat "jr/" prefix "-hercules-show")))))
-
         :general
             (:keymaps 'override
+                  (general-chord "  ") 'jr/toggle-ryo
                   (general-chord "kk") 'jr/toggle-ryo
                   "M-w M-w" 'jr/ryo-hercules-toggle)
         <<d3797553f252eabca75070bb3374df05(map="ryo-modal-mode-map", mode="ryo-modal-mode", prefix="ryo")>>

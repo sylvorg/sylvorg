@@ -104,14 +104,15 @@
                 (if mode-on
                     (progn
                         (evil-mode 1)
-                        (internal-push-keymap 'evil-mode-map 'overriding-terminal-local-map))
+                        ;; (internal-push-keymap 'evil-mode-map 'overriding-terminal-local-map))
+                        (jr/evil-hercules-show))
                     (funcall mode 1)
-                    (internal-push-keymap (symbol-value map) 'overriding-terminal-local-map)
+                    ;; (internal-push-keymap (symbol-value map) 'overriding-terminal-local-map)
                     (funcall (intern (concat "jr/" prefix "-hercules-show")))))
 
         :general
             (:keymaps 'override
-                  (general-chord "kk") 'jr/toggle-ryo
+                  (general-chord "  ") 'jr/toggle-ryo
                   "M-w M-w" 'jr/ryo-hercules-toggle)
         :hercules
             (:show-funs #'jr/ryo-hercules-show
