@@ -60,20 +60,21 @@ if (
         (import ./modules/users.nix customInputs)
         (import "${home-manager'}/nixos")
         (import "${impermanence}/nixos.nix")
-        (if (type == "pinebook") then (
+        (myIf.set (type == "pinebook") (
             "${fetchGit {
                 url = "https://github.com/shadowrylander/wip-pinebook-pro";
                 ref = "master";
-            }}/pinebook_pro.nix"
-        ) else {})
-        (if (type == "rpi") then (import ./devices/rpi (inputs // stc)) else {})
+            }}/configuration.nix"
+        ))
+        (myIf.shell (type == "rpi") (import ./devices/rpi (inputs // stc)))
     ];
     config = {
+
+        # No need to merge "v" here, as that is taken care of by the module system
+        users.users = mapAttrs (n: v: { packages = mkForce []; }) attrs.allUsers;
+
         home-manager = {
-
-            # TODO
             useUserPackages = true;
-
             useGlobalPkgs = true;
             backupFileExtension = "bak";
             verbose = true;

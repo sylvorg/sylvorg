@@ -824,20 +824,21 @@ if (
         (import ./modules/users.nix customInputs)
         (import "${home-manager'}/nixos")
         (import "${impermanence}/nixos.nix")
-        (if (type == "pinebook") then (
+        (myIf.set (type == "pinebook") (
             "${fetchGit {
                 url = "https://github.com/shadowrylander/wip-pinebook-pro";
                 ref = "master";
-            }}/pinebook_pro.nix"
-        ) else {})
-        (if (type == "rpi") then (import ./devices/rpi (inputs // stc)) else {})
+            }}/configuration.nix"
+        ))
+        (myIf.shell (type == "rpi") (import ./devices/rpi (inputs // stc)))
     ];
     config = {
+
+        # No need to merge "v" here, as that is taken care of by the module system
+        users.users = mapAttrs (n: v: { packages = mkForce []; }) attrs.allUsers;
+
         home-manager = {
-
-            # TODO
             useUserPackages = true;
-
             useGlobalPkgs = true;
             backupFileExtension = "bak";
             verbose = true;
@@ -1227,7 +1228,7 @@ Taken from [[https://github.com/NixOS/nixos-hardware/tree/master/microsoft/hyper
 
 #+name: e0a851a952ea6c27e7ad3ec227fd2a0d
 #+begin_src nix :tangle (jr/tangle-oreo)
-{ sources, ... }: { imports = [ "${sources.wip-pinebook-pro}/pinebook_pro.nix" ]; }
+{ sources, ... }: { imports = [ "${sources.wip-pinebook-pro}/configuration.nix" ]; }
 #+end_src
 
 ****** default.nix
@@ -4873,7 +4874,8 @@ Taken from [[Org-Roam's GitHub README][https://github.com/org-roam/org-roam#inst
     :hide-funs #'jr/%p-hercules-hide
     :toggle-funs #'jr/%p-hercules-toggle
     :keymap '%m
-    :transient t)
+    ;; :transient t
+    )
 :config
     (defun jr/%p-hercules-toggle nil (interactive))
     (add-to-list 'modal-modes '%n)
@@ -4900,6 +4902,7 @@ Taken from [[Org-Roam's GitHub README][https://github.com/org-roam/org-roam#inst
 <<8c01d74b243996d2524244ea38efedf0>>
 
 (use-package! evil
+        :hook (doom-init-ui . jr/evil-hercules-toggle)
         :init
             ;; From:
             ;; Answer: https://stackoverflow.com/questions/25542097/emacs-evil-mode-how-to-change-insert-state-to-emacs-state-automatically/56206909#56206909
@@ -4944,7 +4947,6 @@ Taken from [[Org-Roam's GitHub README][https://github.com/org-roam/org-roam#inst
             ;; Use to get command name:
             ;; Eg: (cdr (assoc "q" evil-ex-commands))
             ;; Then "C-x C-e" (eval-last-sexp)
-
         :ryo
             ("l" :hydra
                   '(evil-exits (:color blue)
@@ -4966,7 +4968,8 @@ Taken from [[Org-Roam's GitHub README][https://github.com/org-roam/org-roam#inst
             :hide-funs #'jr/evil-hercules-hide
             :toggle-funs #'jr/evil-hercules-toggle
             :keymap 'evil-normal-state-map
-            :transient t))
+            ;; :transient t
+            ))
 
 ;; Adapted From: https://github.com/mohsenil85/evil-evilified-state and https://github.com/syl20bnr/spacemacs
 (use-package! evil-evilified-state :after evil)
@@ -4983,15 +4986,18 @@ Taken from [[Org-Roam's GitHub README][https://github.com/org-roam/org-roam#inst
 #+begin_src emacs-lisp
 (use-package! hercules
         :demand t
-        :init (setq which-key-enable-extended-define-key t)
+        ;; :hook (doom-init-ui . (lambda nil (interactive)
+        ;;     (which-key--show-popup (cons 0.25 0.5))))
+        :init
+            (setq which-key-enable-extended-define-key t)
+            (setq which-key-idle-delay 0.1)
+            (setq which-key-idle-secondary-delay nil)
         :custom
 
             ;; NOTE: When using the side window, this doesn't matter, apparently;
             ;; only the hercules transient property does
             (which-key-persistent-popup t)
 
-            (which-key-idle-delay 0.1)
-            (which-key-idle-secondary-delay 0.1)
             (which-key-allow-evil-operators t)
 
             ;; NOTE: This will cause the which-key maps for the operator states to show up,
@@ -5006,7 +5012,7 @@ Taken from [[Org-Roam's GitHub README][https://github.com/org-roam/org-roam#inst
 
             ;; If this percentage is too small, the keybindings frame will appear at the bottom
             (which-key-side-window-max-width 0.5)
-            
+
             (which-key-side-window-max-height 0.25))
 #+end_src
 
@@ -5405,7 +5411,8 @@ Mostly from [[Emux's After Installing Section][https://github.com/re5et/emux#aft
         :hide-funs #'jr/emux-hercules-hide
         :toggle-funs #'jr/emux-hercules-toggle
         :keymap 'term-mode-map
-        :transient t)
+        ;; :transient t
+        )
     ;; :hook (after-init . emux-mode)
         )
 #+end_src
@@ -5431,7 +5438,8 @@ Mostly from [[Emux's After Installing Section][https://github.com/re5et/emux#aft
         :hide-funs #'jr/elscreen-hercules-hide
         :toggle-funs #'jr/elscreen-hercules-toggle
         :keymap 'elscreen-map
-        :transient t))
+        ;; :transient t
+        ))
 #+end_src
 
 ***** escreen
@@ -5508,7 +5516,8 @@ Mostly from [[Emux's After Installing Section][https://github.com/re5et/emux#aft
         :hide-funs #'jr/escreen-hercules-hide
         :toggle-funs #'jr/escreen-hercules-toggle
         :keymap 'escreen-map
-        :transient t))
+        ;; :transient t
+        ))
 #+end_src
 
 **** window manager
@@ -6590,10 +6599,7 @@ with builtins; let
         nixpkgs = { inherit (stc) system; inherit overlays config; };
         fonts.fontconfig.enable = mkForce true;
         imports = [ "${sources.impermanence}/home-manager.nix" ];
-
-        # TODO
         useUserPackages = true;
-
         useGlobalPkgs = true;
         backupFileExtension = "bak";
         verbose = true;

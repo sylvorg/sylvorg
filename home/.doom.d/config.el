@@ -38,15 +38,18 @@
 
 (use-package! hercules
         :demand t
-        :init (setq which-key-enable-extended-define-key t)
+        ;; :hook (doom-init-ui . (lambda nil (interactive)
+        ;;     (which-key--show-popup (cons 0.25 0.5))))
+        :init
+            (setq which-key-enable-extended-define-key t)
+            (setq which-key-idle-delay 0.1)
+            (setq which-key-idle-secondary-delay nil)
         :custom
 
             ;; NOTE: When using the side window, this doesn't matter, apparently;
             ;; only the hercules transient property does
             (which-key-persistent-popup t)
 
-            (which-key-idle-delay 0.1)
-            (which-key-idle-secondary-delay 0.1)
             (which-key-allow-evil-operators t)
 
             ;; NOTE: This will cause the which-key maps for the operator states to show up,
@@ -61,7 +64,7 @@
 
             ;; If this percentage is too small, the keybindings frame will appear at the bottom
             (which-key-side-window-max-width 0.5)
-            
+
             (which-key-side-window-max-height 0.25))
 
 (use-package! ryo-modal
@@ -115,7 +118,8 @@
             :hide-funs #'jr/ryo-hercules-hide
             :toggle-funs #'jr/ryo-hercules-toggle
             :keymap 'ryo-modal-mode-map
-            :transient t)
+            ;; :transient t
+            )
         :config
             (defun jr/ryo-hercules-toggle nil (interactive))
             (add-to-list 'modal-modes 'ryo-modal-mode)
@@ -127,6 +131,7 @@
             (push '((nil . "ryo:.*:") . (nil . "")) which-key-replacement-alist))
 
 (use-package! evil
+        :hook (doom-init-ui . jr/evil-hercules-toggle)
         :init
             ;; From:
             ;; Answer: https://stackoverflow.com/questions/25542097/emacs-evil-mode-how-to-change-insert-state-to-emacs-state-automatically/56206909#56206909
@@ -166,7 +171,8 @@
                         :hide-funs #'jr/god-hercules-hide
                         :toggle-funs #'jr/god-hercules-toggle
                         :keymap 'global-map
-                        :transient t)
+                        ;; :transient t
+                        )
                     :config
                         (defun jr/god-hercules-toggle nil (interactive))
                         (add-to-list 'modal-modes 'god-local-mode)
@@ -190,7 +196,8 @@
                         :hide-funs #'jr/xah-hercules-hide
                         :toggle-funs #'jr/xah-hercules-toggle
                         :keymap 'xah-fly-command-map
-                        :transient t)
+                        ;; :transient t
+                        )
                     :config
                         (defun jr/xah-hercules-toggle nil (interactive))
                         (add-to-list 'modal-modes 'xah-fly-keys)
@@ -212,7 +219,8 @@
                         :hide-funs #'jr/objed-hercules-hide
                         :toggle-funs #'jr/objed-hercules-toggle
                         :keymap 'objed-map
-                        :transient t)
+                        ;; :transient t
+                        )
                     :config
                         (defun jr/objed-hercules-toggle nil (interactive))
                         (add-to-list 'modal-modes 'objed-mode)
@@ -238,7 +246,6 @@
             ;; Use to get command name:
             ;; Eg: (cdr (assoc "q" evil-ex-commands))
             ;; Then "C-x C-e" (eval-last-sexp)
-
         :ryo
             ("l" :hydra
                   '(evil-exits (:color blue)
@@ -260,7 +267,8 @@
             :hide-funs #'jr/evil-hercules-hide
             :toggle-funs #'jr/evil-hercules-toggle
             :keymap 'evil-normal-state-map
-            :transient t))
+            ;; :transient t
+            ))
 
 ;; Adapted From: https://github.com/mohsenil85/evil-evilified-state and https://github.com/syl20bnr/spacemacs
 (use-package! evil-evilified-state :after evil)
@@ -593,7 +601,8 @@
 ;;         :hide-funs #'jr/emux-hercules-hide
 ;;         :toggle-funs #'jr/emux-hercules-toggle
 ;;         :keymap 'term-mode-map
-;;         :transient t)
+;;         ;; :transient t
+;;         )
 ;;     ;; :hook (after-init . emux-mode)
 ;;         )
 
@@ -609,7 +618,8 @@
 ;;         :hide-funs #'jr/elscreen-hercules-hide
 ;;         :toggle-funs #'jr/elscreen-hercules-toggle
 ;;         :keymap 'elscreen-map
-;;         :transient t))
+;;         ;; :transient t
+;;         ))
 
 (load! "escreen.el")
 (use-package! escreen
@@ -676,7 +686,8 @@
         :hide-funs #'jr/escreen-hercules-hide
         :toggle-funs #'jr/escreen-hercules-toggle
         :keymap 'escreen-map
-        :transient t))
+        ;; :transient t
+        ))
 
 
 

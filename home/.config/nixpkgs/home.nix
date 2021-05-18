@@ -65,10 +65,7 @@ with builtins; let
         nixpkgs = { inherit (stc) system; inherit overlays config; };
         fonts.fontconfig.enable = mkForce true;
         imports = [ "${sources.impermanence}/home-manager.nix" ];
-
-        # TODO
         useUserPackages = true;
-
         useGlobalPkgs = true;
         backupFileExtension = "bak";
         verbose = true;
