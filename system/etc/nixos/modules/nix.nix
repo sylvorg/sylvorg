@@ -4,12 +4,12 @@
             { automatic = true; }
             { dates = "monthly"; }
             # {
-            # 	dates = "monthly";
-            # 	options = "-d";
+            #   dates = "monthly";
+            #   options = "-d";
             # }
             # {
-            # 	dates = "daily";
-            # 	options = "--delete-older-than 30d";
+            #   dates = "daily";
+            #   options = "--delete-older-than 30d";
             # }
         ];
         optimise = {

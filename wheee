@@ -34,7 +34,7 @@ if homeManager:
     unknown["user"] = args.user
 unknown["host"] = args.host
 
-commandPre = f"nix-instantiate --read-write-mode --show-trace --eval -E 'let j = import " + os.path.dirname(os.path.realpath(argv[0])) + "/lib {  }; in j.hostName"
+commandPre = f"nix-instantiate --read-write-mode --show-trace --eval -E 'let j = import " + os.path.dirname(os.path.realpath(argv[0])) + "/system/etc/nixos/lib {  }; in j.hostName"
 
 commandSet = "{ stc = j.attrs.default-stc // " + ("j.attrs.home-manager-default-stc" if homeManager else "{  }") + " // { "
 for k, v in unknown.items():

@@ -1607,10 +1607,18 @@ inputs@{
     primprelib ? (import ./_primprelib.nix preattrs prelib lib),
     ...
 }: with builtins; with lib; let
+    explicitInputs = { inherit
+        sources
+        pkgs
+        lib
+        preattrs
+        prelib
+        primprelib;
+    });
     templib = self: prelib
         // (with prelib; {
-            attrs = preattrs // (import ./_attrs.nix (inputs // { inherit preattrs primprelib; }));
-            imprelib = primprelib // (import ./_imprelib.nix (inputs // { inherit primprelib; }));
+            attrs = preattrs // (import ./_attrs.nix explicitInputs;
+            imprelib = primprelib // (import ./_imprelib.nix explicitInputs;
         })
         // (listToAttrs (map (file: nameValuePair
             file
@@ -2547,12 +2555,12 @@ I am currently not using =SWAP= on =ZFS Zvols= due to the issues detailed
             { automatic = true; }
             { dates = "monthly"; }
             # {
-            # 	dates = "monthly";
-            # 	options = "-d";
+            #   dates = "monthly";
+            #   options = "-d";
             # }
             # {
-            # 	dates = "daily";
-            # 	options = "--delete-older-than 30d";
+            #   dates = "daily";
+            #   options = "--delete-older-than 30d";
             # }
         ];
         optimise = {
@@ -3948,6 +3956,19 @@ in
 }
 #+end_src
 
+*** nix
+**** nix.conf
+
+#+call: hash("")
+
+#+RESULTS:
+: 34e26ea775bf30b2ee891fce9fcd39a5
+
+#+name: 34e26ea775bf30b2ee891fce9fcd39a5
+#+begin_src nix :tangle (jr/tangle-path)
+<<5585804cafd4d120113b762c4e097541>>
+#+end_src
+
 *** zsh
 **** keephack
 
@@ -5308,7 +5329,7 @@ if homeManager:
     unknown["user"] = args.user
 unknown["host"] = args.host
 
-commandPre = f"nix-instantiate --read-write-mode --show-trace --eval -E 'let j = import " + os.path.dirname(os.path.realpath(argv[0])) + "/lib {  }; in j.hostName"
+commandPre = f"nix-instantiate --read-write-mode --show-trace --eval -E 'let j = import " + os.path.dirname(os.path.realpath(argv[0])) + "/system/etc/nixos/lib {  }; in j.hostName"
 
 commandSet = "{ stc = j.attrs.default-stc // " + ("j.attrs.home-manager-default-stc" if homeManager else "{  }") + " // { "
 for k, v in unknown.items():

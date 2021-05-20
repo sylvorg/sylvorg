@@ -9,10 +9,18 @@ inputs@{
     primprelib ? (import ./_primprelib.nix preattrs prelib lib),
     ...
 }: with builtins; with lib; let
+    explicitInputs = { inherit
+        sources
+        pkgs
+        lib
+        preattrs
+        prelib
+        primprelib;
+    });
     templib = self: prelib
         // (with prelib; {
-            attrs = preattrs // (import ./_attrs.nix (inputs // { inherit preattrs primprelib; }));
-            imprelib = primprelib // (import ./_imprelib.nix (inputs // { inherit primprelib; }));
+            attrs = preattrs // (import ./_attrs.nix explicitInputs;
+            imprelib = primprelib // (import ./_imprelib.nix explicitInputs;
         })
         // (listToAttrs (map (file: nameValuePair
             file
