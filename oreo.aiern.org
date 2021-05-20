@@ -4822,7 +4822,7 @@ in with lib; with j; forAllSystems' {
 : 5585804cafd4d120113b762c4e097541
 
 #+name: 5585804cafd4d120113b762c4e097541
-#+begin_src conf
+#+begin_src conf :tangle (jr/tangle-path)
 <<4f8559fab44b31eee3bd94b54447bea2>>
 min-free = 262144000
 max-free = 1073741824
