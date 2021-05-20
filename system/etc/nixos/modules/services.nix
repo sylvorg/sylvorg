@@ -1,4 +1,4 @@
-{ config, lib, pkgs, ... }: with builtins; with lib; with j; {
+{ config, lib, pkgs, host, ... }: with builtins; with lib; with j; {
     services = {
         ${myIf.knull config.vars.zfs "sanoid"} = let
             sanoidBase = {

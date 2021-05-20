@@ -133,6 +133,7 @@
                 config =  j.get { inherit stc; set = all.config; };
             };
             specialArgs = { stc, ... }: let
+                configBase = { inherit stc; ignoredAttrs = [ "host" ]; };
                 config =  j.get (configBase // { set = all.config; });
                 overlays =  j.get (configBase // { set = all.overlays; });
             in stc // {
@@ -156,7 +157,7 @@
                     (j.imprelib.list { dir = ./modules; })
                     (with stc; [
                         (./. + "/configs/${host}")
-                        (if (device == "def") then {} else (./. + "/devices/${device}"))
+                        (if (type == "def") then {} else (./. + "/devices/${type}"))
                         (let path = ./. + "/platforms/${system}"; in
                             if (pathExists path) then path else {})
                     ])

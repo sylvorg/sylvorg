@@ -1,4 +1,4 @@
-{ config, lib, pkgs, ... }: with builtins; with lib; with j; {
+{ config, lib, pkgs, host, ... }: with builtins; with lib; with j; {
     boot = let
         p = attrs.users.primary;
         pHome = config.users.users.${p}.home;
@@ -29,7 +29,7 @@
                 timeout = 10;
             
                 # Used for Bedrock Linux
-                initScript.enable = mkFroce true;
+                initScript.enable = mkForce true;
             };
             supportedFilesystems = attrs.fileSystems.supported;
             initrd = {

@@ -1,7 +1,7 @@
 { config, lib, pkgs, ... }: with builtins; with lib; with j; {
     specialisation = let
         specialisation_base =
-            {
+            rec {
                 patches = {
                     dir = rec {
                         base = lib.j.paths.patches;

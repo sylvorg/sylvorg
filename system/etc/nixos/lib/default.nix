@@ -16,15 +16,15 @@ inputs@{
         preattrs
         prelib
         primprelib;
-    });
+    };
     templib = self: prelib
         // (with prelib; {
-            attrs = preattrs // (import ./_attrs.nix explicitInputs;
-            imprelib = primprelib // (import ./_imprelib.nix explicitInputs;
+            attrs = preattrs // (import ./_attrs.nix explicitInputs);
+            imprelib = primprelib // (import ./_imprelib.nix explicitInputs);
         })
         // (listToAttrs (map (file: nameValuePair
             file
-            (import (./. + "/${file}.nix") inputs)
+            (import (./. + "/${file}.nix") explicitInputs)
         ) (primprelib.listNames { dir = ./.; })));
 
     __ = makeExtensible templib;

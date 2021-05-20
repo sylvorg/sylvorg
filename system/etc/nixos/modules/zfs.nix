@@ -1,4 +1,4 @@
-{ config, lib, ... }: with builtins; with lib; with j; {
+{ config, lib, host, ... }: with builtins; with lib; with j; {
     boot = {
         kernelModules = [ "zfs" ];
         # loader.grub.zfsSupport = true;

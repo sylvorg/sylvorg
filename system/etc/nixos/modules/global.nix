@@ -1,4 +1,4 @@
-{ config, lib, ... }: {
+{ config, lib, nixpkgset, ... }: {
     nixpkgs = nixpkgset;
     i18n = {
         # Select internationalisation properties.

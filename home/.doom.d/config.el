@@ -274,7 +274,7 @@
                         ("O" evil-write-all ":wa")
                         ("q" (funcall (general-simulate-key ":q! <RET>")) ":q!")
                         ("`" nil "cancel"))
-                    :first '(evil-normal-state)
+                    ;; :first '(evil-normal-state)
                     :name "evil exits")
             (";" jr/ryo-hercules-toggle :name "toggle keymap"))
 
@@ -807,7 +807,8 @@
 ;; This determines the style of line numbers in effect. If set to `nil', line
 ;; numbers are disabled. For relative line numbers, set this to `relative'.
 ;; Adapted From: https://www.reddit.com/r/emacs/comments/8fz6x2/relative_number_with_line_folding/dy7lmh7?utm_source=share&utm_medium=web2x&context=3
-(setq-default display-line-numbers 'relative)
+;; (display-line-numbers-mode 1)
+(setq display-line-numbers-type 'relative)
 
 ;; Adapted From:
 ;; Answer: https://unix.stackexchange.com/a/152151

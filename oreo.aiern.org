@@ -1310,6 +1310,7 @@ Taken from [[https://github.com/NixOS/nixos-hardware/tree/master/microsoft/hyper
                 config =  j.get { inherit stc; set = all.config; };
             };
             specialArgs = { stc, ... }: let
+                configBase = { inherit stc; ignoredAttrs = [ "host" ]; };
                 config =  j.get (configBase // { set = all.config; });
                 overlays =  j.get (configBase // { set = all.overlays; });
             in stc // {
@@ -1333,7 +1334,7 @@ Taken from [[https://github.com/NixOS/nixos-hardware/tree/master/microsoft/hyper
                     (j.imprelib.list { dir = ./modules; })
                     (with stc; [
                         (./. + "/configs/${host}")
-                        (if (device == "def") then {} else (./. + "/devices/${device}"))
+                        (if (type == "def") then {} else (./. + "/devices/${type}"))
                         (let path = ./. + "/platforms/${system}"; in
                             if (pathExists path) then path else {})
                     ])
@@ -1614,15 +1615,15 @@ inputs@{
         preattrs
         prelib
         primprelib;
-    });
+    };
     templib = self: prelib
         // (with prelib; {
-            attrs = preattrs // (import ./_attrs.nix explicitInputs;
-            imprelib = primprelib // (import ./_imprelib.nix explicitInputs;
+            attrs = preattrs // (import ./_attrs.nix explicitInputs);
+            imprelib = primprelib // (import ./_imprelib.nix explicitInputs);
         })
         // (listToAttrs (map (file: nameValuePair
             file
-            (import (./. + "/${file}.nix") inputs)
+            (import (./. + "/${file}.nix") explicitInputs)
         ) (primprelib.listNames { dir = ./.; })));
 
     __ = makeExtensible templib;
@@ -2230,7 +2231,7 @@ loader = {
     timeout = 10;
 
     # Used for Bedrock Linux
-    initScript.enable = mkFroce true;
+    initScript.enable = mkForce true;
 };
 #+end_src
 
@@ -2241,7 +2242,7 @@ loader = {
 
 #+name: a741daba47568ef930a9860652930bed
 #+begin_src nix :tangle (jr/tangle-path)
-{ config, lib, pkgs, ... }: with builtins; with lib; with j; {
+{ config, lib, pkgs, host, ... }: with builtins; with lib; with j; {
     boot = let
         p = attrs.users.primary;
         pHome = config.users.users.${p}.home;
@@ -2358,7 +2359,7 @@ and in the NixOS manual (accessible by running ‘nixos-help’).
 
 #+name: 84e11f81345c124be7b087d5c8c17d6a
 #+begin_src nix :tangle (jr/tangle-path)
-{ config, lib, ... }: {
+{ config, lib, nixpkgset, ... }: {
     nixpkgs = nixpkgset;
     i18n = {
         # Select internationalisation properties.
@@ -2440,25 +2441,27 @@ and in the NixOS manual (accessible by running ‘nixos-help’).
 
 #+name: 1f6b4bbf4b1e571f3b746ff11b294b91
 #+begin_src nix :tangle (jr/tangle-path)
-boot = {
-    # kernelPackages = pkgs.linuxPackages_latest_xen_dom0_hardened;
-    # kernelPackages = pkgs."linuxPackages_xanmod_v5.10.4_cacule";
-    kernelPackages = pkgs.linuxPackages_lqx;
-    # kernelPackages = pkgs.linuxPackages_zen;
-    kernelPatches = [
-        # { name = "clear"; patch = ./patches/0110-initialize-ata-before-graphics.patch; }
-        {
-            name = "Enable ZSTD Compression";
-            patch = null;
-            extraConfig = ''
-                RD_ZSTD y
-                KERNEL_ZSTD y
-                KERNEL_XZ n
-            '';
-        }
-    ];
-    # extraModulePackages = with config.boot.kernelPackages; [ anbox wireguard ];
-};
+{ config, lib, pkgs, ... }: with builtins; with lib; with j; {
+    boot = {
+        # kernelPackages = pkgs.linuxPackages_latest_xen_dom0_hardened;
+        # kernelPackages = pkgs."linuxPackages_xanmod_v5.10.4_cacule";
+        kernelPackages = pkgs.linuxPackages_lqx;
+        # kernelPackages = pkgs.linuxPackages_zen;
+        kernelPatches = [
+            # { name = "clear"; patch = ./patches/0110-initialize-ata-before-graphics.patch; }
+            {
+                name = "Enable ZSTD Compression";
+                patch = null;
+                extraConfig = ''
+                    RD_ZSTD y
+                    KERNEL_ZSTD y
+                    KERNEL_XZ n
+                '';
+            }
+        ];
+        # extraModulePackages = with config.boot.kernelPackages; [ anbox wireguard ];
+    };
+}
 #+end_src
 
 ***** memory.nix
@@ -2478,7 +2481,7 @@ I am currently not using =SWAP= on =ZFS Zvols= due to the issues detailed
 
 #+name: da58947ae8facffd0bc1115d35641080
 #+begin_src nix :tangle (jr/tangle-path)
-{ config, lib, ... }: with builtins; with lib; with j; mkIf (
+{ config, lib, host, ... }: with builtins; with lib; with j; mkIf (
     config.vars.minimal -> config.vars.noSwap
 ) { swapDevices = [{ device = "/dev/zvol/${host}/swap"; }]; }
 #+end_src
@@ -2756,7 +2759,7 @@ in {
 
 #+name: 5aecf05c58be2fe47ff406f3fdb2a823
 #+begin_src nix :tangle (jr/tangle-path)
-{ config, lib, pkgs, ... }: with builtins; with lib; with j; {
+{ config, lib, pkgs, host, ... }: with builtins; with lib; with j; {
     services = {
         <<6b796fbba5d593b48cdc5c6eadab9b65>>
 
@@ -2858,7 +2861,7 @@ in {
 
 #+name: bcfc9f879ab6b1c92ceecdb3462cc32d
 #+begin_src nix
-{
+rec {
     patches = {
         dir = rec {
             base = lib.j.paths.patches;
@@ -3132,7 +3135,7 @@ options = {
 
 #+name: 43de72c9036fc67563aafc176269d329
 #+begin_src nix :tangle (jr/tangle-path)
-{ config, lib, ... }: with builtins; with lib; with j; {
+{ config, lib, host, ... }: with builtins; with lib; with j; {
     boot = {
         kernelModules = [ "zfs" ];
         # loader.grub.zfsSupport = true;
