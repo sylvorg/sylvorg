@@ -27,7 +27,7 @@
 (use-package! use-package-chords
         :demand t
         :hook (after-init . key-chord-mode))
-;; (load! "naked.el")
+(load! "naked.el")
 
 (use-package! use-package-hydra
         :demand t
@@ -39,8 +39,6 @@
 
 (use-package! hercules
         :demand t
-        ;; :hook (doom-init-ui . (lambda nil (interactive)
-        ;;     (which-key--show-popup (cons 0.25 0.5))))
         :init
             (setq which-key-enable-extended-define-key t)
             (setq which-key-idle-delay 0.1)
@@ -72,7 +70,7 @@
         :demand t
         :preface
             ;; (setq modal-modes '(evil-mode))
-            (setq modal-modes '())
+            (defvar modal-modes '())
 
             ;; Adapted From:
             ;; Answer: https://emacs.stackexchange.com/a/42240
@@ -100,21 +98,18 @@
 
             ;; Adapted From: https://gitlab.com/jjzmajic/hercules.el/-/blob/master/hercules.el#L83
             (defun jr/toggle-inner (mode prefix mode-on map) (interactive)
-                (setq previous-evil-state evil-state)
-                (jr/disable-all-modal-modes)
+                (unless mode-on (setq evil-mode-on (bound-and-true-p evil-mode)))
                 (funcall (intern (concat "jr/" prefix "-hercules-hide")))
+                (jr/evil-show)
                 (if mode-on
-                    (progn
-                        (evil-mode 1)
-                        ;; (setq evil-state previous-evil-state)
-                        (which-key-show-top-level))
+                    (unless evil-mode-on (jr/evil-hide))
                     (funcall mode 1)
                     ;; (internal-push-keymap (symbol-value map) 'overriding-terminal-local-map)
                     (funcall (intern (concat "jr/" prefix "-hercules-show")))))
+
         :general
             (:keymaps 'override
                   (general-chord "  ") 'jr/toggle-ryo
-                  (general-chord "kk") 'jr/toggle-ryo
                   "M-w M-w" 'jr/ryo-hercules-toggle)
         :hercules
             (:show-funs #'jr/ryo-hercules-show
@@ -134,20 +129,31 @@
             (push '((nil . "ryo:.*:") . (nil . "")) which-key-replacement-alist))
 
 (use-package! evil
-        :hook (doom-init-ui . which-key-show-top-level)
+        :hook
+            (doom-init-ui . which-key-show-top-level)
         :init
             ;; From:
             ;; Answer: https://stackoverflow.com/questions/25542097/emacs-evil-mode-how-to-change-insert-state-to-emacs-state-automatically/56206909#56206909
             ;; User: https://stackoverflow.com/users/1259257/mshohayeb
-            (setq evil-disable-insert-state-bindings t)
+            ;; (setq evil-disable-insert-state-bindings t)
 
             (setq-default evil-escape-key-sequence nil)
 
             (defun jr/evil-hercules-toggle nil (interactive))
             (defun jr/evil-quit nil (interactive) (funcall (general-simulate-key ":q! <RET>")))
             (defun jr/evil-show nil (interactive)
+                (jr/disable-all-modal-modes)
+                (evil-mode 1)
                 (evil-normal-state)
                 (which-key-show-top-level))
+            (defun jr/evil-hide (&rest args) (interactive)
+                (evil-mode -1)
+                (which-key-show-top-level))
+            (defun jr/evil-toggle nil (interactive)
+                (if
+                    (bound-and-true-p evil-mode)
+                    (jr/evil-hide)
+                    (jr/evil-show)))
             ;; (setq evil-want-keybinding nil)
             ;; (setq evil-want-integration t)
         :general
@@ -160,8 +166,11 @@
                 (general-chord ";'") 'evil-execute-in-emacs-state
 
                 ;; NOTE: Will not toggle if hercules is transient
-                (general-chord "kk") 'jr/evil-show)
+                (naked "escape") 'jr/evil-toggle
+                (general-chord "kk") 'jr/evil-toggle)
         :config
+            (advice-add #'evil-insert-state :override #'jr/evil-hide)
+
             (use-package! god-mode
                     :general
                         (:keymaps 'override
@@ -257,15 +266,13 @@
         :ryo
             ("l" :hydra
                   '(evil-exits (:color blue)
+                        ;; From: https://gist.github.com/shadowrylander/46b81297d1d3edfbf1e2d72d5e29171e
                         "A hydra for getting the fuck outta' here!"
-                        ("l" evil-save-and-close ":wq")
-                        ("p" quit ":q")
-
-                        ;; TODO: These may not be working due to native compilation, or general-simulate-key;
-                        ;; use another emacs version, or kbd?
-                        ("o" (funcall (general-simulate-key ":w <RET>")) ":w")
+                        ("l" evil-save-and-quit ":wq")
+                        ("p" evil-quit ":q")
+                        ("o" evil-write ":w")
+                        ("O" evil-write-all ":wa")
                         ("q" (funcall (general-simulate-key ":q! <RET>")) ":q!")
-
                         ("`" nil "cancel"))
                     :first '(evil-normal-state)
                     :name "evil exits")
@@ -439,8 +446,8 @@
 
             (defun jr/evil-close-fold nil (interactive) (jr/go-to-parent) (evil-close-fold))
 
-            (defun jr/org-cycle nil (interactive) (
-                if (jr/outline-folded-p) (org-cycle) (jr/evil-close-fold)))
+            (defun jr/org-cycle nil (interactive)
+                (if (jr/outline-folded-p) (org-cycle) (jr/evil-close-fold)))
 
             (defun jr/get-header nil (interactive)
                 (nth 4 (org-heading-components)))
@@ -462,12 +469,8 @@
             (:keymaps 'org-mode-map
                   "C-c n i" 'org-roam-insert
                   "C-c n I" 'org-roam-insert-immediate)
-            ;; (progn (:keymaps '(override insert)
-            ;;     "TAB" nil)
-            ;; (:keymaps '(override insert)
-            ;;     "TAB" 'jr/org-cycle))
-            ;; (:keymaps '(override insert)
-            ;;     (naked "backtab") 'jr/evil-close-fold)
+            (:keymaps 'override
+                (naked "backtab") 'jr/evil-close-fold)
         :ryo ("o" :hydra
             '(hydra-org nil
                   "A hydra for org-mode!"
@@ -481,7 +484,8 @@
             (org-confirm-babel-evaluate nil)
             (org-startup-folded t)
             (org-src-fontify-natively t)
-            (org-src-window-setup 'current-window))
+            (org-src-window-setup 'current-window)
+            (org-cycle-emulate-tab 'whitestart))
 
 (use-package! org-numbers-overlay
         :load-path "emacs-bankruptcy/site-lisp"

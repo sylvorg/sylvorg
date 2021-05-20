@@ -609,11 +609,15 @@ index c61df8ceb00..d973837f0d3 100644
 #+end_src
 
 * home
+** .doom.d
 *** naked.el
 
 #+call: hash("")
 
-#+name: 
+#+RESULTS:
+: 42afddafd5b1bc2d1d687e5b25ee590c
+
+#+name: 42afddafd5b1bc2d1d687e5b25ee590c
 #+begin_src emacs-lisp :tangle (jr/tangle-path) :comments link
 ;;; naked.el --- Provide for naked key descriptions: no angle brackets.
 ;;
@@ -801,16 +805,16 @@ Non-nil optional arg ANGLES means to use angle brackets, exactly like
 `edmacro-parse-keys'.  See `naked-read-kbd-macro' for more about
 ANGLES."
   (let ((case-fold-search  nil)
-	(len               (length string)) ; We won't alter string in the loop below.
+    (len               (length string)) ; We won't alter string in the loop below.
         (pos               0)
         (res               []))
     (while (and (< pos len)  (string-match "[^ \t\n\f]+" string pos))
       (let* ((word-beg  (match-beginning 0))
-	     (word-end  (match-end 0))
-	     (word      (substring string word-beg len))
-	     (times     1)
+         (word-end  (match-end 0))
+         (word      (substring string word-beg len))
+         (times     1)
              (key       nil))
-	;; Try to catch events of the form "<as df>".
+    ;; Try to catch events of the form "<as df>".
         (if (string-match "\\`<[^ <>\t\n\f][^>\t\n\f]*>" word)
             (setq word  (match-string 0 word)
                   pos   (+ word-beg (match-end 0)))
@@ -832,13 +836,13 @@ ANGLES."
               ;; Straight `edmacro-parse-keys' case - ensure same behavior.
               ;; Includes same bugged handling of `TAB'.  That is Emacs bug #12535.
               ;; The bug fix is to add `TAB' to the list in this clause.
-	      ((and angles
+          ((and angles
                     (string-match "^\\(\\([ACHMsS]-\\)*\\)<\\(.+\\)>$" word)
-		    (progn
-		      (setq word  (concat (substring word (match-beginning 1) (match-end 1))
+            (progn
+              (setq word  (concat (substring word (match-beginning 1) (match-end 1))
                                           (substring word (match-beginning 3) (match-end 3))))
-		      (not (naked-string-match-p "\\<\\(NUL\\|RET\\|LFD\\|ESC\\|SPC\\|DEL\\)$" word))))
-	       (setq key  (list (intern word))))
+              (not (naked-string-match-p "\\<\\(NUL\\|RET\\|LFD\\|ESC\\|SPC\\|DEL\\)$" word))))
+           (setq key  (list (intern word))))
 
               ;; NaKeD handling of <...>.  Recognize it anyway, even without non-nil ANGLES.
               ;; But unlike `edmacro-parse-keys', include <TAB>, to handle it correctly.
@@ -903,11 +907,11 @@ ANGLES."
                (eq (aref res (- (length res) 2)) ?\C-x)  (eq (aref res (- (length res) 1)) ?\)))
       (setq res  (edmacro-subseq res 2 -2)))
     (if (and (not need-vector)
-	     (loop for ch across res
-		   always (and (if (fboundp 'characterp) (characterp ch) (char-valid-p ch))
-			       (let ((ch2  (logand ch (lognot ?\M-\^@))))
-				 (and (>= ch2 0)  (<= ch2 127))))))
-	(concat (loop for ch across res collect (if (= (logand ch ?\M-\^@) 0)  ch  (+ ch 128))))
+         (loop for ch across res
+           always (and (if (fboundp 'characterp) (characterp ch) (char-valid-p ch))
+                   (let ((ch2  (logand ch (lognot ?\M-\^@))))
+                 (and (>= ch2 0)  (<= ch2 127))))))
+    (concat (loop for ch across res collect (if (= (logand ch ?\M-\^@) 0)  ch  (+ ch 128))))
       res)))
 
 ;; Same as `icicle-read-kbd-macro' in `icicles-mac.el'.
