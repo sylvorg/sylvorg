@@ -451,9 +451,8 @@
             (defun jr/org-cycle nil (interactive)
                 (if (jr/outline-folded-p) (org-cycle) (jr/evil-close-fold)))
 
-            (advice-add #'org-edit-special :after #'(lambda nil (interactive)
-                (jr/disable-all-modal-modes)
-                (jr/evil-hide)))
+            (advice-add #'org-edit-special :before #'jr/src-mode-entry)
+            (advice-add #'org-edit-special :after #'jr/src-mode-settings)
 
             (defun jr/get-header nil (interactive)
                 (nth 4 (org-heading-components)))
@@ -534,7 +533,22 @@
 
 (remove-hook 'doom-first-buffer-hook #'global-hl-line-mode)
 
+(defun jr/src-mode-entry nil (interactive)
+  (setq evil-mode-on-before-narrow (bound-and-true-p evil-mode)))
+
+(defun jr/src-mode-settings nil (interactive)
+    (jr/disable-all-modal-modes)
+    (jr/evil-hide)
+    (focus-mode 1)
+    (which-key-show-top-level))
+
+(defun jr/src-mode-exit nil (interactive)
+    (winner-undo)
+    (if evil-mode-on-before-narrow (jr/evil-show) (jr/evil-hide))
+    (which-key-show-top-level))
+
 ;; Adapted From: http://endlessparentheses.com/emacs-narrow-or-widen-dwim.html
+;; NOTE: For some reason, I can't advise this function properly with `jr/src-mode-entry' and `-settings'
 (defun jr/narrow-or-widen-dwim (p)
   "Widen if buffer is narrowed, narrow-dwim otherwise.
 Dwim means: region, org-src-block, org-subtree, or
@@ -545,7 +559,7 @@ With prefix P, don't widen, just narrow even if buffer
 is already narrowed."
   (interactive "P")
   (declare (interactive-only))
-  (setq evil-mode-on-before-narrow (bound-and-true-p evil-mode))
+  (jr/src-mode-entry)
   (cond ((and (buffer-narrowed-p) (not p)) (widen))
         ((region-active-p)
          (narrow-to-region (region-beginning)
@@ -561,14 +575,11 @@ is already narrowed."
         ((derived-mode-p 'latex-mode)
          (LaTeX-narrow-to-environment))
         (t (narrow-to-defun)))
-    (jr/disable-all-modal-modes)
-    (jr/evil-hide))
+    (jr/src-mode-settings))
 
 ;; Adapted From: https://github.com/syl20bnr/spacemacs/issues/13058#issuecomment-565741009
-(advice-add #'org-edit-src-exit :after #'(lambda nil (interactive)
-    (when evil-mode-on-before-narrow (jr/evil-show))
-    (winner-undo)
-    (unless evil-mode-on-before-narrow (jr/evil-hide))))
+(advice-add #'org-edit-src-exit :after #'jr/src-mode-exit)
+(advice-add #'org-edit-src-abort :after #'jr/src-mode-exit)
 
 ;; (use-package! writeroom-mode
 ;;     :general (:keymaps 'override (general-chord "zz") 'writeroom-mode)
@@ -579,13 +590,15 @@ is already narrowed."
     :keymaps 'override
     (general-chord "zz") '+zen/toggle-fullscreen)
 
-;; (use-package! focus
-;;     :hook (doom-init-ui . focus-mode)
-;;     :custom
-;;         (focus-mode-to-thing '(
-;;             (prog-mode . defun)
-;;             (text-mode . sentence)
-;;             (outline-mode . line))))
+(use-package! focus
+    ;; :hook (doom-init-ui . focus-mode)
+    :custom
+        (focus-mode-to-thing '(
+            ;; (prog-mode . defun)
+            (prog-mode . line)
+            ;; (text-mode . sentence)
+            (text-mode . line)
+            (outline-mode . line))))
 
 (use-package! rainbow-delimiters
       :hook ((prog-mode . rainbow-delimiters-mode)
