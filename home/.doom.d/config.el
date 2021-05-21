@@ -1,6 +1,6 @@
 ;;; $DOOMDIR/config.el -*- lexical-binding: t; -*-
 
-;; (load! "help+20.el")
+(load! "help+20")
 ;; (when (eq (find-font (font-spec :family "all-the-icons")) nil) (all-the-icons-install-fonts))
 
 ;; Adapted From:
@@ -27,7 +27,7 @@
 (use-package! use-package-chords
         :demand t
         :hook (after-init . key-chord-mode))
-(load! "naked.el")
+(load! "naked")
 
 (use-package! use-package-hydra
         :demand t
@@ -294,8 +294,6 @@
             ;; Adapted From: https://www.reddit.com/r/emacs/comments/6klewl/org_cyclingto_go_from_folded_to_children_skipping/djniygy?utm_source=share&utm_medium=web2x&context=3
             (org-cycle . (lambda (state) (interactive) (when (eq state 'children) (setq org-cycle-subtree-status 'subtree)))))
         :config
-
-
             (org-babel-lob-ingest "/README.org")
 
             (defun jr/org-babel-tangle-append nil
@@ -477,13 +475,14 @@
             (:keymaps 'override
                 (naked "backtab") 'jr/evil-close-fold)
         :ryo ("o" :hydra
-            '(hydra-org nil
+            '(hydra-org (:color blue)
                   "A hydra for org-mode!"
                   ("o" org-babel-tangle "tangle")
                   ("a" jr/org-babel-tangle-append "tangle append")
                   ("f" org-babel-tangle-file "tangle file")
-                  ("i" ryo-modal-mode "cancel" :color blue)
-                  ("q" nil "cancel" :color blue)))
+                  ("n" jr/narrow-or-widen-dwim "narrow")
+                  ("s" org-edit-special "org edit special")
+                  ("q" nil "cancel")))
         :custom
             (org-descriptive-links t)
             (org-confirm-babel-evaluate nil)
@@ -515,7 +514,7 @@
 ;; Adapted From:
 ;; Answer: https://emacs.stackexchange.com/a/54921/31428
 ;; User: https://emacs.stackexchange.com/users/160/jordon-biondo
-(general-def minibuffer-local-map "M-x" 'exit-minibuffer)
+(general-def minibuffer-local-map "M-x" 'doom-escape)
 
 (use-package! git-gutter
       :ryo ("g" :hydra
@@ -605,6 +604,40 @@ is already narrowed."
 
             ;; Add more modes here
             ))
+
+(use-package! parinfer-rust-mode
+    :hook emacs-lisp-mode
+    :init (setq parinfer-rust-auto-download t)
+    :custom (parinfer-rust-check-before-enable nil))
+
+(after! org
+    (load! "fit-frame")
+    (load! "autofit-frame")
+    ;; (load! "buff-menu+")
+    (load! "compile-")
+    (load! "compile+")
+    (load! "grep+")
+    (load! "dired+")
+    (load! "dired-details")
+    (load! "dired-details+")
+    (load! "doremi-frm")
+    (load! "facemenu+")
+    (load! "fname+")
+    (load! "help+")
+    (load! "info+")
+    (load! "menu-bar+")
+    (load! "mouse+")
+    (load! "setup-keys")
+    (load! "simple+")
+    (load! "thumb-frm")
+    (load! "window+")
+    (load! "frame-fns")
+    (load! "frame-cmds")
+    (load! "zoom-frm")
+    (load! "hexrgb")
+    (use-package! oneonone
+        :load-path "oneonone"
+        :hook (after-init . 1on1-emacs)))
 
 ;; (use-package! term
 ;;     :general
@@ -697,7 +730,7 @@ is already narrowed."
 ;;         ;; :transient t
 ;;         ))
 
-(load! "escreen.el")
+(load! "escreen")
 (use-package! escreen
     :hook
         (after-init . escreen-install)

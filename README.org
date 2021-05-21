@@ -43,7 +43,7 @@ shadowrylander
 : cd5dbf3629c558b0104ba8f0937d6816
 
 #+name: cd5dbf3629c558b0104ba8f0937d6816
-#+begin_src makefile :tangle (jr/tangle-path)
+#+begin_src makefile :tangle (jr/tangle-path).RECIPEPREFIX := |
 .RECIPEPREFIX := |
 
 init:
@@ -59,23 +59,23 @@ switch:
 |./wheee --use-hash ${HMASH} -H make --home-manager
 |./wheee --use-hash ${RMASH} -H make --home-manager
 
-doom-tangle:
+doom-set:
+|rsync -avvczz --delete ~/<<username>>/home/.doom.d/ ~/.doom.d/
 |chmod +x ~/.doom.d/org-tangle
-|~/.doom.d/org-tangle ~/shadowrylander/doom.aiern.org
+|~/.doom.d/org-tangle ~/<<username>>/doom.aiern.org
+|rsync -avvczz --delete ~/<<username>>/home/.doom.d/ ~/.doom.d/
 
-doom-copy:
-|rsync -avvczz --delete ~/shadowrylander/home/.doom.d/ ~/.doom.d/
-
-doom-both: doom-tangle doom-copy
+doom-sync-check:
+|~/.emacs.d/bin/doom sync
+|~/.emacs.d/bin/doom doctor
 
 doom-test:
-|emacs ~/shadowrylander/promethean.aiern.org
+|emacs ~/<<username>>/promethean.aiern.org
 
-doom-all: doom-tangle doom-copy doom-test
+doom: doom-set doom-sync-check doom-test
 
-tangle-all:
-|chmod +x ~/.doom.d/org-tangle
-|~/.doom.d/org-tangle ~/shadowrylander/*.org
+tangle-all: doom-set
+|echo yes | ~/.doom.d/org-tangle ~/<<username>>/*.org
 
 push-all:
 |git add .

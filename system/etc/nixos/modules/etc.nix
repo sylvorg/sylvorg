@@ -1,4 +1,4 @@
-{ config, lib, pkgs, ... }: with builtins; with lib; with j; {
+{ config, lib, pkgs, system, ... }: with builtins; with lib; with j; {
     environment.etc = let
         kata-containers = {
             default-runtime = "kata-runtime";
@@ -8,7 +8,7 @@
         kc = toJSON kata-containers;
     in {
         "nix/nix.conf".text = attrs.configs.nix;
-        "containers/storage.conf".text = kc + ''
+        ${myIf.knull (!elem system [ "aarch64-linux" ]) "containers/storage.conf"}.text = kc + ''
             [storage]
             driver = "zfs"
             rootless_storage_path = "/var/lib/podman/$USER"
@@ -20,7 +20,7 @@
 
             # [storage.options.zfs]
         '';
-        "containers/libpod.conf".text = kc;
-        "docker/daemon.json".text = kc;
+        ${myIf.knull (!elem system [ "aarch64-linux" ]) "containers/libpod.conf"}.text = kc;
+        ${myIf.knull (!elem system [ "aarch64-linux" ]) "docker/daemon.json"}.text = kc;
     };
 }

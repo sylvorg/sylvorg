@@ -1,4 +1,3 @@
-;; [[file:../../bone.aiern.org::3457efc690700fd2400f9b5425d30336][3457efc690700fd2400f9b5425d30336]]
 ;;; escreen.el --- emacs window session manager
 
 ;; Author: Noah Friedman <friedman@splode.com>
@@ -934,4 +933,3 @@ Returns a list of numbers which represent screen numbers presently in use."
 (provide 'escreen)
 
 ;;; escreen.el ends here
-;; 3457efc690700fd2400f9b5425d30336 ends here

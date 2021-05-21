@@ -1,4 +1,3 @@
-;; [[file:../../bone.aiern.org::76562b6bc9a2d6ff3252277966805443][76562b6bc9a2d6ff3252277966805443]]
 ;;; help+20.el --- Extensions to `help.el' for Emacs 20.
 ;;
 ;; Filename: help+20.el
@@ -1421,4 +1420,3 @@ If you click elsewhere in a buffer other than the minibuffer, then
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; help+20.el ends here
-;; 76562b6bc9a2d6ff3252277966805443 ends here

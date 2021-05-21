@@ -1,4 +1,3 @@
-# [[file:../../../../bone.aiern.org::0cc55c4a9547e4205ab191c4aeeef795][0cc55c4a9547e4205ab191c4aeeef795]]
 { stdenv, buildGoPackage, fetchFromGitHub, fetchurl, pkgconfig, libseccomp, go
 , qemu }:
 
@@ -195,4 +194,3 @@ let
 in {
   inherit agent ksm-throttler proxy shim runtime images runtime-qemu;
 }
-# 0cc55c4a9547e4205ab191c4aeeef795 ends here

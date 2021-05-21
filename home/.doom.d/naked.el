@@ -1,4 +1,3 @@
-;; [[file:../../bone.aiern.org::42afddafd5b1bc2d1d687e5b25ee590c][42afddafd5b1bc2d1d687e5b25ee590c]]
 ;;; naked.el --- Provide for naked key descriptions: no angle brackets.
 ;;
 ;; Filename: naked.el
@@ -333,4 +332,3 @@ instead of \"C-x <delete>\" and \"C-<delete>\"."
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; naked.el ends here
-;; 42afddafd5b1bc2d1d687e5b25ee590c ends here

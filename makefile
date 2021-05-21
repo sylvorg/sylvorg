@@ -13,23 +13,23 @@ switch:
 |./wheee --use-hash ${HMASH} -H make --home-manager
 |./wheee --use-hash ${RMASH} -H make --home-manager
 
-doom-tangle:
+doom-set:
+|rsync -avvczz --delete ~/shadowrylander/home/.doom.d/ ~/.doom.d/
 |chmod +x ~/.doom.d/org-tangle
 |~/.doom.d/org-tangle ~/shadowrylander/doom.aiern.org
-
-doom-copy:
 |rsync -avvczz --delete ~/shadowrylander/home/.doom.d/ ~/.doom.d/
 
-doom-both: doom-tangle doom-copy
+doom-sync-check:
+|~/.emacs.d/bin/doom sync
+|~/.emacs.d/bin/doom doctor
 
 doom-test:
 |emacs ~/shadowrylander/promethean.aiern.org
 
-doom-all: doom-tangle doom-copy doom-test
+doom: doom-set doom-sync-check doom-test
 
-tangle-all:
-|chmod +x ~/.doom.d/org-tangle
-|~/.doom.d/org-tangle ~/shadowrylander/*.org
+tangle-all: doom-set
+|echo yes | ~/.doom.d/org-tangle ~/shadowrylander/*.org
 
 push-all:
 |git add .
