@@ -294,6 +294,8 @@
             ;; Adapted From: https://www.reddit.com/r/emacs/comments/6klewl/org_cyclingto_go_from_folded_to_children_skipping/djniygy?utm_source=share&utm_medium=web2x&context=3
             (org-cycle . (lambda (state) (interactive) (when (eq state 'children) (setq org-cycle-subtree-status 'subtree)))))
         :config
+
+
             (org-babel-lob-ingest "/README.org")
 
             (defun jr/org-babel-tangle-append nil
@@ -449,6 +451,10 @@
             (defun jr/org-cycle nil (interactive)
                 (if (jr/outline-folded-p) (org-cycle) (jr/evil-close-fold)))
 
+            (advice-add #'org-edit-special :after #'(lambda nil (interactive)
+                (jr/disable-all-modal-modes)
+                (jr/evil-hide)))
+
             (defun jr/get-header nil (interactive)
                 (nth 4 (org-heading-components)))
             (defun jr/tangle-path nil (interactive)
@@ -484,7 +490,7 @@
             (org-confirm-babel-evaluate nil)
             (org-startup-folded t)
             (org-src-fontify-natively t)
-            (org-src-window-setup 'current-window)
+            ;; (org-src-window-setup 'current-window)
             (org-cycle-emulate-tab 'whitestart))
 
 (use-package! org-numbers-overlay
@@ -503,7 +509,14 @@
             ("q" nil "cancel" :color blue)) :first '(evil-insert-state) :name "execute order 65")
 
 ;; TODO: Does this work? Or do I have to pull the hydra out?
-(general-def "C-S-p" 'hydra-execute)
+(general-def
+    :keymaps 'override
+    "C-S-p" 'hydra-execute)
+
+;; Adapted From:
+;; Answer: https://emacs.stackexchange.com/a/54921/31428
+;; User: https://emacs.stackexchange.com/users/160/jordon-biondo
+(general-def minibuffer-local-map "M-x" 'exit-minibuffer)
 
 (use-package! git-gutter
       :ryo ("g" :hydra
@@ -516,16 +529,63 @@
                   ("s" git-gutter:stage-hunk "stage")
                   ("r" git-gutter:revert-hunk "revert")
                   ("m" git-gutter:mark-hunk "mark")
-                  ("q" nil "cancel" :color blue)))
-)
+                  ("q" nil "cancel" :color blue))))
 ;; (use-package! gitattributes-mode)
 
 (remove-hook 'doom-first-buffer-hook #'global-hl-line-mode)
 
-(use-package! writeroom-mode
-    :general (:keymaps 'override (general-chord "zz") 'writeroom-mode)
-    :custom (writeroom-fullscreen-effect t)
-    :hook after-init)
+;; Adapted From: http://endlessparentheses.com/emacs-narrow-or-widen-dwim.html
+(defun jr/narrow-or-widen-dwim (p)
+  "Widen if buffer is narrowed, narrow-dwim otherwise.
+Dwim means: region, org-src-block, org-subtree, or
+defun, whichever applies first. Narrowing to
+org-src-block actually calls `org-edit-src-code'.
+
+With prefix P, don't widen, just narrow even if buffer
+is already narrowed."
+  (interactive "P")
+  (declare (interactive-only))
+  (setq evil-mode-on-before-narrow (bound-and-true-p evil-mode))
+  (cond ((and (buffer-narrowed-p) (not p)) (widen))
+        ((region-active-p)
+         (narrow-to-region (region-beginning)
+                           (region-end)))
+        ((derived-mode-p 'org-mode)
+         ;; `org-edit-src-code' is not a real narrowing
+         ;; command. Remove this first conditional if
+         ;; you don't want it.
+         (cond ((ignore-errors (org-edit-src-code) t)
+                (delete-other-windows))
+               ((ignore-errors (org-narrow-to-block) t))
+               (t (org-narrow-to-subtree))))
+        ((derived-mode-p 'latex-mode)
+         (LaTeX-narrow-to-environment))
+        (t (narrow-to-defun)))
+    (jr/disable-all-modal-modes)
+    (jr/evil-hide))
+
+;; Adapted From: https://github.com/syl20bnr/spacemacs/issues/13058#issuecomment-565741009
+(advice-add #'org-edit-src-exit :after #'(lambda nil (interactive)
+    (when evil-mode-on-before-narrow (jr/evil-show))
+    (winner-undo)
+    (unless evil-mode-on-before-narrow (jr/evil-hide))))
+
+;; (use-package! writeroom-mode
+;;     :general (:keymaps 'override (general-chord "zz") 'writeroom-mode)
+;;     :custom (writeroom-fullscreen-effect t)
+;;     :hook after-init)
+
+(general-def
+    :keymaps 'override
+    (general-chord "zz") '+zen/toggle-fullscreen)
+
+;; (use-package! focus
+;;     :hook (doom-init-ui . focus-mode)
+;;     :custom
+;;         (focus-mode-to-thing '(
+;;             (prog-mode . defun)
+;;             (text-mode . sentence)
+;;             (outline-mode . line))))
 
 (use-package! rainbow-delimiters
       :hook ((prog-mode . rainbow-delimiters-mode)

@@ -4999,9 +4999,11 @@ tmux-plugins/tpm resources/tpm
 
 #+name: c9792b0b851c8df28651f125f42b1868
 #+begin_src makefile :tangle (jr/tangle-path)
+.RECIPEPREFIX := |
+
 init:
-    -git clone --recurse-submodule https://github.com/<<7e5d38a2c9af18003ca89c3dad2d1b97>>
-    -ln -sf home/.vim home/.config/nvim
+|-git clone --recurse-submodule https://github.com/<<7e5d38a2c9af18003ca89c3dad2d1b97>>
+|-ln -sf home/.vim home/.config/nvim
 #+end_src
 
 ** git
