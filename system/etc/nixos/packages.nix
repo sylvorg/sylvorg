@@ -16,8 +16,8 @@ inputs@{
 in with pkgs; [
     # autojump
     # acpilight
-    # (myIf.drv (elem system attrs.platforms.imd) pkgs.hello appimage-run)
-    # (myIf.drv (elem system attrs.platforms.imd) pkgs.hello appimagekit)
+    # (myIf.drv (!elem system [ "aarch64-linux" ]) pkgs.hello appimage-run)
+    # (myIf.drv (!elem system [ "aarch64-linux" ]) pkgs.hello appimagekit)
     # assh
     # autossh
     # bat
@@ -124,7 +124,7 @@ in with pkgs; [
 ]) ++ (map mkifnt [
     # alacritty
     # atom
-    # (myIf.drv (elem system attrs.platforms.imd) pkgs.hello etcher)
+    # (myIf.drv (!elem system [ "aarch64-linux" ]) pkgs.hello etcher)
     # firefox
     # gnome3.gnome-disk-utility
     # gparted
@@ -142,7 +142,7 @@ in with pkgs; [
 ]) ++ (with pkgs.j.pkgset.20-09."emacs${versions.emacs}Packages"; [
     # (mkifnm exwm)
 ]) ++ (with pkgs."python${versions.python}Packages"; [
-    # (myIf.drv (elem system attrs.platforms.imd) pkgs.hello pyls-black)
+    # (myIf.drv (!elem system [ "aarch64-linux" ]) pkgs.hello pyls-black)
     # pyls-black
     # (mkifnm jupyter)
     # nixpkgs

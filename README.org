@@ -32,7 +32,7 @@ shadowrylander
 
 #+name: 00321739e2bcd1e57750b641564afebe
 #+begin_src text
-<<username>>/<<username>> home/<<username>>
+<<username>>/<<username>> ~/<<username>>/home/<<username>>
 #+end_src
 
 * makefile
@@ -43,7 +43,7 @@ shadowrylander
 : cd5dbf3629c558b0104ba8f0937d6816
 
 #+name: cd5dbf3629c558b0104ba8f0937d6816
-#+begin_src makefile :tangle (jr/tangle-path).RECIPEPREFIX := |
+#+begin_src makefile :tangle makefile
 .RECIPEPREFIX := |
 
 init:
@@ -75,12 +75,18 @@ doom-test:
 doom: doom-set doom-sync-check doom-test
 
 tangle-all: doom-set
-|echo yes | ~/.doom.d/org-tangle ~/<<username>>/*.org
+# Adapted From:
+# Answer: https://askubuntu.com/a/338860/1058868
+# User: https://askubuntu.com/users/1366/lesmana
+# From:
+# Answer: https://askubuntu.com/a/446480/1058868
+# User: https://askubuntu.com/users/267867/peter-w-osel
+|yes yes | ~/.doom.d/org-tangle ~/<<username>>/*.org
 
 push-all:
-|git add .
-|git commit --allow-empty-message -am ""
-|git push
+|git -C ~/<<username>> add .
+|git -C ~/<<username>> commit --allow-empty-message -am ""
+|git -C ~/<<username>> push
 
 super-push: tangle-all push-all
 #+end_src

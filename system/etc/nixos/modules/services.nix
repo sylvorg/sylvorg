@@ -67,7 +67,7 @@
             { inherit interface; method = "magicpacket"; }
         ) (attrNames config.networking.interfaces);
 
-        flatpak.enable = true;
+        flatpak.enable = !elem system [ "aarch64-linux" ];
 
         # For Yubikey
         udev.packages = with pkgs; [

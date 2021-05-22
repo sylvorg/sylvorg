@@ -77,7 +77,10 @@ rec {
         musl = stc.musl == 1;
         arm = {
             systems = [
+                "armv7a-linux"
                 "armv7l-linux"
+                "armv6a-linux"
+                "armv6l-linux"
                 "aarch64-linux"
             ];
             enable = elem system arm.systems;

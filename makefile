@@ -1,7 +1,7 @@
 .RECIPEPREFIX := |
 
 init:
-|-git clone --recurse-submodule https://github.com/shadowrylander/shadowrylander home/shadowrylander
+|-git clone --recurse-submodule https://github.com/shadowrylander/shadowrylander ~/shadowrylander/home/shadowrylander
 .DEFAULT_GOAL := init
 
 rebuild:
@@ -29,11 +29,17 @@ doom-test:
 doom: doom-set doom-sync-check doom-test
 
 tangle-all: doom-set
-|echo yes | ~/.doom.d/org-tangle ~/shadowrylander/*.org
+# Adapted From:
+# Answer: https://askubuntu.com/a/338860/1058868
+# User: https://askubuntu.com/users/1366/lesmana
+# From:
+# Answer: https://askubuntu.com/a/446480/1058868
+# User: https://askubuntu.com/users/267867/peter-w-osel
+|yes yes | ~/.doom.d/org-tangle ~/shadowrylander/*.org
 
 push-all:
-|git add .
-|git commit --allow-empty-message -am ""
-|git push
+|git -C ~/shadowrylander add .
+|git -C ~/shadowrylander commit --allow-empty-message -am ""
+|git -C ~/shadowrylander push
 
 super-push: tangle-all push-all

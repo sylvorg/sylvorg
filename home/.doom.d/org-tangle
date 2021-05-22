@@ -10,6 +10,7 @@
 (defun jr/get-header nil (interactive)
     (nth 4 (org-heading-components)))
 (defun jr/tangle-path nil (interactive)
+    (org-babel-lob-ingest "./README.org")
     (string-remove-prefix "/" (concat
         (org-format-outline-path (org-get-outline-path)) "/"
             (jr/get-header))))

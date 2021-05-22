@@ -1,4 +1,4 @@
-{ config, lib, nixpkgset, ... }: {
+{ config, lib, nixpkgset, system, ... }: {
     nixpkgs = nixpkgset;
     i18n = {
         # Select internationalisation properties.
@@ -25,7 +25,7 @@
     ];
 
     # Flatpak
-    xdg.portal.enable = true;
+    xdg.portal.enable = !elem system [ "aarch64-linux" ];
 
     environment.pathsToLink = [ "/share/nix-direnv" ];
     zramSwap = {

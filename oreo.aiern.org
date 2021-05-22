@@ -1750,7 +1750,10 @@ rec {
         musl = stc.musl == 1;
         arm = {
             systems = [
+                "armv7a-linux"
                 "armv7l-linux"
+                "armv6a-linux"
+                "armv6l-linux"
                 "aarch64-linux"
             ];
             enable = elem system arm.systems;
@@ -2363,7 +2366,7 @@ and in the NixOS manual (accessible by running ‘nixos-help’).
 
 #+name: 84e11f81345c124be7b087d5c8c17d6a
 #+begin_src nix :tangle (jr/tangle-path)
-{ config, lib, nixpkgset, ... }: {
+{ config, lib, nixpkgset, system, ... }: {
     nixpkgs = nixpkgset;
     i18n = {
         # Select internationalisation properties.
@@ -2390,7 +2393,7 @@ and in the NixOS manual (accessible by running ‘nixos-help’).
     ];
 
     # Flatpak
-    xdg.portal.enable = true;
+    xdg.portal.enable = !elem system [ "aarch64-linux" ];
 
     environment.pathsToLink = [ "/share/nix-direnv" ];
     zramSwap = {
@@ -2773,7 +2776,7 @@ in {
             { inherit interface; method = "magicpacket"; }
         ) (attrNames config.networking.interfaces);
 
-        flatpak.enable = true;
+        flatpak.enable = !elem system [ "aarch64-linux" ];
 
         # For Yubikey
         udev.packages = with pkgs; [
@@ -3114,8 +3117,10 @@ options = {
 
 #+name: 03ee73c0ac41094064d4eac783592662
 #+begin_src nix :tangle (jr/tangle-path)
-{ config, lib, pkgs, ... }: with builtins; with lib; with j; {
-    virtualisation = lib.mkIf (!config.vars.minimal) {
+{ config, lib, pkgs, ... }: with builtins; with lib; with j; mkIf (
+    !(config.vars.minimal || elem system [ "aarch64-linux" ])
+) {
+    virtualisation = {
         xen.enable = false;
         lxd = { zfsSupport = true; };
         podman.enable = true;
@@ -3644,8 +3649,8 @@ inputs@{
 in with pkgs; [
     # autojump
     # acpilight
-    # (myIf.drv (elem system attrs.platforms.imd) pkgs.hello appimage-run)
-    # (myIf.drv (elem system attrs.platforms.imd) pkgs.hello appimagekit)
+    # (myIf.drv (!elem system [ "aarch64-linux" ]) pkgs.hello appimage-run)
+    # (myIf.drv (!elem system [ "aarch64-linux" ]) pkgs.hello appimagekit)
     # assh
     # autossh
     # bat
@@ -3752,7 +3757,7 @@ in with pkgs; [
 ]) ++ (map mkifnt [
     # alacritty
     # atom
-    # (myIf.drv (elem system attrs.platforms.imd) pkgs.hello etcher)
+    # (myIf.drv (!elem system [ "aarch64-linux" ]) pkgs.hello etcher)
     # firefox
     # gnome3.gnome-disk-utility
     # gparted
@@ -3770,7 +3775,7 @@ in with pkgs; [
 ]) ++ (with pkgs.j.pkgset.20-09."emacs${versions.emacs}Packages"; [
     # (mkifnm exwm)
 ]) ++ (with pkgs."python${versions.python}Packages"; [
-    # (myIf.drv (elem system attrs.platforms.imd) pkgs.hello pyls-black)
+    # (myIf.drv (!elem system [ "aarch64-linux" ]) pkgs.hello pyls-black)
     # pyls-black
     # (mkifnm jupyter)
     # nixpkgs
@@ -4984,16 +4989,16 @@ eval (starship init elvish)
 
 #+name: 7e5d38a2c9af18003ca89c3dad2d1b97
 #+begin_src text
-scop/bash-completion resources/bashCompletions
-xero/figlet-fonts resources/xeroFigletFonts
-grml/grml-etc-core resources/grml
-SpaceVim/SpaceVim home/.vim
-hlissner/doom-emacs home/.emacs.d
-dexpota/kitty-themes resources/kittyThemes
-aleclearmind/nested-tmux resources/aleclearmind
-gpakosz/.tmux resources/oh-my-tmux
-powerline/powerline resources/powerline
-tmux-plugins/tpm resources/tpm
+scop/bash-completion ~/<<username>>/resources/bashCompletions
+xero/figlet-fonts ~/<<username>>/resources/xeroFigletFonts
+grml/grml-etc-core ~/<<username>>/resources/grml
+SpaceVim/SpaceVim ~/<<username>>/home/.vim
+hlissner/doom-emacs ~/<<username>>/home/.emacs.d
+dexpota/kitty-themes ~/<<username>>/resources/kittyThemes
+aleclearmind/nested-tmux ~/<<username>>/resources/aleclearmind
+gpakosz/.tmux ~/<<username>>/resources/oh-my-tmux
+powerline/powerline ~/<<username>>/resources/powerline
+tmux-plugins/tpm ~/<<username>>/resources/tpm
 #+end_src
 
 #+call: hash("")
@@ -5007,7 +5012,7 @@ tmux-plugins/tpm resources/tpm
 
 init:
 |-git clone --recurse-submodule https://github.com/<<7e5d38a2c9af18003ca89c3dad2d1b97>>
-|-ln -sf home/.vim home/.config/nvim
+|-ln -sf home/.vim ~/<<username>>/home/.config/nvim
 #+end_src
 
 ** git

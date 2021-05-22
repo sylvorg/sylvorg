@@ -17,6 +17,7 @@
             outline-on-heading-p)
         (invisible-p (point-at-eol))))
 
+;; use-package
 ;; (setq use-package-always-defer t)
 
 ;; From: https://github.com/hartzell/straight.el/commit/882649137f73998d60741c7c8c993c7ebbe0f77a#diff-b335630551682c19a781afebcf4d07bf978fb1f8ac04c6bf87428ed5106870f5R1649
@@ -33,254 +34,270 @@
         :demand t
         :load-path "use-package-hydra"
         :custom (hydra-hint-display-type 'lv))
-(use-package! use-package-hercules
-        :demand t
-        :load-path "use-package-hercules")
+(load! "use-package-hydra-plus/use-package-hydra+")
+(load! "use-package-hercules/use-package-hercules")
+
+;; modal-modes
+
+;; Adapted From:
+;; Answer: https://emacs.stackexchange.com/a/42240
+;; User: user12563
+
+;; This list is prefilled with modal-modes that are also doom-emacs modules
+(defvar modal-modes '(evil-mode god-local-mode objed-mode))
+(defvar modal-prefixes (mapcar (lambda (mode) (interactive) (car (split-string (symbol-name mode) "-"))) modal-modes))
+
+(defun jr/hercules-hide (prefix) (interactive)
+    (message (format "Hiding %s" prefix))
+    (ignore-errors (funcall (intern (concat "jr/" prefix "-hercules-hide")))))
+(defun jr/hercules-hide-all-modal-modes nil (interactive)
+    (mapc #'jr/hercules-hide modal-prefixes))
+(defun jr/disable-all-modal-modes nil (interactive)
+    (mapc
+        (lambda (mode-symbol)
+            (message (format "Disabling %s" (symbol-name mode-symbol)))
+            (when (functionp mode-symbol)
+            ;; some symbols are functions which aren't normal mode functions
+                (ignore-errors
+                    (funcall mode-symbol -1))))
+            modal-modes)
+    (jr/hercules-hide-all-modal-modes))
+(advice-add #'doom-escape :after #'jr/disable-all-modal-modes)
+(advice-add #'keyboard-escape-quit :after #'jr/disable-all-modal-modes)
+(advice-add #'keyboard-quit :after #'jr/disable-all-modal-modes)
+
+;; Answer: https://stackoverflow.com/a/14490054/10827766
+;; User: https://stackoverflow.com/users/1600898/user4815162342
+(defun jr/keymap-symbol (keymap)
+    "Return the symbol to which KEYMAP is bound, or nil if no such symbol exists."
+    (catch 'gotit
+            (mapatoms (lambda (sym)
+                (and (boundp sym)
+                        (eq (symbol-value sym) keymap)
+                        (not (eq sym 'keymap))
+                        (throw 'gotit sym))))))
+
+;; Adapted From: https://gitlab.com/jjzmajic/hercules.el/-/blob/master/hercules.el#L83
+(defun jr/toggle-inner (mode prefix mode-on map) (interactive)
+    (jr/disable-all-modal-modes)
+    (unless mode-on (funcall mode 1) (jr/hercules-hide prefix)))
 
 (use-package! hercules
-        :demand t
-        :init
-            (setq which-key-enable-extended-define-key t)
-            (setq which-key-idle-delay 0.1)
-            (setq which-key-idle-secondary-delay nil)
-        :custom
+    :demand t
+    :init
+        (setq which-key-enable-extended-define-key t)
+        (setq which-key-idle-delay 0.1)
+        (setq which-key-idle-secondary-delay nil)
+        (setq which-key-persistent-popup t)
+    :config
+        (defun jr/hercules--hide (&optional keymap flatten &rest _)
+                "Dismiss hercules.el.
+            Pop KEYMAP from `overriding-terminal-local-map' when it is not
+            nil.  If FLATTEN is t, `hercules--show' was called with the same
+            argument.  Restore `which-key--update' after such a call."
+                (setq hercules--popup-showing-p nil
+                    which-key-persistent-popup t)
+                (which-key--hide-popup)
+                (when keymap
+                    (internal-pop-keymap (symbol-value keymap)
+                        'overriding-terminal-local-map))
+                (when flatten
+                    (advice-remove #'which-key--update #'ignore)))
+        (advice-add #'hercules--hide :override #'jr/hercules--hide)
+    :custom
 
-            ;; NOTE: When using the side window, this doesn't matter, apparently;
-            ;; only the hercules transient property does
-            (which-key-persistent-popup t)
+        ;; NOTE: When using the side window, this doesn't matter, apparently;
+        ;; only the hercules transient property does
+        (which-key-persistent-popup t)
 
-            (which-key-allow-evil-operators t)
+        (which-key-allow-evil-operators t)
 
-            ;; NOTE: This will cause the which-key maps for the operator states to show up,
-            ;; breaking functionality such as `d 13 <arrow-down>', etc.
-            ;; (which-key-show-operator-state-maps t)
+        ;; NOTE: This will cause the which-key maps for the operator states to show up,
+        ;; breaking functionality such as `d 13 <arrow-down>', etc.
+        ;; (which-key-show-operator-state-maps t)
 
-            ;; TODO: Choose a fun one!
-            (which-key-separator " | ")
+        ;; TODO: Choose a fun one!
+        (which-key-separator " × ")
+        ;; (which-key-separator " |-> ")
 
-            (which-key-popup-type 'side-window)
-            (which-key-side-window-location '(right bottom left top))
+        (which-key-popup-type 'side-window)
+        (which-key-side-window-location '(right bottom left top))
 
-            ;; If this percentage is too small, the keybindings frame will appear at the bottom
-            (which-key-side-window-max-width 0.5)
+        ;; If this percentage is too small, the keybindings frame will appear at the bottom
+        (which-key-side-window-max-width 0.5)
 
-            (which-key-side-window-max-height 0.25))
-
+        (which-key-side-window-max-height 0.25))
 (use-package! ryo-modal
-        :demand t
-        :preface
-            ;; (setq modal-modes '(evil-mode))
-            (defvar modal-modes '())
-
-            ;; Adapted From:
-            ;; Answer: https://emacs.stackexchange.com/a/42240
-            ;; User: user12563
-            (defun jr/disable-all-modal-modes nil
-                (interactive)
-                (mapc
-                    (lambda (mode-symbol)
-                        (when (functionp mode-symbol)
-                        ;; some symbols are functions which aren't normal mode functions
-                            (ignore-errors 
-                                (funcall mode-symbol -1))))
-                        modal-modes))
-
-            ;; Answer: https://stackoverflow.com/a/14490054/10827766
-            ;; User: https://stackoverflow.com/users/1600898/user4815162342
-            (defun jr/keymap-symbol (keymap)
-                "Return the symbol to which KEYMAP is bound, or nil if no such symbol exists."
-                (catch 'gotit
-                        (mapatoms (lambda (sym)
-                            (and (boundp sym)
-                                    (eq (symbol-value sym) keymap)
-                                    (not (eq sym 'keymap))
-                                    (throw 'gotit sym))))))
-
-            ;; Adapted From: https://gitlab.com/jjzmajic/hercules.el/-/blob/master/hercules.el#L83
-            (defun jr/toggle-inner (mode prefix mode-on map) (interactive)
-                (unless mode-on (setq evil-mode-on (bound-and-true-p evil-mode)))
-                (funcall (intern (concat "jr/" prefix "-hercules-hide")))
-                (jr/evil-show)
-                (if mode-on
-                    (unless evil-mode-on (jr/evil-hide))
-                    (funcall mode 1)
-                    ;; (internal-push-keymap (symbol-value map) 'overriding-terminal-local-map)
-                    (funcall (intern (concat "jr/" prefix "-hercules-show")))))
-
-        :general
-            (:keymaps 'override
-                  (general-chord "  ") 'jr/toggle-ryo
-                  "M-w M-w" 'jr/ryo-hercules-toggle)
-        :hercules
-            (:show-funs #'jr/ryo-hercules-show
-            :hide-funs #'jr/ryo-hercules-hide
-            :toggle-funs #'jr/ryo-hercules-toggle
-            :keymap 'ryo-modal-mode-map
-            ;; :transient t
-            )
-        :config
-            (defun jr/ryo-hercules-toggle nil (interactive))
-            (add-to-list 'modal-modes 'ryo-modal-mode)
-        
-            (defun jr/toggle-ryo nil (interactive)
-                (funcall 'jr/toggle-inner 'ryo-modal-mode "ryo" (bound-and-true-p ryo-modal-mode) 'ryo-modal-mode-map))
-
-            ;; From: https://github.com/Kungsgeten/ryo-modal#which-key-integration
-            (push '((nil . "ryo:.*:") . (nil . "")) which-key-replacement-alist))
-
+    :demand t
+    :general (:keymaps 'override (general-chord "  ") 'jr/toggle-ryo)
+    :hercules
+        (:show-funs #'jr/ryo-hercules-show
+        :hide-funs #'jr/ryo-hercules-hide
+        :toggle-funs #'jr/ryo-hercules-toggle
+        :keymap 'ryo-modal-mode-map
+        ;; :transient t
+        )
+    :config
+        (defun jr/ryo-hercules-toggle nil (interactive))
+        (add-to-list 'modal-modes 'ryo-modal-mode)
+        (add-to-list 'modal-prefixes 'ryo)
+    
+        (defun jr/toggle-ryo nil (interactive)
+            (funcall 'jr/toggle-inner 'ryo-modal-mode "ryo" (bound-and-true-p ryo-modal-mode) 'ryo-modal-mode-map))
+        ;; From: https://github.com/Kungsgeten/ryo-modal#which-key-integration
+        (push '((nil . "ryo:.*:") . (nil . "")) which-key-replacement-alist))
 (use-package! evil
-        :hook
-            (doom-init-ui . which-key-show-top-level)
-        :init
-            ;; From:
-            ;; Answer: https://stackoverflow.com/questions/25542097/emacs-evil-mode-how-to-change-insert-state-to-emacs-state-automatically/56206909#56206909
-            ;; User: https://stackoverflow.com/users/1259257/mshohayeb
-            ;; (setq evil-disable-insert-state-bindings t)
+    :init (setq-default evil-escape-key-sequence nil)
+    :general (:keymaps 'override (general-chord "kk") 'jr/toggle-evil)
+    :hercules
+        (:show-funs #'jr/evil-hercules-show
+        :hide-funs #'jr/evil-hercules-hide
+        :toggle-funs #'jr/evil-hercules-toggle
+        :keymap 'evil-normal-state-map
+        ;; :transient t
+        )
+    :config
+        (defun jr/evil-hercules-toggle nil (interactive))
+        (add-to-list 'modal-modes 'evil-mode)
+        (add-to-list 'modal-prefixes 'evil)
+    
+        (defun jr/toggle-evil nil (interactive)
+            (funcall 'jr/toggle-inner 'evil-mode "evil" (bound-and-true-p evil-mode) 'evil-normal-state-map))
+        (advice-add #'evil-insert-state :override #'jr/disable-all-modal-modes)
 
-            (setq-default evil-escape-key-sequence nil)
+        ;; From: https://www.reddit.com/r/emacs/comments/lp45zd/help_requested_in_configuring_ryomodal/gp3rfx9?utm_source=share&utm_medium=web2x&context=3
+        ;; Kept for documentation porpoises
+        ;; (eval
+        ;;       `(ryo-modal-keys
+        ;;             ("l l" ,(general-simulate-key ":wq <RET>") :first '(evil-normal-state) :name "wq")
+        ;;             ("l p" ,(general-simulate-key ":q <RET>") :first '(evil-normal-state) :name "q")
+        ;;             ("l o" ,(general-simulate-key ":w <RET>") :first '(evil-normal-state) :name "w")
+        ;;             ("l q" ,(general-simulate-key ":q! <RET>") :first '(evil-normal-state) :name "q!")))
 
-            (defun jr/evil-hercules-toggle nil (interactive))
-            (defun jr/evil-quit nil (interactive) (funcall (general-simulate-key ":q! <RET>")))
-            (defun jr/evil-show nil (interactive)
-                (jr/disable-all-modal-modes)
-                (evil-mode 1)
-                (evil-normal-state)
-                (which-key-show-top-level))
-            (defun jr/evil-hide (&rest args) (interactive)
-                (evil-mode -1)
-                (which-key-show-top-level))
-            (defun jr/evil-toggle nil (interactive)
-                (if
-                    (bound-and-true-p evil-mode)
-                    (jr/evil-hide)
-                    (jr/evil-show)))
-            ;; (setq evil-want-keybinding nil)
-            ;; (setq evil-want-integration t)
-        :general
-            (:keymaps 'override
+        ;; Use to get command name:
+        ;; Eg: (cdr (assoc "q" evil-ex-commands))
+        ;; Then "C-x C-e" (eval-last-sexp)
+    :ryo
+        ("l" :hydra
+                '(evil-exits (
+                    :color blue
+                    :pre
+                        (evil-mode 1)
+                    :post
+                        (lambda nil (interactive) (evil-mode -1) (which-key-show-top-level)))
+                    ;; From: https://gist.github.com/shadowrylander/46b81297d1d3edfbf1e2d72d5e29171e
+                    "A hydra for getting the fuck outta' here!"
+                    ("`" nil "cancel")
+                    ("l" evil-save-and-quit ":wq")
+                    ("p" evil-quit ":q")
+                    ("o" evil-write ":w")
+                    ("O" evil-write-all ":wa")
+                    ("q" (funcall (general-simulate-key ":q! <RET>")) ":q!"))
 
-                ;; Used on Android
-                "∅" 'evil-save-and-close
-                "æ" 'jr/evil-quit
+                ;; TODO: Does this work without the line below?
+                ;; UPDATE: Simulating keys will not work without some variation of this
+                ;; :first '(evil-normal-state)
 
-                (general-chord ";'") 'evil-execute-in-emacs-state
-
-                ;; NOTE: Will not toggle if hercules is transient
-                (naked "escape") 'jr/evil-toggle
-                (general-chord "kk") 'jr/evil-toggle)
-        :config
-            (advice-add #'evil-insert-state :override #'jr/evil-hide)
-
-            (use-package! god-mode
-                    :general
-                        (:keymaps 'override
-                              (general-chord "jj") 'jr/toggle-god
-                              (general-chord "';") 'god-execute-with-current-bindings
-            
-                              ;; NOTE: Will not toggle if hercules is transient
-                              "C-;" 'jr/god-hercules-toggle)
-                    :hook
-                        (doom-first-buffer-hook . (lambda nil (interactive)
-                            (god-mode -1)
-                            (god-local-mode -1)))
-                    :hercules
-                        (:show-funs #'jr/god-hercules-show
-                        :hide-funs #'jr/god-hercules-hide
-                        :toggle-funs #'jr/god-hercules-toggle
-                        :keymap 'global-map
-                        ;; :transient t
-                        )
-                    :config
-                        (defun jr/god-hercules-toggle nil (interactive))
-                        (add-to-list 'modal-modes 'god-local-mode)
-                    
-                        (defun jr/toggle-god nil (interactive)
-                            (funcall 'jr/toggle-inner 'god-local-mode "god" (bound-and-true-p god-local-mode) 'global-map))
-                        (which-key-enable-god-mode-support))
-
-            (use-package! xah-fly-keys
-                    :general
-                        (:keymaps 'xah-fly-command-map
-                            ";" 'jr/xah-hercules-toggle)
-                    :ryo
-                        ("m" :hydra
-                              '(modal-modes nil
-                                    "A modal hydra!"
-                                    ("x" jr/toggle-xah "xah-fly-keys")
-                                    ("`" nil "cancel" :color blue)) :name "modal modes")
-                    :hercules
-                        (:show-funs #'jr/xah-hercules-show
-                        :hide-funs #'jr/xah-hercules-hide
-                        :toggle-funs #'jr/xah-hercules-toggle
-                        :keymap 'xah-fly-command-map
-                        ;; :transient t
-                        )
-                    :config
-                        (defun jr/xah-hercules-toggle nil (interactive))
-                        (add-to-list 'modal-modes 'xah-fly-keys)
-                    
-                        (defun jr/toggle-xah nil (interactive)
-                            (funcall 'jr/toggle-inner 'xah-fly-keys "xah" (bound-and-true-p xah-fly-keys) 'xah-fly-command-map)))
-
-            (use-package! objed
-                    :general
-                        (:keymaps 'override
-                            (general-chord "ii") 'jr/toggle-objed)
-                        (:keymaps 'objed-map
-                            ";" 'jr/objed-hercules-toggle)
-                    :hook
-                        (after-init . (lambda nil (interactive)
-                            (objed-mode -1)))
-                    :hercules
-                        (:show-funs #'jr/objed-hercules-show
-                        :hide-funs #'jr/objed-hercules-hide
-                        :toggle-funs #'jr/objed-hercules-toggle
-                        :keymap 'objed-map
-                        ;; :transient t
-                        )
-                    :config
-                        (defun jr/objed-hercules-toggle nil (interactive))
-                        (add-to-list 'modal-modes 'objed-mode)
-                    
-                        (defun jr/toggle-objed nil (interactive)
-                            (funcall 'jr/toggle-inner 'objed-mode "objed" (bound-and-true-p objed-mode) 'objed-map)))
-
-            ;; Use `ryo-modal'
-            (use-package! kakoune)
-
-            ;; Assign to `xah-fly-keys' mode's previous general keybinding, i.e. `[['
-            (use-package! modalka)
-
-            ;; From: https://www.reddit.com/r/emacs/comments/lp45zd/help_requested_in_configuring_ryomodal/gp3rfx9?utm_source=share&utm_medium=web2x&context=3
-            ;; Kept for documentation porpoises
-            ;; (eval
-            ;;       `(ryo-modal-keys
-            ;;             ("l l" ,(general-simulate-key ":wq <RET>") :first '(evil-normal-state) :name "wq")
-            ;;             ("l p" ,(general-simulate-key ":q <RET>") :first '(evil-normal-state) :name "q")
-            ;;             ("l o" ,(general-simulate-key ":w <RET>") :first '(evil-normal-state) :name "w")
-            ;;             ("l q" ,(general-simulate-key ":q! <RET>") :first '(evil-normal-state) :name "q!")))
-
-            ;; Use to get command name:
-            ;; Eg: (cdr (assoc "q" evil-ex-commands))
-            ;; Then "C-x C-e" (eval-last-sexp)
-        :ryo
-            ("l" :hydra
-                  '(evil-exits (:color blue)
-                        ;; From: https://gist.github.com/shadowrylander/46b81297d1d3edfbf1e2d72d5e29171e
-                        "A hydra for getting the fuck outta' here!"
-                        ("l" evil-save-and-quit ":wq")
-                        ("p" evil-quit ":q")
-                        ("o" evil-write ":w")
-                        ("O" evil-write-all ":wa")
-                        ("q" (funcall (general-simulate-key ":q! <RET>")) ":q!")
-                        ("`" nil "cancel"))
-                    ;; :first '(evil-normal-state)
-                    :name "evil exits")
-            (";" jr/ryo-hercules-toggle :name "toggle keymap"))
+                :name "evil exits"))
 
 ;; Adapted From: https://github.com/mohsenil85/evil-evilified-state and https://github.com/syl20bnr/spacemacs
 (use-package! evil-evilified-state :after evil)
+(use-package! god-mode
+    :general
+        (:keymaps 'override
+            (general-chord "jj") 'jr/toggle-god
+            (general-chord "';") 'god-execute-with-current-bindings)
+    :hercules
+        (:show-funs #'jr/god-hercules-show
+        :hide-funs #'jr/god-hercules-hide
+        :toggle-funs #'jr/god-hercules-toggle
+        :keymap 'global-map
+        ;; :transient t
+        )
+    :config
+        (defun jr/god-hercules-toggle nil (interactive))
+        (add-to-list 'modal-modes 'god-local-mode)
+        (add-to-list 'modal-prefixes 'god)
+    
+        (defun jr/toggle-god nil (interactive)
+            (funcall 'jr/toggle-inner 'god-local-mode "god" (bound-and-true-p god-local-mode) 'global-map))
+        (which-key-enable-god-mode-support))
+(use-package! xah-fly-keys
+    :ryo
+        ("m" :hydra
+            '(modal-modes (:color blue)
+                "A modal hydra!"
+                ("`" nil "cancel")
+                ("x" jr/toggle-xah "xah-fly-keys")) :name "modal modes")
+    :hercules
+        (:show-funs #'jr/xah-hercules-show
+        :hide-funs #'jr/xah-hercules-hide
+        :toggle-funs #'jr/xah-hercules-toggle
+        :keymap 'xah-fly-command-map
+        ;; :transient t
+        )
+    :config
+        (defun jr/xah-hercules-toggle nil (interactive))
+        (add-to-list 'modal-modes 'xah-fly-keys)
+        (add-to-list 'modal-prefixes 'xah)
+    
+        (defun jr/toggle-xah nil (interactive)
+            (funcall 'jr/toggle-inner 'xah-fly-keys "xah" (bound-and-true-p xah-fly-keys) 'xah-fly-command-map)))
+(use-package! objed
+    :general (:keymaps 'override (general-chord "ii") 'jr/toggle-objed)
+    :hercules
+        (:show-funs #'jr/objed-hercules-show
+        :hide-funs #'jr/objed-hercules-hide
+        :toggle-funs #'jr/objed-hercules-toggle
+        :keymap 'objed-map
+        ;; :transient t
+        )
+    :config
+        (defun jr/objed-hercules-toggle nil (interactive))
+        (add-to-list 'modal-modes 'objed-mode)
+        (add-to-list 'modal-prefixes 'objed)
+    
+        (defun jr/toggle-objed nil (interactive)
+            (funcall 'jr/toggle-inner 'objed-mode "objed" (bound-and-true-p objed-mode) 'objed-map)))
+(use-package! kakoune
+    :hydra+ (modal-modes (:color blue) ("k" jr/toggle-kakoune "kakoune"))
+    :hercules
+        (:show-funs #'jr/kakoune-hercules-show
+        :hide-funs #'jr/kakoune-hercules-hide
+        :toggle-funs #'jr/kakoune-hercules-toggle
+        :keymap 'ryo-modal-mode-map
+        ;; :transient t
+        )
+    :config
+        (defun jr/kakoune-hercules-toggle nil (interactive))
+        (add-to-list 'modal-modes 'ryo-modal-mode)
+        (add-to-list 'modal-prefixes 'kakoune)
+    
+        (defun jr/toggle-kakoune nil (interactive)
+            (funcall 'jr/toggle-inner 'ryo-modal-mode "kakoune" (bound-and-true-p ryo-modal-mode) 'ryo-modal-mode-map)))
+(use-package! modalka
+    :general (:keymaps 'override (general-chord "[[") 'jr/toggle-modalka)
+    :hercules
+        (:show-funs #'jr/modalka-hercules-show
+        :hide-funs #'jr/modalka-hercules-hide
+        :toggle-funs #'jr/modalka-hercules-toggle
+        :keymap 'modalka-mode-map
+        ;; :transient t
+        )
+    :config
+        (defun jr/modalka-hercules-toggle nil (interactive))
+        (add-to-list 'modal-modes 'modalka-mode)
+        (add-to-list 'modal-prefixes 'modalka)
+    
+        (defun jr/toggle-modalka nil (interactive)
+            (funcall 'jr/toggle-inner 'modalka-mode "modalka" (bound-and-true-p modalka-mode) 'modalka-mode-map)))
 
+(add-hook! doom-init-ui
+    (jr/disable-all-modal-modes)
+    ;; (run-at-time "1 sec" nil #'which-key-show-top-level)
+    (which-key-show-top-level))
+
+;; org-mode
 (use-package! org
         :init
             ;; I'm using ox-pandoc
@@ -455,6 +472,7 @@
             (defun jr/get-header nil (interactive)
                 (nth 4 (org-heading-components)))
             (defun jr/tangle-path nil (interactive)
+                (org-babel-lob-ingest "./README.org")
                 (string-remove-prefix "/" (concat
                     (org-format-outline-path (org-get-outline-path)) "/"
                         (jr/get-header))))
@@ -495,27 +513,31 @@
         :load-path "emacs-bankruptcy/site-lisp"
         :hook (org-mode . org-numbers-overlay-mode))
 
+;; minibuffer
 
 
+;; TODO: Split this into multiple `use-package!' instances using my new `hydra+' keyword
 (ryo-modal-key "x" :hydra
-      '(hydra-execute nil
+      '(hydra-execute (:color blue)
             "A hydra for launching stuff!"
             ("c" counsel-M-x "counsel")
             ("h" helm-smex-major-mode-commands "helm smex major mode")
             ("s" helm-smex "helm smex")
             ("e" execute-extended-command "M-x")
-            ("q" nil "cancel" :color blue)) :first '(evil-insert-state) :name "execute order 65")
+            ("q" nil "cancel"))
+            :name "execute order 65")
+
+(advice-add #'counsel-M-x :before #'jr/disable-all-modal-modes)
+(advice-add #'helm-smex-major-mode-commands :before #'jr/disable-all-modal-modes)
+(advice-add #'helm-smex :before #'jr/disable-all-modal-modes)
+(advice-add #'execute-extended-command :before #'jr/disable-all-modal-modes)
 
 ;; TODO: Does this work? Or do I have to pull the hydra out?
 (general-def
     :keymaps 'override
     "C-S-p" 'hydra-execute)
 
-;; Adapted From:
-;; Answer: https://emacs.stackexchange.com/a/54921/31428
-;; User: https://emacs.stackexchange.com/users/160/jordon-biondo
-(general-def minibuffer-local-map "M-x" 'doom-escape)
-
+;; git
 (use-package! git-gutter
       :ryo ("g" :hydra
             '(hydra-git nil
@@ -527,10 +549,14 @@
                   ("s" git-gutter:stage-hunk "stage")
                   ("r" git-gutter:revert-hunk "revert")
                   ("m" git-gutter:mark-hunk "mark")
-                  ("q" nil "cancel" :color blue))))
+                  ("`" nil "cancel" :color blue))))
 ;; (use-package! gitattributes-mode)
 
+;; buffer
 (remove-hook 'doom-first-buffer-hook #'global-hl-line-mode)
+
+(defun display-startup-echo-area-message ()
+  (which-key-show-top-level))
 
 (defun jr/src-mode-entry nil (interactive)
   (setq evil-mode-on-before-narrow (bound-and-true-p evil-mode)))
@@ -610,7 +636,8 @@ is already narrowed."
     :init (setq parinfer-rust-auto-download t)
     :custom (parinfer-rust-check-before-enable nil))
 
-;; (after! org
+;; !!! THE ORDER HERE MATTERS! !!!
+;; (add-hook! doom-init-ui
 ;;     (load! "fit-frame")
 ;;     (load! "autofit-frame")
 ;;     ;; (load! "buff-menu+")
@@ -620,25 +647,34 @@ is already narrowed."
 ;;     (load! "dired+")
 ;;     (load! "dired-details")
 ;;     (load! "dired-details+")
+;;     (load! "doremi")
+;;     (load! "hexrgb")
+;;     (load! "frame-fns")
+;;     (load! "faces+")
 ;;     (load! "doremi-frm")
+;;     (load! "eyedropper")
 ;;     (load! "facemenu+")
-;;     (load! "fname+")
+;;     (load! "frame+")
 ;;     (load! "help+")
 ;;     (load! "info+")
 ;;     (load! "menu-bar+")
 ;;     (load! "mouse+")
 ;;     (load! "setup-keys")
-;;     (load! "simple+")
+;;     (load! "strings")
+;;     ;; (load! "simple+")
+;;     (load! "frame-cmds")
 ;;     (load! "thumb-frm")
 ;;     (load! "window+")
-;;     (load! "frame-fns")
-;;     (load! "frame-cmds")
 ;;     (load! "zoom-frm")
-;;     (load! "hexrgb")
+;;     (load! "oneonone")
 ;;     (use-package! oneonone
-;;         :load-path "oneonone"
-;;         :hook (after-init . 1on1-emacs)))
+;;         :demand t
+;;         :hook (after-init . 1on1-emacs)
+;;         :custom
+;;             (1on1-minibuffer-frame-width 10000)
+;;             (1on1-minibuffer-frame-height 10000)))
 
+;; terminal
 ;; (use-package! term
 ;;     :general
 ;;         (:keymaps 'term-mode-map
@@ -799,8 +835,10 @@ is already narrowed."
         ))
 
 
+;; window manager
 
 
+;; system
 ;; (eval `(let ((mypaths
 ;;     '(
 ;;         ,(concat "/home/" (getenv "USER") "/.nix-profile/bin")
@@ -815,6 +853,7 @@ is already narrowed."
 (use-package! exec-path-from-shell :demand t)
 
 
+;; etc
 (setq-default indent-tabs-mode nil)
 
 ;; From:
