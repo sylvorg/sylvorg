@@ -19,14 +19,21 @@ doom-set:
 |~/.doom.d/org-tangle ~/shadowrylander/doom.aiern.org
 |rsync -avvczz --delete ~/shadowrylander/home/.doom.d/ ~/.doom.d/
 
-doom-sync-check:
+doom-sync:
 |~/.emacs.d/bin/doom sync
+
+doom-check:
 |~/.emacs.d/bin/doom doctor
 
 doom-test:
 |emacs ~/shadowrylander/doom.aiern.org
 
-doom: doom-set doom-sync-check doom-test
+doom: doom-set doom-sync doom-check doom-test
+
+doom-upgrade:
+|printf "n\ny\n" | ~/.emacs.d/bin/doom upgrade
+
+doom-super: doom-set doom-sync doom-check doom-upgrade doom-sync doom-check doom-test
 
 tangle-all: doom-set
 # Adapted From:

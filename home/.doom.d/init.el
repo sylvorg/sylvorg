@@ -51,7 +51,9 @@
        objed             ; text object editing for the innocent
 
 
-       (parinfer +rust)          ; turn lisp into python, sort of
+       ;; NOTE: This will cause org-mode files with lisp to start in a sort-of org-edit-special mode
+       ;; (parinfer +rust)          ; turn lisp into python, sort of
+
        ;;rotate-text       ; cycle region at point between text candidates
        snippets          ; my elves. They type so I don't have to
        word-wrap         ; soft wrapping with language-aware indent
@@ -184,4 +186,5 @@
        ;;(default +bindings +smartparens)
        (default +smartparens)
 
-       :private spacemacs)
+       ;; :private spacemacs
+       )

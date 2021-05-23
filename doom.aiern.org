@@ -110,7 +110,9 @@ init:
        objed             ; text object editing for the innocent
 
 
-       (parinfer +rust)          ; turn lisp into python, sort of
+       ;; NOTE: This will cause org-mode files with lisp to start in a sort-of org-edit-special mode
+       ;; (parinfer +rust)          ; turn lisp into python, sort of
+
        ;;rotate-text       ; cycle region at point between text candidates
        snippets          ; my elves. They type so I don't have to
        word-wrap         ; soft wrapping with language-aware indent
@@ -243,7 +245,8 @@ init:
        ;;(default +bindings +smartparens)
        (default +smartparens)
 
-       :private spacemacs)
+       ;; :private spacemacs
+       )
 #+end_src
 
 *** config.el
@@ -287,7 +290,7 @@ init:
 <<d265ec51e2ef69de5f99d16281d47afa>>
 
 ;; git
-;; <<4027496311aaa540864858b0cc6d7781>>
+<<4027496311aaa540864858b0cc6d7781>>
 
 ;; buffer
 <<0cbddafe342ce45b8c57c5feeb0a4237>>
@@ -937,10 +940,7 @@ Taken from [[Org-Roam's GitHub README][https://github.com/org-roam/org-roam#inst
 
 ;; This list is prefilled with modal-modes that are also doom-emacs modules
 (defvar modal-modes '(evil-mode god-local-mode objed-mode))
-(defvar modal-prefixes
-    (mapcar (lambda (mode) (interactive) (car (split-string (symbol-name mode) "-"))) modal-modes)
-    ;; '("evil" "god" "objed" "ryo")
-    )
+(defvar modal-prefixes (mapcar (lambda (mode) (interactive) (car (split-string (symbol-name mode) "-"))) modal-modes))
 (defvar last-modal-mode nil)
 
 (defun jr/any-popup-showing-p nil (interactive)
@@ -1033,7 +1033,6 @@ Taken from [[Org-Roam's GitHub README][https://github.com/org-roam/org-roam#inst
         (setq which-key-enable-extended-define-key t)
         (setq which-key-idle-delay 0.1)
         (setq which-key-idle-secondary-delay nil)
-        (setq which-key-persistent-popup t)
     :config
         (defun jr/hercules--hide (&optional keymap flatten &rest _)
                 "Dismiss hercules.el.
@@ -1065,6 +1064,7 @@ Taken from [[Org-Roam's GitHub README][https://github.com/org-roam/org-roam#inst
         (which-key-separator " × ")
         ;; (which-key-separator " |-> ")
 
+        (which-key-setup-side-window-right-bottom)
         (which-key-popup-type 'side-window)
         (which-key-side-window-location '(right bottom left top))
 
@@ -1102,7 +1102,9 @@ Taken from [[Org-Roam's GitHub README][https://github.com/org-roam/org-roam#inst
 #+begin_src emacs-lisp
 (use-package! evil
     :init (setq-default evil-escape-key-sequence nil)
-    :general (:keymaps 'override (general-chord "kk") 'jr/toggle-evil)
+    :general (:keymaps 'override
+        (general-chord "kk") 'jr/toggle-evil
+        ":" 'evil-ex)
     <<d3797553f252eabca75070bb3374df05(map="evil-normal-state-map", mode="evil-mode", prefix="evil")>>
         (advice-add #'evil-insert-state :override #'jr/disable-all-modal-modes)
 
@@ -1120,10 +1122,7 @@ Taken from [[Org-Roam's GitHub README][https://github.com/org-roam/org-roam#inst
         ;; Then "C-x C-e" (eval-last-sexp)
     :ryo
         ("l" :hydra
-                '(evil-exits (
-                    :color blue
-                    :pre (evil-mode 1)
-                    :post (lambda nil (interactive) (evil-mode -1) (jr/which-key-show-top-level)))
+                '(evil-exits (:color blue)
                     ;; From: https://gist.github.com/shadowrylander/46b81297d1d3edfbf1e2d72d5e29171e
                     "A hydra for getting the fuck outta' here!"
                     ("`" nil "cancel")
@@ -1131,7 +1130,8 @@ Taken from [[Org-Roam's GitHub README][https://github.com/org-roam/org-roam#inst
                     ("p" evil-quit ":q")
                     ("o" evil-write ":w")
                     ("O" evil-write-all ":wa")
-                    ("q" (funcall (general-simulate-key ":q! <RET>")) ":q!"))
+                    ;; ("q" (funcall (general-simulate-key ":q! <RET>")) ":q!"))
+                    ("q" (funcall (evil-quit t)) ":q!"))
                 :name "evil exits"))
 
 ;; Adapted From: https://github.com/mohsenil85/evil-evilified-state and https://github.com/syl20bnr/spacemacs
@@ -1298,13 +1298,13 @@ Taken from [[Org-Roam's GitHub README][https://github.com/org-roam/org-roam#inst
     :ryo ("g" :hydra
         '(hydra-git nil
             "A hydra for git!"
+            ("`" nil "cancel" :color blue)
             ("j" git-gutter:next-hunk "next")
             ("k" git-gutter:previous-hunk "previous")
             ("d" git-gutter:popup-hunk "diff")
             ("s" git-gutter:stage-hunk "stage")
             ("r" git-gutter:revert-hunk "revert")
-            ("m" git-gutter:mark-hunk "mark")
-            ("`" nil "cancel" :color blue))))
+            ("m" git-gutter:mark-hunk "mark"))))
 #+end_src
 
 ***** magit
@@ -1402,10 +1402,10 @@ is already narrowed."
         ;; Add more modes here
         ))
 
-(use-package! parinfer-rust-mode
+(when (featurep! :module parinfer) (use-package! parinfer-rust-mode
     :hook emacs-lisp-mode
     :init (setq parinfer-rust-auto-download t)
-    :custom (parinfer-rust-check-before-enable nil))
+    :custom (parinfer-rust-check-before-enable nil)))
 
 ;; !!! THE ORDER HERE MATTERS! !!!
 ;; (add-hook! doom-init-ui

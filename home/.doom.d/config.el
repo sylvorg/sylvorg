@@ -45,10 +45,7 @@
 
 ;; This list is prefilled with modal-modes that are also doom-emacs modules
 (defvar modal-modes '(evil-mode god-local-mode objed-mode))
-(defvar modal-prefixes
-    (mapcar (lambda (mode) (interactive) (car (split-string (symbol-name mode) "-"))) modal-modes)
-    ;; '("evil" "god" "objed" "ryo")
-    )
+(defvar modal-prefixes (mapcar (lambda (mode) (interactive) (car (split-string (symbol-name mode) "-"))) modal-modes))
 (defvar last-modal-mode nil)
 
 (defun jr/any-popup-showing-p nil (interactive)
@@ -117,7 +114,6 @@
         (setq which-key-enable-extended-define-key t)
         (setq which-key-idle-delay 0.1)
         (setq which-key-idle-secondary-delay nil)
-        (setq which-key-persistent-popup t)
     :config
         (defun jr/hercules--hide (&optional keymap flatten &rest _)
                 "Dismiss hercules.el.
@@ -149,6 +145,7 @@
         (which-key-separator " × ")
         ;; (which-key-separator " |-> ")
 
+        (which-key-setup-side-window-right-bottom)
         (which-key-popup-type 'side-window)
         (which-key-side-window-location '(right bottom left top))
 
@@ -177,7 +174,9 @@
         (push '((nil . "ryo:.*:") . (nil . "")) which-key-replacement-alist))
 (use-package! evil
     :init (setq-default evil-escape-key-sequence nil)
-    :general (:keymaps 'override (general-chord "kk") 'jr/toggle-evil)
+    :general (:keymaps 'override
+        (general-chord "kk") 'jr/toggle-evil
+        ":" 'evil-ex)
     :hercules
         (:show-funs #'jr/evil-hercules-show
         :hide-funs #'jr/evil-hercules-hide
@@ -208,10 +207,7 @@
         ;; Then "C-x C-e" (eval-last-sexp)
     :ryo
         ("l" :hydra
-                '(evil-exits (
-                    :color blue
-                    :pre (evil-mode 1)
-                    :post (lambda nil (interactive) (evil-mode -1) (jr/which-key-show-top-level)))
+                '(evil-exits (:color blue)
                     ;; From: https://gist.github.com/shadowrylander/46b81297d1d3edfbf1e2d72d5e29171e
                     "A hydra for getting the fuck outta' here!"
                     ("`" nil "cancel")
@@ -219,7 +215,8 @@
                     ("p" evil-quit ":q")
                     ("o" evil-write ":w")
                     ("O" evil-write-all ":wa")
-                    ("q" (funcall (general-simulate-key ":q! <RET>")) ":q!"))
+                    ;; ("q" (funcall (general-simulate-key ":q! <RET>")) ":q!"))
+                    ("q" (funcall (evil-quit t)) ":q!"))
                 :name "evil exits"))
 
 ;; Adapted From: https://github.com/mohsenil85/evil-evilified-state and https://github.com/syl20bnr/spacemacs
@@ -559,23 +556,23 @@
     "C-S-p" 'hydra-execute)
 
 ;; git
-;; (use-package! git-gutter
-;;     :ryo ("g" :hydra
-;;         '(hydra-git nil
-;;             "A hydra for git!"
-;;             ("j" git-gutter:next-hunk "next")
-;;             ("k" git-gutter:previous-hunk "previous")
-;;             ("d" git-gutter:popup-hunk "diff")
-;;             ("s" git-gutter:stage-hunk "stage")
-;;             ("r" git-gutter:revert-hunk "revert")
-;;             ("m" git-gutter:mark-hunk "mark")
-;;             ("`" nil "cancel" :color blue))))
-;; (use-package! magit
-;;     :ryo ("g" :hydra+
-;;         '(hydra-git nil
-;;             "A hydra for git!"
-;;             ("g" magit-status "magit" :color blue))))
-;; ;; (use-package! gitattributes-mode)
+(use-package! git-gutter
+    :ryo ("g" :hydra
+        '(hydra-git nil
+            "A hydra for git!"
+            ("`" nil "cancel" :color blue)
+            ("j" git-gutter:next-hunk "next")
+            ("k" git-gutter:previous-hunk "previous")
+            ("d" git-gutter:popup-hunk "diff")
+            ("s" git-gutter:stage-hunk "stage")
+            ("r" git-gutter:revert-hunk "revert")
+            ("m" git-gutter:mark-hunk "mark"))))
+(use-package! magit
+    :ryo ("g" :hydra+
+        '(hydra-git nil
+            "A hydra for git!"
+            ("g" magit-status "magit" :color blue))))
+;; (use-package! gitattributes-mode)
 
 ;; buffer
 (remove-hook 'doom-first-buffer-hook #'global-hl-line-mode)
@@ -648,10 +645,10 @@ is already narrowed."
         ;; Add more modes here
         ))
 
-(use-package! parinfer-rust-mode
+(when (featurep! :module parinfer) (use-package! parinfer-rust-mode
     :hook emacs-lisp-mode
     :init (setq parinfer-rust-auto-download t)
-    :custom (parinfer-rust-check-before-enable nil))
+    :custom (parinfer-rust-check-before-enable nil)))
 
 ;; !!! THE ORDER HERE MATTERS! !!!
 ;; (add-hook! doom-init-ui

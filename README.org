@@ -7,7 +7,7 @@
 # Adapted From:
 # Answer: https://stackoverflow.com/a/65232183/10827766
 # User: https://stackoverflow.com/users/776405/whil
-#+startup: show2levels
+#+startup: show3levels
 
 #+name: username
 #+begin_src text :exports none
@@ -65,14 +65,21 @@ doom-set:
 |~/.doom.d/org-tangle ~/<<username>>/doom.aiern.org
 |rsync -avvczz --delete ~/<<username>>/home/.doom.d/ ~/.doom.d/
 
-doom-sync-check:
+doom-sync:
 |~/.emacs.d/bin/doom sync
+
+doom-check:
 |~/.emacs.d/bin/doom doctor
 
 doom-test:
 |emacs ~/<<username>>/doom.aiern.org
 
-doom: doom-set doom-sync-check doom-test
+doom: doom-set doom-sync doom-check doom-test
+
+doom-upgrade:
+|printf "n\ny\n" | ~/.emacs.d/bin/doom upgrade
+
+doom-super: doom-set doom-sync doom-check doom-upgrade doom-sync doom-check doom-test
 
 tangle-all: doom-set
 # Adapted From:
