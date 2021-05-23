@@ -45,17 +45,37 @@
 
 ;; This list is prefilled with modal-modes that are also doom-emacs modules
 (defvar modal-modes '(evil-mode god-local-mode objed-mode))
-(defvar modal-prefixes (mapcar (lambda (mode) (interactive) (car (split-string (symbol-name mode) "-"))) modal-modes))
+(defvar modal-prefixes
+    (mapcar (lambda (mode) (interactive) (car (split-string (symbol-name mode) "-"))) modal-modes)
+    ;; '("evil" "god" "objed" "ryo")
+    )
+(defvar last-modal-mode nil)
 
 (defun jr/any-popup-showing-p nil (interactive)
     (or hercules--popup-showing-p (which-key--popup-showing-p)))
 (defun jr/which-key-show-top-level nil (interactive)
-    (unless (jr/any-popup-showing-p) (which-key-show-top-level)))
+    (let* ((which-key-function
+        ;; #'which-key-show-top-level
+        ;; #'(lambda nil (interactive) (which-key-show-full-keymap 'global-map))
+        ;; #'which-key-show-full-major-mode
+        ;; #'which-key-show-major-mode
+
+        ;; Adapted From:
+        ;; https://github.com/justbur/emacs-which-key/blob/master/which-key.el#L2359
+        ;; https://github.com/justbur/emacs-which-key/blob/master/which-key.el#L2666
+        #'(lambda nil (interactive) (which-key--create-buffer-and-show nil global-map nil "Global bindings"))
+        
+        ))
+        (if (which-key--popup-showing-p)
+            (when (member last-modal-mode modal-prefixes)
+                (funcall which-key-function) (setq last-modal-mode nil))
+            (funcall which-key-function))))
 (defun jr/hercules-hide-all-modal-modes nil (interactive)
     (mapc #'(lambda (prefix) (interactive)
         (message (format "Hiding %s" prefix))
         (ignore-errors (funcall (intern (concat "jr/" prefix "-hercules-hide"))))
-        (internal-push-keymap 'global-map 'overriding-terminal-local-map)
+        ;; (internal-push-keymap 'global-map 'overriding-terminal-local-map)
+        ;; (internal-push-keymap nil 'overriding-terminal-local-map)
         ) modal-prefixes)
     (jr/which-key-show-top-level))
 (defun jr/disable-all-modal-modes nil (interactive)
@@ -67,8 +87,7 @@
                 (ignore-errors
                     (funcall mode-symbol -1))))
             modal-modes)
-    (jr/hercules-hide-all-modal-modes)
-    )
+    (jr/hercules-hide-all-modal-modes))
 (advice-add #'doom-escape :after #'jr/disable-all-modal-modes)
 (advice-add #'keyboard-escape-quit :after #'jr/disable-all-modal-modes)
 (advice-add #'keyboard-quit :after #'jr/disable-all-modal-modes)
@@ -87,7 +106,10 @@
 ;; Adapted From: https://gitlab.com/jjzmajic/hercules.el/-/blob/master/hercules.el#L83
 (defun jr/toggle-inner (mode prefix mode-on map) (interactive)
     (jr/disable-all-modal-modes)
-    (unless mode-on (funcall mode 1) (ignore-errors (funcall (intern (concat "jr/" prefix "-hercules-show"))))))
+    (unless mode-on
+        (funcall mode 1)
+        (ignore-errors (funcall (intern (concat "jr/" prefix "-hercules-show"))))
+        (setq last-modal-mode prefix)))
 
 (use-package! hercules
     :demand t
@@ -147,7 +169,7 @@
     :config
         (defun jr/ryo-hercules-toggle nil (interactive))
         (add-to-list 'modal-modes 'ryo-modal-mode)
-        (add-to-list 'modal-prefixes 'ryo)
+        (add-to-list 'modal-prefixes "ryo")
     
         (defun jr/toggle-ryo nil (interactive)
             (funcall 'jr/toggle-inner 'ryo-modal-mode "ryo" (bound-and-true-p ryo-modal-mode) 'ryo-modal-mode-map))
@@ -166,7 +188,7 @@
     :config
         (defun jr/evil-hercules-toggle nil (interactive))
         (add-to-list 'modal-modes 'evil-mode)
-        (add-to-list 'modal-prefixes 'evil)
+        (add-to-list 'modal-prefixes "evil")
     
         (defun jr/toggle-evil nil (interactive)
             (funcall 'jr/toggle-inner 'evil-mode "evil" (bound-and-true-p evil-mode) 'evil-normal-state-map))
@@ -188,10 +210,8 @@
         ("l" :hydra
                 '(evil-exits (
                     :color blue
-                    :pre
-                        (evil-mode 1)
-                    :post
-                        (lambda nil (interactive) (evil-mode -1) (jr/which-key-show-top-level)))
+                    :pre (evil-mode 1)
+                    :post (lambda nil (interactive) (evil-mode -1) (jr/which-key-show-top-level)))
                     ;; From: https://gist.github.com/shadowrylander/46b81297d1d3edfbf1e2d72d5e29171e
                     "A hydra for getting the fuck outta' here!"
                     ("`" nil "cancel")
@@ -200,11 +220,6 @@
                     ("o" evil-write ":w")
                     ("O" evil-write-all ":wa")
                     ("q" (funcall (general-simulate-key ":q! <RET>")) ":q!"))
-
-                ;; TODO: Does this work without the line below?
-                ;; UPDATE: Simulating keys will not work without some variation of this
-                ;; :first '(evil-normal-state)
-
                 :name "evil exits"))
 
 ;; Adapted From: https://github.com/mohsenil85/evil-evilified-state and https://github.com/syl20bnr/spacemacs
@@ -224,7 +239,7 @@
     :config
         (defun jr/god-hercules-toggle nil (interactive))
         (add-to-list 'modal-modes 'god-local-mode)
-        (add-to-list 'modal-prefixes 'god)
+        (add-to-list 'modal-prefixes "god")
     
         (defun jr/toggle-god nil (interactive)
             (funcall 'jr/toggle-inner 'god-local-mode "god" (bound-and-true-p god-local-mode) 'global-map))
@@ -246,7 +261,7 @@
     :config
         (defun jr/xah-hercules-toggle nil (interactive))
         (add-to-list 'modal-modes 'xah-fly-keys)
-        (add-to-list 'modal-prefixes 'xah)
+        (add-to-list 'modal-prefixes "xah")
     
         (defun jr/toggle-xah nil (interactive)
             (funcall 'jr/toggle-inner 'xah-fly-keys "xah" (bound-and-true-p xah-fly-keys) 'xah-fly-command-map)))
@@ -262,7 +277,7 @@
     :config
         (defun jr/objed-hercules-toggle nil (interactive))
         (add-to-list 'modal-modes 'objed-mode)
-        (add-to-list 'modal-prefixes 'objed)
+        (add-to-list 'modal-prefixes "objed")
     
         (defun jr/toggle-objed nil (interactive)
             (funcall 'jr/toggle-inner 'objed-mode "objed" (bound-and-true-p objed-mode) 'objed-map)))
@@ -278,7 +293,7 @@
     :config
         (defun jr/kakoune-hercules-toggle nil (interactive))
         (add-to-list 'modal-modes 'ryo-modal-mode)
-        (add-to-list 'modal-prefixes 'kakoune)
+        (add-to-list 'modal-prefixes "kakoune")
     
         (defun jr/toggle-kakoune nil (interactive)
             (funcall 'jr/toggle-inner 'ryo-modal-mode "kakoune" (bound-and-true-p ryo-modal-mode) 'ryo-modal-mode-map)))
@@ -294,7 +309,7 @@
     :config
         (defun jr/modalka-hercules-toggle nil (interactive))
         (add-to-list 'modal-modes 'modalka-mode)
-        (add-to-list 'modal-prefixes 'modalka)
+        (add-to-list 'modal-prefixes "modalka")
     
         (defun jr/toggle-modalka nil (interactive)
             (funcall 'jr/toggle-inner 'modalka-mode "modalka" (bound-and-true-p modalka-mode) 'modalka-mode-map)))

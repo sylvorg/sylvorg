@@ -917,7 +917,7 @@ Taken from [[Org-Roam's GitHub README][https://github.com/org-roam/org-roam#inst
 :config
     (defun jr/%p-hercules-toggle nil (interactive))
     (add-to-list 'modal-modes '%n)
-    (add-to-list 'modal-prefixes '%p)
+    (add-to-list 'modal-prefixes \"%p\")
 
     (defun jr/toggle-%p nil (interactive)
         (funcall 'jr/toggle-inner '%n \"%p\" (bound-and-true-p %n) '%m))" `((?m . ,map) (?n . ,mode) (?p . ,prefix)))
@@ -937,17 +937,37 @@ Taken from [[Org-Roam's GitHub README][https://github.com/org-roam/org-roam#inst
 
 ;; This list is prefilled with modal-modes that are also doom-emacs modules
 (defvar modal-modes '(evil-mode god-local-mode objed-mode))
-(defvar modal-prefixes (mapcar (lambda (mode) (interactive) (car (split-string (symbol-name mode) "-"))) modal-modes))
+(defvar modal-prefixes
+    (mapcar (lambda (mode) (interactive) (car (split-string (symbol-name mode) "-"))) modal-modes)
+    ;; '("evil" "god" "objed" "ryo")
+    )
+(defvar last-modal-mode nil)
 
 (defun jr/any-popup-showing-p nil (interactive)
     (or hercules--popup-showing-p (which-key--popup-showing-p)))
 (defun jr/which-key-show-top-level nil (interactive)
-    (unless (jr/any-popup-showing-p) (which-key-show-top-level)))
+    (let* ((which-key-function
+        ;; #'which-key-show-top-level
+        ;; #'(lambda nil (interactive) (which-key-show-full-keymap 'global-map))
+        ;; #'which-key-show-full-major-mode
+        ;; #'which-key-show-major-mode
+
+        ;; Adapted From:
+        ;; https://github.com/justbur/emacs-which-key/blob/master/which-key.el#L2359
+        ;; https://github.com/justbur/emacs-which-key/blob/master/which-key.el#L2666
+        #'(lambda nil (interactive) (which-key--create-buffer-and-show nil global-map nil "Global bindings"))
+        
+        ))
+        (if (which-key--popup-showing-p)
+            (when (member last-modal-mode modal-prefixes)
+                (funcall which-key-function) (setq last-modal-mode nil))
+            (funcall which-key-function))))
 (defun jr/hercules-hide-all-modal-modes nil (interactive)
     (mapc #'(lambda (prefix) (interactive)
         (message (format "Hiding %s" prefix))
         (ignore-errors (funcall (intern (concat "jr/" prefix "-hercules-hide"))))
-        (internal-push-keymap 'global-map 'overriding-terminal-local-map)
+        ;; (internal-push-keymap 'global-map 'overriding-terminal-local-map)
+        ;; (internal-push-keymap nil 'overriding-terminal-local-map)
         ) modal-prefixes)
     (jr/which-key-show-top-level))
 (defun jr/disable-all-modal-modes nil (interactive)
@@ -959,8 +979,7 @@ Taken from [[Org-Roam's GitHub README][https://github.com/org-roam/org-roam#inst
                 (ignore-errors
                     (funcall mode-symbol -1))))
             modal-modes)
-    (jr/hercules-hide-all-modal-modes)
-    )
+    (jr/hercules-hide-all-modal-modes))
 (advice-add #'doom-escape :after #'jr/disable-all-modal-modes)
 (advice-add #'keyboard-escape-quit :after #'jr/disable-all-modal-modes)
 (advice-add #'keyboard-quit :after #'jr/disable-all-modal-modes)
@@ -979,7 +998,10 @@ Taken from [[Org-Roam's GitHub README][https://github.com/org-roam/org-roam#inst
 ;; Adapted From: https://gitlab.com/jjzmajic/hercules.el/-/blob/master/hercules.el#L83
 (defun jr/toggle-inner (mode prefix mode-on map) (interactive)
     (jr/disable-all-modal-modes)
-    (unless mode-on (funcall mode 1) (ignore-errors (funcall (intern (concat "jr/" prefix "-hercules-show"))))))
+    (unless mode-on
+        (funcall mode 1)
+        (ignore-errors (funcall (intern (concat "jr/" prefix "-hercules-show"))))
+        (setq last-modal-mode prefix)))
 
 <<e8fba38bca841d9f8d89cd15b15754bd>>
 <<8c01d74b243996d2524244ea38efedf0>>
@@ -1100,10 +1122,8 @@ Taken from [[Org-Roam's GitHub README][https://github.com/org-roam/org-roam#inst
         ("l" :hydra
                 '(evil-exits (
                     :color blue
-                    :pre
-                        (evil-mode 1)
-                    :post
-                        (lambda nil (interactive) (evil-mode -1) (jr/which-key-show-top-level)))
+                    :pre (evil-mode 1)
+                    :post (lambda nil (interactive) (evil-mode -1) (jr/which-key-show-top-level)))
                     ;; From: https://gist.github.com/shadowrylander/46b81297d1d3edfbf1e2d72d5e29171e
                     "A hydra for getting the fuck outta' here!"
                     ("`" nil "cancel")
@@ -1112,11 +1132,6 @@ Taken from [[Org-Roam's GitHub README][https://github.com/org-roam/org-roam#inst
                     ("o" evil-write ":w")
                     ("O" evil-write-all ":wa")
                     ("q" (funcall (general-simulate-key ":q! <RET>")) ":q!"))
-
-                ;; TODO: Does this work without the line below?
-                ;; UPDATE: Simulating keys will not work without some variation of this
-                ;; :first '(evil-normal-state)
-
                 :name "evil exits"))
 
 ;; Adapted From: https://github.com/mohsenil85/evil-evilified-state and https://github.com/syl20bnr/spacemacs
