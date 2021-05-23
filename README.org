@@ -70,7 +70,7 @@ doom-sync-check:
 |~/.emacs.d/bin/doom doctor
 
 doom-test:
-|emacs ~/<<username>>/promethean.aiern.org
+|emacs ~/<<username>>/doom.aiern.org
 
 doom: doom-set doom-sync-check doom-test
 

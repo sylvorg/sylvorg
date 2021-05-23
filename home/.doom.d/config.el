@@ -47,11 +47,17 @@
 (defvar modal-modes '(evil-mode god-local-mode objed-mode))
 (defvar modal-prefixes (mapcar (lambda (mode) (interactive) (car (split-string (symbol-name mode) "-"))) modal-modes))
 
-(defun jr/hercules-hide (prefix) (interactive)
-    (message (format "Hiding %s" prefix))
-    (ignore-errors (funcall (intern (concat "jr/" prefix "-hercules-hide")))))
+(defun jr/any-popup-showing-p nil (interactive)
+    (or hercules--popup-showing-p (which-key--popup-showing-p)))
+(defun jr/which-key-show-top-level nil (interactive)
+    (unless (jr/any-popup-showing-p) (which-key-show-top-level)))
 (defun jr/hercules-hide-all-modal-modes nil (interactive)
-    (mapc #'jr/hercules-hide modal-prefixes))
+    (mapc #'(lambda (prefix) (interactive)
+        (message (format "Hiding %s" prefix))
+        (ignore-errors (funcall (intern (concat "jr/" prefix "-hercules-hide"))))
+        (internal-push-keymap 'global-map 'overriding-terminal-local-map)
+        ) modal-prefixes)
+    (jr/which-key-show-top-level))
 (defun jr/disable-all-modal-modes nil (interactive)
     (mapc
         (lambda (mode-symbol)
@@ -61,7 +67,8 @@
                 (ignore-errors
                     (funcall mode-symbol -1))))
             modal-modes)
-    (jr/hercules-hide-all-modal-modes))
+    (jr/hercules-hide-all-modal-modes)
+    )
 (advice-add #'doom-escape :after #'jr/disable-all-modal-modes)
 (advice-add #'keyboard-escape-quit :after #'jr/disable-all-modal-modes)
 (advice-add #'keyboard-quit :after #'jr/disable-all-modal-modes)
@@ -80,7 +87,7 @@
 ;; Adapted From: https://gitlab.com/jjzmajic/hercules.el/-/blob/master/hercules.el#L83
 (defun jr/toggle-inner (mode prefix mode-on map) (interactive)
     (jr/disable-all-modal-modes)
-    (unless mode-on (funcall mode 1) (jr/hercules-hide prefix)))
+    (unless mode-on (funcall mode 1) (ignore-errors (funcall (intern (concat "jr/" prefix "-hercules-show"))))))
 
 (use-package! hercules
     :demand t
@@ -184,7 +191,7 @@
                     :pre
                         (evil-mode 1)
                     :post
-                        (lambda nil (interactive) (evil-mode -1) (which-key-show-top-level)))
+                        (lambda nil (interactive) (evil-mode -1) (jr/which-key-show-top-level)))
                     ;; From: https://gist.github.com/shadowrylander/46b81297d1d3edfbf1e2d72d5e29171e
                     "A hydra for getting the fuck outta' here!"
                     ("`" nil "cancel")
@@ -294,8 +301,8 @@
 
 (add-hook! doom-init-ui
     (jr/disable-all-modal-modes)
-    ;; (run-at-time "1 sec" nil #'which-key-show-top-level)
-    (which-key-show-top-level))
+    ;; (run-at-time "1 sec" nil #'jr/which-key-show-top-level)
+    (jr/which-key-show-top-level))
 
 ;; org-mode
 (use-package! org
@@ -466,7 +473,6 @@
             (defun jr/org-cycle nil (interactive)
                 (if (jr/outline-folded-p) (org-cycle) (jr/evil-close-fold)))
 
-            (advice-add #'org-edit-special :before #'jr/src-mode-entry)
             (advice-add #'org-edit-special :after #'jr/src-mode-settings)
 
             (defun jr/get-header nil (interactive)
@@ -538,42 +544,39 @@
     "C-S-p" 'hydra-execute)
 
 ;; git
-(use-package! git-gutter
-      :ryo ("g" :hydra
-            '(hydra-git nil
-                  "A hydra for git!"
-                  ("g" magit-status "magit" :color blue)
-                  ("j" git-gutter:next-hunk "next")
-                  ("k" git-gutter:previous-hunk "previous")
-                  ("d" git-gutter:popup-hunk "diff")
-                  ("s" git-gutter:stage-hunk "stage")
-                  ("r" git-gutter:revert-hunk "revert")
-                  ("m" git-gutter:mark-hunk "mark")
-                  ("`" nil "cancel" :color blue))))
-;; (use-package! gitattributes-mode)
+;; (use-package! git-gutter
+;;     :ryo ("g" :hydra
+;;         '(hydra-git nil
+;;             "A hydra for git!"
+;;             ("j" git-gutter:next-hunk "next")
+;;             ("k" git-gutter:previous-hunk "previous")
+;;             ("d" git-gutter:popup-hunk "diff")
+;;             ("s" git-gutter:stage-hunk "stage")
+;;             ("r" git-gutter:revert-hunk "revert")
+;;             ("m" git-gutter:mark-hunk "mark")
+;;             ("`" nil "cancel" :color blue))))
+;; (use-package! magit
+;;     :ryo ("g" :hydra+
+;;         '(hydra-git nil
+;;             "A hydra for git!"
+;;             ("g" magit-status "magit" :color blue))))
+;; ;; (use-package! gitattributes-mode)
 
 ;; buffer
 (remove-hook 'doom-first-buffer-hook #'global-hl-line-mode)
 
 (defun display-startup-echo-area-message ()
-  (which-key-show-top-level))
-
-(defun jr/src-mode-entry nil (interactive)
-  (setq evil-mode-on-before-narrow (bound-and-true-p evil-mode)))
+  (jr/which-key-show-top-level))
 
 (defun jr/src-mode-settings nil (interactive)
     (jr/disable-all-modal-modes)
-    (jr/evil-hide)
-    (focus-mode 1)
-    (which-key-show-top-level))
+    (focus-mode 1))
 
 (defun jr/src-mode-exit nil (interactive)
     (winner-undo)
-    (if evil-mode-on-before-narrow (jr/evil-show) (jr/evil-hide))
-    (which-key-show-top-level))
+    (jr/disable-all-modal-modes))
 
 ;; Adapted From: http://endlessparentheses.com/emacs-narrow-or-widen-dwim.html
-;; NOTE: For some reason, I can't advise this function properly with `jr/src-mode-entry' and `-settings'
 (defun jr/narrow-or-widen-dwim (p)
   "Widen if buffer is narrowed, narrow-dwim otherwise.
 Dwim means: region, org-src-block, org-subtree, or
@@ -584,7 +587,6 @@ With prefix P, don't widen, just narrow even if buffer
 is already narrowed."
   (interactive "P")
   (declare (interactive-only))
-  (jr/src-mode-entry)
   (cond ((and (buffer-narrowed-p) (not p)) (widen))
         ((region-active-p)
          (narrow-to-region (region-beginning)
@@ -626,10 +628,10 @@ is already narrowed."
             (outline-mode . line))))
 
 (use-package! rainbow-delimiters
-      :hook ((prog-mode . rainbow-delimiters-mode)
+    :hook ((prog-mode . rainbow-delimiters-mode)
 
-            ;; Add more modes here
-            ))
+        ;; Add more modes here
+        ))
 
 (use-package! parinfer-rust-mode
     :hook emacs-lisp-mode

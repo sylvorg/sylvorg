@@ -24,7 +24,7 @@ doom-sync-check:
 |~/.emacs.d/bin/doom doctor
 
 doom-test:
-|emacs ~/shadowrylander/promethean.aiern.org
+|emacs ~/shadowrylander/doom.aiern.org
 
 doom: doom-set doom-sync-check doom-test
 
