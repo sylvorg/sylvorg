@@ -2509,6 +2509,7 @@ I am currently not using =SWAP= on =ZFS Zvols= due to the issues detailed
         inherit hostName;
         wireless = {
             enable = true; # Enables wireless support via wpa_supplicant.
+            enable = false; # Enables wireless support via wpa_supplicant.
             networks = {
                 "Primus-17FE-2.4" = {
                     pskRaw = primus;
@@ -2520,7 +2521,7 @@ I am currently not using =SWAP= on =ZFS Zvols= due to the issues detailed
                 };
             };
         };
-        networkmanager.enable = false;
+        networkmanager.enable = mkForce true;
 
         # The global useDHCP flag is deprecated, therefore explicitly set to false here.
         # Per-interface useDHCP will be mandatory in the future, so this generated config
