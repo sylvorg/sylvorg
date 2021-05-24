@@ -42,8 +42,9 @@ tangle-all: doom-set
 # From:
 # Answer: https://askubuntu.com/a/446480/1058868
 # User: https://askubuntu.com/users/267867/peter-w-osel
-|yes yes | ~/.doom.d/org-tangle ~/shadowrylander/*.aiern.org
-|yes yes | ~/.doom.d/org-tangle ~/shadowrylander/README.org
+|yes yes | ~/.doom.d/org-tangle ~/shadowrylander/*.aiern.org &
+|yes yes | ~/.doom.d/org-tangle ~/shadowrylander/README.org &
+|wait
 
 push-all:
 |git -C ~/shadowrylander add .
