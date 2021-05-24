@@ -672,7 +672,7 @@ is already narrowed."
     :general (:keymap 'override
         (general-chord "[[") 'jr/yankpad-hercules-toggle
         (general-chord "]]") 'yankpad-expand)
-    :config (ignore-errors (yankpad-map))
+    :config (yankpad-map)
     :hercules
         (:show-funs #'jr/yankpad-hercules-show
             :hide-funs #'jr/yankpad-hercules-hide

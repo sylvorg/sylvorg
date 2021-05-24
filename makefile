@@ -23,7 +23,7 @@ doom-sync:
 |~/.emacs.d/bin/doom sync
 
 doom-check:
-|~/.emacs.d/bin/doom doctor
+|-~/.emacs.d/bin/doom doctor
 
 doom-test:
 |emacs ~/shadowrylander/doom.aiern.org
@@ -42,7 +42,8 @@ tangle-all: doom-set
 # From:
 # Answer: https://askubuntu.com/a/446480/1058868
 # User: https://askubuntu.com/users/267867/peter-w-osel
-|yes yes | ~/.doom.d/org-tangle ~/shadowrylander/*.org
+|yes yes | ~/.doom.d/org-tangle ~/shadowrylander/*.aiern.org
+|yes yes | ~/.doom.d/org-tangle ~/shadowrylander/README.org
 
 push-all:
 |git -C ~/shadowrylander add .

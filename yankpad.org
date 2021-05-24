@@ -1,0 +1,31 @@
+#+setupfile: ./README.org
+#+include: ./README.org
+
+* org
+** src
+*** src: template :t:
+
+#+call: hash("")
+
+#+name: 
+#+begin_src $1 :tangle (jr/tangle-path)
+$0
+#+end_src
+
+*** nix-src: nix :n:
+
+#+call: hash("")
+
+#+name: 
+#+begin_src nix :tangle (jr/tangle-path)
+$0
+#+end_src
+
+*** elisp-src: emacs-lisp :e:
+
+#+call: hash("")
+
+#+name: 
+#+begin_src emacs-lisp :tangle (jr/tangle-path)
+$0
+#+end_src
