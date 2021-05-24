@@ -47,22 +47,23 @@
 (defvar modal-modes '(evil-mode god-local-mode objed-mode))
 (defvar modal-prefixes (mapcar (lambda (mode) (interactive) (car (split-string (symbol-name mode) "-"))) modal-modes))
 (defvar last-modal-mode nil)
+(defvar hercules-map global-map)
 
 (defun jr/any-popup-showing-p nil (interactive)
     (or hercules--popup-showing-p (which-key--popup-showing-p)))
 (defun jr/which-key-show-top-level nil (interactive)
-    (let* ((which-key-function
-        ;; #'which-key-show-top-level
-        ;; #'(lambda nil (interactive) (which-key-show-full-keymap 'global-map))
-        ;; #'which-key-show-full-major-mode
-        ;; #'which-key-show-major-mode
+    (let* ((current-map (if hercules--popup-showing-p overriding-terminal-local-map global-map))
+        (which-key-function
+            ;; #'which-key-show-top-level
+            ;; #'(lambda nil (interactive) (which-key-show-full-keymap 'global-map))
+            ;; #'which-key-show-full-major-mode
+            ;; #'which-key-show-major-mode
 
-        ;; Adapted From:
-        ;; https://github.com/justbur/emacs-which-key/blob/master/which-key.el#L2359
-        ;; https://github.com/justbur/emacs-which-key/blob/master/which-key.el#L2666
-        #'(lambda nil (interactive) (which-key--create-buffer-and-show nil global-map nil "Global bindings"))
-        
-        ))
+            ;; Adapted From:
+            ;; https://github.com/justbur/emacs-which-key/blob/master/which-key.el#L2359
+            ;; https://github.com/justbur/emacs-which-key/blob/master/which-key.el#L2666
+            #'(lambda nil (interactive) (
+                which-key--create-buffer-and-show nil current-map nil "Current bindings"))))
         (if (which-key--popup-showing-p)
             (when (member last-modal-mode modal-prefixes)
                 (funcall which-key-function) (setq last-modal-mode nil))
@@ -85,9 +86,6 @@
                     (funcall mode-symbol -1))))
             modal-modes)
     (jr/hercules-hide-all-modal-modes))
-(advice-add #'doom-escape :after #'jr/disable-all-modal-modes)
-(advice-add #'keyboard-escape-quit :after #'jr/disable-all-modal-modes)
-(advice-add #'keyboard-quit :after #'jr/disable-all-modal-modes)
 
 ;; Answer: https://stackoverflow.com/a/14490054/10827766
 ;; User: https://stackoverflow.com/users/1600898/user4815162342
@@ -121,13 +119,19 @@
             nil.  If FLATTEN is t, `hercules--show' was called with the same
             argument.  Restore `which-key--update' after such a call."
                 (setq hercules--popup-showing-p nil
+
+                    ;; I like to dismiss the popups' myself
                     which-key-persistent-popup t)
+
                 (which-key--hide-popup)
                 (when keymap
                     (internal-pop-keymap (symbol-value keymap)
                         'overriding-terminal-local-map))
                 (when flatten
-                    (advice-remove #'which-key--update #'ignore)))
+                    (advice-remove #'which-key--update #'ignore))
+
+                ;; Show the global popup, i.e. keep the popup
+                (jr/which-key-show-top-level))
         (advice-add #'hercules--hide :override #'jr/hercules--hide)
     :custom
 
@@ -145,7 +149,6 @@
         (which-key-separator " × ")
         ;; (which-key-separator " |-> ")
 
-        (which-key-setup-side-window-right-bottom)
         (which-key-popup-type 'side-window)
         (which-key-side-window-location '(right bottom left top))
 
@@ -295,7 +298,7 @@
         (defun jr/toggle-kakoune nil (interactive)
             (funcall 'jr/toggle-inner 'ryo-modal-mode "kakoune" (bound-and-true-p ryo-modal-mode) 'ryo-modal-mode-map)))
 (use-package! modalka
-    :general (:keymaps 'override (general-chord "[[") 'jr/toggle-modalka)
+    :general (:keymaps 'override (general-chord "::") 'jr/toggle-modalka)
     :hercules
         (:show-funs #'jr/modalka-hercules-show
         :hide-funs #'jr/modalka-hercules-hide
@@ -545,15 +548,26 @@
             ("q" nil "cancel"))
             :name "execute order 65")
 
-(advice-add #'counsel-M-x :before #'jr/disable-all-modal-modes)
-(advice-add #'helm-smex-major-mode-commands :before #'jr/disable-all-modal-modes)
-(advice-add #'helm-smex :before #'jr/disable-all-modal-modes)
-(advice-add #'execute-extended-command :before #'jr/disable-all-modal-modes)
+(defun jr/execute-order-65 nil (interactive)
+    (jr/disable-all-modal-modes)
+    (setq which-key-persistent-popup nil)
+    (which-key--hide-popup))
+(defun jr/after-quitting-minibuffer nil (interactive)
+    (setq which-key-persistent-popup t)
+    (jr/disable-all-modal-modes))
+(advice-add #'counsel-M-x :before #'jr/execute-order-65)
+(advice-add #'helm-smex-major-mode-commands :before #'jr/execute-order-65)
+(advice-add #'helm-smex :before #'jr/execute-order-65)
+(advice-add #'execute-extended-command :before #'jr/execute-order-65)
+(advice-add #'doom-escape :after #'jr/after-quitting-minibuffer)
+(advice-add #'keyboard-escape-quit :after #'jr/after-quitting-minibuffer)
+(advice-add #'keyboard-quit :after #'jr/after-quitting-minibuffer)
+(advice-add #'exit-minibuffer :after #'jr/after-quitting-minibuffer)
 
-;; TODO: Does this work? Or do I have to pull the hydra out?
-(general-def
-    :keymaps 'override
-    "C-S-p" 'hydra-execute)
+(general-def :keymaps '(
+    minibuffer-local-keymap
+    counsel-describe-map
+    helm-buffer-map) "M-x" 'exit-minibuffer)
 
 ;; git
 (use-package! git-gutter
@@ -649,6 +663,23 @@ is already narrowed."
     :hook emacs-lisp-mode
     :init (setq parinfer-rust-auto-download t)
     :custom (parinfer-rust-check-before-enable nil)))
+
+(use-package! yankpad
+    :demand t
+    :init
+        (setq yankpad-file "./yankpad.org")
+        (defun jr/yankpad-hercules-toggle nil (interactive))
+    :general (:keymap 'override
+        (general-chord "[[") 'jr/yankpad-hercules-toggle
+        (general-chord "]]") 'yankpad-expand)
+    :config (ignore-errors (yankpad-map))
+    :hercules
+        (:show-funs #'jr/yankpad-hercules-show
+            :hide-funs #'jr/yankpad-hercules-hide
+            :toggle-funs #'jr/yankpad-hercules-toggle
+            :keymap 'yankpad-keymap
+            ;; :transient t
+        ))
 
 ;; !!! THE ORDER HERE MATTERS! !!!
 ;; (add-hook! doom-init-ui

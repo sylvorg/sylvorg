@@ -28,6 +28,7 @@
 (package! dockerfile-mode)
 (package! ox-pandoc)
 (package! focus)
+(package! yankpad)
 
 ;; From: https://github.com/mohsenil85/evil-evilified-state and https://github.com/syl20bnr/spacemacs
 (package! bind-map)
