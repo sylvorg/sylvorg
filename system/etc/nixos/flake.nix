@@ -133,7 +133,7 @@
                 config =  j.get { inherit stc; set = all.config; };
             };
             specialArgs = { stc, ... }: let
-                configBase = { inherit stc; ignoredAttrs = [ "host" ]; };
+                configBase = { inherit stc; ignoredAttrs = [ "host" ];};
                 config =  j.get (configBase // { set = all.config; });
                 overlays =  j.get (configBase // { set = all.overlays; });
             in stc // {
@@ -148,7 +148,6 @@
                 };
             };
             modules = { stc, ... }: flatten [
-                (j.imprelib.list { dir = ./modules; })
                 (with stc; [
                     (./. + "/configs/${host}")
                     (if (type == "def") then {} else (./. + "/devices/${type}"))
@@ -162,14 +161,25 @@
                 ])
             ];
             nixosConfiguration = { stc, ... }: let
-                configBase = { inherit stc; ignoredAttrs = [ "host" ]; };
+                configBase = { inherit stc; ignoredAttrs = [ "host" ];};
             in lib.nixosSystem {
                 inherit (stc) system;
                 pkgs =  j.get (configBase // { set = all.pkgs; });
                 specialArgs = make.specialArgs { inherit stc; };
-                modules = make.modules { inherit stc; };
+                modules = flatten [
+                    (make.modules { inherit stc; })
+                    (j.imprelib.list { dir = ./modules; })
+                ];
             };
-            nixosModule = { stc, ... }: { stc, ... }: { imports = make.modules { inherit stc; };};
+            nixosModule = { stc, ... }: let
+                configBase = { inherit stc; ignoredAttrs = [ "host" ];};
+            in nmports@{ config, ... }: { imports = flatten [
+                (make.modules { inherit stc; })
+                (mapAttrs (file: import file (nmports // {
+                    inherit (stc) system;
+                    pkgs =  j.get (configBase // { set = all.pkgs; });
+                } // (make.specialArgs { inherit stc; }))) (j.imprelib.list { dir = ./modules; }))
+            ];};
         };
         all' = {
             inherit sources make;
