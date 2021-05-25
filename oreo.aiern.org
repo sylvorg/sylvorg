@@ -1324,27 +1324,29 @@ Taken from [[https://github.com/NixOS/nixos-hardware/tree/master/microsoft/hyper
                     inherit overlays config;
                 };
             };
+            modules = { stc, ... }: flatten [
+                (j.imprelib.list { dir = ./modules; })
+                (with stc; [
+                    (./. + "/configs/${host}")
+                    (if (type == "def") then {} else (./. + "/devices/${type}"))
+                    (let path = ./. + "/platforms/${system}"; in
+                        if (pathExists path) then path else {})
+                ])
+                (with sources; [
+                    home-manager-flake.nixosModules.home-manager
+                    agenix.nixosModules.age
+                    impermanence-flake.nixosModules.impermanence
+                ])
+            ];
             nixosConfiguration = { stc, ... }: let
                 configBase = { inherit stc; ignoredAttrs = [ "host" ]; };
             in lib.nixosSystem {
                 inherit (stc) system;
                 pkgs =  j.get (configBase // { set = all.pkgs; });
                 specialArgs = make.specialArgs { inherit stc; };
-                modules = flatten [
-                    (j.imprelib.list { dir = ./modules; })
-                    (with stc; [
-                        (./. + "/configs/${host}")
-                        (if (type == "def") then {} else (./. + "/devices/${type}"))
-                        (let path = ./. + "/platforms/${system}"; in
-                            if (pathExists path) then path else {})
-                    ])
-                    (with sources; [
-                        home-manager-flake.nixosModules.home-manager
-                        agenix.nixosModules.age
-                        impermanence-flake.nixosModules.impermanence
-                    ])
-                ];
+                modules = make.modules { inherit stc; };
             };
+            nixosModule = { stc, ... }: { stc, ... }: { imports = make.modules { inherit stc; };};
         };
         all' = {
             inherit sources make;
@@ -1401,10 +1403,8 @@ Taken from [[https://github.com/NixOS/nixos-hardware/tree/master/microsoft/hyper
 
         legacyPackages = all;
 
-        nixosConfigurations = forAllSystems' {
-            inherit all;
-            func = make.nixosConfiguration;
-        };
+        nixosConfigurations = forAllSystems' { inherit all; func = make.nixosConfiguration; };
+        nixosModules = forAllSystems' { inherit all; func = make.nixosModule; };
 
         # From: https://nixos.wiki/wiki/Flakes#Getting_Instant_System_Flakes_Repl
         nix.nixPath = let path = toString ./.; in [ "repl=${path}/repl.nix" "nixpkgs=${sources.nixpkgs}" ];
@@ -2366,7 +2366,7 @@ and in the NixOS manual (accessible by running ‘nixos-help’).
 
 #+name: 84e11f81345c124be7b087d5c8c17d6a
 #+begin_src nix :tangle (jr/tangle-path)
-{ config, lib, nixpkgset, system, ... }: {
+{ config, lib, nixpkgset, system, ... }: with builtins; with lib; with j; {
     nixpkgs = nixpkgset;
     i18n = {
         # Select internationalisation properties.
@@ -2767,7 +2767,7 @@ in {
 
 #+name: 5aecf05c58be2fe47ff406f3fdb2a823
 #+begin_src nix :tangle (jr/tangle-path)
-{ config, lib, pkgs, host, ... }: with builtins; with lib; with j; {
+{ config, lib, pkgs, host, system, ... }: with builtins; with lib; with j; {
     services = {
         <<6b796fbba5d593b48cdc5c6eadab9b65>>
 
@@ -3118,7 +3118,7 @@ options = {
 
 #+name: 03ee73c0ac41094064d4eac783592662
 #+begin_src nix :tangle (jr/tangle-path)
-{ config, lib, pkgs, ... }: with builtins; with lib; with j; mkIf (
+{ config, lib, pkgs, system, ... }: with builtins; with lib; with j; mkIf (
     !(config.vars.minimal || elem system [ "aarch64-linux" ])
 ) {
     virtualisation = {

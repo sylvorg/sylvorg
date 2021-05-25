@@ -147,27 +147,29 @@
                     inherit overlays config;
                 };
             };
+            modules = { stc, ... }: flatten [
+                (j.imprelib.list { dir = ./modules; })
+                (with stc; [
+                    (./. + "/configs/${host}")
+                    (if (type == "def") then {} else (./. + "/devices/${type}"))
+                    (let path = ./. + "/platforms/${system}"; in
+                        if (pathExists path) then path else {})
+                ])
+                (with sources; [
+                    home-manager-flake.nixosModules.home-manager
+                    agenix.nixosModules.age
+                    impermanence-flake.nixosModules.impermanence
+                ])
+            ];
             nixosConfiguration = { stc, ... }: let
                 configBase = { inherit stc; ignoredAttrs = [ "host" ]; };
             in lib.nixosSystem {
                 inherit (stc) system;
                 pkgs =  j.get (configBase // { set = all.pkgs; });
                 specialArgs = make.specialArgs { inherit stc; };
-                modules = flatten [
-                    (j.imprelib.list { dir = ./modules; })
-                    (with stc; [
-                        (./. + "/configs/${host}")
-                        (if (type == "def") then {} else (./. + "/devices/${type}"))
-                        (let path = ./. + "/platforms/${system}"; in
-                            if (pathExists path) then path else {})
-                    ])
-                    (with sources; [
-                        home-manager-flake.nixosModules.home-manager
-                        agenix.nixosModules.age
-                        impermanence-flake.nixosModules.impermanence
-                    ])
-                ];
+                modules = make.modules { inherit stc; };
             };
+            nixosModule = { stc, ... }: { stc, ... }: { imports = make.modules { inherit stc; };};
         };
         all' = {
             inherit sources make;
@@ -224,10 +226,8 @@
 
         legacyPackages = all;
 
-        nixosConfigurations = forAllSystems' {
-            inherit all;
-            func = make.nixosConfiguration;
-        };
+        nixosConfigurations = forAllSystems' { inherit all; func = make.nixosConfiguration; };
+        nixosModules = forAllSystems' { inherit all; func = make.nixosModule; };
 
         # From: https://nixos.wiki/wiki/Flakes#Getting_Instant_System_Flakes_Repl
         nix.nixPath = let path = toString ./.; in [ "repl=${path}/repl.nix" "nixpkgs=${sources.nixpkgs}" ];

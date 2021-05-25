@@ -35,6 +35,12 @@
 
 (package! hercules
     :recipe (:host gitlab :repo "jjzmajic/hercules.el" :branch "master"))
+(package! use-package-hercules
+    :recipe (:host gitlab :repo "shadowrylander/use-package-hercules" :branch "master"))
+(package! use-package-hydra
+    :recipe (:host gitlab :repo "picotech/use-package-hydra" :branch "master"))
+(package! use-package-hydra-plus
+    :recipe (:host gitlab :repo "picotech/use-package-hydra-plus" :branch "master"))
 (package! vimrc-mode
     :recipe (:host github :repo "mcandre/vimrc-mode" :branch "master"))
 (package! xonsh-mode

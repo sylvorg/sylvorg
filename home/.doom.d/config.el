@@ -26,16 +26,13 @@
 ;; Adapted From: https://github.com/jwiegley/use-package#use-package-chords
 ;; Important: https://github.com/noctuid/general.el/issues/53#issuecomment-307262154
 (use-package! use-package-chords
-        :demand t
-        :hook (after-init . key-chord-mode))
+    :demand t
+    :hook (after-init . key-chord-mode))
 (load! "naked")
 
-(use-package! use-package-hydra
-        :demand t
-        :load-path "use-package-hydra"
-        :custom (hydra-hint-display-type 'lv))
-(load! "use-package-hydra-plus/use-package-hydra+")
-(load! "use-package-hercules/use-package-hercules")
+(use-package! use-package-hydra :demand t :custom (hydra-hint-display-type 'lv))
+(use-package! use-package-hydra-plus :demand t)
+(use-package! use-package-hercules :demand t)
 
 ;; modal-modes
 
@@ -531,8 +528,8 @@
             (org-cycle-emulate-tab 'whitestart))
 
 (use-package! org-numbers-overlay
-        :load-path "emacs-bankruptcy/site-lisp"
-        :hook (org-mode . org-numbers-overlay-mode))
+    :load-path "emacs-bankruptcy/site-lisp"
+    :hook (org-mode . org-numbers-overlay-mode))
 
 ;; minibuffer
 

@@ -91,12 +91,10 @@ tangle-all: doom-set
 |yes yes | ~/.doom.d/org-tangle ~/<<username>>/*.aiern.org
 |yes yes | ~/.doom.d/org-tangle ~/<<username>>/README.org
 
-push-all:
+push:
 |git -C ~/<<username>> add .
 |git -C ~/<<username>> commit --allow-empty-message -am ""
 |git -C ~/<<username>> push
-
-super-push: tangle-all push-all
 #+end_src
 
 * previous projects

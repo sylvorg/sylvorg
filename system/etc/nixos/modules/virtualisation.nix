@@ -1,4 +1,4 @@
-{ config, lib, pkgs, ... }: with builtins; with lib; with j; mkIf (
+{ config, lib, pkgs, system, ... }: with builtins; with lib; with j; mkIf (
     !(config.vars.minimal || elem system [ "aarch64-linux" ])
 ) {
     virtualisation = {

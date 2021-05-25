@@ -45,9 +45,7 @@ tangle-all: doom-set
 |yes yes | ~/.doom.d/org-tangle ~/shadowrylander/*.aiern.org
 |yes yes | ~/.doom.d/org-tangle ~/shadowrylander/README.org
 
-push-all:
+push:
 |git -C ~/shadowrylander add .
 |git -C ~/shadowrylander commit --allow-empty-message -am ""
 |git -C ~/shadowrylander push
-
-super-push: tangle-all push-all
