@@ -1,5 +1,5 @@
-{ config, lib, ... }: with builtins; with lib; with j; {
-    imports = imprelib.list { dir = ./.; };
+inputs@{ config, lib, ... }: with builtins; with lib; with j; {
+    imports = map (file: import file inputs) (imprelib.list { dir = ./.; });
     config = {
         # NixOS wants to enable GRUB by default
         boot.loader.grub.enable = false;

@@ -1,1 +1,1 @@
-{ sources, ... }: { imports = [ "${sources.wip-pinebook-pro}/configuration.nix" ]; }
+{ sources, ... }: { imports = [ "${sources.wip-pinebook-pro}/pinebook_pro.nix" ]; }

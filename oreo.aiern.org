@@ -1225,7 +1225,7 @@ Taken from [[https://github.com/NixOS/nixos-hardware/tree/master/microsoft/hyper
 
 #+name: e0a851a952ea6c27e7ad3ec227fd2a0d
 #+begin_src nix :tangle (jr/tangle-path)
-{ sources, ... }: { imports = [ "${sources.wip-pinebook-pro}/configuration.nix" ]; }
+{ sources, ... }: { imports = [ "${sources.wip-pinebook-pro}/pinebook_pro.nix" ]; }
 #+end_src
 
 ****** default.nix
@@ -3854,7 +3854,7 @@ in [
 : ae4d89307b8e79de7de4d6b3b013fe4f
 
 #+name: ae4d89307b8e79de7de4d6b3b013fe4f
-#+begin_src nix
+#+begin_src nix :tangle (jr/tangle-path)
 { config, lib, ... }: with builtins; with lib; with j; {
     nix = {
         binaryCaches = [
@@ -3870,7 +3870,6 @@ in [
 #+end_src
 
 ***** arm
-
 ****** default.nix
 
 #+call: hash("")
@@ -3880,8 +3879,8 @@ in [
 
 #+name: 66a218b142afada2a828f04a8d8a3ba7
 #+begin_src nix :tangle (jr/tangle-path)
-{ config, lib, ... }: with builtins; with lib; with j; {
-    imports = imprelib.list { dir = ./.; };
+inputs@{ config, lib, ... }: with builtins; with lib; with j; {
+    imports = map (file: import file inputs) (imprelib.list { dir = ./.; });
     config = {
         # NixOS wants to enable GRUB by default
         boot.loader.grub.enable = false;
@@ -3892,7 +3891,6 @@ in [
 #+end_src
 
 ***** armv6l-linux
-
 ****** default.nix
 
 #+call: hash("")
@@ -3902,16 +3900,15 @@ in [
 
 #+name: 72cb27fb954a94b3fb1f5fe55e70b000
 #+begin_src nix :tangle (jr/tangle-path)
-{ config, lib, ... }: with builtins; with lib; with j; {
-    imports = flatten [
+inputs@{ config, lib, ... }: with builtins; with lib; with j; {
+    imports = map (fd: import fd inputs) (flatten [
         [ ../arm ../shared/armv67l.nix ]
         (imprelib.list { dir = ./.; })
-    ];
+    ]);
 }
 #+end_src
 
 ***** armv7l-linux
-
 ****** default.nix
 
 #+call: hash("")
@@ -3921,16 +3918,15 @@ in [
 
 #+name: c35840e7b11bd1168fcb3322bfb98fef
 #+begin_src nix :tangle (jr/tangle-path)
-{ config, lib, ... }: with builtins; with lib; with j; {
-    imports = flatten [
+inputs@{ config, lib, ... }: with builtins; with lib; with j; {
+    imports = map (fd: import fd inputs) (flatten [
         [ ../arm ../shared/armv67l.nix ]
         (imprelib.list { dir = ./.; })
-    ];
+    ]);
 }
 #+end_src
 
 ***** aarch64-linux
-
 ****** default.nix
 
 #+call: hash("")
@@ -3940,11 +3936,11 @@ in [
 
 #+name: a5b3a096d1cdc7efefdc21274f566aef
 #+begin_src nix :tangle (jr/tangle-path)
-{ config, lib, ... }: with builtins; with lib; with j; {
-    imports = flatten [
+inputs@{ config, lib, ... }: with builtins; with lib; with j; {
+    imports = map (fd: import fd inputs) (flatten [
         [ ../arm ]
         (imprelib.list { dir = ./.; })
-    ];
+    ]);
 }
 #+end_src
 
