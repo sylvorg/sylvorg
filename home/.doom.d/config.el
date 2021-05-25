@@ -25,14 +25,11 @@
 
 ;; Adapted From: https://github.com/jwiegley/use-package#use-package-chords
 ;; Important: https://github.com/noctuid/general.el/issues/53#issuecomment-307262154
-(use-package! use-package-chords
-    :demand t
-    :hook (after-init . key-chord-mode))
-(load! "naked")
-
+(use-package! use-package-chords :demand t :hook (after-init . key-chord-mode))
 (use-package! use-package-hydra :demand t :custom (hydra-hint-display-type 'lv))
-(use-package! use-package-hydra-plus :demand t)
+(use-package! use-package-hydra+ :demand t)
 (use-package! use-package-hercules :demand t)
+(load! "naked")
 
 ;; modal-modes
 
@@ -578,11 +575,11 @@
             ("s" git-gutter:stage-hunk "stage")
             ("r" git-gutter:revert-hunk "revert")
             ("m" git-gutter:mark-hunk "mark"))))
-(use-package! magit
+(when (featurep! :module magit) (use-package! magit
     :ryo ("g" :hydra+
         '(hydra-git nil
             "A hydra for git!"
-            ("g" magit-status "magit" :color blue))))
+            ("g" magit-status "magit" :color blue)))))
 ;; (use-package! gitattributes-mode)
 
 ;; buffer

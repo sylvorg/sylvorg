@@ -713,7 +713,7 @@ if (swap := (raw_input('''
 
 #+name: 4c712913b902da3ab3e4d6a6c4b61f4e
 #+begin_src nix
-{ config, lib, ... }: with lib; with j; {
+{ config, lib, ... }: with builtins; with lib; with j; {
     imports = flatten [
         (imprelib.list { dir = ./.; })
         (imprelib.list { dir = ../../config; })
@@ -722,10 +722,7 @@ if (swap := (raw_input('''
 
 #+name: hostId
 #+begin_src emacs-lisp
-(concat
-    "\""
-    (string-trim (shell-command-to-string "head -c4 /dev/urandom | od -A none -t x4"))
-    "\"")
+(concat "\"" (string-trim (shell-command-to-string "head -c4 /dev/urandom | od -A none -t x4")) "\"")
 #+end_src
 
 ***** doppel
@@ -1263,6 +1260,17 @@ Taken from [[https://github.com/NixOS/nixos-hardware/tree/master/microsoft/hyper
 
 **** flake.nix
 
+#+call: hash("modules")
+
+#+RESULTS:
+: bc8e4c4ef661dde1e91ee70adf2a661f
+
+#+name: bc8e4c4ef661dde1e91ee70adf2a661f
+#+begin_src nix
+inherit (stc) system;
+pkgs =  j.get (configBase // { set = all.pkgs; });
+#+end_src
+
 #+call: hash("")
 
 #+RESULTS:
@@ -1324,12 +1332,18 @@ Taken from [[https://github.com/NixOS/nixos-hardware/tree/master/microsoft/hyper
                     inherit overlays config;
                 };
             };
-            modules = { stc, ... }: flatten [
+            modules = nmports: { stc, ... }: let
+                configBase = { inherit stc; ignoredAttrs = [ "host" ];};
+                superPort = (nmports // {
+                    <<bc8e4c4ef661dde1e91ee70adf2a661f>>
+                } // (make.specialArgs { inherit stc; }));
+            in flatten [
+                (map (file: import file superPort) (j.imprelib.list { dir = ./modules; }))
                 (with stc; [
-                    (./. + "/configs/${host}")
-                    (if (type == "def") then {} else (./. + "/devices/${type}"))
+                    (import (./. + "/configs/${host}") superPort)
+                    (if (type == "def") then {} else (import (./. + "/devices/${type}") superPort))
                     (let path = ./. + "/platforms/${system}"; in
-                        if (pathExists path) then path else {})
+                        if (pathExists path) then (import path superPort) else {})
                 ])
                 (with sources; [
                     home-manager-flake.nixosModules.home-manager
@@ -1340,22 +1354,15 @@ Taken from [[https://github.com/NixOS/nixos-hardware/tree/master/microsoft/hyper
             nixosConfiguration = { stc, ... }: let
                 configBase = { inherit stc; ignoredAttrs = [ "host" ];};
             in lib.nixosSystem {
-                inherit (stc) system;
-                pkgs =  j.get (configBase // { set = all.pkgs; });
+                <<bc8e4c4ef661dde1e91ee70adf2a661f>>
                 specialArgs = make.specialArgs { inherit stc; };
                 modules = flatten [
-                    (make.modules { inherit stc; })
+                    (make.modules {} { inherit stc; })
                     (j.imprelib.list { dir = ./modules; })
                 ];
             };
-            nixosModule = { stc, ... }: let
-                configBase = { inherit stc; ignoredAttrs = [ "host" ];};
-            in nmports@{ config, ... }: { imports = flatten [
-                (make.modules { inherit stc; })
-                (mapAttrs (file: import file (nmports // {
-                    inherit (stc) system;
-                    pkgs =  j.get (configBase // { set = all.pkgs; });
-                } // (make.specialArgs { inherit stc; }))) (j.imprelib.list { dir = ./modules; }))
+            nixosModule = { stc, ... }: nmports@{ config, ... }: { imports = flatten [
+                (make.modules nmports { inherit stc; })
             ];};
         };
         all' = {

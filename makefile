@@ -28,7 +28,9 @@ doom-check:
 doom-test:
 |emacs ~/shadowrylander/doom.aiern.org
 
-doom: doom-set doom-sync doom-check doom-test
+doom-pre: doom-set doom-sync doom-check
+
+doom: doom-pre doom-test
 
 doom-upgrade:
 |printf "n\ny\n" | ~/.emacs.d/bin/doom upgrade

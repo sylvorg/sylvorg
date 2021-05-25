@@ -147,12 +147,19 @@
                     inherit overlays config;
                 };
             };
-            modules = { stc, ... }: flatten [
+            modules = nmports: { stc, ... }: let
+                configBase = { inherit stc; ignoredAttrs = [ "host" ];};
+                superPort = (nmports // {
+                    inherit (stc) system;
+                    pkgs =  j.get (configBase // { set = all.pkgs; });
+                } // (make.specialArgs { inherit stc; }));
+            in flatten [
+                (map (file: import file superPort) (j.imprelib.list { dir = ./modules; }))
                 (with stc; [
-                    (./. + "/configs/${host}")
-                    (if (type == "def") then {} else (./. + "/devices/${type}"))
+                    (import (./. + "/configs/${host}") superPort)
+                    (if (type == "def") then {} else (import (./. + "/devices/${type}") superPort))
                     (let path = ./. + "/platforms/${system}"; in
-                        if (pathExists path) then path else {})
+                        if (pathExists path) then (import path superPort) else {})
                 ])
                 (with sources; [
                     home-manager-flake.nixosModules.home-manager
@@ -167,18 +174,12 @@
                 pkgs =  j.get (configBase // { set = all.pkgs; });
                 specialArgs = make.specialArgs { inherit stc; };
                 modules = flatten [
-                    (make.modules { inherit stc; })
+                    (make.modules {} { inherit stc; })
                     (j.imprelib.list { dir = ./modules; })
                 ];
             };
-            nixosModule = { stc, ... }: let
-                configBase = { inherit stc; ignoredAttrs = [ "host" ];};
-            in nmports@{ config, ... }: { imports = flatten [
-                (make.modules { inherit stc; })
-                (mapAttrs (file: import file (nmports // {
-                    inherit (stc) system;
-                    pkgs =  j.get (configBase // { set = all.pkgs; });
-                } // (make.specialArgs { inherit stc; }))) (j.imprelib.list { dir = ./modules; }))
+            nixosModule = { stc, ... }: nmports@{ config, ... }: { imports = flatten [
+                (make.modules nmports { inherit stc; })
             ];};
         };
         all' = {
