@@ -4,9 +4,9 @@
     services.surface-dtx-daemon.detach = mkForce ''
         #!/usr/bin/env xonsh
         for usb in $(ls /dev/disk/by-id).split("\n"):
-        if usb and usb[:4] == "usb-":
-            for mnt in $(mount).split("\n"):
-                if mnt and usb in mnt:
-                    umount @(mnt.split()[2])
+            if usb and usb[:4] == "usb-":
+                for mnt in $(mount).split("\n"):
+                    if mnt and usb in mnt:
+                        umount @(mnt.split()[2])
     '';
 }
