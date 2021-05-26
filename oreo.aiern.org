@@ -148,7 +148,8 @@ try:
 
             elif c == "H":
 
-                
+                # TODO
+                pass
 
             elif c == "q":
                 print("Catch ya' later!")
@@ -282,7 +283,7 @@ print('''
 #+RESULTS:
 : 82fa6951dc98acdbbce8fce980732d4a
 
-#+name: create
+#+name: 82fa6951dc98acdbbce8fce980732d4a
 #+begin_src python
 options = {
     "xattr": "sa",
