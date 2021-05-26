@@ -21,13 +21,14 @@ which was written by [[https://emacs.stackexchange.com/users/2710/andrew-swann][
 #+name: 20da3080268b6d2673a43886dcdd8d08
 #+begin_src python :tangle (jr/tangle-path) :shebang "#!/usr/bin/env python3.9"
 import argparse
-import json os
+import json
+import os
 import sys
 from subprocess import run
 
 <<e4d410b716af24c4792d0cf33ceea79d>>
 
-resources = f"{os.environ["HOME"]}/system/etc/nixos/config"
+resources = f'{os.environ["HOME"]}/system/etc/nixos/config'
 
 try:
     if args.subcommand == "create":
@@ -211,9 +212,9 @@ with open(f"{resources}/datasets.nix", "w+") as dnix:
             # TODO: Make this such that the current dataset directory
             #       is placed under the parent directory's mountpoint
             if (mountpoint := (_mountpoint := ddict.get("mountpoint", ""))) == "":
-                if mountpoint = "":
+                if mountpoint == "":
                     _mountpoint = _dataset.replace(
-                        pn2 if pn2 in _dataset else pn1
+                        pn2 if pn2 in _dataset else pn1,
                         "${host}",
                         1
                     )
@@ -233,11 +234,11 @@ with open(f"{resources}/datasets.nix", "w+") as dnix:
 
 #+name: c417a7146013877ff5189f1f48688a79
 #+begin_src python
-        for dataset in (ddictd := ddict.get(
-            d,
-            dd
-        )):
-            recurse(ddictd[dataset], dataset, _dataset, mountpoint)
+    for dataset in (ddictd := ddict.get(
+        d,
+        dd
+    )):
+        recurse(ddictd[dataset], dataset, _dataset, mountpoint)
 
     for dataset in datasets:
         recurse(datasets[dataset], dataset, pool_name)

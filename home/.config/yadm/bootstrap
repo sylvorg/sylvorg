@@ -1,5 +1,6 @@
 import argparse
-import json os
+import json
+import os
 import sys
 from subprocess import run
 
@@ -28,7 +29,7 @@ parser.add_argument("-a", "--all", action="store_true")
 
 args = parser.parse_args
 
-resources = f"{os.environ["HOME"]}/system/etc/nixos/config"
+resources = f'{os.environ["HOME"]}/system/etc/nixos/config'
 
 try:
     if args.subcommand == "create":
@@ -193,9 +194,9 @@ try:
                         # TODO: Make this such that the current dataset directory
                         #       is placed under the parent directory's mountpoint
                         if (mountpoint := (_mountpoint := ddict.get("mountpoint", ""))) == "":
-                            if mountpoint = "":
+                            if mountpoint == "":
                                 _mountpoint = _dataset.replace(
-                                    pn2 if pn2 in _dataset else pn1
+                                    pn2 if pn2 in _dataset else pn1,
                                     "${host}",
                                     1
                                 )
@@ -210,11 +211,11 @@ try:
             run(f"zfs {cc} {'-o ' if _doptions else ''} {doptions} {son} {_dataset}", shell = True)
             run(f"zfs snapshot -r {_dataset}@root", shell = True)
             
-                for dataset in (ddictd := ddict.get(
-                    d,
-                    dd
-                )):
-                    recurse(ddictd[dataset], dataset, _dataset, mountpoint)
+            for dataset in (ddictd := ddict.get(
+                d,
+                dd
+            )):
+                recurse(ddictd[dataset], dataset, _dataset, mountpoint)
             
             for dataset in datasets:
                 recurse(datasets[dataset], dataset, pool_name)
@@ -449,9 +450,9 @@ try:
                         # TODO: Make this such that the current dataset directory
                         #       is placed under the parent directory's mountpoint
                         if (mountpoint := (_mountpoint := ddict.get("mountpoint", ""))) == "":
-                            if mountpoint = "":
+                            if mountpoint == "":
                                 _mountpoint = _dataset.replace(
-                                    pn2 if pn2 in _dataset else pn1
+                                    pn2 if pn2 in _dataset else pn1,
                                     "${host}",
                                     1
                                 )
@@ -463,11 +464,11 @@ try:
             
             
             
-                for dataset in (ddictd := ddict.get(
-                    d,
-                    dd
-                )):
-                    recurse(ddictd[dataset], dataset, _dataset, mountpoint)
+            for dataset in (ddictd := ddict.get(
+                d,
+                dd
+            )):
+                recurse(ddictd[dataset], dataset, _dataset, mountpoint)
             
             for dataset in datasets:
                 recurse(datasets[dataset], dataset, pool_name)
@@ -607,9 +608,9 @@ try:
                         # TODO: Make this such that the current dataset directory
                         #       is placed under the parent directory's mountpoint
                         if (mountpoint := (_mountpoint := ddict.get("mountpoint", ""))) == "":
-                            if mountpoint = "":
+                            if mountpoint == "":
                                 _mountpoint = _dataset.replace(
-                                    pn2 if pn2 in _dataset else pn1
+                                    pn2 if pn2 in _dataset else pn1,
                                     "${host}",
                                     1
                                 )
@@ -624,11 +625,11 @@ try:
             run(f"zfs {cc} {'-o ' if _doptions else ''} {doptions} {son} {_dataset}", shell = True)
             run(f"zfs snapshot -r {_dataset}@root", shell = True)
             
-                for dataset in (ddictd := ddict.get(
-                    d,
-                    dd
-                )):
-                    recurse(ddictd[dataset], dataset, _dataset, mountpoint)
+            for dataset in (ddictd := ddict.get(
+                d,
+                dd
+            )):
+                recurse(ddictd[dataset], dataset, _dataset, mountpoint)
             
             for dataset in datasets:
                 recurse(datasets[dataset], dataset, pool_name)
