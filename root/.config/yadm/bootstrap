@@ -1,3 +1,4 @@
+#!/usr/bin/env xonsh
 import argparse
 import json os
 from sys import exit

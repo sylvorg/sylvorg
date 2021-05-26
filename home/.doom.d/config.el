@@ -102,7 +102,20 @@
 
 (use-package! hercules
     :demand t
+    :general (:keymaps 'override (general-chord "::") 'jr/toggle-which-key)
     :init
+        (defun jr/which-key--hide-popup nil (interactive)
+            (jr/disable-all-modal-modes)
+            (setq which-key-persistent-popup nil) (which-key--hide-popup)
+            (which-key-mode -1))
+        (defun jr/which-key--show-popup nil (interactive)
+            (jr/disable-all-modal-modes)
+            (which-key-mode 1)
+            (setq which-key-persistent-popup t))
+        (defun jr/toggle-which-key nil (interactive)
+            (if which-key-persistent-popup
+                (jr/which-key--hide-popup)
+                (jr/which-key--show-popup)))
         (setq which-key-enable-extended-define-key t)
         (setq which-key-idle-delay 0.1)
         (setq which-key-idle-secondary-delay nil)
@@ -116,8 +129,8 @@
 
                     ;; I like to dismiss the popups' myself
                     which-key-persistent-popup t)
+                    ;; (which-key--hide-popup)
 
-                (which-key--hide-popup)
                 (when keymap
                     (internal-pop-keymap (symbol-value keymap)
                         'overriding-terminal-local-map))
@@ -189,13 +202,8 @@
         (defun jr/toggle-evil nil (interactive)
             (funcall 'jr/toggle-inner 'evil-mode "evil" (bound-and-true-p evil-mode) 'evil-normal-state-map))
         (advice-add #'evil-insert-state :override #'jr/disable-all-modal-modes)
-        (advice-add #'evil-ex :before #'(lambda nil (interactive)
-            (jr/disable-all-modal-modes)
-            (setq which-key-persistent-popup nil)
-            (which-key--hide-popup)))
-        (advice-add #'evil-ex :after #'(lambda nil (interactive)
-            (setq which-key-persistent-popup t)
-            (jr/disable-all-modal-modes)))
+        (advice-add #'evil-ex :before #'jr/which-key--hide-popup)
+        (advice-add #'evil-ex :after #'jr/which-key--show-popup)
 
         ;; From: https://www.reddit.com/r/emacs/comments/lp45zd/help_requested_in_configuring_ryomodal/gp3rfx9?utm_source=share&utm_medium=web2x&context=3
         ;; Kept for documentation porpoises
@@ -299,7 +307,7 @@
         (defun jr/toggle-kakoune nil (interactive)
             (funcall 'jr/toggle-inner 'ryo-modal-mode "kakoune" (bound-and-true-p ryo-modal-mode) 'ryo-modal-mode-map)))
 (use-package! modalka
-    :general (:keymaps 'override (general-chord "::") 'jr/toggle-modalka)
+    ;; :general (:keymaps 'override (general-chord "::") 'jr/toggle-modalka)
     :hercules
         (:show-funs #'jr/modalka-hercules-show
         :hide-funs #'jr/modalka-hercules-hide
@@ -549,21 +557,14 @@
             ("q" nil "cancel"))
             :name "execute order 65")
 
-(defun jr/execute-order-65 nil (interactive)
-    (jr/disable-all-modal-modes)
-    (setq which-key-persistent-popup nil)
-    (which-key--hide-popup))
-(defun jr/after-quitting-minibuffer nil (interactive)
-    (setq which-key-persistent-popup t)
-    (jr/disable-all-modal-modes))
-(advice-add #'counsel-M-x :before #'jr/execute-order-65)
-(advice-add #'helm-smex-major-mode-commands :before #'jr/execute-order-65)
-(advice-add #'helm-smex :before #'jr/execute-order-65)
-(advice-add #'execute-extended-command :before #'jr/execute-order-65)
-(advice-add #'doom-escape :after #'jr/after-quitting-minibuffer)
-(advice-add #'keyboard-escape-quit :after #'jr/after-quitting-minibuffer)
-(advice-add #'keyboard-quit :after #'jr/after-quitting-minibuffer)
-(advice-add #'exit-minibuffer :after #'jr/after-quitting-minibuffer)
+(advice-add #'counsel-M-x :before #'jr/which-key--hide-popup)
+(advice-add #'helm-smex-major-mode-commands :before #'jr/which-key--hide-popup)
+(advice-add #'helm-smex :before #'jr/which-key--hide-popup)
+(advice-add #'execute-extended-command :before #'jr/which-key--hide-popup)
+(advice-add #'doom-escape :after #'jr/which-key--show-popup)
+(advice-add #'keyboard-escape-quit :after #'jr/which-key--show-popup)
+(advice-add #'keyboard-quit :after #'jr/which-key--show-popup)
+(advice-add #'exit-minibuffer :after #'jr/which-key--show-popup)
 
 (general-def :keymaps '(
     minibuffer-local-keymap

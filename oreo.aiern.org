@@ -6,284 +6,117 @@ This can be used with =GNU Stow= as well! :D
 The tangle functions are adapted from [[https://emacs.stackexchange.com/a/29884/31428][this answer on the emacs Stack Exchange]],
 which was written by [[https://emacs.stackexchange.com/users/2710/andrew-swann][Andrew Swann]].
 
-* .config
-*** yadm
-**** bootstrap
-
-#+call: hash("resources")
-
-#+RESULTS:
-: 676db0abb976db0a506bad2b0e523575
-
-#+name: 676db0abb976db0a506bad2b0e523575
-#+begin_src python
-resources = f"{os.environ["HOME"]}/system/etc/nixos/resources"
-#+end_src
-
-#+call: hash("while-setup")
-
-#+RESULTS:
-: a847be184b015d06a2e776f51f25971a
-
-#+name: a847be184b015d06a2e776f51f25971a
-#+begin_src python
-while true:
-    pool_name = raw_input("What's the pool name?\n\t")
-    if pool_name == "":
-        print("Wait a minute... That's not a valid pool name! Try again, please!\n")
-    elif pool_name == "quit bootstrap":
-        print("Catch ya' later!")
-        exit(0)
-    else:
-        print("Alright; let's get crackin'!\n\n")
-        encrypted = raw_input('''
-            Is this pool [to be] encrypted?
-                y | n\n\t
-        ''') == "y"
-        break
-#+end_src
+* root
+** .config
+**** yadm
+***** bootstrap
 
 # Rewrite this for python 3.9
 
 #+call: hash("")
 
 #+RESULTS:
-: 5918a1d90f5b7e61007371faf087dff7
+: 20da3080268b6d2673a43886dcdd8d08
 
-#+name: 5918a1d90f5b7e61007371faf087dff7
+#+name: 20da3080268b6d2673a43886dcdd8d08
 #+begin_src python :tangle (jr/tangle-path) :shebang "#!/usr/bin/env xonsh"
+import argparse
 import json os
 from sys import exit
 
-<<676db0abb976db0a506bad2b0e523575>>
+<<e4d410b716af24c4792d0cf33ceea79d>>
 
-# <<b42270f71a0086b3d3e42a785d8b5bb0>>
-
-<<be9a81e82f7c0ddadaf4c4cbada241b5>>
+resources = f"{os.environ["HOME"]}/system/etc/nixos/config"
 
 def xrun(command):
     @(command.split())
 
-xrun("nix-env -i sd rsync")
-
 try:
+    if args.subcommand == "create":
+        if input('THIS WILL DELETE ALL DATA ON THE SELECTED DEVICE / PARTITION! TO CONTINUE, TYPE IN "ZFS CREATE"!\n\t') == "ZFS CREATE":
+            <<4c7380a3d87b23bf61b9f2d704fa965b>>
+        else:
+            print("Sorry; not continuing!\n\n")
 
-    <<a847be184b015d06a2e776f51f25971a>>
+    if args.subcommand == "mount":
+        <<f2f6ce58bd9d44b38b94e493ecca4e73>>
 
-    while true:
-        input = input or raw_input("Pick an option, any option! :D\n\t")
-        saved_input = [c for c in input]
-        input = ""
-        for c in saved_input:
-            if c == "c":
-                if raw_input('THIS WILL DELETE ALL DATA ON THE SELECTED DEVICE / PARTITION! TO CONTINUE, TYPE IN "ZFS CREATE"!\n\t') == "ZFS CREATE":
+    if args.subcommand == "update":
+        if args.files:
+            <<6b5976297f158a651e51a1aa6303c590>>
+        if args.pool:
+            <<bcb6a0d82c4941db3eff8f5d0728eb6c>>
 
-                    <<82fa6951dc98acdbbce8fce980732d4a>>
+    if args.generate:
+        xrun("nixos-generate-config --root /mnt")
 
-                else:
-                    print("Sorry; not continuing!\n\n")
-            elif c == "m":
+    if args.move:
+        xrun("mv /etc/nixos/{,config}/configuration.nix")
+        xrun("mv /etc/nixos/{,config}/hardware-configuration.nix")
 
-                <<3836516e33beb8c8a336b3ac75d26e05>>
+    if args.rsync:
+        xrun("nix-env -iA nixos.rsync")
+        xrun("rsync -avvczz ~/<<username>>/system/ /mnt/")
 
-            elif c == "u":
-                while true:
-                    input2 = raw_input('''
-                        Would you like to update the resource files, or the pool?
-                            f | p | [g]o back\n\t
-                    ''')
-                    for cc in input2:
-                        if cc == "f":
+    if args.install:
+        xrun("nixos-install --show-trace")
 
-                            <<aa6815ffe0495e012a80a5e3ddb4b0bd>>
+    # TODO
+    if args.home_manager:
+        pass
 
-                        elif cc == "p":
-
-                            <<03fc24d52cd1b15f6c3a2cb83ccaf5d2>>
-
-                        elif cc == "g":
-                            print("Goin' back!\n\n")
-                            break
-                        else:
-                            print("Wait a minute... That's not a valid option! Try again, please!\n\n")
-            elif c == "g":
-                if raw_input('''
-                    Would you like to generate a nixos "[hardware-]configuration.nix" file?
-                        y | n\n\t
-                ''') == "y":
-                    xrun("nixos-generate-config")
-
-            # TODO
-            elif c == "b":
-                if raw_input('''
-                    Would you like to include the bootstrap file in the nixos "configuration.nix" file?
-                        y | n\n\t
-                ''') == "y":
-                    xrun('sd "./hardware-configuration.nix" "./bootstrap.nix" /mnt/etc/nixos/configuration.nix')
-
-            # TODO: Also include a one-stop-install, mounting, generating, copying, etc. all in one go
-            elif c == "a":
-                input = ""
-                break
-
-            elif c == "r":
-                if raw_input('''
-                    Would you like to rsync over the bootstrap files to "/mnt"?
-                        y | n\n\t
-                ''') == "y":
-                    xrun("rsync -avvczz ../../ /mnt/")
-            elif c == "i":
-                if raw_input('''
-                    Would you like to begin the NixOS bootstrap installation?
-                        y | n\n\t
-                ''') == "y":
-                    xrun("nixos-install --show-trace")
-            elif c == "h":
-
-                <<be9a81e82f7c0ddadaf4c4cbada241b5>>
-
-            elif c == "s":
-
-                <<a847be184b015d06a2e776f51f25971a>>
-
-            elif c == "H":
-
-                # TODO
-                pass
-
-            elif c == "q":
-                print("Catch ya' later!")
-                break
-            else:
-                print(f'Wait a minute... The value "{c}" is not a valid option! Try again, please!\n\n')
-                break
+    # TODO: Also include a one-stop-install, mounting, generating, copying, etc. all in one go
+    if args.all:
+        pass
 
 finally:
-    xrun(f"zpool export {pool_name} &> /dev/null")
+    xrun(f"zpool export {args.pool_name} &> /dev/null")
     exit(0)
 #+end_src
 
-***** tab completion for =raw_input=
-
-Lifted From [[https://stackoverflow.com/a/5638688/10827766][this answer]] on Stack Overflow,
-by [[https://stackoverflow.com/users/538718/samplebias][samplebias]]:
+****** argparse
 
 #+call: hash("")
 
 #+RESULTS:
-: b42270f71a0086b3d3e42a785d8b5bb0
+: e4d410b716af24c4792d0cf33ceea79d
 
-#+name: b42270f71a0086b3d3e42a785d8b5bb0
+#+name: e4d410b716af24c4792d0cf33ceea79d
 #+begin_src python
-import os
-import re
-import readline
+parser = argparse.ArgumentParser()
 
-COMMANDS = ['extra', 'extension', 'stuff', 'errors',
-            'email', 'foobar', 'foo']
-RE_SPACE = re.compile('.*\s+$', re.M)
+# From: https://gist.github.com/amarao/36327a6f77b86b90c2bca72ba03c9d3a
+subparsers = parser.add_subparsers(dest='subcommand')
+create = subprasers.add_parser()
+mount = subprasers.add_parser()
+update = subprasers.add_parser()
 
-class Completer(object):
+for subparser in [ create, mount, update ]:
+    subparser.add_argument("-d", "--deduplicated", action="store_true")
+    subparser.add_argument("-e", "--encrypted", action="store_true")
+    subparser.add_argument("-p", "--pool-name", required=True)
+    subparser.add_argument("-z", "--zfs-device", required="create" in sys.argv)
+    subparser.add_argument("-b", "--boot-device", required="mount" in sys.argv)
+    subparser.add_argument("-s", "--swap")
 
-    def _listdir(self, root):
-        "List directory 'root' appending the path separator to subdirs."
-        res = []
-        for name in os.listdir(root):
-            path = os.path.join(root, name)
-            if os.path.isdir(path):
-                name += os.sep
-            res.append(name)
-        return res
+parser.add_argument("-g", "--generate", action="store_true")
+parser.add_argument("-m", "--move", action="store_true")
+parser.add_argument("-r", "--rsync", action="store_true")
+parser.add_argument("-i", "--install", action="store_true")
+parser.add_argument("-H", "--home-manager", action="store_true")
+parser.add_argument("-a", "--all", action="store_true")
 
-    def _complete_path(self, path=None):
-        "Perform completion of filesystem path."
-        if not path:
-            return self._listdir('.')
-        dirname, rest = os.path.split(path)
-        tmp = dirname if dirname else '.'
-        res = [os.path.join(dirname, p)
-                for p in self._listdir(tmp) if p.startswith(rest)]
-        # more than one match, or single match which does not exist (typo)
-        if len(res) > 1 or not os.path.exists(path):
-            return res
-        # resolved to a single directory, so return list of files below it
-        if os.path.isdir(path):
-            return [os.path.join(path, p) for p in self._listdir(path)]
-        # exact file match terminates this completion
-        return [path + ' ']
-
-    def complete_extra(self, args):
-        "Completions for the 'extra' command."
-        if not args:
-            return self._complete_path('.')
-        # treat the last arg as a path and complete it
-        return self._complete_path(args[-1])
-
-    def complete(self, text, state):
-        "Generic readline completion entry point."
-        buffer = readline.get_line_buffer()
-        line = readline.get_line_buffer().split()
-        # show all commands
-        if not line:
-            return [c + ' ' for c in COMMANDS][state]
-        # account for last argument ending in a space
-        if RE_SPACE.match(buffer):
-            line.append('')
-        # resolve command to the implementation function
-        cmd = line[0].strip()
-        if cmd in COMMANDS:
-            impl = getattr(self, 'complete_%s' % cmd)
-            args = line[1:]
-            if args:
-                return (impl(args) + [None])[state]
-            return [cmd + ' '][state]
-        results = [c + ' ' for c in COMMANDS if c.startswith(cmd)] + [None]
-        return results[state]
-
-comp = Completer()
-# we want to treat '/' as part of a word, so override the delimiters
-readline.set_completer_delims(' \t\n;')
-readline.parse_and_bind("tab: complete")
-readline.set_completer(comp.complete)
+args = parser.parse_args
 #+end_src
 
-***** show help text
+****** create
 
 #+call: hash("")
 
 #+RESULTS:
-: be9a81e82f7c0ddadaf4c4cbada241b5
+: 4c7380a3d87b23bf61b9f2d704fa965b
 
-#+name: be9a81e82f7c0ddadaf4c4cbada241b5
-#+begin_src python
-print('''
-    Create a new ZFS device:         c
-    Mount a ZFS device:              m
-    Update:                          u
-            Files:                           f
-            Pool:                            p
-            Go back:                         g
-    Generate nixos config:           g
-    Include boostrap config:         b
-    One-Stop Install:                a
-    Rsync over bootstrap config:     r
-    Begin install:                   i
-    Show this help text:             h
-    Setup:                           s
-    Quit:                            q
-    Install and Set Up Home-Manager: H
-    \n\n
-''')
-#+end_src
-
-***** create
-
-#+call: hash("")
-
-#+RESULTS:
-: 82fa6951dc98acdbbce8fce980732d4a
-
-#+name: 82fa6951dc98acdbbce8fce980732d4a
+#+name: 4c7380a3d87b23bf61b9f2d704fa965b
 #+begin_src python
 options = {
     "xattr": "sa",
@@ -295,18 +128,15 @@ options = {
     "relatime": "off",
 }
 
-if encrypted:
+if args.encrypted:
     options["encryption"] = "aes-256-gcm"
     options["keyformat"] = "passphrase"
-if (dedup := (raw_input('''
-    Should this pool be deduplicated?
-        y | n\n\t
-''') == "y")):
+if args.deduplicated:
     options["dedup"] = "edonr,verify"
 
 for dataset in $(zfs list -rH).split("\n"):
-    if pool_name in dataset:
-        xrun(f"zpool export {pool_name}")
+    if args.pool_name in dataset:
+        xrun(f"zpool export {args.pool_name}")
         break
 
 command = f"zpool create -fo autotrim=on -o altroot=/mnt"
@@ -314,22 +144,20 @@ command = f"zpool create -fo autotrim=on -o altroot=/mnt"
 for key, value in options.items():
     command += f" -O {key}={value}"
 
-zfs_device = raw_input("Please enter the device to be initialized:\n\t")
+xrun(f"{command} {args.pool_name} {args.zfs_device}")
 
-xrun(f"{command} {pool_name} {zfs_device}")
-
-<<03fc24d52cd1b15f6c3a2cb83ccaf5d2>>
+<<bcb6a0d82c4941db3eff8f5d0728eb6c>>
 
 #+end_src
 
-****** open =f{resources}/users.json=
+******* open =f{resources}/users.json=
 
 #+call: hash("")
 
 #+RESULTS:
-: d61c11eac203bfa4ee2cb42f93e5c959
+: 45aac463623661787088fdbf6465759e
 
-#+name: d61c11eac203bfa4ee2cb42f93e5c959
+#+name: 45aac463623661787088fdbf6465759e
 #+begin_src python
 users = json.loads('''
     <<4b4166b2bebff5d6dc0a9118372f6e36>>
@@ -342,15 +170,15 @@ for user in users.values():
         persist[dataset][d][user] = dd
 #+end_src
 
-****** open =f{resources}/datasets.nix=
-******* before opening =f{resources}/datasets.nix=
+******* open =f{resources}/datasets.nix=
+******** before opening =f{resources}/datasets.nix=
 
 #+call: hash("")
 
 #+RESULTS:
-: 9b6d5ff07d5ba4ca0e95609407d6f5e4
+: c87d7294a0bf9ef139a1a416a45ff4fb
 
-#+name: 9b6d5ff07d5ba4ca0e95609407d6f5e4
+#+name: c87d7294a0bf9ef139a1a416a45ff4fb
 #+begin_src python
 with open(f"{resources}/datasets.nix", "w+") as dnix:
 
@@ -362,15 +190,15 @@ with open(f"{resources}/datasets.nix", "w+") as dnix:
 
         # cc: clone or create
         # son: snapshot or none
-        if (dname != "base") and (encrypted and dedup):
+        if (dname != "base") and (args.encrypted and args.deduplicated):
             cc = "clone"
-            son = f"{pool_name}/base@root"
+            son = f"{args.pool_name}/base@root"
         else:
             cc = "create"
             son = ""
 
         _doptions = ddict.get("options", [])
-        if _dataset not in ( f"{pool_name}/{dataset}" for dataset in (
+        if _dataset not in ( f"{args.pool_name}/{dataset}" for dataset in (
             "system",
             "system/root",
             "swap",
@@ -379,7 +207,7 @@ with open(f"{resources}/datasets.nix", "w+") as dnix:
             "omniverse",
             "reserved",
         )):
-            pn1 = pool_name
+            pn1 = args.pool_name
             pn2 = f"{pn1}/{pn1}"
 
             # TODO: Make this such that the current dataset directory
@@ -398,14 +226,14 @@ with open(f"{resources}/datasets.nix", "w+") as dnix:
         doptions = " -o ".join(_doptions)
 #+end_src
 
-******* after opening =f{resources}/datasets.nix=
+******** after opening =f{resources}/datasets.nix=
 
 #+call: hash("")
 
 #+RESULTS:
-: 9bde4e3ed9b0f8a5edd7ce3e86bbcdeb
+: c417a7146013877ff5189f1f48688a79
 
-#+name: 9bde4e3ed9b0f8a5edd7ce3e86bbcdeb
+#+name: c417a7146013877ff5189f1f48688a79
 #+begin_src python
         for dataset in (ddictd := ddict.get(
             d,
@@ -419,14 +247,14 @@ with open(f"{resources}/datasets.nix", "w+") as dnix:
     dnix.write("}")
 #+end_src
 
-****** open =datasets.json=
+******* open =datasets.json=
 
 #+call: hash("datasets-json")
 
 #+RESULTS:
-: d13f2d313813c806f6f6bd1040516bd9
+: 9b4b3e2eab1f5b226d6cd52d8f9ff29b
 
-#+name: d13f2d313813c806f6f6bd1040516bd9
+#+name: 9b4b3e2eab1f5b226d6cd52d8f9ff29b
 #+begin_src json
 {
     "base": {  },
@@ -469,12 +297,12 @@ with open(f"{resources}/datasets.nix", "w+") as dnix:
 #+call: hash("")
 
 #+RESULTS:
-: cb652aaddb0e92c44ba367a0ea174f81
+: a42e6a90b4026d89c3e1c6b0e491b092
 
-#+name: cb652aaddb0e92c44ba367a0ea174f81
+#+name: a42e6a90b4026d89c3e1c6b0e491b092
 #+begin_src python
 datasets = json.loads('''
-    <<d13f2d313813c806f6f6bd1040516bd9>>
+    <<9b4b3e2eab1f5b226d6cd52d8f9ff29b>>
 '''.strip())
 
 dsd = datasets[s][d]
@@ -510,24 +338,24 @@ datasets[args.pool_name] = {
     "options": [ ml ]
 }
 
-<<d61c11eac203bfa4ee2cb42f93e5c959>>
+<<45aac463623661787088fdbf6465759e>>
 
-for backup in (las := datasets[pool_name][d]["las"][d]).keys():
+for backup in (las := datasets[args.pool_name][d]["las"][d]).keys():
     for zz in [ "zpax", "zsyncs" ]:
         las[backup][d][zz] = dd
 
-<<9b6d5ff07d5ba4ca0e95609407d6f5e4>>
+<<c87d7294a0bf9ef139a1a416a45ff4fb>>
 
 #+end_src
 
-***** mount
+****** mount
 
 #+call: hash("")
 
 #+RESULTS:
-: 3836516e33beb8c8a336b3ac75d26e05
+: f2f6ce58bd9d44b38b94e493ecca4e73
 
-#+name: 3836516e33beb8c8a336b3ac75d26e05
+#+name: f2f6ce58bd9d44b38b94e493ecca4e73
 #+begin_src python
 from collections import namedtuple
 from functools import partial
@@ -535,26 +363,26 @@ from os import path as osPath
 from subprocess import DEVNULL
 
 for dataset in $(zfs list).split("\n"):
-    if pool_name in dataset:
+    if args.pool_name in dataset:
         break
 else:
-    xrun(f"zpool import -f {pool_name}")
+    xrun(f"zpool import -f {args.pool_name}")
 
-if encrypted:
-    xrun(f"zfs load-key {pool_name}")
+if args.encrypted:
+    xrun(f"zfs load-key {args.pool_name}")
 
 if osPath.isdir("/mnt"):
     xrun("umount -R /mnt")
 else:
     xrun("mkdir /mnt")
 
-xrun(f"mount -t zfs {pool_name}/system/root /mnt")
+xrun(f"mount -t zfs {args.pool_name}/system/root /mnt")
 
 with open(f"{resources}/datasets.nix") as datasets:
     for dataset in datasets.readlines()[1:-1]:
         dataset = dataset.strip().strip('"')
 
-        r = f"{pool_name}/"
+        r = f"{args.pool_name}/"
         sr = r + "system/"
         _mount = dataset.replace(
             sr if sr in dataset else r,
@@ -569,28 +397,24 @@ with open(f"{resources}/datasets.nix") as datasets:
 if not osPath.isdir(boot := "/mnt/boot/efi"):
     xrun(f"mkdir -p {boot}")
 
-boot_device = raw_input("Please enter the boot device:\n\t")
-xrun(f"mount {boot_device} {boot}")
+xrun(f"mount {args.boot_device} {boot}")
 
-if (swap := (raw_input('''
-    Does this pool use SWAP?
-        y | n\n\t
-''') == "y")):
-    xrun(f"swapon /dev/zvol/{pool_name}/swap")
+if args.swap:
+    xrun(f"swapon /dev/zvol/{args.pool_name}/swap")
 #+end_src
 
-***** update
-****** before updating
+****** update
+******* before updating
 
 #+call: hash("")
 
 #+RESULTS:
-: cde010f5bc96de0ae2d7961aa9a71dc4
+: 1912c98033c29905b1ad36967799623f
 
-#+name: cde010f5bc96de0ae2d7961aa9a71dc4
+#+name: 1912c98033c29905b1ad36967799623f
 #+begin_src python
 snapDir = [ "snapdir=visible" ]
-extraCopies = snapDir + [ f"copies={2 if encrypted else 3}" ]
+extraCopies = snapDir + [ f"copies={2 if args.encrypted else 3}" ]
 cache = [ "sync=disabled" ]
 ml = "mountpoint=legacy"
 dd = {  }
@@ -598,20 +422,20 @@ ddd = { "datasets": {  }}
 d = "datasets"
 s = "system"
 
-<<cb652aaddb0e92c44ba367a0ea174f81>>
+<<a42e6a90b4026d89c3e1c6b0e491b092>>
 
 #+end_src
 
-****** after updating the pool
+******* after updating the pool
 
 #+call: hash("")
 
 #+RESULTS:
-: b09868eb4eaf5d508a70a487a8f2a5dc
+: 6efb3f37b6f2f802c281686eff7281dc
 
-#+name: b09868eb4eaf5d508a70a487a8f2a5dc
+#+name: 6efb3f37b6f2f802c281686eff7281dc
 #+begin_src python
-pool_size_plus_metric = $(zpool get -H size @(pool_name)).split()[2]
+pool_size_plus_metric = $(zpool get -H size @(args.pool_name)).split()[2]
 pool_size = round(float(pool_size_plus_metric[:-1]), 2)
 pool_metric = pool_size_plus_metric[-1]
 
@@ -632,12 +456,9 @@ def pool_percentage_value(percentage):
 # Apparently, if python internal keywords exist in the argument, such as "set", etc.
 # the command errors out; perhaps something to raise an issue of.
 # This seems to work as an alternative.
-xrun(f"zfs set refreservation={pool_percentage_value(15)} {pool_name}/reserved")
+xrun(f"zfs set refreservation={pool_percentage_value(15)} {args.pool_name}/reserved")
 
-if (swap := (raw_input('''
-    Will this pool use SWAP?
-        y | n\n\t
-''') == "y")):
+if args.swap:
     _swoptions = [
         "com.sun:auto-snapshot=false",
         "compression=zle",
@@ -649,56 +470,55 @@ if (swap := (raw_input('''
     swoptions = " -o ".join(_swoptions)
 
     ps = $(getconf PAGESIZE)
-    swap_size = int(raw_input("Please enter the (integer) SWAP size in GiB:\n\t"))
-    xrun(f"zfs create -V {2**swap_size}G -b {ps} -o {swoptions} {pool_name}/swap")
+    xrun(f"zfs create -V {2**args.swap}G -b {ps} -o {swoptions} {args.pool_name}/swap")
 
-    xrun(f"mkswap -f /dev/zvol/{pool_name}/swap")
+    xrun(f"mkswap -f /dev/zvol/{args.pool_name}/swap")
 #+end_src
 
-****** if updating the pool
+******* if updating the pool
 
 #+call: hash("")
 
 #+RESULTS:
-: 89b42fd94e35a06e40a08750404e994a
+: ce03e726e6169dc629b60d56a3218588
 
-#+name: 89b42fd94e35a06e40a08750404e994a
+#+name: ce03e726e6169dc629b60d56a3218588
 #+begin_src python
         xrun(f"zfs {cc} {'-o ' if _doptions else ''} {doptions} {son} {_dataset}")
         xrun(f"zfs snapshot -r {_dataset}@root")
 #+end_src
 
-****** files
+******* files
 
 #+call: hash("")
 
 #+RESULTS:
-: aa6815ffe0495e012a80a5e3ddb4b0bd
+: 6b5976297f158a651e51a1aa6303c590
 
-#+name: aa6815ffe0495e012a80a5e3ddb4b0bd
+#+name: 6b5976297f158a651e51a1aa6303c590
 #+begin_src python
-<<cde010f5bc96de0ae2d7961aa9a71dc4>>
+<<1912c98033c29905b1ad36967799623f>>
 
-<<9bde4e3ed9b0f8a5edd7ce3e86bbcdeb>>
+<<c417a7146013877ff5189f1f48688a79>>
 
 #+end_src
 
-****** pool
+******* pool
 
 #+call: hash("")
 
 #+RESULTS:
-: 03fc24d52cd1b15f6c3a2cb83ccaf5d2
+: bcb6a0d82c4941db3eff8f5d0728eb6c
 
-#+name: 03fc24d52cd1b15f6c3a2cb83ccaf5d2
+#+name: bcb6a0d82c4941db3eff8f5d0728eb6c
 #+begin_src python
-<<cde010f5bc96de0ae2d7961aa9a71dc4>>
+<<1912c98033c29905b1ad36967799623f>>
 
-<<89b42fd94e35a06e40a08750404e994a>>
+<<ce03e726e6169dc629b60d56a3218588>>
 
-<<9bde4e3ed9b0f8a5edd7ce3e86bbcdeb>>
+<<c417a7146013877ff5189f1f48688a79>>
 
-<<b09868eb4eaf5d508a70a487a8f2a5dc>>
+<<6efb3f37b6f2f802c281686eff7281dc>>
 
 #+end_src
 
@@ -2494,7 +2314,7 @@ loader = {
 #+begin_src nix :tangle (jr/tangle-path)
 { config, lib, ... }: with builtins; with lib; with j; mkIf (config.vars.zfs) { fileSystems = let
     inherit (attrs.fileSystems) base;
-    fileSystems' = import ./resources/datasets.nix host;
+    fileSystems' = import ./config/datasets.nix host;
 in mapAttrs' (dataset: mountpoint: nameValuePair mountpoint (
     mkForce (base // { device = dataset; ${
         myIf.knull (hasInfix "persist" dataset) "neededForBoot"
@@ -5079,7 +4899,7 @@ max-free = 1073741824
 
 #+name: 6fe6b364d9fba7cd66bd9cf730282b2a
 #+begin_src python :tangle (jr/tangle-path)
-<<5918a1d90f5b7e61007371faf087dff7>>
+<<20da3080268b6d2673a43886dcdd8d08>>
 #+end_src
 
 ** .bashrc
