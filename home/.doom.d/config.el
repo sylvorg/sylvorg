@@ -189,6 +189,13 @@
         (defun jr/toggle-evil nil (interactive)
             (funcall 'jr/toggle-inner 'evil-mode "evil" (bound-and-true-p evil-mode) 'evil-normal-state-map))
         (advice-add #'evil-insert-state :override #'jr/disable-all-modal-modes)
+        (advice-add #'evil-ex :before #'(lambda nil (interactive)
+            (jr/disable-all-modal-modes)
+            (setq which-key-persistent-popup nil)
+            (which-key--hide-popup)))
+        (advice-add #'evil-ex :after #'(lambda nil (interactive)
+            (setq which-key-persistent-popup t)
+            (jr/disable-all-modal-modes)))
 
         ;; From: https://www.reddit.com/r/emacs/comments/lp45zd/help_requested_in_configuring_ryomodal/gp3rfx9?utm_source=share&utm_medium=web2x&context=3
         ;; Kept for documentation porpoises
@@ -575,7 +582,7 @@
             ("s" git-gutter:stage-hunk "stage")
             ("r" git-gutter:revert-hunk "revert")
             ("m" git-gutter:mark-hunk "mark"))))
-(when (featurep! :module magit) (use-package! magit
+(when (or (featurep! :tools magit) (require 'magit nil t)) (use-package! magit
     :ryo ("g" :hydra+
         '(hydra-git nil
             "A hydra for git!"
@@ -653,7 +660,7 @@ is already narrowed."
         ;; Add more modes here
         ))
 
-(when (featurep! :module parinfer) (use-package! parinfer-rust-mode
+(when (featurep! :editor parinfer) (use-package! parinfer-rust-mode
     :hook emacs-lisp-mode
     :init (setq parinfer-rust-auto-download t)
     :custom (parinfer-rust-check-before-enable nil)))
@@ -915,7 +922,7 @@ is already narrowed."
 (add-hook 'before-save-hook 'untabify-except-makefiles)
 
 (general-auto-unbind-keys)
-(when (featurep! :module spacemacs) (use-package! spacemacs
+(when (featurep! :private spacemacs) (use-package! spacemacs
     :init (remove-hook 'org-load-hook #'+org-init-keybinds-h)
     :hook (doom-init-ui . spacemacs/home)))
 

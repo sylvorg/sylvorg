@@ -30,6 +30,10 @@
 (package! focus)
 (package! yankpad)
 
+;; From: https://github.com/hlissner/doom-emacs/issues/2415#issuecomment-577904932
+(when (featurep! :tools magit)
+  (package! magit-section))
+
 ;; From: https://github.com/mohsenil85/evil-evilified-state and https://github.com/syl20bnr/spacemacs
 (package! bind-map)
 

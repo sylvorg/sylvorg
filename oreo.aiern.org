@@ -1016,7 +1016,7 @@ Taken from [[https://github.com/NixOS/nixos-hardware/tree/master/microsoft/hyper
             };
         };
     };
-    environment.systemPackages = with pkgs; [ raspberrypi-tools ];
+    environment.systemPackages = with pkgs; [ raspberrypi-tools libraspberrypi ];
 }
 #+end_src
 
@@ -1034,17 +1034,41 @@ Taken from [[https://github.com/NixOS/nixos-hardware/tree/master/microsoft/hyper
 { config, lib, pkgs, type, ... }: with builtins; with lib; with j; mkIf (type == "4b") {
     vars.terminal = true;
     boot = {
-        kernelParams = ["cma=256M"];
+        kernelPackages = mkOverride 49 pkgs.linuxPackages_rpi4;
+        tmpOnTmpfs = true;
+        initrd.availableKernelModules = [ "usbhid" "usb_storage" ];
+        # ttyAMA0 is the serial console broken out to the GPIO
+        kernelParams = [
+            "8250.nr_uarts=1"
+            "console=ttyAMA0,115200"
+            "console=tty1"
+            # Some gui programs need this
+            "cma=128M"
+        ];
         loader = {
             raspberryPi = {
                 enable = true;
                 version = 4;
-                uboot.enable = true;
-                firmwareConfig = '' gpu_mem=256 '';
+                firmwareConfig = ''
+                    dtparam=sd_poll_once=on
+                    dtparam=audio=on
+                '';
             };
+            grub.enable = mkForce false;
+            systemd-boot.enable = mkForce false;
+            generic-extlinux-compatible.enable = true;
+            
         };
     };
-    environment.systemPackages = with pkgs; [ raspberrypi-tools ];
+
+    services.xserver.videoDrivers = [ "fbdev" ];    
+    hardware = {
+        enableRedistributableFirmware = true;
+        raspberry-pi."4".fkms-3d.enable = true;
+        pulseaudio.enable = true;
+    };
+    sound.enable = true;
+    environment.systemPackages = with pkgs; [ raspberrypi-tools libraspberrypi ];
 }
 #+end_src
 
@@ -2194,6 +2218,114 @@ rec {
 #+end_src
 
 **** modules
+***** guix.nix
+
+From: https://github.com/pukkamustard/nixpkgs/blob/guix/nixos/modules/services/development/guix.nix
+
+#+call: hash("")
+
+#+RESULTS:
+: 878fb4a9151b726f061f94ec62420845
+
+#+name: 878fb4a9151b726f061f94ec62420845
+#+begin_src nix :tangle (jr/tangle-path)
+{config, pkgs, lib, ...}:
+
+with lib;
+
+let
+
+  cfg = config.services.guix;
+
+  buildGuixUser = i:
+    {
+      "guixbuilder${builtins.toString i}" = {
+        group = "guixbuild";
+        extraGroups = ["guixbuild"];
+        home = "/var/empty";
+        shell = pkgs.nologin;
+        description = "Guix build user ${builtins.toString i}";
+        isSystemUser = true;
+      };
+    };
+
+in {
+
+  options.services.guix = {
+    enable = mkEnableOption "GNU Guix package manager";
+    package = mkOption {
+      type = types.package;
+      default = pkgs.guix;
+      defaultText = "pkgs.guix";
+      description = "Package that contains the guix binary and initial store.";
+    };
+  };
+
+  config = mkIf (cfg.enable) {
+
+    users = {
+      extraUsers = lib.fold (a: b: a // b) {} (builtins.map buildGuixUser (lib.range 1 10));
+      extraGroups.guixbuild = {name = "guixbuild";};
+    };
+
+    systemd.services.guix-daemon = {
+      enable = true;
+      description = "Build daemon for GNU Guix";
+      serviceConfig = {
+        ExecStart="/var/guix/profiles/per-user/root/current-guix/bin/guix-daemon --build-users-group=guixbuild";
+        Environment="GUIX_LOCPATH=/var/guix/profiles/per-user/root/guix-profile/lib/locale";
+        RemainAfterExit="yes";
+
+        # See <https://lists.gnu.org/archive/html/guix-devel/2016-04/msg00608.html>.
+        # Some package builds (for example, go@1.8.1) may require even more than
+        # 1024 tasks.
+        TasksMax="8192";
+      };
+      wantedBy = [ "multi-user.target" ];
+    };
+
+    system.activationScripts.guix = ''
+
+      # copy initial /gnu/store
+      if [ ! -d /gnu/store ]
+      then
+        mkdir -p /gnu
+        cp -ra ${cfg.package.store}/gnu/store /gnu/
+      fi
+
+      # copy initial /var/guix content
+      if [ ! -d /var/guix ]
+      then
+        mkdir -p /var
+        cp -ra ${cfg.package.var}/var/guix /var/
+      fi
+
+      # root profile
+      if [ ! -d ~root/.config/guix ]
+      then
+        mkdir -p ~root/.config/guix
+        ln -sf /var/guix/profiles/per-user/root/current-guix \
+          ~root/.config/guix/current
+      fi
+
+      # authorize substitutes
+      GUIX_PROFILE="`echo ~root`/.config/guix/current"; source $GUIX_PROFILE/etc/profile
+      guix archive --authorize < ~root/.config/guix/current/share/guix/ci.guix.info.pub
+    '';
+
+    environment.shellInit = ''
+      # Make the Guix command available to users
+      export PATH="/var/guix/profiles/per-user/root/current-guix/bin:$PATH"
+
+      export GUIX_LOCPATH="$HOME/.guix-profile/lib/locale"
+      export PATH="$HOME/.guix-profile/bin:$PATH"
+      export INFOPATH="$HOME/.guix-profile/share/info:$INFOPATH"
+    '';
+  };
+
+}
+#+end_src
+
 ***** bcachefs.nix
 
 #+call: hash("")
@@ -2648,7 +2780,7 @@ inputs@{ config, pkgs, sources, lib, ... } : { environment.systemPackages = impo
     services.logind.lidSwitch = "hybrid-sleep";
     powerManagement = {
         enable = true;
-        cpuFreqGovernor = mkForce "powersave";
+        cpuFreqGovernor = mkForce "ondemand";
     };
 }
 #+end_src
@@ -3544,7 +3676,68 @@ in with lib; flatten [
     (
         <<89dc592c50565b862b8b7f8585a34890>>
     )
+    (
+        # Adapted From: https://github.com/NixOS/nixpkgs/issues/75669#issuecomment-579432702
+        [{( self: super: { guix = self.callPackage (
+            <<a94fac17961b2b8dcb9db7567f31c665>>
+        ) {}; })}]
+    )
 ]
+#+end_src
+
+***** guix
+
+From: https://github.com/pukkamustard/nixpkgs/blob/guix/pkgs/development/guix/guix.nix
+
+#+call: hash("")
+
+#+RESULTS:
+: a94fac17961b2b8dcb9db7567f31c665
+
+#+name: a94fac17961b2b8dcb9db7567f31c665
+#+begin_src nix
+{stdenv, fetchurl}:
+stdenv.mkDerivation rec
+  { name = "guix-${version}";
+    version = "1.0.0";
+
+    src = fetchurl {
+      url = "https://ftp.gnu.org/gnu/guix/guix-binary-${version}.${stdenv.targetPlatform.system}.tar.xz";
+      sha256 = {
+        "x86_64-linux" = "11y9nnicd3ah8dhi51mfrjmi8ahxgvx1mhpjvsvdzaz07iq56333";
+        "i686-linux" = "14qkz12nsw0cm673jqx0q6ls4m2bsig022iqr0rblpfrgzx20f0i";
+        "aarch64-linux" = "0qzlpvdkiwz4w08xvwlqdhz35mjfmf1v3q8mv7fy09bk0y3cwzqs";
+        }."${stdenv.targetPlatform.system}";
+    };
+    sourceRoot = ".";
+
+    outputs = [ "out" "store" "var" ];
+    phases = [ "unpackPhase" "installPhase" ];
+
+    installPhase = ''
+      # copy the /gnu/store content
+      mkdir -p $store
+      cp -r gnu $store
+
+      # copy /var content
+      mkdir -p $var
+      cp -r var $var
+
+      # link guix binaries
+      mkdir -p $out/bin
+      ln -s /var/guix/profiles/per-user/root/current-guix/bin/guix $out/bin/guix
+      ln -s /var/guix/profiles/per-user/root/current-guix/bin/guix-daemon $out/bin/guix-daemon
+    '';
+
+    meta = with stdenv.lib; {
+      description = "The GNU Guix package manager";
+      homepage = https://www.gnu.org/software/guix/;
+      license = licenses.gpl3Plus;
+      maintainers = [ maintainers.johnazoidberg ];
+      platforms = [ "aarch64-linux" "i686-linux" "x86_64-linux" ];
+    };
+
+  }
 #+end_src
 
 ***** kernels

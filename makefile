@@ -16,7 +16,7 @@ switch:
 doom-set:
 |rsync -avvczz --delete ~/shadowrylander/home/.doom.d/ ~/.doom.d/
 |chmod +x ~/.doom.d/org-tangle
-|~/.doom.d/org-tangle ~/shadowrylander/doom.aiern.org
+|yes yes| ~/.doom.d/org-tangle ~/shadowrylander/doom.aiern.org
 |rsync -avvczz --delete ~/shadowrylander/home/.doom.d/ ~/.doom.d/
 
 doom-sync:
