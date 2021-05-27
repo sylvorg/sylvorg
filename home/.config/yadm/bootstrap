@@ -61,7 +61,7 @@ try:
             if args.deduplicated:
                 options["dedup"] = "edonr,verify"
             
-            if osPath.isdir("/mnt"):
+            if os.path.isdir("/mnt"):
                 run("umount -R /mnt", shell = True)
             else:
                 run("mkdir /mnt", shell = True)
