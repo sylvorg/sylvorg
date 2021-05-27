@@ -87,7 +87,6 @@ try:
                     "base": {  },
                     "hold": {  },
                     "omniverse": {  },
-                    "reserved": {  },
                     "system": {
                         "datasets": {
                             "home": { "datasets": { "root": { "mountpoint": "/root" }}},
@@ -351,7 +350,6 @@ try:
                     "base": {  },
                     "hold": {  },
                     "omniverse": {  },
-                    "reserved": {  },
                     "system": {
                         "datasets": {
                             "home": { "datasets": { "root": { "mountpoint": "/root" }}},
@@ -509,7 +507,6 @@ try:
                     "base": {  },
                     "hold": {  },
                     "omniverse": {  },
-                    "reserved": {  },
                     "system": {
                         "datasets": {
                             "home": { "datasets": { "root": { "mountpoint": "/root" }}},
@@ -721,7 +718,6 @@ try:
                     "base": {  },
                     "hold": {  },
                     "omniverse": {  },
-                    "reserved": {  },
                     "system": {
                         "datasets": {
                             "home": { "datasets": { "root": { "mountpoint": "/root" }}},

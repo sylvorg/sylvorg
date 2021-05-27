@@ -272,7 +272,6 @@ dnix.write("}")
     "base": {  },
     "hold": {  },
     "omniverse": {  },
-    "reserved": {  },
     "system": {
         "datasets": {
             "home": { "datasets": { "root": { "mountpoint": "/root" }}},
