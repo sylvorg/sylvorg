@@ -236,8 +236,8 @@ try:
                     )):
                         recurse(ddictd[dataset], dataset, _dataset, mountpoint)
                 
-                for key, value in datasets.items():
-                    recurse(value, key, args.Pool)
+                for dataset in datasets:
+                    recurse(datasets[dataset], dataset, args.Pool)
                 
                 dnix.write("}")
             
@@ -486,8 +486,8 @@ try:
                     )):
                         recurse(ddictd[dataset], dataset, _dataset, mountpoint)
                 
-                for key, value in datasets.items():
-                    recurse(value, key, args.Pool)
+                for dataset in datasets:
+                    recurse(datasets[dataset], dataset, args.Pool)
                 
                 dnix.write("}")
             
@@ -654,8 +654,8 @@ try:
                     )):
                         recurse(ddictd[dataset], dataset, _dataset, mountpoint)
                 
-                for key, value in datasets.items():
-                    recurse(value, key, args.Pool)
+                for dataset in datasets:
+                    recurse(datasets[dataset], dataset, args.Pool)
                 
                 dnix.write("}")
             
@@ -852,8 +852,8 @@ try:
                     )):
                         recurse(ddictd[dataset], dataset, _dataset, mountpoint)
                 
-                for key, value in datasets.items():
-                    recurse(value, key, args.Pool)
+                for dataset in datasets:
+                    recurse(datasets[dataset], dataset, args.Pool)
                 
                 dnix.write("}")
             
