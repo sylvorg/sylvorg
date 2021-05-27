@@ -9,14 +9,14 @@ parser = argparse.ArgumentParser()
 
 # From: https://gist.github.com/amarao/36327a6f77b86b90c2bca72ba03c9d3a
 subparsers = parser.add_subparsers(dest='subcommand')
-create = subprasers.add_parser()
-mount = subprasers.add_parser()
-update = subprasers.add_parser()
+create = subparsers.add_parser("create")
+mount = subparsers.add_parser("mount")
+update = subparsers.add_parser("update")
 
 for subparser in [ create, mount, update ]:
+    subparser.add_argument("pool-name")
     subparser.add_argument("-d", "--deduplicated", action="store_true")
     subparser.add_argument("-e", "--encrypted", action="store_true")
-    subparser.add_argument("-p", "--pool-name", required=True)
     subparser.add_argument("-z", "--zfs-device", required="create" in sys.argv)
     subparser.add_argument("-b", "--boot-device", required="mount" in sys.argv)
     subparser.add_argument("-s", "--swap")
@@ -28,7 +28,7 @@ parser.add_argument("-i", "--install", action="store_true")
 parser.add_argument("-H", "--home-manager", action="store_true")
 parser.add_argument("-a", "--all", action="store_true")
 
-args = parser.parse_args
+args = parser.parse_args()
 
 resources = f'{os.environ["HOME"]}/system/etc/nixos/config'
 
@@ -681,28 +681,28 @@ try:
                 run(f"mkswap -f /dev/zvol/{args.pool_name}/swap", shell = True)
             
 
-    if args.generate:
-        run("nixos-generate-config --root /mnt", shell = True)
-
-    if args.move:
-        run("mv /etc/nixos/{,config}/configuration.nix", shell = True)
-        run("mv /etc/nixos/{,config}/hardware-configuration.nix", shell = True)
-
-    if args.rsync:
-        run("nix-env -iA nixos.rsync", shell = True)
-        run("rsync -avvczz ~/shadowrylander/system/ /mnt/", shell = True)
-
-    if args.install:
-        run("nixos-install --show-trace", shell = True)
-
-    # TODO
-    if args.home_manager:
-        pass
-
-    # TODO: Also include a one-stop-install, mounting, generating, copying, etc. all in one go
-    if args.all:
-        pass
-
 finally:
     run(f"zpool export -f {args.pool_name} &> /dev/null", shell = True)
     sys.exit(0)
+
+if args.generate:
+    run("nixos-generate-config --root /mnt", shell = True)
+
+if args.move:
+    run("mv /etc/nixos/{,config}/configuration.nix", shell = True)
+    run("mv /etc/nixos/{,config}/hardware-configuration.nix", shell = True)
+
+if args.rsync:
+    run("nix-env -iA nixos.rsync", shell = True)
+    run("rsync -avvczz ~/shadowrylander/system/ /mnt/", shell = True)
+
+if args.install:
+    run("nixos-install --show-trace", shell = True)
+
+# TODO
+if args.home_manager:
+    pass
+
+# TODO: Also include a one-stop-install, mounting, generating, copying, etc. all in one go
+if args.all:
+    pass
