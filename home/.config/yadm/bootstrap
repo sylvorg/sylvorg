@@ -215,6 +215,13 @@ try:
                                 mountpoint = _mountpoint = f"{mountpoint}/{dname}"
             
                         dnix.write(f'\t"{_dataset}" = "{_mountpoint}";\n')
+            
+                        for dataset in (ddictd := ddictd.get(
+                            d,
+                            dd
+                        )):
+                            recurse(ddictd[dataset], dataset, _dataset, mountpoint)
+            
                     doptions = " -o ".join(_doptions)
             
             
@@ -230,12 +237,6 @@ try:
                     print(dataset_command)
                     print(snapshot_command)
             
-                for dataset in (ddictd := ddict.get(
-                    d,
-                    dd
-                )):
-                    recurse(ddictd[dataset], dataset, _dataset, mountpoint)
-                
                 for dataset in datasets:
                     recurse(datasets[dataset], dataset, pool_name)
                 
@@ -479,16 +480,17 @@ try:
                                 mountpoint = _mountpoint = f"{mountpoint}/{dname}"
             
                         dnix.write(f'\t"{_dataset}" = "{_mountpoint}";\n')
+            
+                        for dataset in (ddictd := ddictd.get(
+                            d,
+                            dd
+                        )):
+                            recurse(ddictd[dataset], dataset, _dataset, mountpoint)
+            
                     doptions = " -o ".join(_doptions)
             
             
             
-                for dataset in (ddictd := ddict.get(
-                    d,
-                    dd
-                )):
-                    recurse(ddictd[dataset], dataset, _dataset, mountpoint)
-                
                 for dataset in datasets:
                     recurse(datasets[dataset], dataset, pool_name)
                 
@@ -637,6 +639,13 @@ try:
                                 mountpoint = _mountpoint = f"{mountpoint}/{dname}"
             
                         dnix.write(f'\t"{_dataset}" = "{_mountpoint}";\n')
+            
+                        for dataset in (ddictd := ddictd.get(
+                            d,
+                            dd
+                        )):
+                            recurse(ddictd[dataset], dataset, _dataset, mountpoint)
+            
                     doptions = " -o ".join(_doptions)
             
             
@@ -652,12 +661,6 @@ try:
                     print(dataset_command)
                     print(snapshot_command)
             
-                for dataset in (ddictd := ddict.get(
-                    d,
-                    dd
-                )):
-                    recurse(ddictd[dataset], dataset, _dataset, mountpoint)
-                
                 for dataset in datasets:
                     recurse(datasets[dataset], dataset, pool_name)
                 
@@ -849,16 +852,17 @@ try:
                                 mountpoint = _mountpoint = f"{mountpoint}/{dname}"
             
                         dnix.write(f'\t"{_dataset}" = "{_mountpoint}";\n')
+            
+                        for dataset in (ddictd := ddictd.get(
+                            d,
+                            dd
+                        )):
+                            recurse(ddictd[dataset], dataset, _dataset, mountpoint)
+            
                     doptions = " -o ".join(_doptions)
             
             
             
-                for dataset in (ddictd := ddict.get(
-                    d,
-                    dd
-                )):
-                    recurse(ddictd[dataset], dataset, _dataset, mountpoint)
-                
                 for dataset in datasets:
                     recurse(datasets[dataset], dataset, pool_name)
                 

@@ -235,6 +235,13 @@ with open(f"{resources}/datasets.nix", "w+") as dnix:
                     mountpoint = _mountpoint = f"{mountpoint}/{dname}"
 
             dnix.write(f'\t"{_dataset}" = "{_mountpoint}";\n')
+
+            for dataset in (ddictd := ddictd.get(
+                d,
+                dd
+            )):
+                recurse(ddictd[dataset], dataset, _dataset, mountpoint)
+
         doptions = " -o ".join(_doptions)
 #+end_src
 
@@ -247,12 +254,6 @@ with open(f"{resources}/datasets.nix", "w+") as dnix:
 
 #+name: c417a7146013877ff5189f1f48688a79
 #+begin_src python
-for dataset in (ddictd := ddict.get(
-    d,
-    dd
-)):
-    recurse(ddictd[dataset], dataset, _dataset, mountpoint)
-
 for dataset in datasets:
     recurse(datasets[dataset], dataset, pool_name)
 
