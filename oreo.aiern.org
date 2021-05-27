@@ -246,10 +246,7 @@ with open(f"{resources}/datasets.nix", "w+") as dnix:
 
 #+name: c417a7146013877ff5189f1f48688a79
 #+begin_src python
-    for key, value in ddict.get(
-        d,
-        dd
-    ):
+    for key, value in ddict.get(d, dd).items():
         print(key, value)
         recurse(value, key, _dataset, mountpoint)
 
