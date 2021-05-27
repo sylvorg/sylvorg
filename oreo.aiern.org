@@ -247,16 +247,16 @@ with open(f"{resources}/datasets.nix", "w+") as dnix:
 
 #+name: c417a7146013877ff5189f1f48688a79
 #+begin_src python
-    for dataset in (ddictd := ddict.get(
-        d,
-        dd
-    )):
-        recurse(ddictd[dataset], dataset, _dataset, mountpoint)
+for dataset in (ddictd := ddict.get(
+    d,
+    dd
+)):
+    recurse(ddictd[dataset], dataset, _dataset, mountpoint)
 
-    for dataset in datasets:
-        recurse(datasets[dataset], dataset, pool_name)
+for dataset in datasets:
+    recurse(datasets[dataset], dataset, pool_name)
 
-    dnix.write("}")
+dnix.write("}")
 #+end_src
 
 ******* open =datasets.json=
@@ -501,16 +501,16 @@ if args.swap:
 
 #+name: ce03e726e6169dc629b60d56a3218588
 #+begin_src python
-        dataset_command = f"zfs {cc} {'-o ' if _doptions else ''} {doptions} {son} {_dataset}"
-        snapshot_command = f"zfs snapshot -r {_dataset}@root"
-        print(dataset_command)
-        print(snapshot_command)
+dataset_command = f"zfs {cc} {'-o ' if _doptions else ''} {doptions} {son} {_dataset}"
+snapshot_command = f"zfs snapshot -r {_dataset}@root"
+print(dataset_command)
+print(snapshot_command)
 
-        run(dataset_command, shell = True)
-        run(snapshot_command, shell = True)
+run(dataset_command, shell = True)
+run(snapshot_command, shell = True)
 
-        print(dataset_command)
-        print(snapshot_command)
+print(dataset_command)
+print(snapshot_command)
 #+end_src
 
 ******* files
@@ -524,7 +524,7 @@ if args.swap:
 #+begin_src python
 <<1912c98033c29905b1ad36967799623f>>
 
-<<c417a7146013877ff5189f1f48688a79>>
+                <<c417a7146013877ff5189f1f48688a79>>
 
 #+end_src
 
@@ -539,9 +539,9 @@ if args.swap:
 #+begin_src python
 <<1912c98033c29905b1ad36967799623f>>
 
-<<ce03e726e6169dc629b60d56a3218588>>
+                <<ce03e726e6169dc629b60d56a3218588>>
 
-<<c417a7146013877ff5189f1f48688a79>>
+                <<c417a7146013877ff5189f1f48688a79>>
 
 <<6efb3f37b6f2f802c281686eff7281dc>>
 
