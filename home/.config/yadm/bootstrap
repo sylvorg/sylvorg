@@ -68,7 +68,7 @@ try:
             
             # for dataset in run("zfs list -rH", shell = True, capture_output = True).stdout.decode().split("\n"):
             #     if args.Pool in dataset:
-            #         run(f"zpool export -f {args.Pool} &> /dev/null", shell = True)
+            #         run(f"zpool export -f {args.Pool}", shell = True)
             #         break
             run(f"zpool export -f {args.Pool}", shell = True)
             
@@ -795,8 +795,7 @@ try:
             
 
 finally:
-    run(f"zpool export -f {args.Pool} &> /dev/null", shell = True)
-    sys.exit(0)
+    run(f"zpool export -f {args.Pool}", shell = True)
 
 if args.subcommand == "mount":
     import os
