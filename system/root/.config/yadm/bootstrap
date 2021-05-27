@@ -32,6 +32,10 @@ parser.add_argument("-a", "--all", action="store_true")
 
 args = parser.parse_args()
 
+if len(sys.argv)==1:
+    parser.print_help(sys.stderr)
+    sys.exit(1)
+
 resources = f'{os.environ["HOME"]}/system/etc/nixos/config'
 
 try:

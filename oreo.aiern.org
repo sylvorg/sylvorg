@@ -110,6 +110,10 @@ parser.add_argument("-H", "--home-manager", action="store_true")
 parser.add_argument("-a", "--all", action="store_true")
 
 args = parser.parse_args()
+
+if len(sys.argv)==1:
+    parser.print_help(sys.stderr)
+    sys.exit(1)
 #+end_src
 
 ****** create
