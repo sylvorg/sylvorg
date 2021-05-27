@@ -14,7 +14,7 @@ mount = subparsers.add_parser("mount")
 update = subparsers.add_parser("update")
 
 for subparser in [ create, mount, update ]:
-    subparser.add_argument("pool-name")
+    subparser.add_argument("Pool")
     subparser.add_argument("-d", "--deduplicated", action="store_true")
     subparser.add_argument("-e", "--encrypted", action="store_true")
     if ("create" in sys.argv) or ("mount" in sys.argv):
@@ -63,8 +63,8 @@ try:
                 options["dedup"] = "edonr,verify"
             
             for dataset in run("zfs list -rH", shell = True, capture_output = True).stdout.decode().split("\n"):
-                if args.pool_name in dataset:
-                    run(f"zpool export -f {args.pool_name} &> /dev/null", shell = True)
+                if args.Pool in dataset:
+                    run(f"zpool export -f {args.Pool} &> /dev/null", shell = True)
                     break
             
             command = f"zpool create -fo autotrim=on -o altroot=/mnt"
@@ -72,7 +72,7 @@ try:
             for key, value in options.items():
                 command += f" -O {key}={value}"
             
-            run(f"{command} {args.pool_name} {args.zfs_device}", shell = True)
+            run(f"{command} {args.Pool} {args.zfs_device}", shell = True)
             
             snapDir = [ "snapdir=visible" ]
             extraCopies = snapDir + [ f"copies={2 if args.encrypted else 3}" ]
@@ -124,7 +124,7 @@ try:
             
             dsd = datasets[s][d]
             
-            datasets[args.pool_name] = {
+            datasets[args.Pool] = {
                 "datasets": {
                     "b": {
                         "datasets": {
@@ -169,7 +169,7 @@ try:
                 for dataset in (persist := dsd["persist"][d]).keys():
                     persist[dataset][d][user] = dd
             
-            for backup in (las := datasets[args.pool_name][d]["las"][d]).keys():
+            for backup in (las := datasets[args.Pool][d]["las"][d]).keys():
                 for zz in [ "zpax", "zsyncs" ]:
                     las[backup][d][zz] = dd
             
@@ -185,13 +185,13 @@ try:
                     # son: snapshot or none
                     if (dname != "base") and (args.encrypted and args.deduplicated):
                         cc = "clone"
-                        son = f"{args.pool_name}/base@root"
+                        son = f"{args.Pool}/base@root"
                     else:
                         cc = "create"
                         son = ""
             
                     _doptions = ddict.get("options", [])
-                    if _dataset not in ( f"{args.pool_name}/{dataset}" for dataset in (
+                    if _dataset not in ( f"{args.Pool}/{dataset}" for dataset in (
                         "system",
                         "system/root",
                         "swap",
@@ -200,7 +200,7 @@ try:
                         "omniverse",
                         "reserved",
                     )):
-                        pn1 = args.pool_name
+                        pn1 = args.Pool
                         pn2 = f"{pn1}/{pn1}"
             
                         # TODO: Make this such that the current dataset directory
@@ -235,7 +235,7 @@ try:
             dnix.write("}")
             
             pool_size_plus_metric = run(
-                f"zpool get -H size {args.pool_name}",
+                f"zpool get -H size {args.Pool}",
                 shell = True,
                 capture_output = True
             ).stdout.decode().split("\n")[0].split("\t")[2]
@@ -259,7 +259,7 @@ try:
             # Apparently, if python internal keywords exist in the argument, such as "set", etc.
             # the command errors out; perhaps something to raise an issue of.
             # This seems to work as an alternative.
-            run(f"zfs set refreservation={pool_percentage_value(15)} {args.pool_name}/reserved", shell = True)
+            run(f"zfs set refreservation={pool_percentage_value(15)} {args.Pool}/reserved", shell = True)
             
             if args.swap:
                 _swoptions = [
@@ -273,9 +273,9 @@ try:
                 swoptions = " -o ".join(_swoptions)
             
                 ps = run("getconf PAGESIZE", shell = True, capture_output = True).stdout.decode().split("\n")[0]
-                run(f"zfs create -V {2**args.swap}G -b {ps} -o {swoptions} {args.pool_name}/swap", shell = True)
+                run(f"zfs create -V {2**args.swap}G -b {ps} -o {swoptions} {args.Pool}/swap", shell = True)
             
-                run(f"mkswap -f /dev/zvol/{args.pool_name}/swap", shell = True)
+                run(f"mkswap -f /dev/zvol/{args.Pool}/swap", shell = True)
             
             
         else:
@@ -288,27 +288,27 @@ try:
         from subprocess import DEVNULL
         
         for dataset in run("zfs list -rH", shell = True, capture_output = True).stdout.decode().split("\n"):
-            if args.pool_name in dataset:
-                run(f"zpool export -f {args.pool_name} &> /dev/null", shell = True)
+            if args.Pool in dataset:
+                run(f"zpool export -f {args.Pool} &> /dev/null", shell = True)
                 break
         else:
-            run(f"zpool import -f {args.pool_name}", shell = True)
+            run(f"zpool import -f {args.Pool}", shell = True)
         
         if args.encrypted:
-            run(f"zfs load-key {args.pool_name}", shell = True)
+            run(f"zfs load-key {args.Pool}", shell = True)
         
         if osPath.isdir("/mnt"):
             run("umount -R /mnt", shell = True)
         else:
             run("mkdir /mnt", shell = True)
         
-        run(f"mount -t zfs {args.pool_name}/system/root /mnt", shell = True)
+        run(f"mount -t zfs {args.Pool}/system/root /mnt", shell = True)
         
         with open(f"{resources}/datasets.nix") as datasets:
             for dataset in datasets.readlines()[1:-1]:
                 dataset = dataset.strip().strip('"')
         
-                r = f"{args.pool_name}/"
+                r = f"{args.Pool}/"
                 sr = r + "system/"
                 _mount = dataset.replace(
                     sr if sr in dataset else r,
@@ -326,7 +326,7 @@ try:
         run(f"mount {args.boot_device} {boot}", shell = True)
         
         if args.swap:
-            run(f"swapon /dev/zvol/{args.pool_name}/swap", shell = True)
+            run(f"swapon /dev/zvol/{args.Pool}/swap", shell = True)
 
     if args.subcommand == "update":
         if args.files:
@@ -380,7 +380,7 @@ try:
             
             dsd = datasets[s][d]
             
-            datasets[args.pool_name] = {
+            datasets[args.Pool] = {
                 "datasets": {
                     "b": {
                         "datasets": {
@@ -425,7 +425,7 @@ try:
                 for dataset in (persist := dsd["persist"][d]).keys():
                     persist[dataset][d][user] = dd
             
-            for backup in (las := datasets[args.pool_name][d]["las"][d]).keys():
+            for backup in (las := datasets[args.Pool][d]["las"][d]).keys():
                 for zz in [ "zpax", "zsyncs" ]:
                     las[backup][d][zz] = dd
             
@@ -441,13 +441,13 @@ try:
                     # son: snapshot or none
                     if (dname != "base") and (args.encrypted and args.deduplicated):
                         cc = "clone"
-                        son = f"{args.pool_name}/base@root"
+                        son = f"{args.Pool}/base@root"
                     else:
                         cc = "create"
                         son = ""
             
                     _doptions = ddict.get("options", [])
-                    if _dataset not in ( f"{args.pool_name}/{dataset}" for dataset in (
+                    if _dataset not in ( f"{args.Pool}/{dataset}" for dataset in (
                         "system",
                         "system/root",
                         "swap",
@@ -456,7 +456,7 @@ try:
                         "omniverse",
                         "reserved",
                     )):
-                        pn1 = args.pool_name
+                        pn1 = args.Pool
                         pn2 = f"{pn1}/{pn1}"
             
                         # TODO: Make this such that the current dataset directory
@@ -538,7 +538,7 @@ try:
             
             dsd = datasets[s][d]
             
-            datasets[args.pool_name] = {
+            datasets[args.Pool] = {
                 "datasets": {
                     "b": {
                         "datasets": {
@@ -583,7 +583,7 @@ try:
                 for dataset in (persist := dsd["persist"][d]).keys():
                     persist[dataset][d][user] = dd
             
-            for backup in (las := datasets[args.pool_name][d]["las"][d]).keys():
+            for backup in (las := datasets[args.Pool][d]["las"][d]).keys():
                 for zz in [ "zpax", "zsyncs" ]:
                     las[backup][d][zz] = dd
             
@@ -599,13 +599,13 @@ try:
                     # son: snapshot or none
                     if (dname != "base") and (args.encrypted and args.deduplicated):
                         cc = "clone"
-                        son = f"{args.pool_name}/base@root"
+                        son = f"{args.Pool}/base@root"
                     else:
                         cc = "create"
                         son = ""
             
                     _doptions = ddict.get("options", [])
-                    if _dataset not in ( f"{args.pool_name}/{dataset}" for dataset in (
+                    if _dataset not in ( f"{args.Pool}/{dataset}" for dataset in (
                         "system",
                         "system/root",
                         "swap",
@@ -614,7 +614,7 @@ try:
                         "omniverse",
                         "reserved",
                     )):
-                        pn1 = args.pool_name
+                        pn1 = args.Pool
                         pn2 = f"{pn1}/{pn1}"
             
                         # TODO: Make this such that the current dataset directory
@@ -649,7 +649,7 @@ try:
             dnix.write("}")
             
             pool_size_plus_metric = run(
-                f"zpool get -H size {args.pool_name}",
+                f"zpool get -H size {args.Pool}",
                 shell = True,
                 capture_output = True
             ).stdout.decode().split("\n")[0].split("\t")[2]
@@ -673,7 +673,7 @@ try:
             # Apparently, if python internal keywords exist in the argument, such as "set", etc.
             # the command errors out; perhaps something to raise an issue of.
             # This seems to work as an alternative.
-            run(f"zfs set refreservation={pool_percentage_value(15)} {args.pool_name}/reserved", shell = True)
+            run(f"zfs set refreservation={pool_percentage_value(15)} {args.Pool}/reserved", shell = True)
             
             if args.swap:
                 _swoptions = [
@@ -687,9 +687,9 @@ try:
                 swoptions = " -o ".join(_swoptions)
             
                 ps = run("getconf PAGESIZE", shell = True, capture_output = True).stdout.decode().split("\n")[0]
-                run(f"zfs create -V {2**args.swap}G -b {ps} -o {swoptions} {args.pool_name}/swap", shell = True)
+                run(f"zfs create -V {2**args.swap}G -b {ps} -o {swoptions} {args.Pool}/swap", shell = True)
             
-                run(f"mkswap -f /dev/zvol/{args.pool_name}/swap", shell = True)
+                run(f"mkswap -f /dev/zvol/{args.Pool}/swap", shell = True)
             
         else:
             snapDir = [ "snapdir=visible" ]
@@ -742,7 +742,7 @@ try:
             
             dsd = datasets[s][d]
             
-            datasets[args.pool_name] = {
+            datasets[args.Pool] = {
                 "datasets": {
                     "b": {
                         "datasets": {
@@ -787,7 +787,7 @@ try:
                 for dataset in (persist := dsd["persist"][d]).keys():
                     persist[dataset][d][user] = dd
             
-            for backup in (las := datasets[args.pool_name][d]["las"][d]).keys():
+            for backup in (las := datasets[args.Pool][d]["las"][d]).keys():
                 for zz in [ "zpax", "zsyncs" ]:
                     las[backup][d][zz] = dd
             
@@ -803,13 +803,13 @@ try:
                     # son: snapshot or none
                     if (dname != "base") and (args.encrypted and args.deduplicated):
                         cc = "clone"
-                        son = f"{args.pool_name}/base@root"
+                        son = f"{args.Pool}/base@root"
                     else:
                         cc = "create"
                         son = ""
             
                     _doptions = ddict.get("options", [])
-                    if _dataset not in ( f"{args.pool_name}/{dataset}" for dataset in (
+                    if _dataset not in ( f"{args.Pool}/{dataset}" for dataset in (
                         "system",
                         "system/root",
                         "swap",
@@ -818,7 +818,7 @@ try:
                         "omniverse",
                         "reserved",
                     )):
-                        pn1 = args.pool_name
+                        pn1 = args.Pool
                         pn2 = f"{pn1}/{pn1}"
             
                         # TODO: Make this such that the current dataset directory
@@ -851,7 +851,7 @@ try:
             
 
 finally:
-    run(f"zpool export -f {args.pool_name} &> /dev/null", shell = True)
+    run(f"zpool export -f {args.Pool} &> /dev/null", shell = True)
     sys.exit(0)
 
 if args.generate:
