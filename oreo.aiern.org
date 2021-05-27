@@ -93,7 +93,7 @@ mount = subparsers.add_parser("mount")
 update = subparsers.add_parser("update")
 
 for subparser in [ create, mount, update ]:
-    subparser.add_argument("pool-name")
+    subparser.add_argument("-p", "--pool-name", required=True)
     subparser.add_argument("-d", "--deduplicated", action="store_true")
     subparser.add_argument("-e", "--encrypted", action="store_true")
     if ("create" in sys.argv) or ("mount" in sys.argv):
@@ -101,7 +101,7 @@ for subparser in [ create, mount, update ]:
 
 create.add_argument("-z", "--zfs-device", required=True)
 mount.add_argument("-b", "--boot-device", required=True)
-update.add_argument("-p", "--pool", action="store_true")
+update.add_argument("-P", "--pool", action="store_true")
 update.add_argument("-f", "--files", action="store_true")
 
 parser.add_argument("-g", "--generate", action="store_true")
