@@ -287,9 +287,9 @@ try:
             print("Sorry; not continuing!\n\n")
 
     if args.subcommand == "mount":
+        import os
         from collections import namedtuple
         from functools import partial
-        from os import path as osPath
         from subprocess import DEVNULL
         
         for dataset in run("zfs list -rH", shell = True, capture_output = True).stdout.decode().split("\n"):
@@ -302,12 +302,14 @@ try:
         if args.encrypted:
             run(f"zfs load-key {args.Pool}", shell = True)
         
-        if osPath.isdir("/mnt"):
+        if os.path.isdir("/mnt"):
             run("umount -R /mnt", shell = True)
         else:
             run("mkdir /mnt", shell = True)
         
-        run(f"mount -t zfs {args.Pool}/system/root /mnt", shell = True)
+        os.system(f"mount -t zfs {args.Pool}/system/root /mnt")
+        
+        # run(f"mount -t zfs {args.Pool}/system/root /mnt", shell = True)
         
         with open(f"{resources}/datasets.nix") as datasets:
             for __dataset in datasets.readlines()[1:-1]:
@@ -318,11 +320,11 @@ try:
                     args.Pool,
                 )
         
-                if not osPath.isdir(mount):
+                if not os.path.isdir(mount):
                     run(f"mkdir -p {mount}", shell = True)
                 run(f"mount -t zfs {dataset} {mount}", shell = True)
         
-        if not osPath.isdir(boot := "/mnt/boot/efi"):
+        if not os.path.isdir(boot := "/mnt/boot/efi"):
             run(f"mkdir -p {boot}", shell = True)
         
         run(f"mount {args.boot_device} {boot}", shell = True)
