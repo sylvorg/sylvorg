@@ -235,14 +235,6 @@ with open(f"{resources}/datasets.nix", "w+") as dnix:
                     mountpoint = _mountpoint = f"{mountpoint}/{dname}"
 
             dnix.write(f'\t"{_dataset}" = "{_mountpoint}";\n')
-
-            for dataset in (ddictd := ddictd.get(
-                d,
-                dd
-            )):
-                recurse(ddictd[dataset], dataset, _dataset, mountpoint)
-
-        doptions = " -o ".join(_doptions)
 #+end_src
 
 ******** after opening =f{resources}/datasets.nix=
@@ -254,6 +246,12 @@ with open(f"{resources}/datasets.nix", "w+") as dnix:
 
 #+name: c417a7146013877ff5189f1f48688a79
 #+begin_src python
+    for dataset in (ddictd := ddictd.get(
+        d,
+        dd
+    )):
+        recurse(ddictd[dataset], dataset, _dataset, mountpoint)
+
 for dataset in datasets:
     recurse(datasets[dataset], dataset, pool_name)
 
@@ -358,7 +356,6 @@ for backup in (las := datasets[args.Pool][d]["las"][d]).keys():
         las[backup][d][zz] = dd
 
 <<c87d7294a0bf9ef139a1a416a45ff4fb>>
-
 #+end_src
 
 ****** mount
@@ -437,7 +434,6 @@ d = "datasets"
 s = "system"
 
 <<a42e6a90b4026d89c3e1c6b0e491b092>>
-
 #+end_src
 
 ******* after updating the pool
@@ -502,6 +498,8 @@ if args.swap:
 
 #+name: ce03e726e6169dc629b60d56a3218588
 #+begin_src python
+doptions = " -o ".join(_doptions)
+
 dataset_command = f"zfs {cc} {'-o ' if _doptions else ''} {doptions} {son} {_dataset}"
 snapshot_command = f"zfs snapshot -r {_dataset}@root"
 print(dataset_command)

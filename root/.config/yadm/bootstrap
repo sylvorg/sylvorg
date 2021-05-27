@@ -217,16 +217,8 @@ try:
             
                         dnix.write(f'\t"{_dataset}" = "{_mountpoint}";\n')
             
-                        for dataset in (ddictd := ddictd.get(
-                            d,
-                            dd
-                        )):
-                            recurse(ddictd[dataset], dataset, _dataset, mountpoint)
-            
                     doptions = " -o ".join(_doptions)
-            
-            
-            
+                    
                     dataset_command = f"zfs {cc} {'-o ' if _doptions else ''} {doptions} {son} {_dataset}"
                     snapshot_command = f"zfs snapshot -r {_dataset}@root"
                     print(dataset_command)
@@ -238,6 +230,12 @@ try:
                     print(dataset_command)
                     print(snapshot_command)
             
+                    for dataset in (ddictd := ddictd.get(
+                        d,
+                        dd
+                    )):
+                        recurse(ddictd[dataset], dataset, _dataset, mountpoint)
+                
                 for dataset in datasets:
                     recurse(datasets[dataset], dataset, pool_name)
                 
@@ -482,16 +480,12 @@ try:
             
                         dnix.write(f'\t"{_dataset}" = "{_mountpoint}";\n')
             
-                        for dataset in (ddictd := ddictd.get(
-                            d,
-                            dd
-                        )):
-                            recurse(ddictd[dataset], dataset, _dataset, mountpoint)
-            
-                    doptions = " -o ".join(_doptions)
-            
-            
-            
+                    for dataset in (ddictd := ddictd.get(
+                        d,
+                        dd
+                    )):
+                        recurse(ddictd[dataset], dataset, _dataset, mountpoint)
+                
                 for dataset in datasets:
                     recurse(datasets[dataset], dataset, pool_name)
                 
@@ -641,16 +635,8 @@ try:
             
                         dnix.write(f'\t"{_dataset}" = "{_mountpoint}";\n')
             
-                        for dataset in (ddictd := ddictd.get(
-                            d,
-                            dd
-                        )):
-                            recurse(ddictd[dataset], dataset, _dataset, mountpoint)
-            
                     doptions = " -o ".join(_doptions)
-            
-            
-            
+                    
                     dataset_command = f"zfs {cc} {'-o ' if _doptions else ''} {doptions} {son} {_dataset}"
                     snapshot_command = f"zfs snapshot -r {_dataset}@root"
                     print(dataset_command)
@@ -662,6 +648,12 @@ try:
                     print(dataset_command)
                     print(snapshot_command)
             
+                    for dataset in (ddictd := ddictd.get(
+                        d,
+                        dd
+                    )):
+                        recurse(ddictd[dataset], dataset, _dataset, mountpoint)
+                
                 for dataset in datasets:
                     recurse(datasets[dataset], dataset, pool_name)
                 
@@ -854,16 +846,12 @@ try:
             
                         dnix.write(f'\t"{_dataset}" = "{_mountpoint}";\n')
             
-                        for dataset in (ddictd := ddictd.get(
-                            d,
-                            dd
-                        )):
-                            recurse(ddictd[dataset], dataset, _dataset, mountpoint)
-            
-                    doptions = " -o ".join(_doptions)
-            
-            
-            
+                    for dataset in (ddictd := ddictd.get(
+                        d,
+                        dd
+                    )):
+                        recurse(ddictd[dataset], dataset, _dataset, mountpoint)
+                
                 for dataset in datasets:
                     recurse(datasets[dataset], dataset, pool_name)
                 
