@@ -16,11 +16,11 @@ for subparser in [ create, mount, update ]:
     subparser.add_argument("Pool")
     subparser.add_argument("-d", "--deduplicated", action="store_true")
     subparser.add_argument("-e", "--encrypted", action="store_true")
-    if ("create" in sys.argv) or ("mount" in sys.argv):
-        subparser.add_argument("-s", "--swap")
 
 create.add_argument("-z", "--zfs-device", required=True)
+create.add_argument("-s", "--swap")
 mount.add_argument("-b", "--boot-device", required=True)
+mount.add_argument("-s", "--swap", action="store_true")
 update.add_argument("-p", "--pool", action="store_true")
 update.add_argument("-f", "--files", action="store_true")
 
@@ -40,7 +40,7 @@ if len(sys.argv) == 1:
 
 args = parser.parse_args()
 
-resources = f'{os.environ["HOME"]}/system/etc/nixos/config'
+resources = f'{os.environ["HOME"]}/shadowrylander/system/etc/nixos/config'
 
 try:
     if args.subcommand == "create":
