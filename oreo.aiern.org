@@ -246,10 +246,10 @@ with open(f"{resources}/datasets.nix", "w+") as dnix:
 
 #+name: c417a7146013877ff5189f1f48688a79
 #+begin_src python
-    for key, value in (ddictd := ddictd.get(
+    for key, value in ddict.get(
         d,
         dd
-    )):
+    ):
         print(key, value)
         recurse(value, key, _dataset, mountpoint)
 
@@ -507,8 +507,8 @@ snapshot_command = " ".join(f"zfs snapshot -r {_dataset}@root".split())
 print(dataset_command)
 print(snapshot_command)
 
-run(dataset_command, shell = True, capture_output = True)
-run(snapshot_command, shell = True, capture_output = True)
+run(dataset_command, shell = True)
+run(snapshot_command, shell = True)
 
 print(dataset_command)
 print(snapshot_command)
