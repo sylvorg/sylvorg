@@ -3,5 +3,5 @@
         (imprelib.list { dir = ./.; })
         (imprelib.list { dir = ../../config; })
     ];
-    config.networking.hostId = "2c3931ce";
+    config.networking.hostId = "9aea448e";
 }
