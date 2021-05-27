@@ -229,14 +229,16 @@ try:
                     print(dataset_command)
                     print(snapshot_command)
             
-                    for dataset in (ddictd := ddictd.get(
+                    for key, value in (ddictd := ddictd.get(
                         d,
                         dd
                     )):
-                        recurse(ddictd[dataset], dataset, _dataset, mountpoint)
+                        print(key, value)
+                        recurse(value, key, _dataset, mountpoint)
                 
-                for dataset in datasets:
-                    recurse(datasets[dataset], dataset, args.Pool)
+                for key, value in datasets.items():
+                    print(key, value)
+                    recurse(value, key, args.Pool)
                 
                 dnix.write("}")
             
@@ -479,14 +481,16 @@ try:
             
                         dnix.write(f'\t"{_dataset}" = "{_mountpoint}";\n')
             
-                    for dataset in (ddictd := ddictd.get(
+                    for key, value in (ddictd := ddictd.get(
                         d,
                         dd
                     )):
-                        recurse(ddictd[dataset], dataset, _dataset, mountpoint)
+                        print(key, value)
+                        recurse(value, key, _dataset, mountpoint)
                 
-                for dataset in datasets:
-                    recurse(datasets[dataset], dataset, args.Pool)
+                for key, value in datasets.items():
+                    print(key, value)
+                    recurse(value, key, args.Pool)
                 
                 dnix.write("}")
             
@@ -647,14 +651,16 @@ try:
                     print(dataset_command)
                     print(snapshot_command)
             
-                    for dataset in (ddictd := ddictd.get(
+                    for key, value in (ddictd := ddictd.get(
                         d,
                         dd
                     )):
-                        recurse(ddictd[dataset], dataset, _dataset, mountpoint)
+                        print(key, value)
+                        recurse(value, key, _dataset, mountpoint)
                 
-                for dataset in datasets:
-                    recurse(datasets[dataset], dataset, args.Pool)
+                for key, value in datasets.items():
+                    print(key, value)
+                    recurse(value, key, args.Pool)
                 
                 dnix.write("}")
             
@@ -845,14 +851,16 @@ try:
             
                         dnix.write(f'\t"{_dataset}" = "{_mountpoint}";\n')
             
-                    for dataset in (ddictd := ddictd.get(
+                    for key, value in (ddictd := ddictd.get(
                         d,
                         dd
                     )):
-                        recurse(ddictd[dataset], dataset, _dataset, mountpoint)
+                        print(key, value)
+                        recurse(value, key, _dataset, mountpoint)
                 
-                for dataset in datasets:
-                    recurse(datasets[dataset], dataset, args.Pool)
+                for key, value in datasets.items():
+                    print(key, value)
+                    recurse(value, key, args.Pool)
                 
                 dnix.write("}")
             
