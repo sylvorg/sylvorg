@@ -70,7 +70,7 @@ try:
             #     if args.Pool in dataset:
             #         run(f"zpool export -f {args.Pool} &> /dev/null", shell = True)
             #         break
-            run(f"zpool export -f {args.Pool} &> /dev/null", shell = True)
+            run(f"zpool export -f {args.Pool}", shell = True)
             
             command = f"zpool create -fo autotrim=on -o altroot=/mnt"
             
