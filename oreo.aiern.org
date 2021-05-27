@@ -119,9 +119,9 @@ if len(sys.argv) == 1:
     sys.exit(1)
 
 args = parser.parse_args()
-cargs = create.parse_args()
-margs = mount.parse_args()
-urgs = update.parse_args()
+cargs = create.parse_args(sys.argv[2:])
+margs = mount.parse_args(sys.argv[2:])
+urgs = update.parse_args(sys.argv[2:])
 #+end_src
 
 ****** create
