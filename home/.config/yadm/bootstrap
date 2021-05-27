@@ -219,8 +219,16 @@ try:
             
             
             
-            run(f"zfs {cc} {'-o ' if _doptions else ''} {doptions} {son} {_dataset}", shell = True)
-            run(f"zfs snapshot -r {_dataset}@root", shell = True)
+            dataset_command = f"zfs {cc} {'-o ' if _doptions else ''} {doptions} {son} {_dataset}"
+            snapshot_command = f"zfs snapshot -r {_dataset}@root"
+            print(dataset_command)
+            print(snapshot_command)
+            
+            run(dataset_command, shell = True)
+            run(snapshot_command, shell = True)
+            
+            print(dataset_command)
+            print(snapshot_command)
             
             for dataset in (ddictd := ddict.get(
                 d,
@@ -633,8 +641,16 @@ try:
             
             
             
-            run(f"zfs {cc} {'-o ' if _doptions else ''} {doptions} {son} {_dataset}", shell = True)
-            run(f"zfs snapshot -r {_dataset}@root", shell = True)
+            dataset_command = f"zfs {cc} {'-o ' if _doptions else ''} {doptions} {son} {_dataset}"
+            snapshot_command = f"zfs snapshot -r {_dataset}@root"
+            print(dataset_command)
+            print(snapshot_command)
+            
+            run(dataset_command, shell = True)
+            run(snapshot_command, shell = True)
+            
+            print(dataset_command)
+            print(snapshot_command)
             
             for dataset in (ddictd := ddict.get(
                 d,
