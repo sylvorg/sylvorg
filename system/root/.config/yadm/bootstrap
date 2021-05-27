@@ -19,6 +19,8 @@ for subparser in [ create, mount, update ]:
     subparser.add_argument("-e", "--encrypted", action="store_true")
     subparser.add_argument("-z", "--zfs-device", required="create" in sys.argv)
     subparser.add_argument("-b", "--boot-device", required="mount" in sys.argv)
+    subparser.add_argument("-p", "--pool", action="store_true")
+    subparser.add_argument("-f", "--files", action="store_true")
     subparser.add_argument("-s", "--swap")
 
 parser.add_argument("-g", "--generate", action="store_true")
@@ -476,7 +478,7 @@ try:
             
             dnix.write("}")
             
-        if args.pool:
+        elif args.pool:
             snapDir = [ "snapdir=visible" ]
             extraCopies = snapDir + [ f"copies={2 if args.encrypted else 3}" ]
             cache = [ "sync=disabled" ]
@@ -679,6 +681,164 @@ try:
                 run(f"zfs create -V {2**args.swap}G -b {ps} -o {swoptions} {args.pool_name}/swap", shell = True)
             
                 run(f"mkswap -f /dev/zvol/{args.pool_name}/swap", shell = True)
+            
+        else:
+            snapDir = [ "snapdir=visible" ]
+            extraCopies = snapDir + [ f"copies={2 if args.encrypted else 3}" ]
+            cache = [ "sync=disabled" ]
+            ml = "mountpoint=legacy"
+            dd = {  }
+            ddd = { "datasets": {  }}
+            d = "datasets"
+            s = "system"
+            
+            datasets = json.loads('''
+                {
+                    "base": {  },
+                    "hold": {  },
+                    "omniverse": {  },
+                    "reserved": {  },
+                    "system": {
+                        "datasets": {
+                            "home": { "datasets": { "root": { "mountpoint": "/root" }}},
+                            "nix": {  },
+                            "persist": {
+                                "datasets": {
+                                    "cache": {
+                                        "datasets": { "root": {  }},
+                                        "options": [ "sync=disabled" ]
+                                    },
+                                    "home": { "datasets": { "root": {  }}}
+                                }
+                            },
+                            "root": {  },
+                            "tmp": { "options": [ "sync=disabled" ] }
+                        },
+                        "options": [ "mountpoint=legacy" ]
+                    },
+                    "virt": {
+                        "datasets": {
+                            "docker": {  },
+                            "kvm": {  },
+                            "podman": { "datasets": {  }},
+                            "qemu": {  },
+                            "vagrant": {  },
+                            "xen": {  }
+                        },
+                        "options": [ "mountpoint=legacy", "refreservation=none" ],
+                        "mountpoint": "/var/lib"
+                    }
+                }
+            '''.strip())
+            
+            dsd = datasets[s][d]
+            
+            datasets[args.pool_name] = {
+                "datasets": {
+                    "b": {
+                        "datasets": {
+                            "a": dd,
+                            "cc": { "options": snapDir },
+                            "cl": dd,
+                            "cj": { "datasets": {
+                                "cc": { "options": extraCopies },
+                                "m": { "options": snapDir }
+                            }},
+                            "eb": { "options": extraCopies },
+                            "oreo": { "option": snapDir },
+                            "p": { "options": snapDir }
+                        },
+                    },
+                    "borg": { "datasets": { "cache": { "options": cache }}},
+                    "jails": { "datasets": { "base": dd}},
+                    "las": {
+                        "datasets": {
+                            "dreadnought": ddd,
+                            "redstone": ddd,
+                            "sinnoh": ddd
+                        }
+                    },
+                    "y": dd,
+                    "z": dd
+                },
+                "options": [ ml ]
+            }
+            
+            users = json.loads('''
+                {
+                    "primary": "shadowrylander",
+                    "secondary": "frost",
+                    "nightingale": "curtis"
+                }
+            '''.strip())
+            
+            for user in users.values():
+                dsd["home"][d][user] = dd
+                datasets["virt"][d]["podman"][d][user] = dd
+                for dataset in (persist := dsd["persist"][d]).keys():
+                    persist[dataset][d][user] = dd
+            
+            for backup in (las := datasets[args.pool_name][d]["las"][d]).keys():
+                for zz in [ "zpax", "zsyncs" ]:
+                    las[backup][d][zz] = dd
+            
+            with open(f"{resources}/datasets.nix", "w+") as dnix:
+            
+                dnix.write("host: {\n")
+            
+                def recurse(ddict, dname, droot, mountpoint = ""):
+            
+                    _dataset = f"{droot}/{dname}"
+            
+                    # cc: clone or create
+                    # son: snapshot or none
+                    if (dname != "base") and (args.encrypted and args.deduplicated):
+                        cc = "clone"
+                        son = f"{args.pool_name}/base@root"
+                    else:
+                        cc = "create"
+                        son = ""
+            
+                    _doptions = ddict.get("options", [])
+                    if _dataset not in ( f"{args.pool_name}/{dataset}" for dataset in (
+                        "system",
+                        "system/root",
+                        "swap",
+                        "base",
+                        "hold",
+                        "omniverse",
+                        "reserved",
+                    )):
+                        pn1 = args.pool_name
+                        pn2 = f"{pn1}/{pn1}"
+            
+                        # TODO: Make this such that the current dataset directory
+                        #       is placed under the parent directory's mountpoint
+                        if (mountpoint := (_mountpoint := ddict.get("mountpoint", ""))) == "":
+                            if mountpoint == "":
+                                _mountpoint = _dataset.replace(
+                                    pn2 if pn2 in _dataset else pn1,
+                                    "${host}",
+                                    1
+                                )
+                            else:
+                                mountpoint = _mountpoint = f"{mountpoint}/{dname}"
+            
+                        dnix.write(f'\t"{_dataset}" = "{_mountpoint}";\n')
+                    doptions = " -o ".join(_doptions)
+            
+            
+            
+            for dataset in (ddictd := ddict.get(
+                d,
+                dd
+            )):
+                recurse(ddictd[dataset], dataset, _dataset, mountpoint)
+            
+            for dataset in datasets:
+                recurse(datasets[dataset], dataset, pool_name)
+            
+            dnix.write("}")
             
 
 finally:

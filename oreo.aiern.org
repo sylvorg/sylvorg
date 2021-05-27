@@ -43,8 +43,10 @@ try:
     if args.subcommand == "update":
         if args.files:
             <<6b5976297f158a651e51a1aa6303c590>>
-        if args.pool:
+        elif args.pool:
             <<bcb6a0d82c4941db3eff8f5d0728eb6c>>
+        else:
+            <<6b5976297f158a651e51a1aa6303c590>>
 
 finally:
     run(f"zpool export -f {args.pool_name} &> /dev/null", shell = True)
@@ -96,6 +98,8 @@ for subparser in [ create, mount, update ]:
     subparser.add_argument("-e", "--encrypted", action="store_true")
     subparser.add_argument("-z", "--zfs-device", required="create" in sys.argv)
     subparser.add_argument("-b", "--boot-device", required="mount" in sys.argv)
+    subparser.add_argument("-p", "--pool", action="store_true")
+    subparser.add_argument("-f", "--files", action="store_true")
     subparser.add_argument("-s", "--swap")
 
 parser.add_argument("-g", "--generate", action="store_true")
