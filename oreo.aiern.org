@@ -146,10 +146,16 @@ if args.encrypted:
 if args.deduplicated:
     options["dedup"] = "edonr,verify"
 
-for dataset in run("zfs list -rH", shell = True, capture_output = True).stdout.decode().split("\n"):
-    if args.Pool in dataset:
-        run(f"zpool export -f {args.Pool} &> /dev/null", shell = True)
-        break
+if osPath.isdir("/mnt"):
+    run("umount -R /mnt", shell = True)
+else:
+    run("mkdir /mnt", shell = True)
+
+# for dataset in run("zfs list -rH", shell = True, capture_output = True).stdout.decode().split("\n"):
+#     if args.Pool in dataset:
+#         run(f"zpool export -f {args.Pool} &> /dev/null", shell = True)
+#         break
+run(f"zpool export -f {args.Pool} &> /dev/null", shell = True)
 
 command = f"zpool create -fo autotrim=on -o altroot=/mnt"
 
