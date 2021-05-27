@@ -252,8 +252,8 @@ with open(f"{resources}/datasets.nix", "w+") as dnix:
     )):
         recurse(ddictd[dataset], dataset, _dataset, mountpoint)
 
-for dataset in datasets:
-    recurse(datasets[dataset], dataset, pool_name)
+for key, value in datasets.items():
+    recurse(value, key, args.Pool)
 
 dnix.write("}")
 #+end_src
