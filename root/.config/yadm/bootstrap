@@ -209,8 +209,8 @@ try:
                             if mountpoint == "":
                                 _mountpoint = _dataset.replace(
                                     pn2 if pn2 in _dataset else pn1,
-                                    "${host}",
-                                    1
+                                    "/${host}",
+                                    1,
                                 )
                             else:
                                 mountpoint = _mountpoint = f"{mountpoint}/{dname}"
@@ -221,21 +221,14 @@ try:
                     
                     dataset_command = " ".join(f"zfs {cc} {'-o ' if _doptions else ''} {doptions} {son} {_dataset}".split())
                     snapshot_command = " ".join(f"zfs snapshot -r {_dataset}@root".split())
-                    print(dataset_command)
-                    print(snapshot_command)
                     
                     run(dataset_command, shell = True)
                     run(snapshot_command, shell = True)
-                    
-                    print(dataset_command)
-                    print(snapshot_command)
             
                     for key, value in ddict.get(d, dd).items():
-                        print(key, value)
                         recurse(value, key, _dataset, mountpoint)
                 
                 for key, value in datasets.items():
-                    print(key, value)
                     recurse(value, key, args.Pool)
                 
                 dnix.write("}")
@@ -311,18 +304,15 @@ try:
         run(f"mount -t zfs {args.Pool}/system/root /mnt", shell = True)
         
         with open(f"{resources}/datasets.nix") as datasets:
-            for dataset in datasets.readlines()[1:-1]:
-                dataset = dataset.strip().strip('"')
-        
-                r = f"{args.Pool}/"
-                sr = r + "system/"
-                _mount = dataset.replace(
-                    sr if sr in dataset else r,
-                    '',
-                    1
+            for __dataset in datasets.readlines()[1:-1]:
+                _dataset, _mount = dataset.split("=")
+                dataset = _dataset.strip()
+                mount = '"/mnt' + _mount.strip().lstrip('"').replace(
+                    "${host}",
+                    args.Pool,
                 )
         
-                if not osPath.isdir(mount := f"/mnt/{_mount}"):
+                if not osPath.isdir(mount):
                     run(f"mkdir -p {mount}", shell = True)
                 run(f"mount -t zfs {dataset} {mount}", shell = True)
         
@@ -471,8 +461,8 @@ try:
                             if mountpoint == "":
                                 _mountpoint = _dataset.replace(
                                     pn2 if pn2 in _dataset else pn1,
-                                    "${host}",
-                                    1
+                                    "/${host}",
+                                    1,
                                 )
                             else:
                                 mountpoint = _mountpoint = f"{mountpoint}/{dname}"
@@ -480,11 +470,9 @@ try:
                         dnix.write(f'\t"{_dataset}" = "{_mountpoint}";\n')
             
                     for key, value in ddict.get(d, dd).items():
-                        print(key, value)
                         recurse(value, key, _dataset, mountpoint)
                 
                 for key, value in datasets.items():
-                    print(key, value)
                     recurse(value, key, args.Pool)
                 
                 dnix.write("}")
@@ -625,8 +613,8 @@ try:
                             if mountpoint == "":
                                 _mountpoint = _dataset.replace(
                                     pn2 if pn2 in _dataset else pn1,
-                                    "${host}",
-                                    1
+                                    "/${host}",
+                                    1,
                                 )
                             else:
                                 mountpoint = _mountpoint = f"{mountpoint}/{dname}"
@@ -637,21 +625,14 @@ try:
                     
                     dataset_command = " ".join(f"zfs {cc} {'-o ' if _doptions else ''} {doptions} {son} {_dataset}".split())
                     snapshot_command = " ".join(f"zfs snapshot -r {_dataset}@root".split())
-                    print(dataset_command)
-                    print(snapshot_command)
                     
                     run(dataset_command, shell = True)
                     run(snapshot_command, shell = True)
-                    
-                    print(dataset_command)
-                    print(snapshot_command)
             
                     for key, value in ddict.get(d, dd).items():
-                        print(key, value)
                         recurse(value, key, _dataset, mountpoint)
                 
                 for key, value in datasets.items():
-                    print(key, value)
                     recurse(value, key, args.Pool)
                 
                 dnix.write("}")
@@ -835,8 +816,8 @@ try:
                             if mountpoint == "":
                                 _mountpoint = _dataset.replace(
                                     pn2 if pn2 in _dataset else pn1,
-                                    "${host}",
-                                    1
+                                    "/${host}",
+                                    1,
                                 )
                             else:
                                 mountpoint = _mountpoint = f"{mountpoint}/{dname}"
@@ -844,11 +825,9 @@ try:
                         dnix.write(f'\t"{_dataset}" = "{_mountpoint}";\n')
             
                     for key, value in ddict.get(d, dd).items():
-                        print(key, value)
                         recurse(value, key, _dataset, mountpoint)
                 
                 for key, value in datasets.items():
-                    print(key, value)
                     recurse(value, key, args.Pool)
                 
                 dnix.write("}")
