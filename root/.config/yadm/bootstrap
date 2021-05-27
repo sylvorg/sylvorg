@@ -219,13 +219,13 @@ try:
             
                     doptions = " -o ".join(_doptions)
                     
-                    dataset_command = f"zfs {cc} {'-o ' if _doptions else ''} {doptions} {son} {_dataset}"
-                    snapshot_command = f"zfs snapshot -r {_dataset}@root"
+                    dataset_command = " ".join(f"zfs {cc} {'-o ' if _doptions else ''} {doptions} {son} {_dataset}".split())
+                    snapshot_command = " ".join(f"zfs snapshot -r {_dataset}@root".split())
                     print(dataset_command)
                     print(snapshot_command)
                     
-                    run(dataset_command, shell = True)
-                    run(snapshot_command, shell = True)
+                    run(dataset_command, shell = True, capture_output = True)
+                    run(snapshot_command, shell = True, capture_output = True)
                     
                     print(dataset_command)
                     print(snapshot_command)
@@ -641,13 +641,13 @@ try:
             
                     doptions = " -o ".join(_doptions)
                     
-                    dataset_command = f"zfs {cc} {'-o ' if _doptions else ''} {doptions} {son} {_dataset}"
-                    snapshot_command = f"zfs snapshot -r {_dataset}@root"
+                    dataset_command = " ".join(f"zfs {cc} {'-o ' if _doptions else ''} {doptions} {son} {_dataset}".split())
+                    snapshot_command = " ".join(f"zfs snapshot -r {_dataset}@root".split())
                     print(dataset_command)
                     print(snapshot_command)
                     
-                    run(dataset_command, shell = True)
-                    run(snapshot_command, shell = True)
+                    run(dataset_command, shell = True, capture_output = True)
+                    run(snapshot_command, shell = True, capture_output = True)
                     
                     print(dataset_command)
                     print(snapshot_command)
