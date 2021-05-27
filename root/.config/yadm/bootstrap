@@ -30,11 +30,14 @@ parser.add_argument("-i", "--install", action="store_true")
 parser.add_argument("-H", "--home-manager", action="store_true")
 parser.add_argument("-a", "--all", action="store_true")
 
-args = parser.parse_args()
-
+# Adapted From:
+# Answer: https://stackoverflow.com/a/29312757/10827766
+# User: https://stackoverflow.com/users/2664549/cgseller
 if len(sys.argv)==1:
     parser.print_help(sys.stderr)
     sys.exit(1)
+
+args = parser.parse_args()
 
 resources = f'{os.environ["HOME"]}/system/etc/nixos/config'
 
