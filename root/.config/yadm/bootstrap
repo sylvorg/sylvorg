@@ -286,52 +286,6 @@ try:
         else:
             print("Sorry; not continuing!\n\n")
 
-    if args.subcommand == "mount":
-        import os
-        from collections import namedtuple
-        from functools import partial
-        from subprocess import DEVNULL
-        
-        for dataset in run("zfs list -rH", shell = True, capture_output = True).stdout.decode().split("\n"):
-            if args.Pool in dataset:
-                # run(f"zpool export -f {args.Pool}", shell = True)
-                break
-        else:
-            run(f"zpool import -f {args.Pool}", shell = True)
-        
-        if args.encrypted:
-            run(f"zfs load-key {args.Pool}", shell = True)
-        
-        if os.path.isdir("/mnt"):
-            run("umount -R /mnt", shell = True)
-        else:
-            run("mkdir /mnt", shell = True)
-        
-        os.system(f"mount -t zfs {args.Pool}/system/root /mnt")
-        
-        # run(f"mount -t zfs {args.Pool}/system/root /mnt", shell = True)
-        
-        with open(f"{resources}/datasets.nix") as datasets:
-            for __dataset in datasets.readlines()[1:-1]:
-                _dataset, _mount = dataset.split("=")
-                dataset = _dataset.strip()
-                mount = '"/mnt' + _mount.strip().lstrip('"').replace(
-                    "${host}",
-                    args.Pool,
-                )
-        
-                if not os.path.isdir(mount):
-                    run(f"mkdir -p {mount}", shell = True)
-                run(f"mount -t zfs {dataset} {mount}", shell = True)
-        
-        if not os.path.isdir(boot := "/mnt/boot/efi"):
-            run(f"mkdir -p {boot}", shell = True)
-        
-        run(f"mount {args.boot_device} {boot}", shell = True)
-        
-        if args.swap:
-            run(f"swapon /dev/zvol/{args.Pool}/swap", shell = True)
-
     if args.subcommand == "update":
         if args.files:
             snapDir = [ "snapdir=visible" ]
@@ -844,6 +798,49 @@ try:
 finally:
     run(f"zpool export -f {args.Pool} &> /dev/null", shell = True)
     sys.exit(0)
+
+if args.subcommand == "mount":
+    import os
+    from collections import namedtuple
+    from functools import partial
+    from subprocess import DEVNULL
+    
+    for dataset in run("zfs list -rH", shell = True, capture_output = True).stdout.decode().split("\n"):
+        if args.Pool in dataset:
+            break
+    else:
+        run(f"zpool import -f {args.Pool}", shell = True)
+    
+    if args.encrypted:
+        run(f"zfs load-key {args.Pool}", shell = True)
+    
+    if os.path.isdir("/mnt"):
+        run("umount -R /mnt", shell = True)
+    else:
+        run("mkdir /mnt", shell = True)
+    
+    run(f"mount -t zfs {args.Pool}/system/root /mnt", shell = True)
+    
+    with open(f"{resources}/datasets.nix") as datasets:
+        for __dataset in datasets.readlines()[1:-1]:
+            _dataset, _mount = dataset.split("=")
+            dataset = _dataset.strip()
+            mount = '"/mnt' + _mount.strip().lstrip('"').replace(
+                "${host}",
+                args.Pool,
+            )
+    
+            if not os.path.isdir(mount):
+                run(f"mkdir -p {mount}", shell = True)
+            run(f"mount -t zfs {dataset} {mount}", shell = True)
+    
+    if not os.path.isdir(boot := "/mnt/boot/efi"):
+        run(f"mkdir -p {boot}", shell = True)
+    
+    run(f"mount {args.boot_device} {boot}", shell = True)
+    
+    if args.swap:
+        run(f"swapon /dev/zvol/{args.Pool}/swap", shell = True)
 
 if args.generate:
     run("nixos-generate-config --root /mnt", shell = True)

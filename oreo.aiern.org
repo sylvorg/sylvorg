@@ -37,9 +37,6 @@ try:
         else:
             print("Sorry; not continuing!\n\n")
 
-    if args.subcommand == "mount":
-        <<f2f6ce58bd9d44b38b94e493ecca4e73>>
-
     if args.subcommand == "update":
         if args.files:
             <<6b5976297f158a651e51a1aa6303c590>>
@@ -51,6 +48,9 @@ try:
 finally:
     run(f"zpool export -f {args.Pool} &> /dev/null", shell = True)
     sys.exit(0)
+
+if args.subcommand == "mount":
+    <<f2f6ce58bd9d44b38b94e493ecca4e73>>
 
 if args.generate:
     run("nixos-generate-config --root /mnt", shell = True)
@@ -377,7 +377,6 @@ from subprocess import DEVNULL
 
 for dataset in run("zfs list -rH", shell = True, capture_output = True).stdout.decode().split("\n"):
     if args.Pool in dataset:
-        # run(f"zpool export -f {args.Pool}", shell = True)
         break
 else:
     run(f"zpool import -f {args.Pool}", shell = True)
@@ -390,9 +389,7 @@ if os.path.isdir("/mnt"):
 else:
     run("mkdir /mnt", shell = True)
 
-os.system(f"mount -t zfs {args.Pool}/system/root /mnt")
-
-# run(f"mount -t zfs {args.Pool}/system/root /mnt", shell = True)
+run(f"mount -t zfs {args.Pool}/system/root /mnt", shell = True)
 
 with open(f"{resources}/datasets.nix") as datasets:
     for __dataset in datasets.readlines()[1:-1]:
