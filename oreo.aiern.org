@@ -524,7 +524,7 @@ print(snapshot_command)
 #+begin_src python
 <<1912c98033c29905b1ad36967799623f>>
 
-            <<c417a7146013877ff5189f1f48688a79>>
+        <<c417a7146013877ff5189f1f48688a79>>
 
 #+end_src
 
@@ -539,9 +539,9 @@ print(snapshot_command)
 #+begin_src python
 <<1912c98033c29905b1ad36967799623f>>
 
-            <<ce03e726e6169dc629b60d56a3218588>>
+        <<ce03e726e6169dc629b60d56a3218588>>
 
-            <<c417a7146013877ff5189f1f48688a79>>
+        <<c417a7146013877ff5189f1f48688a79>>
 
 <<6efb3f37b6f2f802c281686eff7281dc>>
 
