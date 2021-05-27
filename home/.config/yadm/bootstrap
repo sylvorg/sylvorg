@@ -219,27 +219,27 @@ try:
             
             
             
-                            dataset_command = f"zfs {cc} {'-o ' if _doptions else ''} {doptions} {son} {_dataset}"
-                            snapshot_command = f"zfs snapshot -r {_dataset}@root"
-                            print(dataset_command)
-                            print(snapshot_command)
-                            
-                            run(dataset_command, shell = True)
-                            run(snapshot_command, shell = True)
-                            
-                            print(dataset_command)
-                            print(snapshot_command)
+                        dataset_command = f"zfs {cc} {'-o ' if _doptions else ''} {doptions} {son} {_dataset}"
+                        snapshot_command = f"zfs snapshot -r {_dataset}@root"
+                        print(dataset_command)
+                        print(snapshot_command)
+                        
+                        run(dataset_command, shell = True)
+                        run(snapshot_command, shell = True)
+                        
+                        print(dataset_command)
+                        print(snapshot_command)
             
-                            for dataset in (ddictd := ddict.get(
-                                d,
-                                dd
-                            )):
-                                recurse(ddictd[dataset], dataset, _dataset, mountpoint)
-                            
-                            for dataset in datasets:
-                                recurse(datasets[dataset], dataset, pool_name)
-                            
-                            dnix.write("}")
+                        for dataset in (ddictd := ddict.get(
+                            d,
+                            dd
+                        )):
+                            recurse(ddictd[dataset], dataset, _dataset, mountpoint)
+                        
+                        for dataset in datasets:
+                            recurse(datasets[dataset], dataset, pool_name)
+                        
+                        dnix.write("}")
             
             pool_size_plus_metric = run(
                 f"zpool get -H size {args.Pool}",
@@ -483,16 +483,16 @@ try:
             
             
             
-                            for dataset in (ddictd := ddict.get(
-                                d,
-                                dd
-                            )):
-                                recurse(ddictd[dataset], dataset, _dataset, mountpoint)
-                            
-                            for dataset in datasets:
-                                recurse(datasets[dataset], dataset, pool_name)
-                            
-                            dnix.write("}")
+                        for dataset in (ddictd := ddict.get(
+                            d,
+                            dd
+                        )):
+                            recurse(ddictd[dataset], dataset, _dataset, mountpoint)
+                        
+                        for dataset in datasets:
+                            recurse(datasets[dataset], dataset, pool_name)
+                        
+                        dnix.write("}")
             
         elif args.pool:
             snapDir = [ "snapdir=visible" ]
@@ -641,27 +641,27 @@ try:
             
             
             
-                            dataset_command = f"zfs {cc} {'-o ' if _doptions else ''} {doptions} {son} {_dataset}"
-                            snapshot_command = f"zfs snapshot -r {_dataset}@root"
-                            print(dataset_command)
-                            print(snapshot_command)
-                            
-                            run(dataset_command, shell = True)
-                            run(snapshot_command, shell = True)
-                            
-                            print(dataset_command)
-                            print(snapshot_command)
+                        dataset_command = f"zfs {cc} {'-o ' if _doptions else ''} {doptions} {son} {_dataset}"
+                        snapshot_command = f"zfs snapshot -r {_dataset}@root"
+                        print(dataset_command)
+                        print(snapshot_command)
+                        
+                        run(dataset_command, shell = True)
+                        run(snapshot_command, shell = True)
+                        
+                        print(dataset_command)
+                        print(snapshot_command)
             
-                            for dataset in (ddictd := ddict.get(
-                                d,
-                                dd
-                            )):
-                                recurse(ddictd[dataset], dataset, _dataset, mountpoint)
-                            
-                            for dataset in datasets:
-                                recurse(datasets[dataset], dataset, pool_name)
-                            
-                            dnix.write("}")
+                        for dataset in (ddictd := ddict.get(
+                            d,
+                            dd
+                        )):
+                            recurse(ddictd[dataset], dataset, _dataset, mountpoint)
+                        
+                        for dataset in datasets:
+                            recurse(datasets[dataset], dataset, pool_name)
+                        
+                        dnix.write("}")
             
             pool_size_plus_metric = run(
                 f"zpool get -H size {args.Pool}",
@@ -853,16 +853,16 @@ try:
             
             
             
-                            for dataset in (ddictd := ddict.get(
-                                d,
-                                dd
-                            )):
-                                recurse(ddictd[dataset], dataset, _dataset, mountpoint)
-                            
-                            for dataset in datasets:
-                                recurse(datasets[dataset], dataset, pool_name)
-                            
-                            dnix.write("}")
+                        for dataset in (ddictd := ddict.get(
+                            d,
+                            dd
+                        )):
+                            recurse(ddictd[dataset], dataset, _dataset, mountpoint)
+                        
+                        for dataset in datasets:
+                            recurse(datasets[dataset], dataset, pool_name)
+                        
+                        dnix.write("}")
             
 
 finally:
