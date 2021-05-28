@@ -150,7 +150,7 @@
             modules = nmports: { stc, ... }: let
                 configBase = { inherit stc; ignoredAttrs = [ "host" ];};
                 superPort = j.foldToSet (flatten [
-                    (import "${nixpkgs}/nixos/modules/module-list.nix")
+                    (map import (import "${nixpkgs}/nixos/modules/module-list.nix"))
                     [
                         nmports
                         {
@@ -159,7 +159,7 @@
                         }
                         (make.specialArgs { inherit stc; })
                     ]
-                ];
+                ]);
             in flatten [
                 (map (file: import file superPort) (j.imprelib.list { dir = ./modules; }))
                 (with stc; [
