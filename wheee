@@ -5,9 +5,7 @@ from sys import argv
 from itertools import zip_longest
 from subprocess import run
 parser = argparse.ArgumentParser()
-parser.add_argument("-D", "--directory", default="/mnt/etc/nixos" if (
-    ("-i" in argv) or ("--install" in argv)
-) else "/etc/nixos")
+parser.add_argument("-D", "--directory", default="/etc/nixos")
 parser.add_argument("-f", "--flake", action="store_true")
 parser.add_argument("-F", "--file")
 parser.add_argument("-c", "--command", default="switch")
@@ -57,7 +55,7 @@ flake = lambda _hash: f'--flake "{args.directory}#{_hash}"' if args.flake else (
 if homeManager:
     command = lambda _hash: f"home-manager {args.command} {flake(_hash)}"
 elif args.install:
-    command = lambda _hash: f'nixos-install {args.command} --impure --show-trace {flake(_hash)}'
+    command = lambda _hash: f'nixos-install --impure --show-trace {flake(_hash)}'
 else:
     command = lambda _hash: f'nixos-rebuild {args.command} --impure --show-trace {flake(_hash)}'
 
