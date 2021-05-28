@@ -1,4 +1,4 @@
-{ config, lib, ... }: with builtins; with lib; with j; mkIf (config.vars.zfs) { fileSystems = let
+{ config, lib, host, ... }: with builtins; with lib; with j; mkIf (config.vars.zfs) { fileSystems = let
     inherit (attrs.fileSystems) base;
     fileSystems' = import ./config/datasets.nix host;
 in mapAttrs' (dataset: mountpoint: nameValuePair mountpoint (

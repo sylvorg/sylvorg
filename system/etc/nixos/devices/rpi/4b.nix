@@ -31,7 +31,7 @@
     services.xserver.videoDrivers = [ "fbdev" ];    
     hardware = {
         enableRedistributableFirmware = true;
-        raspberry-pi."4".fkms-3d.enable = true;
+        # raspberry-pi."4".fkms-3d.enable = true;
         pulseaudio.enable = true;
     };
     sound.enable = true;
