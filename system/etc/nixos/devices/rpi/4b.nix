@@ -1,4 +1,4 @@
-{ config, lib, pkgs, type, ... }: with builtins; with lib; with j; mkIf (device == "4b") {
+{ config, lib, pkgs, device, ... }: with builtins; with lib; with j; mkIf (device == "4b") {
     vars.terminal = true;
     boot = {
         kernelPackages = mkOverride 49 pkgs.linuxPackages_rpi4;
