@@ -149,16 +149,13 @@
             };
             modules = nmports: { stc, ... }: let
                 configBase = { inherit stc; ignoredAttrs = [ "host" ];};
-                superPort = flatten [
-                    (import "${nixpkgs}/nixos/modules/module-list.nix")
-                    (lib.foldToSet [
-                        nmports
-                        {
-                            inherit (stc) system;
-                            pkgs =  j.get (configBase // { set = all.pkgs; });
-                        }
-                        (make.specialArgs { inherit stc; })
-                    ])
+                superPort = (listToAttrs (map import (import "${nixpkgs}/nixos/modules/module-list.nix"))) // j.foldToSet [
+                    nmports
+                    {
+                        inherit (stc) system;
+                        pkgs =  j.get (configBase // { set = all.pkgs; });
+                    }
+                    (make.specialArgs { inherit stc; })
                 ];
             in flatten [
                 (map (file: import file superPort) (j.imprelib.list { dir = ./modules; }))
