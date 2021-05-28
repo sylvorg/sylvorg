@@ -656,10 +656,7 @@ run(snapshot_command, shell = True)
 {
     description = "";
     inputs = {
-        <<username>> = {
-            url = "github:<<username>>/<<username>>/master";
-            flake = false;
-        };
+        <<username>>.url = "github:<<username>>/<<username>>/master";
         wip-pinebook-pro = {
             url = "github:<<username>>/wip-pinebook-pro/master";
             flake = false;
@@ -1279,9 +1276,16 @@ pkgs =  j.get (configBase // { set = all.pkgs; });
             };
             modules = nmports: { stc, ... }: let
                 configBase = { inherit stc; ignoredAttrs = [ "host" ];};
-                superPort = (nmports // {
-                    <<bc8e4c4ef661dde1e91ee70adf2a661f>>
-                } // (make.specialArgs { inherit stc; }));
+                superPort = flatten [
+                    (import "${nixpkgs}/nixos/modules/module-list.nix")
+                    (lib.foldToSet [
+                        nmports
+                        {
+                            <<bc8e4c4ef661dde1e91ee70adf2a661f>>
+                        }
+                        (make.specialArgs { inherit stc; })
+                    ])
+                ];
             in flatten [
                 (map (file: import file superPort) (j.imprelib.list { dir = ./modules; }))
                 (with stc; [

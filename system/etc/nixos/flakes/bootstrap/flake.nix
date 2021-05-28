@@ -1,10 +1,7 @@
 {
     description = "";
     inputs = {
-        shadowrylander = {
-            url = "github:shadowrylander/shadowrylander/master";
-            flake = false;
-        };
+        shadowrylander.url = "github:shadowrylander/shadowrylander/master";
         wip-pinebook-pro = {
             url = "github:shadowrylander/wip-pinebook-pro/master";
             flake = false;
