@@ -63,6 +63,7 @@ if args.move:
 if args.rsync:
     run("nix-env -iA nixos.rsync", shell = True)
     run("rsync -avvczz ~/<<username>>/system/ /mnt/", shell = True)
+    run("mv /etc/nixos/flake.nix{,.bak}", shell = True)
 
 if args.install:
     run("nixos-install --show-trace", shell = True)
