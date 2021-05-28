@@ -162,7 +162,7 @@
         ;; If this percentage is too small, the keybindings frame will appear at the bottom
         (which-key-side-window-max-width 0.5)
 
-        (which-key-side-window-max-height 0.25))
+        (which-key-side-window-max-height 0.10))
 (use-package! ryo-modal
     :demand t
     :general (:keymaps 'override (general-chord "  ") 'jr/toggle-ryo)

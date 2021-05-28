@@ -6,6 +6,18 @@ with builtins; let
         with stc;
         with integer-default-truths;
     let
+        sources' = ((import (
+            let
+                lock = builtins.fromJSON (builtins.readFile /etc/nixos/flakes/home/flake.lock);
+            in fetchTarball {
+                url = "https://github.com/edolstra/flake-compat/archive/${lock.nodes.flake-compat.locked.rev}.tar.gz";
+                sha256 = lock.nodes.flake-compat.locked.narHash; }
+            ) {
+                src = /etc/nixos/flakes/home;
+            }).defaultNix).inputs;
+        
+        inherit (flake) all;
+        
         fromAll = category: get {
             set = all.${category};
             stc = removeAttrs (
@@ -160,15 +172,7 @@ with builtins; let
                         interactiveShellInit = ''
                             bass source ${homeDirectory}/.nix-profile/etc/profile.d/hm-session-vars.sh
                         '';
-                        plugins = [
-                            {
-                                name = "bass";
-                                src = fetchGit {
-                                    url = "https://github.com/edc/bass";
-                                    ref = "master";
-                                };
-                            }
-                        ];
+                        plugins = [{ name = "bass"; src = sources'.bass; }];
                     };
                     starship.enableFishIntegration = true;
                 })

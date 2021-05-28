@@ -1,8 +1,14 @@
 inputs@{ config, pkgs, ... } : with builtins; let
-    source = fetchGit {
-        url = "https://github.com/shadowrylander/shadowrylander";
-        ref = "master";
-    };
+    sources' = let
+        flakePath = "${./.}/flakes/bootstrap";
+        lock = builtins.fromJSON (builtins.readFile "${flakePath}/flake.lock");
+    in ((import (
+        fetchTarball {
+            url = "https://github.com/edolstra/flake-compat/archive/${lock.nodes.flake-compat.locked.rev}.tar.gz";
+            sha256 = lock.nodes.flake-compat.locked.narHash; }
+        ) { src =  flakePath; }).defaultNix).inputs;
+
+    source = sources'.shadowrylander;
 
     flake = let
         flakePath = "${source}/system/etc/nixos";
@@ -30,14 +36,7 @@ inputs@{ config, pkgs, ... } : with builtins; let
         n: v: v == 1
     ) (lib.filterAttrs (n: v: isInt v) stc-home);
 
-    home-manager' = fetchGit {
-        url = "https://github.com/nix-community/home-manager";
-        ref = "master";
-    };
-    impermanence = fetchGit {
-        url = "https://github.com/nix-community/impermanence";
-        ref = "master";
-    };
+    inherit (sources') home-manager' impermanence;
     hash = user: lib.j.hostName { stc = stc-home // { inherit user; }; };
     customInputs = inputs // { inherit stc lib sources; };
 in
@@ -61,10 +60,7 @@ if (
         (import "${home-manager'}/nixos")
         (import "${impermanence}/nixos.nix")
         (myIf.set (type == "pinebook") (
-            "${fetchGit {
-                url = "https://github.com/shadowrylander/wip-pinebook-pro";
-                ref = "master";
-            }}/configuration.nix"
+            "${sources'.wip-pinebook-pro}/pinebook_pro.nix"
         ))
         (myIf.shell (type == "rpi") (import ./devices/rpi (inputs // stc)))
     ];
@@ -150,5 +146,5 @@ if (
         environment.systemPackages = with pkgs; [ vim git rsync tmux byobu xonsh yadm
             # python39
         ];
-    }
+    };
 }

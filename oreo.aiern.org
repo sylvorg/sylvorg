@@ -6,6 +6,20 @@ This can be used with =GNU Stow= as well! :D
 The tangle functions are adapted from [[https://emacs.stackexchange.com/a/29884/31428][this answer on the emacs Stack Exchange]],
 which was written by [[https://emacs.stackexchange.com/users/2710/andrew-swann][Andrew Swann]].
 
+* .config
+** yadm
+*** bootstrap
+
+#+call: hash("")
+
+#+RESULTS:
+: 5918a1d90f5b7e61007371faf087dff7
+
+#+name: 5918a1d90f5b7e61007371faf087dff7
+#+begin_src sh :tangle (jr/tangle-path) :shebang "#!/usr/bin/env bash"
+
+#+end_src
+
 * root
 ** .config
 **** yadm
@@ -613,6 +627,78 @@ run(snapshot_command, shell = True)
 }
 #+end_src
 
+***** volturnus
+****** default.nix
+
+#+call: hash("")
+
+#+RESULTS:
+: 4a16768f61babd032702c71505f72e22
+
+#+name: 4a16768f61babd032702c71505f72e22
+#+begin_src nix :tangle (jr/tangle-path)
+<<4c712913b902da3ab3e4d6a6c4b61f4e>>
+    config.networking.hostId = <<hostId()>>;
+}
+#+end_src
+
+**** flakes
+***** bootstrap
+****** flake.nix
+
+#+call: hash("")
+
+#+RESULTS:
+: 1db0e9fcbfbdf6bb7d9fb9816e975c52
+
+#+name: 1db0e9fcbfbdf6bb7d9fb9816e975c52
+#+begin_src nix :tangle (jr/tangle-path)
+{
+    description = "";
+    inputs = {
+        <<username>> = {
+            url = "github:<<username>>/<<username>>/master";
+            flake = false;
+        };
+        wip-pinebook-pro = {
+            url = "github:<<username>>/wip-pinebook-pro/master";
+            flake = false;
+        };
+        home-manager' = {
+            url = "github:nix-community/home-manager";
+            flake = false;
+        };
+        impermanence = {
+            url = "github:nix-community/impermanence";
+            flake = false;
+        };
+    };
+    outputs = { self, ... }: {  };
+}
+#+end_src
+
+***** home
+****** flake.nix
+
+#+call: hash("")
+
+#+RESULTS:
+: 7af54258644d4f471a1ae39a0dd658d0
+
+#+name: 7af54258644d4f471a1ae39a0dd658d0
+#+begin_src nix :tangle (jr/tangle-path)
+{
+    description = "";
+    inputs = {
+        bass = {
+            url = "github:edc/bass";
+            flake = false;
+        };
+    };
+    outputs = { self, ... }: {  };
+}
+#+end_src
+
 **** configuration.nix
 
 #+call: hash("")
@@ -623,10 +709,16 @@ run(snapshot_command, shell = True)
 #+name: 85c71d57cb6422039ae10ee7e4a830ed
 #+begin_src nix :tangle (jr/tangle-path)
 inputs@{ config, pkgs, ... } : with builtins; let
-    source = fetchGit {
-        url = "https://github.com/shadowrylander/shadowrylander";
-        ref = "master";
-    };
+    sources' = let
+        flakePath = "${./.}/flakes/bootstrap";
+        lock = builtins.fromJSON (builtins.readFile "${flakePath}/flake.lock");
+    in ((import (
+        fetchTarball {
+            url = "https://github.com/edolstra/flake-compat/archive/${lock.nodes.flake-compat.locked.rev}.tar.gz";
+            sha256 = lock.nodes.flake-compat.locked.narHash; }
+        ) { src =  flakePath; }).defaultNix).inputs;
+
+    source = sources'.<<username>>;
 
     flake = let
         flakePath = "${source}/system/etc/nixos";
@@ -654,14 +746,7 @@ inputs@{ config, pkgs, ... } : with builtins; let
         n: v: v == 1
     ) (lib.filterAttrs (n: v: isInt v) stc-home);
 
-    home-manager' = fetchGit {
-        url = "https://github.com/nix-community/home-manager";
-        ref = "master";
-    };
-    impermanence = fetchGit {
-        url = "https://github.com/nix-community/impermanence";
-        ref = "master";
-    };
+    inherit (sources') home-manager' impermanence;
     hash = user: lib.j.hostName { stc = stc-home // { inherit user; }; };
     customInputs = inputs // { inherit stc lib sources; };
 in
@@ -680,10 +765,7 @@ if (
         (import "${home-manager'}/nixos")
         (import "${impermanence}/nixos.nix")
         (myIf.set (type == "pinebook") (
-            "${fetchGit {
-                url = "https://github.com/shadowrylander/wip-pinebook-pro";
-                ref = "master";
-            }}/configuration.nix"
+            "${sources'.wip-pinebook-pro}/pinebook_pro.nix"
         ))
         (myIf.shell (type == "rpi") (import ./devices/rpi (inputs // stc)))
     ];
@@ -758,7 +840,7 @@ if (
         environment.systemPackages = with pkgs; [ vim git rsync tmux byobu xonsh yadm
             # python39
         ];
-    }
+    };
 }
 #+end_src
 
@@ -1980,7 +2062,7 @@ rec {
             enable = true;
             serviceConfig = {
                 Restart = "on-failure";
-                User = "shadowrylander";
+                User = "<<username>>";
             };
             wantedBy = [ "multi-user.target" ];
         };
@@ -4025,7 +4107,7 @@ in
 #+name: 4b4166b2bebff5d6dc0a9118372f6e36
 #+begin_src json :tangle (jr/tangle-path)
 {
-    "primary": "shadowrylander",
+    "primary": "<<username>>",
     "secondary": "frost",
     "nightingale": "curtis"
 }
@@ -4392,6 +4474,19 @@ starship.enableZshIntegration = true;
 #+end_src
 
 ** .config
+*** yadm
+**** bootstrap
+
+#+call: hash("")
+
+#+RESULTS:
+: 6fe6b364d9fba7cd66bd9cf730282b2a
+
+#+name: 6fe6b364d9fba7cd66bd9cf730282b2a
+#+begin_src sh :tangle (jr/tangle-path) :shebang "#!/usr/bin/env bash"
+<<5918a1d90f5b7e61007371faf087dff7>>
+#+end_src
+
 *** kitty
 
 #+call: hash("programs")
@@ -4510,15 +4605,7 @@ fish = {
     interactiveShellInit = ''
         bass source ${homeDirectory}/.nix-profile/etc/profile.d/hm-session-vars.sh
     '';
-    plugins = [
-        {
-            name = "bass";
-            src = fetchGit {
-                url = "https://github.com/edc/bass";
-                ref = "master";
-            };
-        }
-    ];
+    plugins = [{ name = "bass"; src = sources'.bass; }];
 };
 starship.enableFishIntegration = true;
 #+end_src
@@ -4650,6 +4737,18 @@ in getAttrFromPath (attrValues stc) legacyPackages.%o" `((?o . ,oc)))
 
 #+name: 7f0e66916c2f315cb8ef3f098a5299db
 #+begin_src nix
+sources' = ((import (
+    let
+        lock = builtins.fromJSON (builtins.readFile /etc/nixos/flakes/home/flake.lock);
+    in fetchTarball {
+        url = "https://github.com/edolstra/flake-compat/archive/${lock.nodes.flake-compat.locked.rev}.tar.gz";
+        sha256 = lock.nodes.flake-compat.locked.narHash; }
+    ) {
+        src = /etc/nixos/flakes/home;
+    }).defaultNix).inputs;
+
+inherit (flake) all;
+
 fromAll = category: get {
     set = all.${category};
     stc = removeAttrs (
@@ -4922,19 +5021,6 @@ in with lib; with j; forAllSystems' {
 <<4f8559fab44b31eee3bd94b54447bea2>>
 min-free = 262144000
 max-free = 1073741824
-#+end_src
-
-*** yadm
-**** bootstrap
-
-#+call: hash("")
-
-#+RESULTS:
-: 6fe6b364d9fba7cd66bd9cf730282b2a
-
-#+name: 6fe6b364d9fba7cd66bd9cf730282b2a
-#+begin_src python :tangle (jr/tangle-path)
-<<20da3080268b6d2673a43886dcdd8d08>>
 #+end_src
 
 ** .bashrc
