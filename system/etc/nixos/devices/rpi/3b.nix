@@ -1,4 +1,4 @@
-{ config, lib, pkgs, type, ... }: with builtins; with lib; with j; mkIf (type == "3b") {
+{ config, lib, pkgs, type, ... }: with builtins; with lib; with j; mkIf (device == "3b") {
     vars.terminal = true;
     boot = {
         kernelParams = ["cma=256M"];

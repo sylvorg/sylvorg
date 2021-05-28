@@ -58,6 +58,7 @@ if args.generate:
     run("nixos-generate-config --root /mnt", shell = True)
 
 if args.move:
+    run("mkdir -p /mnt/etc/nixos/config", shell = True)
     run("mv /mnt/etc/nixos/{,config/}configuration.nix", shell = True)
     run("mv /mnt/etc/nixos/{,config/}hardware-configuration.nix", shell = True)
 
@@ -860,7 +861,7 @@ Taken from [[https://github.com/NixOS/nixos-hardware/tree/master/microsoft/hyper
 
 #+name: 210b033fdaac881a3a29e9cb4224e623
 #+begin_src nix :tangle (jr/tangle-path)
-{ config, lib, pkgs, type, ... }: with builtins; with lib; with j; mkIf (type == "3b") {
+{ config, lib, pkgs, type, ... }: with builtins; with lib; with j; mkIf (device == "3b") {
     vars.terminal = true;
     boot = {
         kernelParams = ["cma=256M"];
@@ -879,8 +880,6 @@ Taken from [[https://github.com/NixOS/nixos-hardware/tree/master/microsoft/hyper
 
 ****** 4b.nix
 
-# TODO
-
 #+call: hash("")
 
 #+RESULTS:
@@ -888,7 +887,7 @@ Taken from [[https://github.com/NixOS/nixos-hardware/tree/master/microsoft/hyper
 
 #+name: cca75de16da0c6105a43698cfaa4062d
 #+begin_src nix :tangle (jr/tangle-path)
-{ config, lib, pkgs, type, ... }: with builtins; with lib; with j; mkIf (type == "4b") {
+{ config, lib, pkgs, type, ... }: with builtins; with lib; with j; mkIf (device == "4b") {
     vars.terminal = true;
     boot = {
         kernelPackages = mkOverride 49 pkgs.linuxPackages_rpi4;

@@ -847,6 +847,7 @@ if args.generate:
     run("nixos-generate-config --root /mnt", shell = True)
 
 if args.move:
+    run("mkdir -p /mnt/etc/nixos/config", shell = True)
     run("mv /mnt/etc/nixos/{,config/}configuration.nix", shell = True)
     run("mv /mnt/etc/nixos/{,config/}hardware-configuration.nix", shell = True)
 
