@@ -46,9 +46,10 @@ try:
             <<6b5976297f158a651e51a1aa6303c590>>
 
 finally:
-    for dataset in run("zfs list -rH", shell = True, capture_output = True).stdout.decode().split("\n"):
-        if args.Pool in dataset:
-            run(f"zpool export -f {args.Pool}", shell = True)
+    if args.subcommand:
+        for dataset in run("zfs list -rH", shell = True, capture_output = True).stdout.decode().split("\n"):
+            if args.Pool in dataset:
+                run(f"zpool export -f {args.Pool}", shell = True)
 
 if args.subcommand == "mount":
     <<f2f6ce58bd9d44b38b94e493ecca4e73>>
@@ -57,13 +58,13 @@ if args.generate:
     run("nixos-generate-config --root /mnt", shell = True)
 
 if args.move:
-    run("mv /etc/nixos/{,config}/configuration.nix", shell = True)
-    run("mv /etc/nixos/{,config}/hardware-configuration.nix", shell = True)
+    run("mv /mnt/etc/nixos/{,config/}configuration.nix", shell = True)
+    run("mv /mnt/etc/nixos/{,config/}hardware-configuration.nix", shell = True)
 
 if args.rsync:
     run("nix-env -iA nixos.rsync", shell = True)
     run("rsync -avvczz ~/<<username>>/system/ /mnt/", shell = True)
-    run("mv /etc/nixos/flake.nix{,.bak}", shell = True)
+    run("mv /mnt/etc/nixos/flake.nix{,.bak}", shell = True)
 
 if args.install:
     run("nixos-install --show-trace", shell = True)

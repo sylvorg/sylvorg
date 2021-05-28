@@ -796,9 +796,10 @@ try:
             
 
 finally:
-    for dataset in run("zfs list -rH", shell = True, capture_output = True).stdout.decode().split("\n"):
-        if args.Pool in dataset:
-            run(f"zpool export -f {args.Pool}", shell = True)
+    if args.subcommand:
+        for dataset in run("zfs list -rH", shell = True, capture_output = True).stdout.decode().split("\n"):
+            if args.Pool in dataset:
+                run(f"zpool export -f {args.Pool}", shell = True)
 
 if args.subcommand == "mount":
     import os
@@ -847,13 +848,13 @@ if args.generate:
     run("nixos-generate-config --root /mnt", shell = True)
 
 if args.move:
-    run("mv /etc/nixos/{,config}/configuration.nix", shell = True)
-    run("mv /etc/nixos/{,config}/hardware-configuration.nix", shell = True)
+    run("mv /mnt/etc/nixos/{,config/}configuration.nix", shell = True)
+    run("mv /mnt/etc/nixos/{,config/}hardware-configuration.nix", shell = True)
 
 if args.rsync:
     run("nix-env -iA nixos.rsync", shell = True)
     run("rsync -avvczz ~/shadowrylander/system/ /mnt/", shell = True)
-    run("mv /etc/nixos/flake.nix{,.bak}", shell = True)
+    run("mv /mnt/etc/nixos/flake.nix{,.bak}", shell = True)
 
 if args.install:
     run("nixos-install --show-trace", shell = True)
