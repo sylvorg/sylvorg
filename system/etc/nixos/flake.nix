@@ -91,7 +91,7 @@
         };
     };
 
-    outputs = inputs@{ self, flake-compat, ... }: with builtins; let
+    outputs = inputs@{ self, ... }: with builtins; let
 
         mkOverlay = import ./overlays;
 

@@ -1247,7 +1247,7 @@ pkgs =  j.get (configBase // { set = all.pkgs; });
         <<da5fe3496669eea2dcae419277ad3927>>
     };
 
-    outputs = inputs@{ self, flake-compat, ... }: with builtins; let
+    outputs = inputs@{ self, ... }: with builtins; let
 
         mkOverlay = import ./overlays;
 
@@ -3774,7 +3774,7 @@ map (ver: let
         nixpkgs-master.url = "github:nixos/nixpkgs/master";
     };
 
-    outputs = inputs@{ self, flake-compat, ... } : {  };
+    outputs = inputs@{ self, ... } : {  };
 }
 #+end_src
 
