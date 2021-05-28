@@ -6,16 +6,7 @@ with builtins; let
         with stc;
         with integer-default-truths;
     let
-        sources' = ((import (
-            let
-                lock = builtins.fromJSON (builtins.readFile /etc/nixos/flakes/home/flake.lock);
-            in fetchTarball {
-                url = "https://github.com/edolstra/flake-compat/archive/${lock.nodes.flake-compat.locked.rev}.tar.gz";
-                sha256 = lock.nodes.flake-compat.locked.narHash; }
-            ) {
-                src = /etc/nixos/flakes/home;
-            }).defaultNix).inputs;
-        
+        sources' = (getFlake "/etc/nixos/flakes/home").inputs;
         inherit (flake) all;
         
         fromAll = category: get {
@@ -873,15 +864,7 @@ with builtins; let
         ]);
     };
 
-    flake = (import (
-        let
-            lock = builtins.fromJSON (builtins.readFile /etc/nixos/flake.lock);
-        in fetchTarball {
-            url = "https://github.com/edolstra/flake-compat/archive/${lock.nodes.flake-compat.locked.rev}.tar.gz";
-            sha256 = lock.nodes.flake-compat.locked.narHash; }
-        ) {
-            src =  /etc/nixos;
-        }).defaultNix
+    flake = getFlake "/etc/nixos";
     inherit (flake) all;
 
 in with lib; with j; forAllSystems' {

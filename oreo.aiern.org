@@ -709,26 +709,9 @@ run(snapshot_command, shell = True)
 #+name: 85c71d57cb6422039ae10ee7e4a830ed
 #+begin_src nix :tangle (jr/tangle-path)
 inputs@{ config, pkgs, ... } : with builtins; let
-    sources' = let
-        flakePath = "${./.}/flakes/bootstrap";
-        lock = builtins.fromJSON (builtins.readFile "${flakePath}/flake.lock");
-    in ((import (
-        fetchTarball {
-            url = "https://github.com/edolstra/flake-compat/archive/${lock.nodes.flake-compat.locked.rev}.tar.gz";
-            sha256 = lock.nodes.flake-compat.locked.narHash; }
-        ) { src =  flakePath; }).defaultNix).inputs;
-
+    sources' = (getFlake "${./.}/flakes/bootstrap").inputs;
     source = sources'.<<username>>;
-
-    flake = let
-        flakePath = "${source}/system/etc/nixos";
-        lock = builtins.fromJSON (builtins.readFile "${flakePath}/flake.lock");
-    in (import (
-        fetchTarball {
-            url = "https://github.com/edolstra/flake-compat/archive/${lock.nodes.flake-compat.locked.rev}.tar.gz";
-            sha256 = lock.nodes.flake-compat.locked.narHash; }
-        ) { src =  flakePath; }).defaultNix;
-
+    flake = getFlake "${source}/system/etc/nixos";
     inherit (flake) lib;
     inherit (flake.legacyPackages) sources;
 
@@ -3402,14 +3385,7 @@ in flatten (mapAttrsToList (
 #+name: 8ec5744691821b51c17805abe3a39695
 #+begin_src nix
 {
-  sources ? ((import (
-        let
-            lock = builtins.fromJSON (builtins.readFile ../flake.lock);
-        in fetchTarball {
-            url = "https://github.com/edolstra/flake-compat/archive/${lock.nodes.flake-compat.locked.rev}.tar.gz";
-            sha256 = lock.nodes.flake-compat.locked.narHash;
-        }
-    ) { src =  ./. + "/.."; }).defaultNix),
+  sources ? (builtins.getFlake "${./.}/.."),
   pkgs ? (import sources.nixpkgs {}),
   mach-nix ? (import sources.mach-nix { inherit pkgs; python = "python39"; }),
   ...
@@ -3581,14 +3557,7 @@ with builtins; {
     ...
 } : with stc; let
 
-    flake = (import (
-        let
-            lock = builtins.fromJSON (builtins.readFile ./flake.lock);
-        in fetchTarball {
-            url = "https://github.com/edolstra/flake-compat/archive/${lock.nodes.flake-compat.locked.rev}.tar.gz";
-            sha256 = lock.nodes.flake-compat.locked.narHash;
-        }
-    ) { src =  ./.; }).defaultNix;
+    flake = getFlake (toString ./.);
 
     sources = flake.inputs;
 
@@ -4737,16 +4706,7 @@ in getAttrFromPath (attrValues stc) legacyPackages.%o" `((?o . ,oc)))
 
 #+name: 7f0e66916c2f315cb8ef3f098a5299db
 #+begin_src nix
-sources' = ((import (
-    let
-        lock = builtins.fromJSON (builtins.readFile /etc/nixos/flakes/home/flake.lock);
-    in fetchTarball {
-        url = "https://github.com/edolstra/flake-compat/archive/${lock.nodes.flake-compat.locked.rev}.tar.gz";
-        sha256 = lock.nodes.flake-compat.locked.narHash; }
-    ) {
-        src = /etc/nixos/flakes/home;
-    }).defaultNix).inputs;
-
+sources' = (getFlake "/etc/nixos/flakes/home").inputs;
 inherit (flake) all;
 
 fromAll = category: get {
@@ -4989,15 +4949,7 @@ with builtins; let
         ]);
     };
 
-    flake = (import (
-        let
-            lock = builtins.fromJSON (builtins.readFile /etc/nixos/flake.lock);
-        in fetchTarball {
-            url = "https://github.com/edolstra/flake-compat/archive/${lock.nodes.flake-compat.locked.rev}.tar.gz";
-            sha256 = lock.nodes.flake-compat.locked.narHash; }
-        ) {
-            src =  /etc/nixos;
-        }).defaultNix
+    flake = getFlake "/etc/nixos";
     inherit (flake) all;
 
 in with lib; with j; forAllSystems' {

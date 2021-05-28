@@ -1,24 +1,7 @@
 inputs@{ config, pkgs, ... } : with builtins; let
-    sources' = let
-        flakePath = "${./.}/flakes/bootstrap";
-        lock = builtins.fromJSON (builtins.readFile "${flakePath}/flake.lock");
-    in ((import (
-        fetchTarball {
-            url = "https://github.com/edolstra/flake-compat/archive/${lock.nodes.flake-compat.locked.rev}.tar.gz";
-            sha256 = lock.nodes.flake-compat.locked.narHash; }
-        ) { src =  flakePath; }).defaultNix).inputs;
-
+    sources' = (getFlake "${./.}/flakes/bootstrap").inputs;
     source = sources'.shadowrylander;
-
-    flake = let
-        flakePath = "${source}/system/etc/nixos";
-        lock = builtins.fromJSON (builtins.readFile "${flakePath}/flake.lock");
-    in (import (
-        fetchTarball {
-            url = "https://github.com/edolstra/flake-compat/archive/${lock.nodes.flake-compat.locked.rev}.tar.gz";
-            sha256 = lock.nodes.flake-compat.locked.narHash; }
-        ) { src =  flakePath; }).defaultNix;
-
+    flake = getFlake "${source}/system/etc/nixos";
     inherit (flake) lib;
     inherit (flake.legacyPackages) sources;
 
