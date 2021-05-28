@@ -47,5 +47,5 @@
         nixpkgs-master.url = "github:nixos/nixpkgs/master";
     };
 
-    outputs = inputs@{ self, ... } : {  };
+    outputs = inputs@{ self, flake-compat, ... } : {  };
 }
