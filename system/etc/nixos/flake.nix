@@ -147,33 +147,6 @@
                     inherit overlays config;
                 };
             };
-            modules = nmports: { stc, ... }: let
-                configBase = { inherit stc; ignoredAttrs = [ "host" ];};
-                superPort = j.foldToSet (flatten [
-                    (map import (import "${nixpkgs}/nixos/modules/module-list.nix"))
-                    [
-                        nmports
-                        {
-                            inherit (stc) system;
-                            pkgs =  j.get (configBase // { set = all.pkgs; });
-                        }
-                        (make.specialArgs { inherit stc; })
-                    ]
-                ]);
-            in flatten [
-                (map (file: import file superPort) (j.imprelib.list { dir = ./modules; }))
-                (with stc; [
-                    (import (./. + "/configs/${host}") superPort)
-                    (if (type == "def") then {} else (import (./. + "/devices/${type}") superPort))
-                    (let path = ./. + "/platforms/${system}"; in
-                        if (pathExists path) then (import path superPort) else {})
-                ])
-                (with sources; [
-                    home-manager-flake.nixosModules.home-manager
-                    agenix.nixosModules.age
-                    impermanence-flake.nixosModules.impermanence
-                ])
-            ];
             nixosConfiguration = { stc, ... }: let
                 configBase = { inherit stc; ignoredAttrs = [ "host" ];};
             in lib.nixosSystem {
@@ -181,8 +154,18 @@
                 pkgs =  j.get (configBase // { set = all.pkgs; });
                 specialArgs = make.specialArgs { inherit stc; };
                 modules = flatten [
-                    (make.modules {} { inherit stc; })
                     (j.imprelib.list { dir = ./modules; })
+                    (with stc; [
+                        (./. + "/configs/${host}")
+                        (if (type == "def") then {} else (./. + "/devices/${type}"))
+                        (let path = ./. + "/platforms/${system}"; in
+                            if (pathExists path) then path else {})
+                    ])
+                    (with sources; [
+                        home-manager-flake.nixosModules.home-manager
+                        agenix.nixosModules.age
+                        impermanence-flake.nixosModules.impermanence
+                    ])
                 ];
             };
             nixosModule = { stc, ... }: nmports@{ config, ... }: { imports = flatten [
@@ -245,7 +228,6 @@
         legacyPackages = all;
 
         nixosConfigurations = forAllSystems' { inherit all; func = make.nixosConfiguration; };
-        nixosModules = forAllSystems' { inherit all; func = make.nixosModule; };
 
         # From: https://nixos.wiki/wiki/Flakes#Getting_Instant_System_Flakes_Repl
         nix.nixPath = let path = toString ./.; in [ "repl=${path}/repl.nix" "nixpkgs=${sources.nixpkgs}" ];
