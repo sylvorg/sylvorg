@@ -91,7 +91,7 @@
         };
     };
 
-    outputs = inputs@{ self, nixpkgs, flake-utils, flake-compat, ... }: with builtins; with nixpkgs.lib; with flake-utils.lib; let
+    outputs = inputs@{ self, flake-compat, ... }: with builtins; let
 
         mkOverlay = import ./overlays;
 
@@ -114,7 +114,7 @@
 
         sources = inputs // prepkgs.j.sources;
         inherit (sources) nix;
-        lib = nixpkgs.lib.extend (final: prev: {
+        lib = inputs.nixpkgs.lib.extend (final: prev: {
             j = import ./lib {
                 inherit sources;
                 pkgs = prepkgs;
@@ -123,6 +123,7 @@
             h = sources.hlissner.lib;
         });
 
+        inherit (nixpkgs.lib) flatten;
         inherit (lib) j;
         inherit (lib.j) attrs;
         fas = j.forAllSystems;
@@ -189,9 +190,9 @@
             nixpkgs = prepkgs.j.nixpkgset;
             channel = prepkgs.j.channels;
             host = attrs.hosts;
-            # system = allSystems;
+            # system = inputs.flake-utils.lib.allSystems;
             system = [ "aarch64-linux" "x86_64-linux" ];
-            # system = defaultSystems;
+            # system = inputs.flake-utils.lib.defaultSystems;
         } // (genAttrs (attrNames attrs.integer-defaults) (attr: range 0 1));
         all = let
             sc = {
@@ -243,6 +244,6 @@
         # From: https://nixos.wiki/wiki/Flakes#Getting_Instant_System_Flakes_Repl
         nix.nixPath = let path = toString ./.; in [ "repl=${path}/repl.nix" "nixpkgs=${sources.nixpkgs}" ];
 
-    } // (eachSystem all.system (system: {  }));
+    } // (with flake-utils.lib; eachSystem all.system (system: {  }));
 
 }
