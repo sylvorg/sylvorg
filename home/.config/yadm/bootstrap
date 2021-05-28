@@ -795,7 +795,9 @@ try:
             
 
 finally:
-    run(f"zpool export -f {args.Pool}", shell = True)
+    for dataset in run("zfs list -rH", shell = True, capture_output = True).stdout.decode().split("\n"):
+        if args.Pool in dataset:
+            run(f"zpool export -f {args.Pool}", shell = True)
 
 if args.subcommand == "mount":
     import os
@@ -821,7 +823,7 @@ if args.subcommand == "mount":
     
     with open(f"{resources}/datasets.nix") as datasets:
         for __dataset in datasets.readlines()[1:-1]:
-            _dataset, _mount = dataset.split("=")
+            _dataset, _mount = __dataset.split("=")
             dataset = _dataset.strip()
             mount = '"/mnt' + _mount.strip().lstrip('"').replace(
                 "${host}",
