@@ -190,7 +190,7 @@ in with lib; flatten [
     )
     (
         # Adapted From: https://github.com/NixOS/nixpkgs/issues/75669#issuecomment-579432702
-        [{( self: super: { guix = self.callPackage (
+        [( self: super: { guix = self.callPackage (
             {stdenv, fetchurl}:
             stdenv.mkDerivation rec
               { name = "guix-${version}";
@@ -233,6 +233,6 @@ in with lib; flatten [
                 };
             
               }
-        ) {}; })}]
+        ) {}; })]
     )
 ]
