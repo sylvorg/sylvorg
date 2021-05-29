@@ -229,8 +229,7 @@ with open(f"{resources}/_datasets.nix", "w+") as dnix:
             cc = "create"
             son = ""
 
-        _doptions = ddict.get("options", [])
-        if _dataset not in ( f"{args.Pool}/{dataset}" for dataset in (prefixes := (
+        prefixes = (
             "system",
             "system/root",
             "swap",
@@ -238,7 +237,9 @@ with open(f"{resources}/_datasets.nix", "w+") as dnix:
             "hold",
             "omniverse",
             "reserved",
-        ))):
+        )
+        _doptions = ddict.get("options", [])
+        if _dataset not in ( f"{args.Pool}/{dataset}" for dataset in prefixes):
             # TODO: Make this such that the current dataset directory
             #       is placed under the parent directory's mountpoint
             if (mountpoint := (_mountpoint := ddict.get("mountpoint", ""))) == "":
