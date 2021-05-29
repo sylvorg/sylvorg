@@ -1,7 +1,7 @@
 { config, lib, ... }: with builtins; with lib; with j; {
     imports = flatten [
         (imprelib.list { dir = ./.; })
-        (imprelib.list { dir = ../../config; })
+        (imprelib.list { dir = ../../config; ignores = [ "datasets" ]; })
     ];
-    config.networking.hostId = "c811e1f7";
+    config.networking.hostId = "69157da2";
 }

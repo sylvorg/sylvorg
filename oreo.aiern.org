@@ -261,7 +261,7 @@ with open(f"{resources}/datasets.nix", "w+") as dnix:
             dnix.write(f'\t"{_dataset}" = "{_mountpoint}";\n')
 #+end_src
 
-******** after opening =f{resources}/datasets.nix=
+******** after opening =f{resources}/_datasets.nix=
 
 #+call: hash("")
 
@@ -409,7 +409,7 @@ else:
 
 run(f"mount -t zfs {args.Pool}/system/root /mnt", shell = True)
 
-with open(f"{resources}/datasets.nix") as datasets:
+with open(f"{resources}/_datasets.nix") as datasets:
     for __dataset in datasets.readlines()[1:-1]:
         _dataset, _mount = __dataset.split("=")
         dataset = _dataset.strip()
@@ -588,7 +588,7 @@ run(snapshot_command, shell = True)
 { config, lib, ... }: with builtins; with lib; with j; {
     imports = flatten [
         (imprelib.list { dir = ./.; })
-        (imprelib.list { dir = ../../config; })
+        (imprelib.list { dir = ../../config; ignores = [ "datasets" ]; })
     ];
 #+end_src
 
@@ -2399,9 +2399,9 @@ loader = {
 
 #+name: f75c7aea962922162380ecc15061163b
 #+begin_src nix :tangle (jr/tangle-path)
-{ config, lib, host, ... }: with builtins; with lib; with j; mkIf (config.vars.zfs) { fileSystems = let
+{ config, lib, stc, ... }: with builtins; with lib; with j; mkIf (config.vars.zfs) { fileSystems = let
     inherit (attrs.fileSystems) base;
-    fileSystems' = import ./config/datasets.nix host;
+    fileSystems' = import ../config/_datasets.nix stc.host;
 in mapAttrs' (dataset: mountpoint: nameValuePair mountpoint (
     mkForce (base // { device = dataset; ${
         myIf.knull (hasInfix "persist" dataset) "neededForBoot"
