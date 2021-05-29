@@ -43,11 +43,11 @@
     "shadowrylander": {
       "flake": false,
       "locked": {
-        "lastModified": 1622230364,
-        "narHash": "sha256-bgVnTMHW9LRa7sUF0qGH4VJfstmO4qW0HL7vLWE5/OE=",
+        "lastModified": 1622256551,
+        "narHash": "sha256-vEfuaTEGAKdolymN7tXYIc5PK9IeK4rAxc0j2ruuu+g=",
         "owner": "shadowrylander",
         "repo": "shadowrylander",
-        "rev": "cd93244f84bf97897724d69d738f2f54d081dfe2",
+        "rev": "fd7f88a6024cc14b901431de4391b51cb2a2c1c8",
         "type": "github"
       },
       "original": {

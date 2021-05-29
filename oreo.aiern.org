@@ -77,7 +77,6 @@ if args.move:
 if args.rsync:
     run("nix-env -iA nixos.rsync", shell = True)
     run("rsync -avvczz ~/<<username>>/system/ /mnt/", shell = True)
-    run("mv /mnt/etc/nixos/flake.nix{,.bak}", shell = True)
 
 if args.install:
     run("nixos-install --show-trace", shell = True)
@@ -650,7 +649,10 @@ run(snapshot_command, shell = True)
 {
     description = "";
     inputs = {
-        <<username>>.url = "github:<<username>>/<<username>>/master";
+        <<username>> = {
+            url = "github:<<username>>/<<username>>/master";
+            flake = false;
+        };
         wip-pinebook-pro = {
             url = "github:<<username>>/wip-pinebook-pro/master";
             flake = false;
