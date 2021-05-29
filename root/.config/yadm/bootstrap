@@ -3,7 +3,7 @@ import argparse
 import json
 import os
 import sys
-from subprocess import run
+from subprocess import run, DEVNULL, STDOUT
 
 parser = argparse.ArgumentParser()
 
@@ -63,15 +63,11 @@ try:
                 options["dedup"] = "edonr,verify"
             
             if os.path.isdir("/mnt"):
-                run("umount -R /mnt", shell = True)
+                run("umount -R /mnt", shell = True, stdout=DEVNULL, stderr=STDOUT)
             else:
-                run("mkdir /mnt", shell = True)
+                run("mkdir /mnt", shell = True, stdout=DEVNULL, stderr=STDOUT)
             
-            # for dataset in run("zfs list -rH", shell = True, capture_output = True).stdout.decode().split("\n"):
-            #     if args.Pool in dataset:
-            #         run(f"zpool export -f {args.Pool}", shell = True)
-            #         break
-            run(f"zpool export -f {args.Pool}", shell = True)
+            run(f"zpool export -f {args.Pool}", shell = True, stdout=DEVNULL, stderr=STDOUT)
             
             command = f"zpool create -fo autotrim=on -o altroot=/mnt"
             
@@ -197,7 +193,7 @@ try:
                         son = ""
             
                     _doptions = ddict.get("options", [])
-                    if _dataset not in ( f"{args.Pool}/{dataset}" for dataset in (
+                    if _dataset not in ( f"{args.Pool}/{dataset}" for dataset in (prefixes := (
                         "system",
                         "system/root",
                         "swap",
@@ -205,12 +201,15 @@ try:
                         "hold",
                         "omniverse",
                         "reserved",
-                    )):
+                    ))):
                         # TODO: Make this such that the current dataset directory
                         #       is placed under the parent directory's mountpoint
                         if (mountpoint := (_mountpoint := ddict.get("mountpoint", ""))) == "":
                             if mountpoint == "":
-                                _mountpoint = _dataset.replace(args.Pool, "", 1)
+                                _mountpoint = _dataset.removeprefix(args.Pool + "/")
+                                for prefix in prefixes:
+                                    _mountpoint.removeprefix(prefix + "/")
+                                _mountpoint = "/" + _mountpoint
                             else:
                                 mountpoint = _mountpoint = f"{mountpoint}/{dname}"
             
@@ -398,7 +397,7 @@ try:
                         son = ""
             
                     _doptions = ddict.get("options", [])
-                    if _dataset not in ( f"{args.Pool}/{dataset}" for dataset in (
+                    if _dataset not in ( f"{args.Pool}/{dataset}" for dataset in (prefixes := (
                         "system",
                         "system/root",
                         "swap",
@@ -406,12 +405,15 @@ try:
                         "hold",
                         "omniverse",
                         "reserved",
-                    )):
+                    ))):
                         # TODO: Make this such that the current dataset directory
                         #       is placed under the parent directory's mountpoint
                         if (mountpoint := (_mountpoint := ddict.get("mountpoint", ""))) == "":
                             if mountpoint == "":
-                                _mountpoint = _dataset.replace(args.Pool, "", 1)
+                                _mountpoint = _dataset.removeprefix(args.Pool + "/")
+                                for prefix in prefixes:
+                                    _mountpoint.removeprefix(prefix + "/")
+                                _mountpoint = "/" + _mountpoint
                             else:
                                 mountpoint = _mountpoint = f"{mountpoint}/{dname}"
             
@@ -543,7 +545,7 @@ try:
                         son = ""
             
                     _doptions = ddict.get("options", [])
-                    if _dataset not in ( f"{args.Pool}/{dataset}" for dataset in (
+                    if _dataset not in ( f"{args.Pool}/{dataset}" for dataset in (prefixes := (
                         "system",
                         "system/root",
                         "swap",
@@ -551,12 +553,15 @@ try:
                         "hold",
                         "omniverse",
                         "reserved",
-                    )):
+                    ))):
                         # TODO: Make this such that the current dataset directory
                         #       is placed under the parent directory's mountpoint
                         if (mountpoint := (_mountpoint := ddict.get("mountpoint", ""))) == "":
                             if mountpoint == "":
-                                _mountpoint = _dataset.replace(args.Pool, "", 1)
+                                _mountpoint = _dataset.removeprefix(args.Pool + "/")
+                                for prefix in prefixes:
+                                    _mountpoint.removeprefix(prefix + "/")
+                                _mountpoint = "/" + _mountpoint
                             else:
                                 mountpoint = _mountpoint = f"{mountpoint}/{dname}"
             
@@ -739,7 +744,7 @@ try:
                         son = ""
             
                     _doptions = ddict.get("options", [])
-                    if _dataset not in ( f"{args.Pool}/{dataset}" for dataset in (
+                    if _dataset not in ( f"{args.Pool}/{dataset}" for dataset in (prefixes := (
                         "system",
                         "system/root",
                         "swap",
@@ -747,12 +752,15 @@ try:
                         "hold",
                         "omniverse",
                         "reserved",
-                    )):
+                    ))):
                         # TODO: Make this such that the current dataset directory
                         #       is placed under the parent directory's mountpoint
                         if (mountpoint := (_mountpoint := ddict.get("mountpoint", ""))) == "":
                             if mountpoint == "":
-                                _mountpoint = _dataset.replace(args.Pool, "", 1)
+                                _mountpoint = _dataset.removeprefix(args.Pool + "/")
+                                for prefix in prefixes:
+                                    _mountpoint.removeprefix(prefix + "/")
+                                _mountpoint = "/" + _mountpoint
                             else:
                                 mountpoint = _mountpoint = f"{mountpoint}/{dname}"
             
@@ -789,9 +797,9 @@ if args.subcommand == "mount":
         run(f"zfs load-key {args.Pool}", shell = True)
     
     if os.path.isdir("/mnt"):
-        run("umount -R /mnt", shell = True)
+        run("umount -R /mnt", shell = True, stdout=DEVNULL, stderr=STDOUT)
     else:
-        run("mkdir /mnt", shell = True)
+        run("mkdir /mnt", shell = True, stdout=DEVNULL, stderr=STDOUT)
     
     run(f"mount -t zfs {args.Pool}/system/root /mnt", shell = True)
     
