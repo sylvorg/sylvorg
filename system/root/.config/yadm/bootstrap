@@ -206,18 +206,11 @@ try:
                         "omniverse",
                         "reserved",
                     )):
-                        pn1 = args.Pool
-                        pn2 = f"{pn1}/{pn1}"
-            
                         # TODO: Make this such that the current dataset directory
                         #       is placed under the parent directory's mountpoint
                         if (mountpoint := (_mountpoint := ddict.get("mountpoint", ""))) == "":
                             if mountpoint == "":
-                                _mountpoint = _dataset.replace(
-                                    pn2 if pn2 in _dataset else pn1,
-                                    "/${host}",
-                                    1,
-                                )
+                                _mountpoint = _dataset.replace(args.Pool, "", 1)
                             else:
                                 mountpoint = _mountpoint = f"{mountpoint}/{dname}"
             
@@ -414,18 +407,11 @@ try:
                         "omniverse",
                         "reserved",
                     )):
-                        pn1 = args.Pool
-                        pn2 = f"{pn1}/{pn1}"
-            
                         # TODO: Make this such that the current dataset directory
                         #       is placed under the parent directory's mountpoint
                         if (mountpoint := (_mountpoint := ddict.get("mountpoint", ""))) == "":
                             if mountpoint == "":
-                                _mountpoint = _dataset.replace(
-                                    pn2 if pn2 in _dataset else pn1,
-                                    "/${host}",
-                                    1,
-                                )
+                                _mountpoint = _dataset.replace(args.Pool, "", 1)
                             else:
                                 mountpoint = _mountpoint = f"{mountpoint}/{dname}"
             
@@ -566,18 +552,11 @@ try:
                         "omniverse",
                         "reserved",
                     )):
-                        pn1 = args.Pool
-                        pn2 = f"{pn1}/{pn1}"
-            
                         # TODO: Make this such that the current dataset directory
                         #       is placed under the parent directory's mountpoint
                         if (mountpoint := (_mountpoint := ddict.get("mountpoint", ""))) == "":
                             if mountpoint == "":
-                                _mountpoint = _dataset.replace(
-                                    pn2 if pn2 in _dataset else pn1,
-                                    "/${host}",
-                                    1,
-                                )
+                                _mountpoint = _dataset.replace(args.Pool, "", 1)
                             else:
                                 mountpoint = _mountpoint = f"{mountpoint}/{dname}"
             
@@ -769,18 +748,11 @@ try:
                         "omniverse",
                         "reserved",
                     )):
-                        pn1 = args.Pool
-                        pn2 = f"{pn1}/{pn1}"
-            
                         # TODO: Make this such that the current dataset directory
                         #       is placed under the parent directory's mountpoint
                         if (mountpoint := (_mountpoint := ddict.get("mountpoint", ""))) == "":
                             if mountpoint == "":
-                                _mountpoint = _dataset.replace(
-                                    pn2 if pn2 in _dataset else pn1,
-                                    "/${host}",
-                                    1,
-                                )
+                                _mountpoint = _dataset.replace(args.Pool, "", 1)
                             else:
                                 mountpoint = _mountpoint = f"{mountpoint}/{dname}"
             
@@ -835,7 +807,7 @@ if args.subcommand == "mount":
             if not os.path.isdir(mount):
                 run(f"mkdir -p {mount}", shell = True)
             mount_command = f"mount -t zfs {dataset} {mount}"
-            print(mount_command)
+            # print(mount_command)
             run(mount_command, shell = True)
     
     if not os.path.isdir(boot := "/mnt/boot/efi"):
