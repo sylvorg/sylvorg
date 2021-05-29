@@ -1,5 +1,6 @@
-{ lib, preattrs, primprelib, ... }:
+{ lib, prelib, preattrs, primprelib, ... }:
 with builtins;
+with prelib;
 with preattrs;
 with primprelib;
 with lib;

@@ -973,7 +973,6 @@ Taken from [[https://github.com/NixOS/nixos-hardware/tree/master/microsoft/hyper
                 '';
             };
             grub.enable = mkForce false;
-            systemd-boot.enable = mkForce false;
             generic-extlinux-compatible.enable = true;
             
         };
@@ -1858,8 +1857,9 @@ allow-unsafe-native-code-during-evaluation = true
 
 #+name: fae48c3c1376c250513d68afedbb6450
 #+begin_src nix :tangle (jr/tangle-path)
-{ lib, preattrs, primprelib, ... }:
+{ lib, prelib, preattrs, primprelib, ... }:
 with builtins;
+with prelib;
 with preattrs;
 with primprelib;
 with lib;

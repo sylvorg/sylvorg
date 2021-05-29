@@ -22,7 +22,6 @@
                 '';
             };
             grub.enable = mkForce false;
-            systemd-boot.enable = mkForce false;
             generic-extlinux-compatible.enable = true;
             
         };
