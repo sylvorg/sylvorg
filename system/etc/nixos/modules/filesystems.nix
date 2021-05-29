@@ -1,6 +1,6 @@
 { config, lib, stc, ... }: with builtins; with lib; with j; mkIf (config.vars.zfs) { fileSystems = let
     inherit (attrs.fileSystems) base;
-    fileSystems' = import ../config/datasets.nix stc.host;
+    fileSystems' = import ../config/_datasets.nix stc.host;
 in mapAttrs' (dataset: mountpoint: nameValuePair mountpoint (
     mkForce (base // { device = dataset; ${
         myIf.knull (hasInfix "persist" dataset) "neededForBoot"

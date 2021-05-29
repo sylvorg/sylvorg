@@ -179,7 +179,7 @@ try:
                 for zz in [ "zpax", "zsyncs" ]:
                     las[backup][d][zz] = dd
             
-            with open(f"{resources}/datasets.nix", "w+") as dnix:
+            with open(f"{resources}/_datasets.nix", "w+") as dnix:
             
                 dnix.write("host: {\n")
             
@@ -387,7 +387,7 @@ try:
                 for zz in [ "zpax", "zsyncs" ]:
                     las[backup][d][zz] = dd
             
-            with open(f"{resources}/datasets.nix", "w+") as dnix:
+            with open(f"{resources}/_datasets.nix", "w+") as dnix:
             
                 dnix.write("host: {\n")
             
@@ -539,7 +539,7 @@ try:
                 for zz in [ "zpax", "zsyncs" ]:
                     las[backup][d][zz] = dd
             
-            with open(f"{resources}/datasets.nix", "w+") as dnix:
+            with open(f"{resources}/_datasets.nix", "w+") as dnix:
             
                 dnix.write("host: {\n")
             
@@ -742,7 +742,7 @@ try:
                 for zz in [ "zpax", "zsyncs" ]:
                     las[backup][d][zz] = dd
             
-            with open(f"{resources}/datasets.nix", "w+") as dnix:
+            with open(f"{resources}/_datasets.nix", "w+") as dnix:
             
                 dnix.write("host: {\n")
             
@@ -823,7 +823,7 @@ if args.subcommand == "mount":
     
     run(f"mount -t zfs {args.Pool}/system/root /mnt", shell = True)
     
-    with open(f"{resources}/datasets.nix") as datasets:
+    with open(f"{resources}/_datasets.nix") as datasets:
         for __dataset in datasets.readlines()[1:-1]:
             _dataset, _mount = __dataset.split("=")
             dataset = _dataset.strip()

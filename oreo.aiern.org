@@ -206,8 +206,8 @@ for user in users.values():
         persist[dataset][d][user] = dd
 #+end_src
 
-******* open =f{resources}/datasets.nix=
-******** before opening =f{resources}/datasets.nix=
+******* open =f{resources}/_datasets.nix=
+******** before opening =f{resources}/_datasets.nix=
 
 #+call: hash("")
 
@@ -216,7 +216,7 @@ for user in users.values():
 
 #+name: c87d7294a0bf9ef139a1a416a45ff4fb
 #+begin_src python
-with open(f"{resources}/datasets.nix", "w+") as dnix:
+with open(f"{resources}/_datasets.nix", "w+") as dnix:
 
     dnix.write("host: {\n")
 
