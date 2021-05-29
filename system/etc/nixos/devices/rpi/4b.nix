@@ -34,5 +34,5 @@
         pulseaudio.enable = true;
     };
     sound.enable = true;
-    environment.systemPackages = with pkgs; [ raspberrypi-tools libraspberrypi ];
+    environment.systemPackages = with pkgs; [ libraspberrypi ];
 }
