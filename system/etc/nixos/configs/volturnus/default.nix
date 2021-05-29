@@ -3,5 +3,5 @@
         (imprelib.list { dir = ./.; })
         (imprelib.list { dir = ../../config; ignores = [ "datasets" ]; })
     ];
-    config.networking.hostId = "d5912c80";
+    config.networking.hostId = "e80ce4bc";
 }

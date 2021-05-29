@@ -61,9 +61,7 @@ try:
 
 finally:
     if args.subcommand:
-        for dataset in run("zfs list -rH", shell = True, capture_output = True).stdout.decode().split("\n"):
-            if args.Pool in dataset:
-                run(f"zpool export -f {args.Pool}", shell = True)
+        run(f"zpool export -f {args.Pool}", shell = True, stdout=DEVNULL, stderr=STDOUT)
 
 if args.subcommand == "mount":
     <<f2f6ce58bd9d44b38b94e493ecca4e73>>
@@ -242,14 +240,16 @@ with open(f"{resources}/_datasets.nix", "w+") as dnix:
         if _dataset not in ( f"{args.Pool}/{dataset}" for dataset in prefixes):
             # TODO: Make this such that the current dataset directory
             #       is placed under the parent directory's mountpoint
-            if (mountpoint := (_mountpoint := ddict.get("mountpoint", ""))) == "":
-                if mountpoint == "":
+            if (_mountpoint := ddict.get("mountpoint", "")):
+                mountpoint = _mountpoint
+            else:
+                if mountpoint:
+                    mountpoint = f"{mountpoint}/{dname}"
+                else:
                     _mountpoint = _dataset.removeprefix(args.Pool + "/")
                     for prefix in prefixes:
                         _mountpoint.removeprefix(prefix + "/")
                     _mountpoint = "/" + _mountpoint
-                else:
-                    mountpoint = _mountpoint = f"{mountpoint}/{dname}"
 
             dnix.write(f'\t"{_dataset}" = "{_mountpoint}";\n')
 #+end_src
