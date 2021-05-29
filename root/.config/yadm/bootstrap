@@ -175,7 +175,7 @@ try:
                 for zz in [ "zpax", "zsyncs" ]:
                     las[backup][d][zz] = dd
             
-            with open(f"{resources}/_datasets.nix", "w+") as dnix:
+            with open(f"{resources}/_datasets.nix", "w") as dnix:
             
                 dnix.write("host: {\n")
             
@@ -203,8 +203,6 @@ try:
                     )
                     _doptions = ddict.get("options", [])
                     if _dataset not in ( f"{args.Pool}/{dataset}" for dataset in prefixes):
-                        # TODO: Make this such that the current dataset directory
-                        #       is placed under the parent directory's mountpoint
                         if (_mountpoint := ddict.get("mountpoint", "")):
                             mountpoint = _mountpoint
                         else:
@@ -214,7 +212,7 @@ try:
                             else:
                                 _mountpoint = _dataset.removeprefix(args.Pool + "/")
                                 for prefix in prefixes:
-                                    _mountpoint.removeprefix(prefix + "/")
+                                    _mountpoint = _mountpoint.removeprefix(prefix + "/")
                                 _mountpoint = "/" + _mountpoint
             
                         dnix.write(f'\t"{_dataset}" = "{_mountpoint}";\n')
@@ -383,7 +381,7 @@ try:
                 for zz in [ "zpax", "zsyncs" ]:
                     las[backup][d][zz] = dd
             
-            with open(f"{resources}/_datasets.nix", "w+") as dnix:
+            with open(f"{resources}/_datasets.nix", "w") as dnix:
             
                 dnix.write("host: {\n")
             
@@ -411,8 +409,6 @@ try:
                     )
                     _doptions = ddict.get("options", [])
                     if _dataset not in ( f"{args.Pool}/{dataset}" for dataset in prefixes):
-                        # TODO: Make this such that the current dataset directory
-                        #       is placed under the parent directory's mountpoint
                         if (_mountpoint := ddict.get("mountpoint", "")):
                             mountpoint = _mountpoint
                         else:
@@ -422,7 +418,7 @@ try:
                             else:
                                 _mountpoint = _dataset.removeprefix(args.Pool + "/")
                                 for prefix in prefixes:
-                                    _mountpoint.removeprefix(prefix + "/")
+                                    _mountpoint = _mountpoint.removeprefix(prefix + "/")
                                 _mountpoint = "/" + _mountpoint
             
                         dnix.write(f'\t"{_dataset}" = "{_mountpoint}";\n')
@@ -535,7 +531,7 @@ try:
                 for zz in [ "zpax", "zsyncs" ]:
                     las[backup][d][zz] = dd
             
-            with open(f"{resources}/_datasets.nix", "w+") as dnix:
+            with open(f"{resources}/_datasets.nix", "w") as dnix:
             
                 dnix.write("host: {\n")
             
@@ -563,8 +559,6 @@ try:
                     )
                     _doptions = ddict.get("options", [])
                     if _dataset not in ( f"{args.Pool}/{dataset}" for dataset in prefixes):
-                        # TODO: Make this such that the current dataset directory
-                        #       is placed under the parent directory's mountpoint
                         if (_mountpoint := ddict.get("mountpoint", "")):
                             mountpoint = _mountpoint
                         else:
@@ -574,7 +568,7 @@ try:
                             else:
                                 _mountpoint = _dataset.removeprefix(args.Pool + "/")
                                 for prefix in prefixes:
-                                    _mountpoint.removeprefix(prefix + "/")
+                                    _mountpoint = _mountpoint.removeprefix(prefix + "/")
                                 _mountpoint = "/" + _mountpoint
             
                         dnix.write(f'\t"{_dataset}" = "{_mountpoint}";\n')
@@ -738,7 +732,7 @@ try:
                 for zz in [ "zpax", "zsyncs" ]:
                     las[backup][d][zz] = dd
             
-            with open(f"{resources}/_datasets.nix", "w+") as dnix:
+            with open(f"{resources}/_datasets.nix", "w") as dnix:
             
                 dnix.write("host: {\n")
             
@@ -766,8 +760,6 @@ try:
                     )
                     _doptions = ddict.get("options", [])
                     if _dataset not in ( f"{args.Pool}/{dataset}" for dataset in prefixes):
-                        # TODO: Make this such that the current dataset directory
-                        #       is placed under the parent directory's mountpoint
                         if (_mountpoint := ddict.get("mountpoint", "")):
                             mountpoint = _mountpoint
                         else:
@@ -777,7 +769,7 @@ try:
                             else:
                                 _mountpoint = _dataset.removeprefix(args.Pool + "/")
                                 for prefix in prefixes:
-                                    _mountpoint.removeprefix(prefix + "/")
+                                    _mountpoint = _mountpoint.removeprefix(prefix + "/")
                                 _mountpoint = "/" + _mountpoint
             
                         dnix.write(f'\t"{_dataset}" = "{_mountpoint}";\n')

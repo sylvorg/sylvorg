@@ -210,7 +210,7 @@ for user in users.values():
 
 #+name: c87d7294a0bf9ef139a1a416a45ff4fb
 #+begin_src python
-with open(f"{resources}/_datasets.nix", "w+") as dnix:
+with open(f"{resources}/_datasets.nix", "w") as dnix:
 
     dnix.write("host: {\n")
 
@@ -238,8 +238,6 @@ with open(f"{resources}/_datasets.nix", "w+") as dnix:
         )
         _doptions = ddict.get("options", [])
         if _dataset not in ( f"{args.Pool}/{dataset}" for dataset in prefixes):
-            # TODO: Make this such that the current dataset directory
-            #       is placed under the parent directory's mountpoint
             if (_mountpoint := ddict.get("mountpoint", "")):
                 mountpoint = _mountpoint
             else:
@@ -249,7 +247,7 @@ with open(f"{resources}/_datasets.nix", "w+") as dnix:
                 else:
                     _mountpoint = _dataset.removeprefix(args.Pool + "/")
                     for prefix in prefixes:
-                        _mountpoint.removeprefix(prefix + "/")
+                        _mountpoint = _mountpoint.removeprefix(prefix + "/")
                     _mountpoint = "/" + _mountpoint
 
             dnix.write(f'\t"{_dataset}" = "{_mountpoint}";\n')
