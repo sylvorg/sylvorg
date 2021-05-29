@@ -244,7 +244,8 @@ with open(f"{resources}/_datasets.nix", "w+") as dnix:
                 mountpoint = _mountpoint
             else:
                 if mountpoint:
-                    mountpoint = f"{mountpoint}/{dname}"
+                    mountpoint += f"/{dname}"
+                    _mountpoint = mountpoint
                 else:
                     _mountpoint = _dataset.removeprefix(args.Pool + "/")
                     for prefix in prefixes:
