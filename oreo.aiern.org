@@ -420,7 +420,9 @@ with open(f"{resources}/_datasets.nix") as datasets:
 
         if not os.path.isdir(mount):
             run(f"mkdir -p {mount}", shell = True)
-        run(f"mount -t zfs {dataset} {mount}", shell = True)
+        mount_command = f"mount -t zfs {dataset} {mount}"
+        print(mount_command)
+        run(mount_command, shell = True)
 
 if not os.path.isdir(boot := "/mnt/boot/efi"):
     run(f"mkdir -p {boot}", shell = True)
