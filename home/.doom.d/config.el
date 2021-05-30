@@ -43,10 +43,11 @@
 (defvar last-modal-mode nil)
 (defvar hercules-map global-map)
 
-(defun jr/any-popup-showing-p nil (interactive)
-    (or hercules--popup-showing-p (which-key--popup-showing-p)))
-(defun jr/which-key-show-top-level nil (interactive)
-    (let* ((current-map (if hercules--popup-showing-p overriding-terminal-local-map global-map))
+(defun jr/any-popup-showing-p nil (interactive) (or hercules--popup-showing-p (which-key--popup-showing-p)))
+(defun jr/which-key-show-top-level (&optional keymap) (interactive)
+    (let* ((current-map (if hercules--popup-showing-p
+                overriding-terminal-local-map
+                (or keymap global-map)))
         (which-key-function
             ;; #'which-key-show-top-level
             ;; #'(lambda nil (interactive) (which-key-show-full-keymap 'global-map))
@@ -62,15 +63,15 @@
             (when (member last-modal-mode modal-prefixes)
                 (funcall which-key-function) (setq last-modal-mode nil))
             (funcall which-key-function))))
-(defun jr/hercules-hide-all-modal-modes nil (interactive)
+(defun jr/hercules-hide-all-modal-modes (&optional keymap) (interactive)
     (mapc #'(lambda (prefix) (interactive)
         (message (format "Hiding %s" prefix))
         (ignore-errors (funcall (intern (concat "jr/" prefix "-hercules-hide"))))
         ;; (internal-push-keymap 'global-map 'overriding-terminal-local-map)
         ;; (internal-push-keymap nil 'overriding-terminal-local-map)
         ) modal-prefixes)
-    (jr/which-key-show-top-level))
-(defun jr/disable-all-modal-modes nil (interactive)
+    (jr/which-key-show-top-level keymap))
+(defun jr/disable-all-modal-modes (&optional keymap) (interactive)
     (mapc
         (lambda (mode-symbol)
             (message (format "Disabling %s" (symbol-name mode-symbol)))
@@ -79,7 +80,7 @@
                 (ignore-errors
                     (funcall mode-symbol -1))))
             modal-modes)
-    (jr/hercules-hide-all-modal-modes))
+    (jr/hercules-hide-all-modal-modes keymap))
 
 ;; Answer: https://stackoverflow.com/a/14490054/10827766
 ;; User: https://stackoverflow.com/users/1600898/user4815162342
@@ -102,18 +103,22 @@
 
 (use-package! hercules
     :demand t
-    :general (:keymaps 'override (general-chord "::") 'jr/toggle-which-key)
+    :general (:keymaps 'override
+        (general-chord "::") 'jr/toggle-which-key)
     :init
         (defun jr/which-key--hide-popup nil (interactive)
             (jr/disable-all-modal-modes)
             (setq which-key-persistent-popup nil) (which-key--hide-popup)
             (which-key-mode -1))
-        (defun jr/which-key--show-popup nil (interactive)
-            (jr/disable-all-modal-modes)
+        (defun jr/which-key--show-popup (&optional keymap) (interactive)
+            (jr/disable-all-modal-modes keymap)
             (which-key-mode 1)
             (setq which-key-persistent-popup t))
+        (defun jr/which-key--refresh-popup (&optional keymap) (interactive)
+            (jr/which-key--hide-popup)
+            (jr/which-key--show-popup keymap))
         (defun jr/toggle-which-key nil (interactive)
-            (if which-key-persistent-popup
+            (if (jr/any-popup-showing-p)
                 (jr/which-key--hide-popup)
                 (jr/which-key--show-popup)))
         (setq which-key-enable-extended-define-key t)
@@ -161,8 +166,8 @@
 
         ;; If this percentage is too small, the keybindings frame will appear at the bottom
         (which-key-side-window-max-width 0.5)
-
-        (which-key-side-window-max-height 0.10))
+        
+        (which-key-side-window-max-height 0.25))
 (use-package! ryo-modal
     :demand t
     :general (:keymaps 'override (general-chord "  ") 'jr/toggle-ryo)

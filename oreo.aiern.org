@@ -2904,10 +2904,12 @@ in {
 
 #+name: 7eb7fea5811e26ec2a492a053e899cf5
 #+begin_src nix :tangle (jr/tangle-path)
-{ config, lib, ... }: with builtins; with lib; with j; {
+{ config, lib, system, ... }: with builtins; with lib; with j; {
     programs = {
         xonsh.enable = true;
-        fish.enable = true;
+        fish = mkIf (!elem system [ "aarch64-linux" ]) {
+            enable = true;
+        };
         zsh.enable = true;
     };
 }
@@ -3088,7 +3090,7 @@ inputs@{ config, lib, pkgs, sources, stc, ... }: with builtins; with lib; with j
                     description = "Alicia Summers";
                     group = secondary;
                     extraGroups = [ primary ];
-                    shell = pkgs.fish;
+                    shell = if (!elem system [ "aarch64-linux" ]) then pkgs.fish else pkgs.zsh;
                 };
                 "${nightingale}" = {
                     uid = 8888;
@@ -4548,7 +4550,7 @@ include ./theme.conf
 
 #+name: 9c831035ff1aab8cf5467639c4b6ddc4
 #+begin_src nix
-fish = {
+${myIf.knull (!elem system [ "aarch64-linux" ]) "fish"} = {
     enable = true;
     package = pkgs.fish;
     functions = shellAliases // {
@@ -5448,7 +5450,8 @@ flake = lambda _hash: f'--flake "{args.directory}#{_hash}"' if args.flake else (
 if homeManager:
     command = lambda _hash: f"home-manager {args.command} {flake(_hash)}"
 elif args.install:
-    command = lambda _hash: f'nixos-install --impure --show-trace {flake(_hash)}'
+    # command = lambda _hash: f'nixos-install --impure --show-trace {flake(_hash)}'
+    command = lambda _hash: f'nix build {args.directory}#nixosConfigurations.{_hash}.config.system.build.toplevel && nixos-install --system ./result'
 else:
     command = lambda _hash: f'nixos-rebuild {args.command} --impure --show-trace {flake(_hash)}'
 

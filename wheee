@@ -55,7 +55,8 @@ flake = lambda _hash: f'--flake "{args.directory}#{_hash}"' if args.flake else (
 if homeManager:
     command = lambda _hash: f"home-manager {args.command} {flake(_hash)}"
 elif args.install:
-    command = lambda _hash: f'nixos-install --impure --show-trace {flake(_hash)}'
+    # command = lambda _hash: f'nixos-install --impure --show-trace {flake(_hash)}'
+    command = lambda _hash: f'nix build {args.directory}#nixosConfigurations.{_hash}.config.system.build.toplevel && nixos-install --system ./result'
 else:
     command = lambda _hash: f'nixos-rebuild {args.command} --impure --show-trace {flake(_hash)}'
 

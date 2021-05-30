@@ -38,7 +38,7 @@ inputs@{ config, lib, pkgs, sources, stc, ... }: with builtins; with lib; with j
                     description = "Alicia Summers";
                     group = secondary;
                     extraGroups = [ primary ];
-                    shell = pkgs.fish;
+                    shell = if (!elem system [ "aarch64-linux" ]) then pkgs.fish else pkgs.zsh;
                 };
                 "${nightingale}" = {
                     uid = 8888;

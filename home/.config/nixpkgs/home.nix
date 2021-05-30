@@ -154,7 +154,7 @@ with builtins; let
                     starship.enableBashIntegration = true;
                 })
                 ({
-                    fish = {
+                    ${myIf.knull (!elem system [ "aarch64-linux" ]) "fish"} = {
                         enable = true;
                         package = pkgs.fish;
                         functions = shellAliases // {
