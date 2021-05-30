@@ -497,7 +497,7 @@ try:
 except NameError:
     python_ver = "3.9"
     home = fp("~")
-    xeroFigletFonts = fp("~/shadowrylander/resources/xeroFigletFonts")
+    xeroFigletFonts = fp("~/<<username>>/resources/xeroFigletFonts")
 
 # figlet -d @(xeroFigletFonts) -f smisome1.flf "Hello!" | lolcat
 #+end_src
@@ -726,7 +726,7 @@ xontrib load z
 
 #+name: fc32a19c2ab83bb5a9d886f6fee7ef1d
 #+begin_src xonsh
-# byobu attach -t shadowrylander &> /dev/null
+# byobu attach -t <<username>> &> /dev/null
 
 from nanite import fullpath as fp
 from os import getcwd

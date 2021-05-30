@@ -160,11 +160,9 @@
                     impermanence-flake.nixosModules.impermanence
                 ])
             ];
-            nixosConfiguration = { stc, ... }: let
-                configBase = { inherit stc; ignoredAttrs = [ "host" ];};
-            in lib.nixosSystem {
+            nixosConfiguration = { stc, ... }: lib.nixosSystem {
                 inherit (stc) system;
-                pkgs =  j.get (configBase // { set = all.pkgs; });
+                pkgs = let configBase = { inherit stc; ignoredAttrs = [ "host" ];}; in j.get (configBase // { set = all.pkgs; });
                 specialArgs = make.specialArgs { inherit stc; };
                 modules = flatten [
                     (j.imprelib.list { dir = ./modules; })
@@ -244,7 +242,7 @@
                 abort "Sorry! The device, host, type, and zfs status must be set!"
             ) else lib.nixosSystem {
                 inherit (stc) system;
-                pkgs =  j.get (configBase // { set = all.pkgs; });
+                pkgs = let configBase = { inherit stc; ignoredAttrs = [ "host" ];}; in j.get (configBase // { set = all.pkgs; });
                 specialArgs = make.specialArgs { inherit stc; };
                 modules = flatten [
                     (make.modules { inherit stc; })

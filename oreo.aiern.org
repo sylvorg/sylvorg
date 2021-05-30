@@ -1205,7 +1205,7 @@ Taken from [[https://github.com/NixOS/nixos-hardware/tree/master/microsoft/hyper
 #+name: bc8e4c4ef661dde1e91ee70adf2a661f
 #+begin_src nix
 inherit (stc) system;
-pkgs =  j.get (configBase // { set = all.pkgs; });
+pkgs = let configBase = { inherit stc; ignoredAttrs = [ "host" ];}; in j.get (configBase // { set = all.pkgs; });
 #+end_src
 
 #+call: hash("")
@@ -1282,9 +1282,7 @@ pkgs =  j.get (configBase // { set = all.pkgs; });
                     impermanence-flake.nixosModules.impermanence
                 ])
             ];
-            nixosConfiguration = { stc, ... }: let
-                configBase = { inherit stc; ignoredAttrs = [ "host" ];};
-            in lib.nixosSystem {
+            nixosConfiguration = { stc, ... }: lib.nixosSystem {
                 <<bc8e4c4ef661dde1e91ee70adf2a661f>>
                 specialArgs = make.specialArgs { inherit stc; };
                 modules = flatten [
@@ -2595,7 +2593,7 @@ I am currently not using =SWAP= on =ZFS Zvols= due to the issues detailed
     in {
         inherit hostName;
         wireless = {
-            enable = true; # Enables wireless support via wpa_supplicant.
+            # enable = true; # Enables wireless support via wpa_supplicant.
             enable = false; # Enables wireless support via wpa_supplicant.
             networks = {
                 "Primus-17FE-2.4" = {
@@ -5484,7 +5482,7 @@ if homeManager:
     command = lambda _hash: f"home-manager {args.command} {flake(_hash)}"
 elif args.install:
     # command = lambda _hash: f'nixos-install --impure --show-trace {flake(_hash)}'
-    command = lambda _hash: f'nix build --impure --show-trace {args.directory}#nixosConfigurations.tiny.config.system.build.toplevel && nixos-install --system ./result'
+    command = lambda _hash: f'nix build --impure --show-trace {args.directory}#nixosConfigurations.{_hash}.config.system.build.toplevel && nixos-install --system ./result'
 else:
     command = lambda _hash: f'nixos-rebuild {args.command} --impure --show-trace {flake(_hash)}'
 

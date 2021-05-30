@@ -1152,7 +1152,7 @@ Taken from [[Org-Roam's GitHub README][https://github.com/org-roam/org-roam#inst
     :ryo
         ("l" :hydra
                 '(evil-exits (:color blue)
-                    ;; From: https://gist.github.com/shadowrylander/46b81297d1d3edfbf1e2d72d5e29171e
+                    ;; From: https://gist.github.com/<<username>>/46b81297d1d3edfbf1e2d72d5e29171e
                     "A hydra for getting the fuck outta' here!"
                     ("`" nil "cancel")
                     ("l" evil-save-and-quit ":wq")
@@ -1901,7 +1901,7 @@ Adapted from [[Ergoemacs' Emacs Lisp Code for Setting PATH and exec-path section
 (package! hercules
     :recipe (:host gitlab :repo "jjzmajic/hercules.el" :branch "master"))
 (package! use-package-hercules
-    :recipe (:host gitlab :repo "shadowrylander/use-package-hercules" :branch "master"))
+    :recipe (:host gitlab :repo "<<username>>/use-package-hercules" :branch "master"))
 (package! use-package-hydra
     :recipe (:host gitlab :repo "picotech/use-package-hydra" :branch "master"))
 (package! use-package-hydra-plus
@@ -1911,9 +1911,9 @@ Adapted from [[Ergoemacs' Emacs Lisp Code for Setting PATH and exec-path section
 (package! xonsh-mode
     :recipe (:host github :repo "seanfarley/xonsh-mode" :branch "master"))
 (package! evil-evilified-state
-    :recipe (:host github :repo "shadowrylander/evil-evilified-state" :branch "master"))
+    :recipe (:host github :repo "<<username>>/evil-evilified-state" :branch "master"))
 (package! helm-ido-like
-    :recipe (:host github :repo "shadowrylander/helm-ido-like-guide" :branch "master"))
+    :recipe (:host github :repo "<<username>>/helm-ido-like-guide" :branch "master"))
 (package! ryo-modal
     :recipe (:host github :repo "kungsgeten/ryo-modal" :branch "master"))
 (package! emux

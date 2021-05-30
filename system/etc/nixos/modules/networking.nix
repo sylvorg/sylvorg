@@ -4,7 +4,7 @@
     in {
         inherit hostName;
         wireless = {
-            enable = true; # Enables wireless support via wpa_supplicant.
+            # enable = true; # Enables wireless support via wpa_supplicant.
             enable = false; # Enables wireless support via wpa_supplicant.
             networks = {
                 "Primus-17FE-2.4" = {
