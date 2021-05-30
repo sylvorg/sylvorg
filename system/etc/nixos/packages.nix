@@ -22,7 +22,7 @@ in with pkgs; [
     autossh
     bat
     bc
-    bcachefs-tools
+    # bcachefs-tools
     btrfs-progs
     byobu
     cascadia-code
@@ -82,6 +82,7 @@ in with pkgs; [
     shellcheck
     silver-searcher
     snapper
+    spacevim
     libguestfs
     (myIf.drv (!elem system [ "aarch64-linux" ]) pkgs.hello qemu_xen_4_10-light)
     starship
