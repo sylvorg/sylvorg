@@ -52,10 +52,10 @@ in with lib; flatten [
                             )
                         ) v) withNPrefix;
                     in removeAttrs withoutNPrefix (flatten [
-                        (filter (name: !elem name [
-                            "pkgs"
-                            "unstable"
-                        ]) (attrNames withoutNPrefix))
+                        # (filter (name: !elem name [
+                        #     "pkgs"
+                        #     "unstable"
+                        # ]) (attrNames withoutNPrefix))
                         [  ]
                     ]);
                 pkgset = (
