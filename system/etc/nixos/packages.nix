@@ -83,7 +83,7 @@ in with pkgs; [
     silver-searcher
     snapper
     libguestfs
-    qemu_xen_4_10-light
+    (myIf.drv (!elem system [ "aarch64-linux" ]) pkgs.hello qemu_xen_4_10-light)
     starship
     sysstat
     thefuck
@@ -96,10 +96,10 @@ in with pkgs; [
     vagrant
     vim
     wget
-    win-qemu
+    (myIf.drv (!elem system [ "aarch64-linux" ]) pkgs.hello win-qemu)
     wtf
     xclip
-    xenPackages.xen_4_10-light
+    (myIf.drv (!elem system [ "aarch64-linux" ]) pkgs.hello xenPackages.xen_4_10-light)
     xz
     yadm
     yubico-pam
@@ -119,7 +119,7 @@ in with pkgs; [
     vscodium
 ]) ++ (map mkifnm [
     extra-container
-    haskellPackages.hocker
+    # haskellPackages.hocker
     refind
 ]) ++ (map mkifnt [
     alacritty
@@ -144,7 +144,7 @@ in with pkgs; [
 ]) ++ (with pkgs."python${versions.python}Packages"; [
     (myIf.drv (!elem system [ "aarch64-linux" ]) pkgs.hello pyls-black)
     (mkifnm jupyter)
-    nixpkgs
+    # nixpkgs
     poetry
 ]) ++ (with pkgs.gitAndTools; [
     git-annex

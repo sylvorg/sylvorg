@@ -74,6 +74,9 @@ if args.move:
     run("mv /mnt/etc/nixos/{,config/}configuration.nix", shell = True)
     run("mv /mnt/etc/nixos/{,config/}hardware-configuration.nix", shell = True)
 
+if args.link:
+    run("ln -sf /mnt/persist /persist", shell = True)
+
 if args.rsync:
     run("nix-env -iA nixos.rsync", shell = True)
     run("rsync -avvczz ~/<<username>>/system/ /mnt/", shell = True)
@@ -121,6 +124,7 @@ update.add_argument("-f", "--files", action="store_true")
 
 parser.add_argument("-g", "--generate", action="store_true")
 parser.add_argument("-m", "--move", action="store_true")
+parser.add_argument("-l", "--link", action="store_true")
 parser.add_argument("-r", "--rsync", action="store_true")
 parser.add_argument("-i", "--install", action="store_true")
 parser.add_argument("-H", "--home-manager", action="store_true")
@@ -3851,7 +3855,7 @@ in with pkgs; [
     silver-searcher
     snapper
     libguestfs
-    qemu_xen_4_10-light
+    (myIf.drv (!elem system [ "aarch64-linux" ]) pkgs.hello qemu_xen_4_10-light)
     starship
     sysstat
     thefuck
@@ -3864,10 +3868,10 @@ in with pkgs; [
     vagrant
     vim
     wget
-    win-qemu
+    (myIf.drv (!elem system [ "aarch64-linux" ]) pkgs.hello win-qemu)
     wtf
     xclip
-    xenPackages.xen_4_10-light
+    (myIf.drv (!elem system [ "aarch64-linux" ]) pkgs.hello xenPackages.xen_4_10-light)
     xz
     yadm
     yubico-pam
@@ -3887,7 +3891,7 @@ in with pkgs; [
     vscodium
 ]) ++ (map mkifnm [
     extra-container
-    haskellPackages.hocker
+    # haskellPackages.hocker
     refind
 ]) ++ (map mkifnt [
     alacritty
@@ -3912,7 +3916,7 @@ in with pkgs; [
 ]) ++ (with pkgs."python${versions.python}Packages"; [
     (myIf.drv (!elem system [ "aarch64-linux" ]) pkgs.hello pyls-black)
     (mkifnm jupyter)
-    nixpkgs
+    # nixpkgs
     poetry
 ]) ++ (with pkgs.gitAndTools; [
     git-annex

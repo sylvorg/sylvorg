@@ -27,6 +27,7 @@ update.add_argument("-f", "--files", action="store_true")
 
 parser.add_argument("-g", "--generate", action="store_true")
 parser.add_argument("-m", "--move", action="store_true")
+parser.add_argument("-l", "--link", action="store_true")
 parser.add_argument("-r", "--rsync", action="store_true")
 parser.add_argument("-i", "--install", action="store_true")
 parser.add_argument("-H", "--home-manager", action="store_true")
@@ -839,6 +840,9 @@ if args.move:
     run("mkdir -p /mnt/etc/nixos/config", shell = True)
     run("mv /mnt/etc/nixos/{,config/}configuration.nix", shell = True)
     run("mv /mnt/etc/nixos/{,config/}hardware-configuration.nix", shell = True)
+
+if args.link:
+    run("ln -sf /mnt/persist /persist", shell = True)
 
 if args.rsync:
     run("nix-env -iA nixos.rsync", shell = True)
