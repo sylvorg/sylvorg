@@ -238,7 +238,7 @@
                     type = "";
                     zfs = null;
                 };
-            in if (
+            in if (with stc;
                 device == "" || host == "" || type == "" || zfs == null
             ) then (
                 abort "Sorry! The device, host, type, and zfs status must be set!"
@@ -248,20 +248,18 @@
                 specialArgs = make.specialArgs { inherit stc; };
                 modules = flatten [
                     (make.modules { inherit stc; })
-                    ({ ... }: {
-                        imports = [
-                            ./modules/networking.nix
-                            ./modules/boot.nix
-                            ./modules/etc.nix
-                            ./modules/global.nix
-                            ./modules/users.nix
-                            ./modules/filesystems.nix
-                            ./modules/nix.nix
-                            ./modules/persistence.nix
-                            ./modules/variables.nix
-                            ./modules/zfs.nix
-                        ];
-                    })
+                    ({ ... }: { imports = [
+                        ./modules/networking.nix
+                        ./modules/boot.nix
+                        ./modules/etc.nix
+                        ./modules/global.nix
+                        ./modules/users.nix
+                        ./modules/filesystems.nix
+                        ./modules/nix.nix
+                        ./modules/persistence.nix
+                        ./modules/variables.nix
+                        ./modules/zfs.nix
+                    ];})
                 ];
             };
         };

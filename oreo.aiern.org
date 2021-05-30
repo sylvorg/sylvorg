@@ -1359,7 +1359,7 @@ pkgs =  j.get (configBase // { set = all.pkgs; });
                     type = "";
                     zfs = null;
                 };
-            in if (
+            in if (with stc;
                 device == "" || host == "" || type == "" || zfs == null
             ) then (
                 abort "Sorry! The device, host, type, and zfs status must be set!"
@@ -1368,20 +1368,18 @@ pkgs =  j.get (configBase // { set = all.pkgs; });
                 specialArgs = make.specialArgs { inherit stc; };
                 modules = flatten [
                     (make.modules { inherit stc; })
-                    ({ ... }: {
-                        imports = [
-                            ./modules/networking.nix
-                            ./modules/boot.nix
-                            ./modules/etc.nix
-                            ./modules/global.nix
-                            ./modules/users.nix
-                            ./modules/filesystems.nix
-                            ./modules/nix.nix
-                            ./modules/persistence.nix
-                            ./modules/variables.nix
-                            ./modules/zfs.nix
-                        ];
-                    })
+                    ({ ... }: { imports = [
+                        ./modules/networking.nix
+                        ./modules/boot.nix
+                        ./modules/etc.nix
+                        ./modules/global.nix
+                        ./modules/users.nix
+                        ./modules/filesystems.nix
+                        ./modules/nix.nix
+                        ./modules/persistence.nix
+                        ./modules/variables.nix
+                        ./modules/zfs.nix
+                    ];})
                 ];
             };
         };
@@ -2590,7 +2588,7 @@ I am currently not using =SWAP= on =ZFS Zvols= due to the issues detailed
 : 8c1c76e68a6ad327be798ea5c62a7fc1
 
 #+name: 8c1c76e68a6ad327be798ea5c62a7fc1
-#+begin_src nix
+#+begin_src nix :tangle (jr/tangle-path)
 { config, lib, hostName, ... }: with builtins; with lib; with j; {
     networking = let
         primus = "58a4bafc38c2cc6e91ba27c7f1ca910c8fba857ee02f03648450b963db2519fc";
@@ -5436,7 +5434,6 @@ from itertools import zip_longest
 from subprocess import run
 parser = argparse.ArgumentParser()
 parser.add_argument("-D", "--directory", default="/etc/nixos")
-parser.add_argument("-S", "--store-directory", default="/")
 parser.add_argument("-f", "--flake", action="store_true")
 parser.add_argument("-F", "--file")
 parser.add_argument("-c", "--command", default="switch")
@@ -5487,7 +5484,7 @@ if homeManager:
     command = lambda _hash: f"home-manager {args.command} {flake(_hash)}"
 elif args.install:
     # command = lambda _hash: f'nixos-install --impure --show-trace {flake(_hash)}'
-    command = lambda _hash: f'nix build --impure --show-trace --option store {args.store_directory} {args.directory}#nixosConfigurations.tiny.config.system.build.toplevel && nixos-install --system ./result'
+    command = lambda _hash: f'nix build --impure --show-trace {args.directory}#nixosConfigurations.tiny.config.system.build.toplevel && nixos-install --system ./result'
 else:
     command = lambda _hash: f'nixos-rebuild {args.command} --impure --show-trace {flake(_hash)}'
 
