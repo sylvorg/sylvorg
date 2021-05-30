@@ -1,4 +1,4 @@
-inputs@{ config, lib, pkgs, sources, stc, ... }: with builtins; with lib; with j; {
+inputs@{ config, lib, pkgs, sources, stc, system, ... }: with builtins; with lib; with j; {
     users = with attrs.users; let
         base = mkMerge [{
                 hashedPassword = "$6$DoC/h6kR66Sa$aZKtTOXAqnan/jAC.4dH9tCYshheiKUZItR4g/kmMMLsfLQh0KslINL9zUTX2IjAZh9DE18eAh1AAz48.n/cm.";

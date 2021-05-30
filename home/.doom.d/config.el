@@ -45,9 +45,8 @@
 
 (defun jr/any-popup-showing-p nil (interactive) (or hercules--popup-showing-p (which-key--popup-showing-p)))
 (defun jr/which-key-show-top-level (&optional keymap) (interactive)
-    (let* ((current-map (if hercules--popup-showing-p
-                overriding-terminal-local-map
-                (or keymap global-map)))
+    (let* ((current-map (or keymap (if hercules--popup-showing-p
+                            overriding-terminal-local-map global-map)))
         (which-key-function
             ;; #'which-key-show-top-level
             ;; #'(lambda nil (interactive) (which-key-show-full-keymap 'global-map))
@@ -104,7 +103,25 @@
 (use-package! hercules
     :demand t
     :general (:keymaps 'override
-        (general-chord "::") 'jr/toggle-which-key)
+        ;; (general-chord "::") 'jr/toggle-which-key
+        (general-chord "::") 'map-of-infinity/body)
+    :hydra (map-of-infinity (:color blue)
+            ("w" hydra/which-key/body "which-key")
+            ("h" hydra/hercules/body "hercules")
+            ("d" jr/disable-all-modal-modes "disable all modal modes")
+            ("t" toggles/body)
+            ("k" all-keymaps/body))
+        (hydra/which-key (:color blue)
+            ("h" jr/which-key--hide-popup "hide-popup")
+            ("s" jr/which-key--show-popup "show-popup")
+            ("r" jr/which-key--refresh-popup "refresh-popup")
+            ("t" jr/toggle-which-key "toggle")
+            ("l" jr/which-key-show-top-level "jr/toplevel")
+            ("L" which-key-show-top-level "toplevel"))
+        (hydra/hercules (:color blue)
+            ("h" jr/hercules-hide-all-modal-modes "hide all modal modes"))
+        (toggles (:color blue))
+        (all-keymaps (:color blue))
     :init
         (defun jr/which-key--hide-popup nil (interactive)
             (jr/disable-all-modal-modes)
@@ -329,9 +346,7 @@
             (funcall 'jr/toggle-inner 'modalka-mode "modalka" (bound-and-true-p modalka-mode) 'modalka-mode-map)))
 
 (add-hook! doom-init-ui
-    (jr/disable-all-modal-modes)
-    ;; (run-at-time "1 sec" nil #'jr/which-key-show-top-level)
-    (jr/which-key-show-top-level))
+    (jr/disable-all-modal-modes))
 
 ;; org-mode
 (use-package! org

@@ -147,6 +147,19 @@
                     inherit overlays config;
                 };
             };
+            modules = { stc, ... }: [
+                (with stc; [
+                    (./. + "/configs/${host}")
+                    (if (type == "def") then {} else (./. + "/devices/${type}"))
+                    (let path = ./. + "/platforms/${system}"; in
+                        if (pathExists path) then path else {})
+                ])
+                (with sources; [
+                    home-manager-flake.nixosModules.home-manager
+                    agenix.nixosModules.age
+                    impermanence-flake.nixosModules.impermanence
+                ])
+            ];
             nixosConfiguration = { stc, ... }: let
                 configBase = { inherit stc; ignoredAttrs = [ "host" ];};
             in lib.nixosSystem {
@@ -155,17 +168,7 @@
                 specialArgs = make.specialArgs { inherit stc; };
                 modules = flatten [
                     (j.imprelib.list { dir = ./modules; })
-                    (with stc; [
-                        (./. + "/configs/${host}")
-                        (if (type == "def") then {} else (./. + "/devices/${type}"))
-                        (let path = ./. + "/platforms/${system}"; in
-                            if (pathExists path) then path else {})
-                    ])
-                    (with sources; [
-                        home-manager-flake.nixosModules.home-manager
-                        agenix.nixosModules.age
-                        impermanence-flake.nixosModules.impermanence
-                    ])
+                    (make.modules { inherit stc; })
                 ];
             };
             nixosModule = { stc, ... }: nmports@{ config, ... }: { imports = flatten [
@@ -227,7 +230,41 @@
 
         legacyPackages = all;
 
-        nixosConfigurations = forAllSystems' { inherit all; func = make.nixosConfiguration; };
+        nixosConfigurations = (forAllSystems' { inherit all; func = make.nixosConfiguration; }) // {
+            tiny = let
+                stc = lib.j.attrs.default-stc // {
+                    device = "";
+                    host = "";
+                    type = "";
+                    zfs = null;
+                };
+            in if (
+                device == "" || host == "" || type == "" || zfs == null
+            ) then (
+                abort "Sorry! The device, host, type, and zfs status must be set!"
+            ) else lib.nixosSystem {
+                inherit (stc) system;
+                pkgs =  j.get (configBase // { set = all.pkgs; });
+                specialArgs = make.specialArgs { inherit stc; };
+                modules = flatten [
+                    (make.modules { inherit stc; })
+                    ({ ... }: {
+                        imports = [
+                            ./modules/networking.nix
+                            ./modules/boot.nix
+                            ./modules/etc.nix
+                            ./modules/global.nix
+                            ./modules/users.nix
+                            ./modules/filesystems.nix
+                            ./modules/nix.nix
+                            ./modules/persistence.nix
+                            ./modules/variables.nix
+                            ./modules/zfs.nix
+                        ];
+                    })
+                ];
+            };
+        };
 
         # From: https://nixos.wiki/wiki/Flakes#Getting_Instant_System_Flakes_Repl
         nix.nixPath = let path = toString ./.; in [ "repl=${path}/repl.nix" "nixpkgs=${sources.nixpkgs}" ];

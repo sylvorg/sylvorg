@@ -1269,6 +1269,19 @@ pkgs =  j.get (configBase // { set = all.pkgs; });
                     inherit overlays config;
                 };
             };
+            modules = { stc, ... }: [
+                (with stc; [
+                    (./. + "/configs/${host}")
+                    (if (type == "def") then {} else (./. + "/devices/${type}"))
+                    (let path = ./. + "/platforms/${system}"; in
+                        if (pathExists path) then path else {})
+                ])
+                (with sources; [
+                    home-manager-flake.nixosModules.home-manager
+                    agenix.nixosModules.age
+                    impermanence-flake.nixosModules.impermanence
+                ])
+            ];
             nixosConfiguration = { stc, ... }: let
                 configBase = { inherit stc; ignoredAttrs = [ "host" ];};
             in lib.nixosSystem {
@@ -1276,17 +1289,7 @@ pkgs =  j.get (configBase // { set = all.pkgs; });
                 specialArgs = make.specialArgs { inherit stc; };
                 modules = flatten [
                     (j.imprelib.list { dir = ./modules; })
-                    (with stc; [
-                        (./. + "/configs/${host}")
-                        (if (type == "def") then {} else (./. + "/devices/${type}"))
-                        (let path = ./. + "/platforms/${system}"; in
-                            if (pathExists path) then path else {})
-                    ])
-                    (with sources; [
-                        home-manager-flake.nixosModules.home-manager
-                        agenix.nixosModules.age
-                        impermanence-flake.nixosModules.impermanence
-                    ])
+                    (make.modules { inherit stc; })
                 ];
             };
             nixosModule = { stc, ... }: nmports@{ config, ... }: { imports = flatten [
@@ -1348,7 +1351,40 @@ pkgs =  j.get (configBase // { set = all.pkgs; });
 
         legacyPackages = all;
 
-        nixosConfigurations = forAllSystems' { inherit all; func = make.nixosConfiguration; };
+        nixosConfigurations = (forAllSystems' { inherit all; func = make.nixosConfiguration; }) // {
+            tiny = let
+                stc = lib.j.attrs.default-stc // {
+                    device = "";
+                    host = "";
+                    type = "";
+                    zfs = null;
+                };
+            in if (
+                device == "" || host == "" || type == "" || zfs == null
+            ) then (
+                abort "Sorry! The device, host, type, and zfs status must be set!"
+            ) else lib.nixosSystem {
+                <<bc8e4c4ef661dde1e91ee70adf2a661f>>
+                specialArgs = make.specialArgs { inherit stc; };
+                modules = flatten [
+                    (make.modules { inherit stc; })
+                    ({ ... }: {
+                        imports = [
+                            ./modules/networking.nix
+                            ./modules/boot.nix
+                            ./modules/etc.nix
+                            ./modules/global.nix
+                            ./modules/users.nix
+                            ./modules/filesystems.nix
+                            ./modules/nix.nix
+                            ./modules/persistence.nix
+                            ./modules/variables.nix
+                            ./modules/zfs.nix
+                        ];
+                    })
+                ];
+            };
+        };
 
         # From: https://nixos.wiki/wiki/Flakes#Getting_Instant_System_Flakes_Repl
         nix.nixPath = let path = toString ./.; in [ "repl=${path}/repl.nix" "nixpkgs=${sources.nixpkgs}" ];
@@ -3050,7 +3086,7 @@ rec {
 
 #+name: 9d513589a6349ecf2f69e7f3a3fd695d
 #+begin_src nix :tangle (jr/tangle-path)
-inputs@{ config, lib, pkgs, sources, stc, ... }: with builtins; with lib; with j; {
+inputs@{ config, lib, pkgs, sources, stc, system, ... }: with builtins; with lib; with j; {
     users = with attrs.users; let
         base = mkMerge [{
                 hashedPassword = "$6$DoC/h6kR66Sa$aZKtTOXAqnan/jAC.4dH9tCYshheiKUZItR4g/kmMMLsfLQh0KslINL9zUTX2IjAZh9DE18eAh1AAz48.n/cm.";
@@ -3875,11 +3911,10 @@ in with pkgs; [
     xfce.thunar
     yubikey-manager-qt
     yubikey-personalization-gui
-]) ++ (with pkgs.j.pkgset.20-09."emacs${versions.emacs}Packages"; [
-    (mkifnm exwm)
+# ]) ++ (with pkgs.j.pkgset.20-09."emacs${versions.emacs}Packages"; [
+#     (mkifnm exwm)
 ]) ++ (with pkgs."python${versions.python}Packages"; [
     (myIf.drv (!elem system [ "aarch64-linux" ]) pkgs.hello pyls-black)
-    pyls-black
     (mkifnm jupyter)
     nixpkgs
     poetry
@@ -5401,6 +5436,7 @@ from itertools import zip_longest
 from subprocess import run
 parser = argparse.ArgumentParser()
 parser.add_argument("-D", "--directory", default="/etc/nixos")
+parser.add_argument("-S", "--store-directory", default="/")
 parser.add_argument("-f", "--flake", action="store_true")
 parser.add_argument("-F", "--file")
 parser.add_argument("-c", "--command", default="switch")
@@ -5451,7 +5487,7 @@ if homeManager:
     command = lambda _hash: f"home-manager {args.command} {flake(_hash)}"
 elif args.install:
     # command = lambda _hash: f'nixos-install --impure --show-trace {flake(_hash)}'
-    command = lambda _hash: f'nix build {args.directory}#nixosConfigurations.{_hash}.config.system.build.toplevel && nixos-install --system ./result'
+    command = lambda _hash: f'nix build --impure --show-trace --option store {args.store_directory} {args.directory}#nixosConfigurations.tiny.config.system.build.toplevel && nixos-install --system ./result'
 else:
     command = lambda _hash: f'nixos-rebuild {args.command} --impure --show-trace {flake(_hash)}'
 

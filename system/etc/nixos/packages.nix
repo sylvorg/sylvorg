@@ -139,11 +139,10 @@ in with pkgs; [
     xfce.thunar
     yubikey-manager-qt
     yubikey-personalization-gui
-]) ++ (with pkgs.j.pkgset.20-09."emacs${versions.emacs}Packages"; [
-    (mkifnm exwm)
+# ]) ++ (with pkgs.j.pkgset.20-09."emacs${versions.emacs}Packages"; [
+#     (mkifnm exwm)
 ]) ++ (with pkgs."python${versions.python}Packages"; [
     (myIf.drv (!elem system [ "aarch64-linux" ]) pkgs.hello pyls-black)
-    pyls-black
     (mkifnm jupyter)
     nixpkgs
     poetry
