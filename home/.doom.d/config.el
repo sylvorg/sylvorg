@@ -41,12 +41,10 @@
 (defvar modal-modes '(evil-mode god-local-mode objed-mode))
 (defvar modal-prefixes (mapcar (lambda (mode) (interactive) (car (split-string (symbol-name mode) "-"))) modal-modes))
 (defvar last-modal-mode nil)
-(defvar hercules-map global-map)
 
 (defun jr/any-popup-showing-p nil (interactive) (or hercules--popup-showing-p (which-key--popup-showing-p)))
 (defun jr/which-key-show-top-level (&optional keymap) (interactive)
-    (let* ((current-map (or keymap (if hercules--popup-showing-p
-                            overriding-terminal-local-map global-map)))
+    (let* ((current-map (or (symbol-value keymap) (or overriding-terminal-local-map global-map)))
         (which-key-function
             ;; #'which-key-show-top-level
             ;; #'(lambda nil (interactive) (which-key-show-full-keymap 'global-map))
@@ -59,7 +57,7 @@
             #'(lambda nil (interactive) (
                 which-key--create-buffer-and-show nil current-map nil "Current bindings"))))
         (if (which-key--popup-showing-p)
-            (when (member last-modal-mode modal-prefixes)
+            (when (or (member last-modal-mode modal-prefixes) keymap)
                 (funcall which-key-function) (setq last-modal-mode nil))
             (funcall which-key-function))))
 (defun jr/hercules-hide-all-modal-modes (&optional keymap) (interactive)
@@ -68,7 +66,7 @@
         (ignore-errors (funcall (intern (concat "jr/" prefix "-hercules-hide"))))
         ;; (internal-push-keymap 'global-map 'overriding-terminal-local-map)
         ;; (internal-push-keymap nil 'overriding-terminal-local-map)
-        ) modal-prefixes)
+        (setq overriding-terminal-local-map nil)) modal-prefixes)
     (jr/which-key-show-top-level keymap))
 (defun jr/disable-all-modal-modes (&optional keymap) (interactive)
     (mapc
@@ -103,14 +101,14 @@
 (use-package! hercules
     :demand t
     :general (:keymaps 'override
-        ;; (general-chord "::") 'jr/toggle-which-key
-        (general-chord "::") 'map-of-infinity/body)
+        (general-chord "::") 'jr/toggle-which-key
+        (general-chord "\\\\") 'map-of-infinity/body)
     :hydra (map-of-infinity (:color blue)
             ("w" hydra/which-key/body "which-key")
             ("h" hydra/hercules/body "hercules")
             ("d" jr/disable-all-modal-modes "disable all modal modes")
-            ("t" toggles/body)
-            ("k" all-keymaps/body))
+            ("t" toggles/body "toggles")
+            ("k" all-keymaps/body "all keymaps"))
         (hydra/which-key (:color blue)
             ("h" jr/which-key--hide-popup "hide-popup")
             ("s" jr/which-key--show-popup "show-popup")
@@ -120,8 +118,8 @@
             ("L" which-key-show-top-level "toplevel"))
         (hydra/hercules (:color blue)
             ("h" jr/hercules-hide-all-modal-modes "hide all modal modes"))
-        (toggles (:color blue))
-        (all-keymaps (:color blue))
+        (toggles (:color blue) ("`" nil "cancel"))
+        (all-keymaps (:color blue) ("`" nil "cancel"))
     :init
         (defun jr/which-key--hide-popup nil (interactive)
             (jr/disable-all-modal-modes)
@@ -142,6 +140,11 @@
         (setq which-key-idle-delay 0.1)
         (setq which-key-idle-secondary-delay nil)
     :config
+
+        ;; TODO: This is causing hydra to always show the which-key popup
+        ;; (advice-add #'hydra-disable :after #'jr/which-key--show-popup)
+        ;; (advice-add #'hydra-disable :after #'jr/which-key--hide-popup)
+
         (defun jr/hercules--hide (&optional keymap flatten &rest _)
                 "Dismiss hercules.el.
             Pop KEYMAP from `overriding-terminal-local-map' when it is not
@@ -153,9 +156,12 @@
                     which-key-persistent-popup t)
                     ;; (which-key--hide-popup)
 
-                (when keymap
-                    (internal-pop-keymap (symbol-value keymap)
-                        'overriding-terminal-local-map))
+                ;; I would like the value of `overriding-terminal-local-map' to be `nil'
+                (setq overriding-terminal-local-map nil)
+                ;; (when keymap
+                ;;     (internal-pop-keymap (symbol-value keymap)
+                ;;         'overriding-terminal-local-map))
+
                 (when flatten
                     (advice-remove #'which-key--update #'ignore))
 
@@ -188,6 +194,9 @@
 (use-package! ryo-modal
     :demand t
     :general (:keymaps 'override (general-chord "  ") 'jr/toggle-ryo)
+    :hydra+
+      (toggles (:color blue) ("r" jr/toggle-ryo "ryo"))
+        (all-keymaps (:color blue) ("r" jr/ryo-show-top-level "ryo"))
     :hercules
         (:show-funs #'jr/ryo-hercules-show
         :hide-funs #'jr/ryo-hercules-hide
@@ -197,6 +206,8 @@
         )
     :config
         (defun jr/ryo-hercules-toggle nil (interactive))
+        (defun jr/ryo-show-top-level nil (interactive)
+            (jr/which-key-show-top-level 'ryo-modal-mode-map))
         (add-to-list 'modal-modes 'ryo-modal-mode)
         (add-to-list 'modal-prefixes "ryo")
     
@@ -209,6 +220,9 @@
     :general (:keymaps 'override
         (general-chord "kk") 'jr/toggle-evil
         ":" 'evil-ex)
+    :hydra+
+      (toggles (:color blue) ("e" jr/toggle-evil "evil"))
+        (all-keymaps (:color blue) ("e" jr/evil-show-top-level "evil"))
     :hercules
         (:show-funs #'jr/evil-hercules-show
         :hide-funs #'jr/evil-hercules-hide
@@ -218,6 +232,8 @@
         )
     :config
         (defun jr/evil-hercules-toggle nil (interactive))
+        (defun jr/evil-show-top-level nil (interactive)
+            (jr/which-key-show-top-level 'evil-normal-state-map))
         (add-to-list 'modal-modes 'evil-mode)
         (add-to-list 'modal-prefixes "evil")
     
@@ -260,6 +276,9 @@
         (:keymaps 'override
             (general-chord "jj") 'jr/toggle-god
             (general-chord "';") 'god-execute-with-current-bindings)
+    :hydra+
+      (toggles (:color blue) ("g" jr/toggle-god "god"))
+        (all-keymaps (:color blue) ("g" jr/god-show-top-level "god"))
     :hercules
         (:show-funs #'jr/god-hercules-show
         :hide-funs #'jr/god-hercules-hide
@@ -269,6 +288,8 @@
         )
     :config
         (defun jr/god-hercules-toggle nil (interactive))
+        (defun jr/god-show-top-level nil (interactive)
+            (jr/which-key-show-top-level 'global-map))
         (add-to-list 'modal-modes 'god-local-mode)
         (add-to-list 'modal-prefixes "god")
     
@@ -282,6 +303,9 @@
                 "A modal hydra!"
                 ("`" nil "cancel")
                 ("x" jr/toggle-xah "xah-fly-keys")) :name "modal modes")
+    :hydra+
+      (toggles (:color blue) ("x" jr/toggle-xah "xah"))
+        (all-keymaps (:color blue) ("x" jr/xah-show-top-level "xah"))
     :hercules
         (:show-funs #'jr/xah-hercules-show
         :hide-funs #'jr/xah-hercules-hide
@@ -291,6 +315,8 @@
         )
     :config
         (defun jr/xah-hercules-toggle nil (interactive))
+        (defun jr/xah-show-top-level nil (interactive)
+            (jr/which-key-show-top-level 'xah-fly-command-map))
         (add-to-list 'modal-modes 'xah-fly-keys)
         (add-to-list 'modal-prefixes "xah")
     
@@ -298,6 +324,9 @@
             (funcall 'jr/toggle-inner 'xah-fly-keys "xah" (bound-and-true-p xah-fly-keys) 'xah-fly-command-map)))
 (use-package! objed
     :general (:keymaps 'override (general-chord "ii") 'jr/toggle-objed)
+    :hydra+
+      (toggles (:color blue) ("o" jr/toggle-objed "objed"))
+        (all-keymaps (:color blue) ("o" jr/objed-show-top-level "objed"))
     :hercules
         (:show-funs #'jr/objed-hercules-show
         :hide-funs #'jr/objed-hercules-hide
@@ -307,13 +336,18 @@
         )
     :config
         (defun jr/objed-hercules-toggle nil (interactive))
+        (defun jr/objed-show-top-level nil (interactive)
+            (jr/which-key-show-top-level 'objed-map))
         (add-to-list 'modal-modes 'objed-mode)
         (add-to-list 'modal-prefixes "objed")
     
         (defun jr/toggle-objed nil (interactive)
             (funcall 'jr/toggle-inner 'objed-mode "objed" (bound-and-true-p objed-mode) 'objed-map)))
 (use-package! kakoune
-    :hydra+ (modal-modes (:color blue) ("k" jr/toggle-kakoune "kakoune"))
+    :hydra+
+        (modal-modes (:color blue) ("k" jr/toggle-kakoune "kakoune"))
+      (toggles (:color blue) ("k" jr/toggle-kakoune "kakoune"))
+        (all-keymaps (:color blue) ("k" jr/kakoune-show-top-level "kakoune"))
     :hercules
         (:show-funs #'jr/kakoune-hercules-show
         :hide-funs #'jr/kakoune-hercules-hide
@@ -323,6 +357,8 @@
         )
     :config
         (defun jr/kakoune-hercules-toggle nil (interactive))
+        (defun jr/kakoune-show-top-level nil (interactive)
+            (jr/which-key-show-top-level 'ryo-modal-mode-map))
         (add-to-list 'modal-modes 'ryo-modal-mode)
         (add-to-list 'modal-prefixes "kakoune")
     
@@ -330,6 +366,9 @@
             (funcall 'jr/toggle-inner 'ryo-modal-mode "kakoune" (bound-and-true-p ryo-modal-mode) 'ryo-modal-mode-map)))
 (use-package! modalka
     ;; :general (:keymaps 'override (general-chord "::") 'jr/toggle-modalka)
+    :hydra+
+      (toggles (:color blue) ("m" jr/toggle-modalka "modalka"))
+        (all-keymaps (:color blue) ("m" jr/modalka-show-top-level "modalka"))
     :hercules
         (:show-funs #'jr/modalka-hercules-show
         :hide-funs #'jr/modalka-hercules-hide
@@ -339,14 +378,15 @@
         )
     :config
         (defun jr/modalka-hercules-toggle nil (interactive))
+        (defun jr/modalka-show-top-level nil (interactive)
+            (jr/which-key-show-top-level 'modalka-mode-map))
         (add-to-list 'modal-modes 'modalka-mode)
         (add-to-list 'modal-prefixes "modalka")
     
         (defun jr/toggle-modalka nil (interactive)
             (funcall 'jr/toggle-inner 'modalka-mode "modalka" (bound-and-true-p modalka-mode) 'modalka-mode-map)))
 
-(add-hook! doom-init-ui
-    (jr/disable-all-modal-modes))
+(add-hook! doom-init-ui (jr/disable-all-modal-modes))
 
 ;; org-mode
 (use-package! org
@@ -839,7 +879,7 @@ is already narrowed."
         (after-init . escreen-install)
     :general
         (:keymaps 'override
-            (general-chord "\\\\") 'jr/escreen-hercules-toggle)
+            (general-chord "||") 'jr/escreen-hercules-toggle)
     :config
         (defun jr/escreen-hercules-toggle nil(interactive))
 

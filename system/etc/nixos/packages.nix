@@ -50,6 +50,7 @@ in with pkgs; [
     git
     git-crypt
     git-fire
+    git-lfs
     gotop
     gptfdisk
     inetutils
@@ -148,7 +149,7 @@ in with pkgs; [
     # nixpkgs
     poetry
 ]) ++ (with pkgs.gitAndTools; [
-    git-annex
+    # git-annex
     git-extras
     git-hub
     gitflow

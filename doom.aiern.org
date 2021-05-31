@@ -897,11 +897,13 @@ Taken from [[Org-Roam's GitHub README][https://github.com/org-roam/org-roam#inst
 : d3797553f252eabca75070bb3374df05
 
 #+name: d3797553f252eabca75070bb3374df05
-#+begin_src emacs-lisp :var map="" :var mode="" :var prefix=""
+#+begin_src emacs-lisp :var map="" :var mode="" :var prefix="" :var short=""
 ;; Adapted From:
 ;; Answer: https://emacs.stackexchange.com/a/7381/31428
 ;; User: https://emacs.stackexchange.com/users/719/adobe
-(format-spec ":hercules
+(format-spec "  (toggles (:color blue) (\"%s\" jr/toggle-%p \"%p\"))
+    (all-keymaps (:color blue) (\"%s\" jr/%p-show-top-level \"%p\"))
+:hercules
     (:show-funs #'jr/%p-hercules-show
     :hide-funs #'jr/%p-hercules-hide
     :toggle-funs #'jr/%p-hercules-toggle
@@ -910,11 +912,13 @@ Taken from [[Org-Roam's GitHub README][https://github.com/org-roam/org-roam#inst
     )
 :config
     (defun jr/%p-hercules-toggle nil (interactive))
+    (defun jr/%p-show-top-level nil (interactive)
+        (jr/which-key-show-top-level '%m))
     (add-to-list 'modal-modes '%n)
     (add-to-list 'modal-prefixes \"%p\")
 
     (defun jr/toggle-%p nil (interactive)
-        (funcall 'jr/toggle-inner '%n \"%p\" (bound-and-true-p %n) '%m))" `((?m . ,map) (?n . ,mode) (?p . ,prefix)))
+        (funcall 'jr/toggle-inner '%n \"%p\" (bound-and-true-p %n) '%m))" `((?m . ,map) (?n . ,mode) (?p . ,prefix) (?s . ,short)))
 #+end_src
 
 #+call: hash("")
@@ -933,12 +937,10 @@ Taken from [[Org-Roam's GitHub README][https://github.com/org-roam/org-roam#inst
 (defvar modal-modes '(evil-mode god-local-mode objed-mode))
 (defvar modal-prefixes (mapcar (lambda (mode) (interactive) (car (split-string (symbol-name mode) "-"))) modal-modes))
 (defvar last-modal-mode nil)
-(defvar hercules-map global-map)
 
 (defun jr/any-popup-showing-p nil (interactive) (or hercules--popup-showing-p (which-key--popup-showing-p)))
 (defun jr/which-key-show-top-level (&optional keymap) (interactive)
-    (let* ((current-map (or keymap (if hercules--popup-showing-p
-                            overriding-terminal-local-map global-map)))
+    (let* ((current-map (or (symbol-value keymap) (or overriding-terminal-local-map global-map)))
         (which-key-function
             ;; #'which-key-show-top-level
             ;; #'(lambda nil (interactive) (which-key-show-full-keymap 'global-map))
@@ -951,7 +953,7 @@ Taken from [[Org-Roam's GitHub README][https://github.com/org-roam/org-roam#inst
             #'(lambda nil (interactive) (
                 which-key--create-buffer-and-show nil current-map nil "Current bindings"))))
         (if (which-key--popup-showing-p)
-            (when (member last-modal-mode modal-prefixes)
+            (when (or (member last-modal-mode modal-prefixes) keymap)
                 (funcall which-key-function) (setq last-modal-mode nil))
             (funcall which-key-function))))
 (defun jr/hercules-hide-all-modal-modes (&optional keymap) (interactive)
@@ -960,7 +962,7 @@ Taken from [[Org-Roam's GitHub README][https://github.com/org-roam/org-roam#inst
         (ignore-errors (funcall (intern (concat "jr/" prefix "-hercules-hide"))))
         ;; (internal-push-keymap 'global-map 'overriding-terminal-local-map)
         ;; (internal-push-keymap nil 'overriding-terminal-local-map)
-        ) modal-prefixes)
+        (setq overriding-terminal-local-map nil)) modal-prefixes)
     (jr/which-key-show-top-level keymap))
 (defun jr/disable-all-modal-modes (&optional keymap) (interactive)
     (mapc
@@ -1001,8 +1003,7 @@ Taken from [[Org-Roam's GitHub README][https://github.com/org-roam/org-roam#inst
 <<c323d6a8a89df885749c42fd2a0bc858>>
 <<452c54e1a8e466b834ef13df6b9e238c>>
 
-(add-hook! doom-init-ui
-    (jr/disable-all-modal-modes))
+(add-hook! doom-init-ui (jr/disable-all-modal-modes))
 #+end_src
 
 ***** hercules
@@ -1017,14 +1018,14 @@ Taken from [[Org-Roam's GitHub README][https://github.com/org-roam/org-roam#inst
 (use-package! hercules
     :demand t
     :general (:keymaps 'override
-        ;; (general-chord "::") 'jr/toggle-which-key
-        (general-chord "::") 'map-of-infinity/body)
+        (general-chord "::") 'jr/toggle-which-key
+        (general-chord "\\\\") 'map-of-infinity/body)
     :hydra (map-of-infinity (:color blue)
             ("w" hydra/which-key/body "which-key")
             ("h" hydra/hercules/body "hercules")
             ("d" jr/disable-all-modal-modes "disable all modal modes")
-            ("t" toggles/body)
-            ("k" all-keymaps/body))
+            ("t" toggles/body "toggles")
+            ("k" all-keymaps/body "all keymaps"))
         (hydra/which-key (:color blue)
             ("h" jr/which-key--hide-popup "hide-popup")
             ("s" jr/which-key--show-popup "show-popup")
@@ -1034,8 +1035,8 @@ Taken from [[Org-Roam's GitHub README][https://github.com/org-roam/org-roam#inst
             ("L" which-key-show-top-level "toplevel"))
         (hydra/hercules (:color blue)
             ("h" jr/hercules-hide-all-modal-modes "hide all modal modes"))
-        (toggles (:color blue))
-        (all-keymaps (:color blue))
+        (toggles (:color blue) ("`" nil "cancel"))
+        (all-keymaps (:color blue) ("`" nil "cancel"))
     :init
         (defun jr/which-key--hide-popup nil (interactive)
             (jr/disable-all-modal-modes)
@@ -1056,6 +1057,11 @@ Taken from [[Org-Roam's GitHub README][https://github.com/org-roam/org-roam#inst
         (setq which-key-idle-delay 0.1)
         (setq which-key-idle-secondary-delay nil)
     :config
+
+        ;; TODO: This is causing hydra to always show the which-key popup
+        ;; (advice-add #'hydra-disable :after #'jr/which-key--show-popup)
+        ;; (advice-add #'hydra-disable :after #'jr/which-key--hide-popup)
+
         (defun jr/hercules--hide (&optional keymap flatten &rest _)
                 "Dismiss hercules.el.
             Pop KEYMAP from `overriding-terminal-local-map' when it is not
@@ -1067,9 +1073,12 @@ Taken from [[Org-Roam's GitHub README][https://github.com/org-roam/org-roam#inst
                     which-key-persistent-popup t)
                     ;; (which-key--hide-popup)
 
-                (when keymap
-                    (internal-pop-keymap (symbol-value keymap)
-                        'overriding-terminal-local-map))
+                ;; I would like the value of `overriding-terminal-local-map' to be `nil'
+                (setq overriding-terminal-local-map nil)
+                ;; (when keymap
+                ;;     (internal-pop-keymap (symbol-value keymap)
+                ;;         'overriding-terminal-local-map))
+
                 (when flatten
                     (advice-remove #'which-key--update #'ignore))
 
@@ -1113,7 +1122,8 @@ Taken from [[Org-Roam's GitHub README][https://github.com/org-roam/org-roam#inst
 (use-package! ryo-modal
     :demand t
     :general (:keymaps 'override (general-chord "  ") 'jr/toggle-ryo)
-    <<d3797553f252eabca75070bb3374df05(map="ryo-modal-mode-map", mode="ryo-modal-mode", prefix="ryo")>>
+    :hydra+
+    <<d3797553f252eabca75070bb3374df05(map="ryo-modal-mode-map", mode="ryo-modal-mode", prefix="ryo", short="r")>>
         ;; From: https://github.com/Kungsgeten/ryo-modal#which-key-integration
         (push '((nil . "ryo:.*:") . (nil . "")) which-key-replacement-alist))
 #+end_src
@@ -1132,7 +1142,8 @@ Taken from [[Org-Roam's GitHub README][https://github.com/org-roam/org-roam#inst
     :general (:keymaps 'override
         (general-chord "kk") 'jr/toggle-evil
         ":" 'evil-ex)
-    <<d3797553f252eabca75070bb3374df05(map="evil-normal-state-map", mode="evil-mode", prefix="evil")>>
+    :hydra+
+    <<d3797553f252eabca75070bb3374df05(map="evil-normal-state-map", mode="evil-mode", prefix="evil", short="e")>>
         (advice-add #'evil-insert-state :override #'jr/disable-all-modal-modes)
         (advice-add #'evil-ex :before #'jr/which-key--hide-popup)
         (advice-add #'evil-ex :after #'jr/which-key--show-popup)
@@ -1181,7 +1192,8 @@ Taken from [[Org-Roam's GitHub README][https://github.com/org-roam/org-roam#inst
         (:keymaps 'override
             (general-chord "jj") 'jr/toggle-god
             (general-chord "';") 'god-execute-with-current-bindings)
-    <<d3797553f252eabca75070bb3374df05(map="global-map", mode="god-local-mode", prefix="god")>>
+    :hydra+
+    <<d3797553f252eabca75070bb3374df05(map="global-map", mode="god-local-mode", prefix="god", short="g")>>
         (which-key-enable-god-mode-support))
 #+end_src
 
@@ -1201,7 +1213,8 @@ Taken from [[Org-Roam's GitHub README][https://github.com/org-roam/org-roam#inst
                 "A modal hydra!"
                 ("`" nil "cancel")
                 ("x" jr/toggle-xah "xah-fly-keys")) :name "modal modes")
-    <<d3797553f252eabca75070bb3374df05(map="xah-fly-command-map", mode="xah-fly-keys", prefix="xah")>>)
+    :hydra+
+    <<d3797553f252eabca75070bb3374df05(map="xah-fly-command-map", mode="xah-fly-keys", prefix="xah", short="x")>>)
 #+end_src
 
 ***** objed
@@ -1215,7 +1228,8 @@ Taken from [[Org-Roam's GitHub README][https://github.com/org-roam/org-roam#inst
 #+begin_src emacs-lisp
 (use-package! objed
     :general (:keymaps 'override (general-chord "ii") 'jr/toggle-objed)
-    <<d3797553f252eabca75070bb3374df05(map="objed-map", mode="objed-mode", prefix="objed")>>)
+    :hydra+
+    <<d3797553f252eabca75070bb3374df05(map="objed-map", mode="objed-mode", prefix="objed", short="o")>>)
 #+end_src
 
 ***** kakoune
@@ -1228,8 +1242,9 @@ Taken from [[Org-Roam's GitHub README][https://github.com/org-roam/org-roam#inst
 #+name: c323d6a8a89df885749c42fd2a0bc858
 #+begin_src emacs-lisp
 (use-package! kakoune
-    :hydra+ (modal-modes (:color blue) ("k" jr/toggle-kakoune "kakoune"))
-    <<d3797553f252eabca75070bb3374df05(map="ryo-modal-mode-map", mode="ryo-modal-mode", prefix="kakoune")>>)
+    :hydra+
+        (modal-modes (:color blue) ("k" jr/toggle-kakoune "kakoune"))
+    <<d3797553f252eabca75070bb3374df05(map="ryo-modal-mode-map", mode="ryo-modal-mode", prefix="kakoune", short="k")>>)
 #+end_src
 
 ***** modalka
@@ -1243,7 +1258,8 @@ Taken from [[Org-Roam's GitHub README][https://github.com/org-roam/org-roam#inst
 #+begin_src emacs-lisp
 (use-package! modalka
     ;; :general (:keymaps 'override (general-chord "::") 'jr/toggle-modalka)
-    <<d3797553f252eabca75070bb3374df05(map="modalka-mode-map", mode="modalka-mode", prefix="modalka")>>)
+    :hydra+
+    <<d3797553f252eabca75070bb3374df05(map="modalka-mode-map", mode="modalka-mode", prefix="modalka", short="m")>>)
 #+end_src
 
 **** minibuffer
@@ -1677,7 +1693,7 @@ Mostly from [[Emux's After Installing Section][https://github.com/re5et/emux#aft
         (after-init . escreen-install)
     :general
         (:keymaps 'override
-            (general-chord "\\\\") 'jr/escreen-hercules-toggle)
+            (general-chord "||") 'jr/escreen-hercules-toggle)
     :config
         (defun jr/escreen-hercules-toggle nil(interactive))
 
