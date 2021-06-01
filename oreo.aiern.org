@@ -5506,3 +5506,15 @@ if not args.dry_run:
     else:
         run(command(getHash()), shell = True)
 #+end_src
+
+* bootstrap
+
+#+call: hash("")
+
+#+RESULTS:
+: ca4c50b905dc21ea17a10549a6f5944f
+
+#+name: ca4c50b905dc21ea17a10549a6f5944f
+#+begin_src python :tangle (jr/tangle-path) :shebang "#!/usr/bin/env python3.9"
+<<20da3080268b6d2673a43886dcdd8d08>>
+#+end_src
