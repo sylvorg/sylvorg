@@ -41,6 +41,7 @@
 (defvar modal-modes '(evil-mode god-local-mode objed-mode))
 (defvar modal-prefixes (mapcar (lambda (mode) (interactive) (car (split-string (symbol-name mode) "-"))) modal-modes))
 (defvar last-modal-mode nil)
+(defvar all-keymaps-map nil)
 
 (defun jr/any-popup-showing-p nil (interactive) (or hercules--popup-showing-p (which-key--popup-showing-p)))
 (defun jr/which-key-show-top-level (&optional keymap) (interactive)
@@ -61,19 +62,27 @@
                 (funcall which-key-function) (setq last-modal-mode nil))
             (funcall which-key-function))))
 (defun jr/hercules-hide-all-modal-modes (&optional keymap) (interactive)
-    (mapc #'(lambda (prefix) (interactive)
+    (when overriding-terminal-local-map (mapc #'(lambda (prefix) (interactive)
         (message (format "Hiding %s" prefix))
         (ignore-errors (funcall (intern (concat "jr/" prefix "-hercules-hide"))))
         ;; (internal-push-keymap 'global-map 'overriding-terminal-local-map)
         ;; (internal-push-keymap nil 'overriding-terminal-local-map)
-        (setq overriding-terminal-local-map nil)) modal-prefixes)
+        (setq overriding-terminal-local-map nil)) modal-prefixes))
     (jr/which-key-show-top-level keymap))
+
+;; Adapted From:
+;; Answer: https://stackoverflow.com/a/10088995/10827766
+;; User: https://stackoverflow.com/users/324105/phils
+(defun fbatp (mode) (interactive)
+    (let* ((is-it-bound (boundp mode)))
+        (when is-it-bound (and (or (boundp (symbol-value mode))) (or (fboundp mode) (functionp mode))) mode)))
+
 (defun jr/disable-all-modal-modes (&optional keymap) (interactive)
     (mapc
         (lambda (mode-symbol)
-            (message (format "Disabling %s" (symbol-name mode-symbol)))
-            (when (functionp mode-symbol)
             ;; some symbols are functions which aren't normal mode functions
+            (when (fbatp mode-symbol)
+                (message (format "Disabling %s" (symbol-name mode-symbol)))
                 (ignore-errors
                     (funcall mode-symbol -1))))
             modal-modes)
@@ -101,25 +110,34 @@
 (use-package! hercules
     :demand t
     :general (:keymaps 'override
-        (general-chord "::") 'jr/toggle-which-key
-        (general-chord "\\\\") 'map-of-infinity/body)
-    :hydra (map-of-infinity (:color blue)
+        (general-chord "\\\\") 'jr/toggle-which-key
+        (general-chord "\\]") 'map-of-infinity/body)
+    :hydra (map-of-infinity (:color blue :pre (progn
+                (when (jr/any-popup-showing-p) (jr/which-key--hide-popup))) :post (progn (unless hydra-curr-map (jr/which-key--show-popup))))
+            ("`" nil "cancel")
             ("w" hydra/which-key/body "which-key")
             ("h" hydra/hercules/body "hercules")
             ("d" jr/disable-all-modal-modes "disable all modal modes")
             ("t" toggles/body "toggles")
             ("k" all-keymaps/body "all keymaps"))
-        (hydra/which-key (:color blue)
+        (hydra/which-key (:color blue :pre (progn
+                (when (jr/any-popup-showing-p) (jr/which-key--hide-popup))) :post (progn (unless hydra-curr-map (jr/which-key--show-popup))))
+            ("`" nil "cancel")
+            ("a" jr/any-popup-showing-p "any popup showing")
             ("h" jr/which-key--hide-popup "hide-popup")
             ("s" jr/which-key--show-popup "show-popup")
             ("r" jr/which-key--refresh-popup "refresh-popup")
             ("t" jr/toggle-which-key "toggle")
             ("l" jr/which-key-show-top-level "jr/toplevel")
             ("L" which-key-show-top-level "toplevel"))
-        (hydra/hercules (:color blue)
+        (hydra/hercules (:color blue :pre (progn
+                (when (jr/any-popup-showing-p) (jr/which-key--hide-popup))) :post (progn (unless hydra-curr-map (jr/which-key--show-popup))))
+            ("`" nil "cancel")
             ("h" jr/hercules-hide-all-modal-modes "hide all modal modes"))
-        (toggles (:color blue) ("`" nil "cancel"))
-        (all-keymaps (:color blue) ("`" nil "cancel"))
+        (toggles (:color blue :pre (progn
+                (when (jr/any-popup-showing-p) (jr/which-key--hide-popup))) :post (progn (unless hydra-curr-map (jr/which-key--show-popup)))) ("`" nil "cancel"))
+        (all-keymaps (:color blue :pre (progn
+                (when (jr/any-popup-showing-p) (jr/which-key--hide-popup))) :post (progn (unless hydra-curr-map (jr/which-key--show-popup)))) ("`" nil "cancel"))
     :init
         (defun jr/which-key--hide-popup nil (interactive)
             (jr/disable-all-modal-modes)
@@ -195,8 +213,10 @@
     :demand t
     :general (:keymaps 'override (general-chord "  ") 'jr/toggle-ryo)
     :hydra+
-      (toggles (:color blue) ("r" jr/toggle-ryo "ryo"))
-        (all-keymaps (:color blue) ("r" jr/ryo-show-top-level "ryo"))
+      (toggles (:color blue :pre (progn
+                    (when (jr/any-popup-showing-p) (jr/which-key--hide-popup))) :post (progn (unless hydra-curr-map (jr/which-key--show-popup)))) ("r" jr/toggle-ryo "ryo"))
+        (all-keymaps (:color blue :pre (progn
+                    (when (jr/any-popup-showing-p) (jr/which-key--hide-popup))) :post (progn (unless hydra-curr-map (jr/which-key--show-popup)))) ("r" (progn (setq all-keymaps-map 'ryo-modal-mode) (jr/ryo-show-top-level)) "ryo"))
     :hercules
         (:show-funs #'jr/ryo-hercules-show
         :hide-funs #'jr/ryo-hercules-hide
@@ -212,7 +232,7 @@
         (add-to-list 'modal-prefixes "ryo")
     
         (defun jr/toggle-ryo nil (interactive)
-            (funcall 'jr/toggle-inner 'ryo-modal-mode "ryo" (bound-and-true-p ryo-modal-mode) 'ryo-modal-mode-map))
+            (funcall 'jr/toggle-inner 'ryo-modal-mode "ryo" (fbatp ryo-modal-mode) 'ryo-modal-mode-map))
         ;; From: https://github.com/Kungsgeten/ryo-modal#which-key-integration
         (push '((nil . "ryo:.*:") . (nil . "")) which-key-replacement-alist))
 (use-package! evil
@@ -221,8 +241,10 @@
         (general-chord "kk") 'jr/toggle-evil
         ":" 'evil-ex)
     :hydra+
-      (toggles (:color blue) ("e" jr/toggle-evil "evil"))
-        (all-keymaps (:color blue) ("e" jr/evil-show-top-level "evil"))
+      (toggles (:color blue :pre (progn
+                    (when (jr/any-popup-showing-p) (jr/which-key--hide-popup))) :post (progn (unless hydra-curr-map (jr/which-key--show-popup)))) ("e" jr/toggle-evil "evil"))
+        (all-keymaps (:color blue :pre (progn
+                    (when (jr/any-popup-showing-p) (jr/which-key--hide-popup))) :post (progn (unless hydra-curr-map (jr/which-key--show-popup)))) ("e" (progn (setq all-keymaps-map 'evil-mode) (jr/evil-show-top-level)) "evil"))
     :hercules
         (:show-funs #'jr/evil-hercules-show
         :hide-funs #'jr/evil-hercules-hide
@@ -238,7 +260,7 @@
         (add-to-list 'modal-prefixes "evil")
     
         (defun jr/toggle-evil nil (interactive)
-            (funcall 'jr/toggle-inner 'evil-mode "evil" (bound-and-true-p evil-mode) 'evil-normal-state-map))
+            (funcall 'jr/toggle-inner 'evil-mode "evil" (fbatp evil-mode) 'evil-normal-state-map))
         (advice-add #'evil-insert-state :override #'jr/disable-all-modal-modes)
         (advice-add #'evil-ex :before #'jr/which-key--hide-popup)
         (advice-add #'evil-ex :after #'jr/which-key--show-popup)
@@ -257,7 +279,8 @@
         ;; Then "C-x C-e" (eval-last-sexp)
     :ryo
         ("l" :hydra
-                '(evil-exits (:color blue)
+                '(evil-exits (:color blue :pre (progn
+                (when (jr/any-popup-showing-p) (jr/which-key--hide-popup))) :post (progn (unless hydra-curr-map (jr/which-key--show-popup))))
                     ;; From: https://gist.github.com/shadowrylander/46b81297d1d3edfbf1e2d72d5e29171e
                     "A hydra for getting the fuck outta' here!"
                     ("`" nil "cancel")
@@ -277,8 +300,10 @@
             (general-chord "jj") 'jr/toggle-god
             (general-chord "';") 'god-execute-with-current-bindings)
     :hydra+
-      (toggles (:color blue) ("g" jr/toggle-god "god"))
-        (all-keymaps (:color blue) ("g" jr/god-show-top-level "god"))
+      (toggles (:color blue :pre (progn
+                    (when (jr/any-popup-showing-p) (jr/which-key--hide-popup))) :post (progn (unless hydra-curr-map (jr/which-key--show-popup)))) ("g" jr/toggle-god "god"))
+        (all-keymaps (:color blue :pre (progn
+                    (when (jr/any-popup-showing-p) (jr/which-key--hide-popup))) :post (progn (unless hydra-curr-map (jr/which-key--show-popup)))) ("g" (progn (setq all-keymaps-map 'god-local-mode) (jr/god-show-top-level)) "god"))
     :hercules
         (:show-funs #'jr/god-hercules-show
         :hide-funs #'jr/god-hercules-hide
@@ -294,18 +319,21 @@
         (add-to-list 'modal-prefixes "god")
     
         (defun jr/toggle-god nil (interactive)
-            (funcall 'jr/toggle-inner 'god-local-mode "god" (bound-and-true-p god-local-mode) 'global-map))
+            (funcall 'jr/toggle-inner 'god-local-mode "god" (fbatp god-local-mode) 'global-map))
         (which-key-enable-god-mode-support))
 (use-package! xah-fly-keys
     :ryo
         ("m" :hydra
-            '(modal-modes (:color blue)
+            '(modal-modes (:color blue :pre (progn
+                (when (jr/any-popup-showing-p) (jr/which-key--hide-popup))) :post (progn (unless hydra-curr-map (jr/which-key--show-popup))))
                 "A modal hydra!"
                 ("`" nil "cancel")
                 ("x" jr/toggle-xah "xah-fly-keys")) :name "modal modes")
     :hydra+
-      (toggles (:color blue) ("x" jr/toggle-xah "xah"))
-        (all-keymaps (:color blue) ("x" jr/xah-show-top-level "xah"))
+      (toggles (:color blue :pre (progn
+                    (when (jr/any-popup-showing-p) (jr/which-key--hide-popup))) :post (progn (unless hydra-curr-map (jr/which-key--show-popup)))) ("x" jr/toggle-xah "xah"))
+        (all-keymaps (:color blue :pre (progn
+                    (when (jr/any-popup-showing-p) (jr/which-key--hide-popup))) :post (progn (unless hydra-curr-map (jr/which-key--show-popup)))) ("x" (progn (setq all-keymaps-map 'xah-fly-keys) (jr/xah-show-top-level)) "xah"))
     :hercules
         (:show-funs #'jr/xah-hercules-show
         :hide-funs #'jr/xah-hercules-hide
@@ -321,12 +349,14 @@
         (add-to-list 'modal-prefixes "xah")
     
         (defun jr/toggle-xah nil (interactive)
-            (funcall 'jr/toggle-inner 'xah-fly-keys "xah" (bound-and-true-p xah-fly-keys) 'xah-fly-command-map)))
+            (funcall 'jr/toggle-inner 'xah-fly-keys "xah" (fbatp xah-fly-keys) 'xah-fly-command-map)))
 (use-package! objed
     :general (:keymaps 'override (general-chord "ii") 'jr/toggle-objed)
     :hydra+
-      (toggles (:color blue) ("o" jr/toggle-objed "objed"))
-        (all-keymaps (:color blue) ("o" jr/objed-show-top-level "objed"))
+      (toggles (:color blue :pre (progn
+                    (when (jr/any-popup-showing-p) (jr/which-key--hide-popup))) :post (progn (unless hydra-curr-map (jr/which-key--show-popup)))) ("o" jr/toggle-objed "objed"))
+        (all-keymaps (:color blue :pre (progn
+                    (when (jr/any-popup-showing-p) (jr/which-key--hide-popup))) :post (progn (unless hydra-curr-map (jr/which-key--show-popup)))) ("o" (progn (setq all-keymaps-map 'objed-mode) (jr/objed-show-top-level)) "objed"))
     :hercules
         (:show-funs #'jr/objed-hercules-show
         :hide-funs #'jr/objed-hercules-hide
@@ -342,12 +372,14 @@
         (add-to-list 'modal-prefixes "objed")
     
         (defun jr/toggle-objed nil (interactive)
-            (funcall 'jr/toggle-inner 'objed-mode "objed" (bound-and-true-p objed-mode) 'objed-map)))
+            (funcall 'jr/toggle-inner 'objed-mode "objed" (fbatp objed-mode) 'objed-map)))
 (use-package! kakoune
     :hydra+
         (modal-modes (:color blue) ("k" jr/toggle-kakoune "kakoune"))
-      (toggles (:color blue) ("k" jr/toggle-kakoune "kakoune"))
-        (all-keymaps (:color blue) ("k" jr/kakoune-show-top-level "kakoune"))
+      (toggles (:color blue :pre (progn
+                    (when (jr/any-popup-showing-p) (jr/which-key--hide-popup))) :post (progn (unless hydra-curr-map (jr/which-key--show-popup)))) ("k" jr/toggle-kakoune "kakoune"))
+        (all-keymaps (:color blue :pre (progn
+                    (when (jr/any-popup-showing-p) (jr/which-key--hide-popup))) :post (progn (unless hydra-curr-map (jr/which-key--show-popup)))) ("k" (progn (setq all-keymaps-map 'ryo-modal-mode) (jr/kakoune-show-top-level)) "kakoune"))
     :hercules
         (:show-funs #'jr/kakoune-hercules-show
         :hide-funs #'jr/kakoune-hercules-hide
@@ -363,12 +395,14 @@
         (add-to-list 'modal-prefixes "kakoune")
     
         (defun jr/toggle-kakoune nil (interactive)
-            (funcall 'jr/toggle-inner 'ryo-modal-mode "kakoune" (bound-and-true-p ryo-modal-mode) 'ryo-modal-mode-map)))
+            (funcall 'jr/toggle-inner 'ryo-modal-mode "kakoune" (fbatp ryo-modal-mode) 'ryo-modal-mode-map)))
 (use-package! modalka
     ;; :general (:keymaps 'override (general-chord "::") 'jr/toggle-modalka)
     :hydra+
-      (toggles (:color blue) ("m" jr/toggle-modalka "modalka"))
-        (all-keymaps (:color blue) ("m" jr/modalka-show-top-level "modalka"))
+      (toggles (:color blue :pre (progn
+                    (when (jr/any-popup-showing-p) (jr/which-key--hide-popup))) :post (progn (unless hydra-curr-map (jr/which-key--show-popup)))) ("m" jr/toggle-modalka "modalka"))
+        (all-keymaps (:color blue :pre (progn
+                    (when (jr/any-popup-showing-p) (jr/which-key--hide-popup))) :post (progn (unless hydra-curr-map (jr/which-key--show-popup)))) ("m" (progn (setq all-keymaps-map 'modalka-mode) (jr/modalka-show-top-level)) "modalka"))
     :hercules
         (:show-funs #'jr/modalka-hercules-show
         :hide-funs #'jr/modalka-hercules-hide
@@ -384,7 +418,7 @@
         (add-to-list 'modal-prefixes "modalka")
     
         (defun jr/toggle-modalka nil (interactive)
-            (funcall 'jr/toggle-inner 'modalka-mode "modalka" (bound-and-true-p modalka-mode) 'modalka-mode-map)))
+            (funcall 'jr/toggle-inner 'modalka-mode "modalka" (fbatp modalka-mode) 'modalka-mode-map)))
 
 (add-hook! doom-init-ui (jr/disable-all-modal-modes))
 
@@ -583,7 +617,8 @@
             (:keymaps 'override
                 (naked "backtab") 'jr/evil-close-fold)
         :ryo ("o" :hydra
-            '(hydra-org (:color blue)
+            '(hydra-org (:color blue :pre (progn
+                (when (jr/any-popup-showing-p) (jr/which-key--hide-popup))) :post (progn (unless hydra-curr-map (jr/which-key--show-popup))))
                   "A hydra for org-mode!"
                   ("o" org-babel-tangle "tangle")
                   ("a" jr/org-babel-tangle-append "tangle append")
@@ -608,7 +643,8 @@
 
 ;; TODO: Split this into multiple `use-package!' instances using my new `hydra+' keyword
 (ryo-modal-key "x" :hydra
-      '(hydra-execute (:color blue)
+      '(hydra-execute (:color blue :pre (progn
+                (when (jr/any-popup-showing-p) (jr/which-key--hide-popup))) :post (progn (unless hydra-curr-map (jr/which-key--show-popup))))
             "A hydra for launching stuff!"
             ("c" counsel-M-x "counsel")
             ("h" helm-smex-major-mode-commands "helm smex major mode")
@@ -634,7 +670,8 @@
 ;; git
 (use-package! git-gutter
     :ryo ("g" :hydra
-        '(hydra-git nil
+        '(hydra-git (:pre (progn
+                (when (jr/any-popup-showing-p) (jr/which-key--hide-popup))) :post (progn (unless hydra-curr-map (jr/which-key--show-popup))))
             "A hydra for git!"
             ("`" nil "cancel" :color blue)
             ("j" git-gutter:next-hunk "next")
@@ -643,9 +680,10 @@
             ("s" git-gutter:stage-hunk "stage")
             ("r" git-gutter:revert-hunk "revert")
             ("m" git-gutter:mark-hunk "mark"))))
-(when (or (featurep! :tools magit) (require 'magit nil t)) (use-package! magit
+(when (or (featurep! :tools magit) (featurep 'magit)) (use-package! magit
     :ryo ("g" :hydra+
-        '(hydra-git nil
+        '(hydra-git (:pre (progn
+                (when (jr/any-popup-showing-p) (jr/which-key--hide-popup))) :post (progn (unless hydra-curr-map (jr/which-key--show-popup))))
             "A hydra for git!"
             ("g" magit-status "magit" :color blue)))))
 ;; (use-package! gitattributes-mode)
@@ -993,7 +1031,7 @@ is already narrowed."
     "Run FORM after all MY-FEATURES are loaded.
     See `eval-after-load' for the possible formats of FORM."
     (if (null my-features)
-        (if (functionp form)
+        (if (fbatp form)
         (funcall form)
     (eval form))
     (eval-after-load (car my-features)
@@ -1009,7 +1047,7 @@ is already narrowed."
 ;;     "Run FORM after all MY-FEATURES are loaded.
 ;;     See `eval-after-load' for the possible formats of FORM."
 ;;     (if (any my-features)
-;;         (if (functionp form)
+;;         (if (fbatp form)
 ;;         (funcall form)
 ;;     (eval form))
 ;;     (eval-after-load (car my-features)
@@ -1020,11 +1058,11 @@ is already narrowed."
 
 ;; From: https://www.masteringemacs.org/article/speed-up-emacs-libjansson-native-elisp-compilation
 
-(if (and (fboundp 'native-comp-available-p)
+(if (and (fbatp 'native-comp-available-p)
        (native-comp-available-p))
   (message "Native compilation is available")
 (message "Native complation is *not* available"))
-(if (functionp 'json-serialize)
+(if (fbatp 'json-serialize)
   (message "Native JSON is available")
 (message "Native JSON is *not* available"))
 

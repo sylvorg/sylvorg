@@ -310,7 +310,7 @@ init:
     "Run FORM after all MY-FEATURES are loaded.
     See `eval-after-load' for the possible formats of FORM."
     (if (null my-features)
-        (if (functionp form)
+        (if (fbatp form)
         (funcall form)
     (eval form))
     (eval-after-load (car my-features)
@@ -326,7 +326,7 @@ init:
 ;;     "Run FORM after all MY-FEATURES are loaded.
 ;;     See `eval-after-load' for the possible formats of FORM."
 ;;     (if (any my-features)
-;;         (if (functionp form)
+;;         (if (fbatp form)
 ;;         (funcall form)
 ;;     (eval form))
 ;;     (eval-after-load (car my-features)
@@ -337,11 +337,11 @@ init:
 
 ;; From: https://www.masteringemacs.org/article/speed-up-emacs-libjansson-native-elisp-compilation
 
-(if (and (fboundp 'native-comp-available-p)
+(if (and (fbatp 'native-comp-available-p)
        (native-comp-available-p))
   (message "Native compilation is available")
 (message "Native complation is *not* available"))
-(if (functionp 'json-serialize)
+(if (fbatp 'json-serialize)
   (message "Native JSON is available")
 (message "Native JSON is *not* available"))
 
@@ -459,7 +459,6 @@ init:
 #+end_src
 
 **** use-package
-
 ***** always defer package loading
 
 Quoted from [[Use-Package's Loading packages in sequence
@@ -549,6 +548,16 @@ And in my experience... Not a good idea; much too confusing. Use
 (setq use-package-always-defer t)
 #+end_src
 
+#+call: hash("post-pre")
+
+#+RESULTS:
+: e53639c897d29ff5ad0f260d8b3bc2e2
+
+#+name: e53639c897d29ff5ad0f260d8b3bc2e2
+#+begin_src emacs-lisp
+(when (jr/any-popup-showing-p) (jr/which-key--hide-popup))) :post (progn (unless hydra-curr-map (jr/which-key--show-popup))
+#+end_src
+
 #+call: hash("")
 
 #+RESULTS:
@@ -621,7 +630,8 @@ And in my experience... Not a good idea; much too confusing. Use
             (:keymaps 'override
                 (naked "backtab") 'jr/evil-close-fold)
         :ryo ("o" :hydra
-            '(hydra-org (:color blue)
+            '(hydra-org (:color blue :pre (progn
+                <<e53639c897d29ff5ad0f260d8b3bc2e2>>))
                   "A hydra for org-mode!"
                   ("o" org-babel-tangle "tangle")
                   ("a" jr/org-babel-tangle-append "tangle append")
@@ -901,8 +911,10 @@ Taken from [[Org-Roam's GitHub README][https://github.com/org-roam/org-roam#inst
 ;; Adapted From:
 ;; Answer: https://emacs.stackexchange.com/a/7381/31428
 ;; User: https://emacs.stackexchange.com/users/719/adobe
-(format-spec "  (toggles (:color blue) (\"%s\" jr/toggle-%p \"%p\"))
-    (all-keymaps (:color blue) (\"%s\" jr/%p-show-top-level \"%p\"))
+(format-spec "  (toggles (:color blue :pre (progn
+                <<e53639c897d29ff5ad0f260d8b3bc2e2>>)) (\"%s\" jr/toggle-%p \"%p\"))
+    (all-keymaps (:color blue :pre (progn
+                <<e53639c897d29ff5ad0f260d8b3bc2e2>>)) (\"%s\" (progn (setq all-keymaps-map '%n) (jr/%p-show-top-level)) \"%p\"))
 :hercules
     (:show-funs #'jr/%p-hercules-show
     :hide-funs #'jr/%p-hercules-hide
@@ -918,7 +930,7 @@ Taken from [[Org-Roam's GitHub README][https://github.com/org-roam/org-roam#inst
     (add-to-list 'modal-prefixes \"%p\")
 
     (defun jr/toggle-%p nil (interactive)
-        (funcall 'jr/toggle-inner '%n \"%p\" (bound-and-true-p %n) '%m))" `((?m . ,map) (?n . ,mode) (?p . ,prefix) (?s . ,short)))
+        (funcall 'jr/toggle-inner '%n \"%p\" (fbatp %n) '%m))" `((?m . ,map) (?n . ,mode) (?p . ,prefix) (?s . ,short)))
 #+end_src
 
 #+call: hash("")
@@ -937,6 +949,7 @@ Taken from [[Org-Roam's GitHub README][https://github.com/org-roam/org-roam#inst
 (defvar modal-modes '(evil-mode god-local-mode objed-mode))
 (defvar modal-prefixes (mapcar (lambda (mode) (interactive) (car (split-string (symbol-name mode) "-"))) modal-modes))
 (defvar last-modal-mode nil)
+(defvar all-keymaps-map nil)
 
 (defun jr/any-popup-showing-p nil (interactive) (or hercules--popup-showing-p (which-key--popup-showing-p)))
 (defun jr/which-key-show-top-level (&optional keymap) (interactive)
@@ -957,19 +970,27 @@ Taken from [[Org-Roam's GitHub README][https://github.com/org-roam/org-roam#inst
                 (funcall which-key-function) (setq last-modal-mode nil))
             (funcall which-key-function))))
 (defun jr/hercules-hide-all-modal-modes (&optional keymap) (interactive)
-    (mapc #'(lambda (prefix) (interactive)
+    (when overriding-terminal-local-map (mapc #'(lambda (prefix) (interactive)
         (message (format "Hiding %s" prefix))
         (ignore-errors (funcall (intern (concat "jr/" prefix "-hercules-hide"))))
         ;; (internal-push-keymap 'global-map 'overriding-terminal-local-map)
         ;; (internal-push-keymap nil 'overriding-terminal-local-map)
-        (setq overriding-terminal-local-map nil)) modal-prefixes)
+        (setq overriding-terminal-local-map nil)) modal-prefixes))
     (jr/which-key-show-top-level keymap))
+
+;; Adapted From:
+;; Answer: https://stackoverflow.com/a/10088995/10827766
+;; User: https://stackoverflow.com/users/324105/phils
+(defun fbatp (mode) (interactive)
+    (let* ((is-it-bound (boundp mode)))
+        (when is-it-bound (and (or (boundp (symbol-value mode))) (or (fboundp mode) (functionp mode))) mode)))
+
 (defun jr/disable-all-modal-modes (&optional keymap) (interactive)
     (mapc
         (lambda (mode-symbol)
-            (message (format "Disabling %s" (symbol-name mode-symbol)))
-            (when (functionp mode-symbol)
             ;; some symbols are functions which aren't normal mode functions
+            (when (fbatp mode-symbol)
+                (message (format "Disabling %s" (symbol-name mode-symbol)))
                 (ignore-errors
                     (funcall mode-symbol -1))))
             modal-modes)
@@ -1018,25 +1039,34 @@ Taken from [[Org-Roam's GitHub README][https://github.com/org-roam/org-roam#inst
 (use-package! hercules
     :demand t
     :general (:keymaps 'override
-        (general-chord "::") 'jr/toggle-which-key
-        (general-chord "\\\\") 'map-of-infinity/body)
-    :hydra (map-of-infinity (:color blue)
+        (general-chord "\\\\") 'jr/toggle-which-key
+        (general-chord "\\]") 'map-of-infinity/body)
+    :hydra (map-of-infinity (:color blue :pre (progn
+                <<e53639c897d29ff5ad0f260d8b3bc2e2>>))
+            ("`" nil "cancel")
             ("w" hydra/which-key/body "which-key")
             ("h" hydra/hercules/body "hercules")
             ("d" jr/disable-all-modal-modes "disable all modal modes")
             ("t" toggles/body "toggles")
             ("k" all-keymaps/body "all keymaps"))
-        (hydra/which-key (:color blue)
+        (hydra/which-key (:color blue :pre (progn
+                <<e53639c897d29ff5ad0f260d8b3bc2e2>>))
+            ("`" nil "cancel")
+            ("a" jr/any-popup-showing-p "any popup showing")
             ("h" jr/which-key--hide-popup "hide-popup")
             ("s" jr/which-key--show-popup "show-popup")
             ("r" jr/which-key--refresh-popup "refresh-popup")
             ("t" jr/toggle-which-key "toggle")
             ("l" jr/which-key-show-top-level "jr/toplevel")
             ("L" which-key-show-top-level "toplevel"))
-        (hydra/hercules (:color blue)
+        (hydra/hercules (:color blue :pre (progn
+                <<e53639c897d29ff5ad0f260d8b3bc2e2>>))
+            ("`" nil "cancel")
             ("h" jr/hercules-hide-all-modal-modes "hide all modal modes"))
-        (toggles (:color blue) ("`" nil "cancel"))
-        (all-keymaps (:color blue) ("`" nil "cancel"))
+        (toggles (:color blue :pre (progn
+                <<e53639c897d29ff5ad0f260d8b3bc2e2>>)) ("`" nil "cancel"))
+        (all-keymaps (:color blue :pre (progn
+                <<e53639c897d29ff5ad0f260d8b3bc2e2>>)) ("`" nil "cancel"))
     :init
         (defun jr/which-key--hide-popup nil (interactive)
             (jr/disable-all-modal-modes)
@@ -1162,7 +1192,8 @@ Taken from [[Org-Roam's GitHub README][https://github.com/org-roam/org-roam#inst
         ;; Then "C-x C-e" (eval-last-sexp)
     :ryo
         ("l" :hydra
-                '(evil-exits (:color blue)
+                '(evil-exits (:color blue :pre (progn
+                <<e53639c897d29ff5ad0f260d8b3bc2e2>>))
                     ;; From: https://gist.github.com/<<username>>/46b81297d1d3edfbf1e2d72d5e29171e
                     "A hydra for getting the fuck outta' here!"
                     ("`" nil "cancel")
@@ -1209,7 +1240,8 @@ Taken from [[Org-Roam's GitHub README][https://github.com/org-roam/org-roam#inst
 (use-package! xah-fly-keys
     :ryo
         ("m" :hydra
-            '(modal-modes (:color blue)
+            '(modal-modes (:color blue :pre (progn
+                <<e53639c897d29ff5ad0f260d8b3bc2e2>>))
                 "A modal hydra!"
                 ("`" nil "cancel")
                 ("x" jr/toggle-xah "xah-fly-keys")) :name "modal modes")
@@ -1275,7 +1307,8 @@ Taken from [[Org-Roam's GitHub README][https://github.com/org-roam/org-roam#inst
 
 ;; TODO: Split this into multiple `use-package!' instances using my new `hydra+' keyword
 (ryo-modal-key "x" :hydra
-      '(hydra-execute (:color blue)
+      '(hydra-execute (:color blue :pre (progn
+                <<e53639c897d29ff5ad0f260d8b3bc2e2>>))
             "A hydra for launching stuff!"
             ("c" counsel-M-x "counsel")
             ("h" helm-smex-major-mode-commands "helm smex major mode")
@@ -1345,7 +1378,8 @@ Taken from [[Org-Roam's GitHub README][https://github.com/org-roam/org-roam#inst
 #+begin_src emacs-lisp
 (use-package! git-gutter
     :ryo ("g" :hydra
-        '(hydra-git nil
+        '(hydra-git (:pre (progn
+                <<e53639c897d29ff5ad0f260d8b3bc2e2>>))
             "A hydra for git!"
             ("`" nil "cancel" :color blue)
             ("j" git-gutter:next-hunk "next")
@@ -1365,9 +1399,10 @@ Taken from [[Org-Roam's GitHub README][https://github.com/org-roam/org-roam#inst
 
 #+name: 4fc4f48b4b076bf715c264568fa94979
 #+begin_src emacs-lisp
-(when (or (featurep! :tools magit) (require 'magit nil t)) (use-package! magit
+(when (or (featurep! :tools magit) (featurep 'magit)) (use-package! magit
     :ryo ("g" :hydra+
-        '(hydra-git nil
+        '(hydra-git (:pre (progn
+                <<e53639c897d29ff5ad0f260d8b3bc2e2>>))
             "A hydra for git!"
             ("g" magit-status "magit" :color blue)))))
 #+end_src
