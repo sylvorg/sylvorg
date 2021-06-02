@@ -10,9 +10,9 @@ This is used to hold themes for =doom-emacs=.
 #+call: hash()
 
 #+RESULTS:
-: b639f1407dbe6dca916e5ab36e3e90fc
+: 20210601221052630320600
 
-#+name: b639f1407dbe6dca916e5ab36e3e90fc
+#+name: 20210601221052630320600
 #+begin_src emacs-lisp
   `(default ((,class (:background ,shade0 :foreground ,shade7))))
   `(font-lock-builtin-face ((,class (:foreground ,accent5))))
@@ -217,9 +217,9 @@ This is used to hold themes for =doom-emacs=.
 #+call: hash()
 
 #+RESULTS:
-: 1612690d155b9a5604601103ba7c55c8
+: 20210601221107187453200
 
-#+name: 1612690d155b9a5604601103ba7c55c8
+#+name: 20210601221107187453200
 #+begin_src emacs-lisp :tangle (jr/tangle-path)
 ;;; dracula-purple-light-theme.el
 
@@ -252,7 +252,7 @@ This is used to hold themes for =doom-emacs=.
   (accent7 "#222222"))
 (custom-theme-set-faces
   'dracula-purple-light
-<<b639f1407dbe6dca916e5ab36e3e90fc>>
+<<20210601221052630320600>>
 
 (provide-theme 'dracula-purple-light)
 
@@ -270,9 +270,9 @@ This is used to hold themes for =doom-emacs=.
 #+call: hash()
 
 #+RESULTS:
-: be5af1f03cc762315d71c95197a011e3
+: 20210601221130950004600
 
-#+name: be5af1f03cc762315d71c95197a011e3
+#+name: 20210601221130950004600
 #+begin_src emacs-lisp :tangle (jr/tangle-path)
 ;;; dracula-purple-dark-theme.el
 
@@ -305,7 +305,7 @@ This is used to hold themes for =doom-emacs=.
   (accent7 "#ab5dee"))
 (custom-theme-set-faces
   'dracula-purple-dark
-<<b639f1407dbe6dca916e5ab36e3e90fc>>
+<<20210601221052630320600>>
 
 (provide-theme 'dracula-purple-dark)
 
@@ -323,9 +323,9 @@ This is used to hold themes for =doom-emacs=.
 #+call: hash()
 
 #+RESULTS:
-: 6629ec2bdc55266aeeb2f92ba69fecb1
+: 20210601221128069216400
 
-#+name: 6629ec2bdc55266aeeb2f92ba69fecb1
+#+name: 20210601221128069216400
 #+begin_src emacs-lisp :tangle (jr/tangle-path)
 ;;; dracula-orange-light-theme.el
 
@@ -358,7 +358,7 @@ This is used to hold themes for =doom-emacs=.
   (accent7 "#222222"))
 (custom-theme-set-faces
   'dracula-orange-light
-<<b639f1407dbe6dca916e5ab36e3e90fc>>
+<<20210601221052630320600>>
 
 (provide-theme 'dracula-orange-light)
 
@@ -376,9 +376,9 @@ This is used to hold themes for =doom-emacs=.
 #+call: hash()
 
 #+RESULTS:
-: 9043dce1951554244e85c844eb41b812
+: 20210601221125216789200
 
-#+name: 9043dce1951554244e85c844eb41b812
+#+name: 20210601221125216789200
 #+begin_src emacs-lisp :tangle (jr/tangle-path)
 ;;; dracula-orange-dark-theme.el
 
@@ -411,7 +411,7 @@ This is used to hold themes for =doom-emacs=.
   (accent7 "#ffb86c"))
 (custom-theme-set-faces
   'dracula-orange-dark
-<<b639f1407dbe6dca916e5ab36e3e90fc>>
+<<20210601221052630320600>>
 
 (provide-theme 'dracula-orange-dark)
 
@@ -429,9 +429,9 @@ This is used to hold themes for =doom-emacs=.
 #+call: hash()
 
 #+RESULTS:
-: a0fca64f9a589feb05a754f6ebfa9f58
+: 20210601221122472331200
 
-#+name: a0fca64f9a589feb05a754f6ebfa9f58
+#+name: 20210601221122472331200
 #+begin_src emacs-lisp :tangle (jr/tangle-path)
 ;;; herschel-flamingo-pink-dark-theme.el
 
@@ -464,7 +464,7 @@ This is used to hold themes for =doom-emacs=.
   (accent7 "#fca78e"))
 (custom-theme-set-faces
   'herschel-flamingo-pink-dark
-<<b639f1407dbe6dca916e5ab36e3e90fc>>
+<<20210601221052630320600>>
 
 (provide-theme 'herschel-flamingo-pink-dark)
 
@@ -482,9 +482,9 @@ This is used to hold themes for =doom-emacs=.
 #+call: hash()
 
 #+RESULTS:
-: fc1faf5317c0647e5b127c8e6498ab84
+: 20210601221119686878500
 
-#+name: fc1faf5317c0647e5b127c8e6498ab84
+#+name: 20210601221119686878500
 #+begin_src emacs-lisp :tangle (jr/tangle-path)
 ;;; herschel-flamingo-pink-light-theme.el
 
@@ -517,7 +517,7 @@ This is used to hold themes for =doom-emacs=.
   (accent7 "#222222"))
 (custom-theme-set-faces
   'herschel-flamingo-pink-light
-<<b639f1407dbe6dca916e5ab36e3e90fc>>
+<<20210601221052630320600>>
 
 (provide-theme 'herschel-flamingo-pink-light)
 
@@ -535,9 +535,9 @@ This is used to hold themes for =doom-emacs=.
 #+call: hash()
 
 #+RESULTS:
-: 37ff835758403d4e619290db62e123c7
+: 20210601221117005466700
 
-#+name: 37ff835758403d4e619290db62e123c7
+#+name: 20210601221117005466700
 #+begin_src emacs-lisp :tangle (jr/tangle-path)
 ;;; exo-ui-red-dark-theme.el
 
@@ -570,7 +570,7 @@ This is used to hold themes for =doom-emacs=.
   (accent7 "#ff5156"))
 (custom-theme-set-faces
   'exo-ui-red-dark
-<<b639f1407dbe6dca916e5ab36e3e90fc>>
+<<20210601221052630320600>>
 
 (provide-theme 'exo-ui-red-dark)
 
@@ -588,9 +588,9 @@ This is used to hold themes for =doom-emacs=.
 #+call: hash()
 
 #+RESULTS:
-: 86b23dac8ec9b5226bc06d00fd5febae
+: 20210601221114066926500
 
-#+name: 86b23dac8ec9b5226bc06d00fd5febae
+#+name: 20210601221114066926500
 #+begin_src emacs-lisp :tangle (jr/tangle-path)
 ;;; exo-ui-red-light-theme.el
 
@@ -623,7 +623,7 @@ This is used to hold themes for =doom-emacs=.
   (accent7 "#222222"))
 (custom-theme-set-faces
   'exo-ui-red-light
-<<b639f1407dbe6dca916e5ab36e3e90fc>>
+<<20210601221052630320600>>
 
 (provide-theme 'exo-ui-red-light)
 

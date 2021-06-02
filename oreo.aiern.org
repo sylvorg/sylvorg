@@ -3442,7 +3442,7 @@ in
 
 #+name: 20210601185401285170600
 #+begin_src nix :tangle (jr/tangle-path)
-<<5585804cafd4d120113b762c4e097541>>
+<<20210601185855166479800>>
 #+end_src
 
 *** zsh
@@ -3485,9 +3485,9 @@ in
 #+RESULTS:
 : 20210601185410274391500
 
-#+name: 0e934803846ff23710dd8874b37bcd39
+#+name: 20210601185410274391500
 #+begin_src gitattributes :tangle (jr/tangle-oreo)
-<<08dbff12d7941b00d17c353f5fe4e078>>
+<<20210601214257298335500>>
 #+end_src
 
 ** .xonsh.d
@@ -3498,7 +3498,7 @@ in
 #+RESULTS:
 : 20210601185418661581700
 
-#+name: 0de7faf0cd17a1a0331065aecac3d1f3
+#+name: 20210601185418661581700
 #+begin_src sh :tangle (jr/tangle-path)
 echo $(find "$1" | fzf-tmux)
 #+end_src
@@ -3510,7 +3510,7 @@ echo $(find "$1" | fzf-tmux)
 #+RESULTS:
 : 20210601185421600244400
 
-#+name: 4e80721df27f5fe6796c0a85ae03d390
+#+name: 20210601185421600244400
 #+begin_src sh :tangle (jr/tangle-path)
 echo $(dpkg --get-selections | fzf-tmux)
 #+end_src
@@ -3522,9 +3522,9 @@ echo $(dpkg --get-selections | fzf-tmux)
 #+RESULTS:
 : 20210601185424827789400
 
-#+name: 7ac499a656c336e7e715cc4c56df6fac
+#+name: 20210601185424827789400
 #+begin_src xonsh :tangle (jr/tangle-oreo)
-<<b7a800fefe161963d69a4d47eb645f78>>
+<<20210601214242951916200>>
 #+end_src
 
 #+call: hash()
@@ -3532,7 +3532,7 @@ echo $(dpkg --get-selections | fzf-tmux)
 #+RESULTS:
 : 20210601185427358430600
 
-#+name: c440f22ba3bfdf95901cc661a825d4b0
+#+name: 20210601185427358430600
 #+begin_src nix
 ".xonshrc".text = let
     python_ver = concatStringsSep "." (stringToCharacters attrs.versions.python);
@@ -3540,10 +3540,10 @@ echo $(dpkg --get-selections | fzf-tmux)
 in with attrs.commands; ''
 homeManager = True
 
-<<7ac499a656c336e7e715cc4c56df6fac>>
+<<20210601185424827789400>>
 '' + (myIf.empty nixos ''
 
-<<8bdf510b6e8257d68db1657608ac1add>>
+<<20210601185428842611300>>
 '');
 #+end_src
 
@@ -3554,7 +3554,7 @@ homeManager = True
 #+RESULTS:
 : 20210601185428842611300
 
-#+name: 8bdf510b6e8257d68db1657608ac1add
+#+name: 20210601185428842611300
 #+begin_src xonsh
 #################
 # NixOS ${Channel}
@@ -3582,7 +3582,7 @@ aliases["deploy"] = _deploy
 #+RESULTS:
 : 20210601185430439244600
 
-#+name: e3c9522290eaca30dc3548b3373abbee
+#+name: 20210601185430439244600
 #+begin_src nix
 zsh = let zedFile = file: let
     grml = "${sources.grml}/etc/zsh/${file}";
@@ -3642,7 +3642,7 @@ starship.enableZshIntegration = true;
 #+RESULTS:
 : 20210601185442157612700
 
-#+name: 9d1f2431e218c2cb00bf6f327a47eb2e
+#+name: 20210601185442157612700
 #+begin_src emacs-lisp
 (concat
     (let
@@ -3663,9 +3663,9 @@ starship.enableZshIntegration = true;
 #+RESULTS:
 : 20210601185446405488200
 
-#+name: eedec1f071fc8797a259ee4782ef4ae1
+#+name: 20210601185446405488200
 #+begin_src sh :tangle (jr/tangle-path)
-<<9d1f2431e218c2cb00bf6f327a47eb2e()>>
+<<20210601185442157612700()>>
 #+end_src
 
 ** .zshenv
@@ -3675,7 +3675,7 @@ starship.enableZshIntegration = true;
 #+RESULTS:
 : 20210601185451794769400
 
-#+name: 4574f2b39635370ecb451f6bb98ac782
+#+name: 20210601185451794769400
 #+begin_src emacs-lisp
 (concat
     (let
@@ -3694,9 +3694,9 @@ starship.enableZshIntegration = true;
 #+RESULTS:
 : 20210601185454964123500
 
-#+name: e4bdd7035e68ad25bf7601a613a30286
+#+name: 20210601185454964123500
 #+begin_src sh :tangle (jr/tangle-path)
-<<4574f2b39635370ecb451f6bb98ac782()>>
+<<20210601185451794769400()>>
 #+end_src
 
 ** .zprofile
@@ -3706,7 +3706,7 @@ starship.enableZshIntegration = true;
 #+RESULTS:
 : 20210601185457701910200
 
-#+name: 78ce427e065f3552c838fe54085acdfd
+#+name: 20210601185457701910200
 #+begin_src emacs-lisp
 (concat
     (let
@@ -3725,9 +3725,9 @@ starship.enableZshIntegration = true;
 #+RESULTS:
 : 20210601185459709528000
 
-#+name: 756501ce3e856f5ca93fffddf7d1fb22
+#+name: 20210601185459709528000
 #+begin_src sh :tangle (jr/tangle-path)
-<<78ce427e065f3552c838fe54085acdfd()>>
+<<20210601185457701910200()>>
 #+end_src
 
 ** .zlogout
@@ -3737,7 +3737,7 @@ starship.enableZshIntegration = true;
 #+RESULTS:
 : 20210601185501472232200
 
-#+name: 1ed1e29f1f67c0bdc343b12368df60a5
+#+name: 20210601185501472232200
 #+begin_src emacs-lisp
 (concat
     (let
@@ -3756,9 +3756,9 @@ starship.enableZshIntegration = true;
 #+RESULTS:
 : 20210601185503163928300
 
-#+name: 87b1d7b7615b7888dc93cc7b7924808f
+#+name: 20210601185503163928300
 #+begin_src sh :tangle (jr/tangle-path)
-<<1ed1e29f1f67c0bdc343b12368df60a5()>>
+<<20210601185501472232200()>>
 #+end_src
 
 ** .zlogin
@@ -3768,7 +3768,7 @@ starship.enableZshIntegration = true;
 #+RESULTS:
 : 20210601185504929349900
 
-#+name: cec0e99ea02e55fb6dbf99f230a283c5
+#+name: 20210601185504929349900
 #+begin_src emacs-lisp
 (concat
     (let
@@ -3787,9 +3787,9 @@ starship.enableZshIntegration = true;
 #+RESULTS:
 : 20210601185506839665700
 
-#+name: fff4069a824df27cfa8f20481fcb466d
+#+name: 20210601185506839665700
 #+begin_src sh :tangle (jr/tangle-path)
-<<cec0e99ea02e55fb6dbf99f230a283c5()>>
+<<20210601185504929349900()>>
 #+end_src
 
 ** .config
@@ -3801,7 +3801,7 @@ starship.enableZshIntegration = true;
 #+RESULTS:
 : 20210601185512741369900
 
-#+name: 6fe6b364d9fba7cd66bd9cf730282b2a
+#+name: 20210601185512741369900
 #+begin_src sh :tangle (jr/tangle-path) :shebang "#!/usr/bin/env bash"
 <<20210601184651836098700>>
 #+end_src
@@ -3813,7 +3813,7 @@ starship.enableZshIntegration = true;
 #+RESULTS:
 : 20210601185514628869000
 
-#+name: 6b65ba25e46bf89e07ec8b638f44e9c3
+#+name: 20210601185514628869000
 #+begin_src nix
 kitty = {
     enable = true;
@@ -3837,7 +3837,7 @@ Monokai_Soda
 #+RESULTS:
 : 20210601185517894186800
 
-#+name: 6b65ba25e46bf89e07ec8b638f44e9c3
+#+name: 20210601185517894186800
 #+begin_src nix
 ".config/kitty/theme.conf".source = sources.kittyThemes + "/themes/<<338a3b4e851f416dd70aa64a977efb96>>.conf";
 #+end_src
@@ -3849,7 +3849,7 @@ Monokai_Soda
 #+RESULTS:
 : 20210601185519555635200
 
-#+name: d5cad3354664f4ad4e5802cf2dc76abd
+#+name: 20210601185519555635200
 #+begin_src conf :tangle (jr/tangle-path)
 include ./theme.conf
 #+end_src
@@ -3861,7 +3861,7 @@ include ./theme.conf
 #+RESULTS:
 : 20210601185521282472600
 
-#+name: 641e23c8f738164a8ff4f2234396e19d
+#+name: 20210601185521282472600
 #+begin_src emacs-lisp
 (concat
     (let
@@ -3877,9 +3877,9 @@ include ./theme.conf
 #+RESULTS:
 : 20210601185522915194400
 
-#+name: bc36e158c20fa8907fa07bb998f74ddc
+#+name: 20210601185522915194400
 #+begin_src conf :tangle (jr/tangle-path)
-<<641e23c8f738164a8ff4f2234396e19d()>>
+<<20210601185521282472600()>>
 #+end_src
 
 *** qtile
@@ -3889,7 +3889,7 @@ include ./theme.conf
 #+RESULTS:
 : 20210601185525000840300
 
-#+name: 20def59e134751937775a539588c359a
+#+name: 20210601185525000840300
 #+begin_src nix
 ".config/qtile/config.py".source = "${homeDirectory}/${primary.user}/home/.config/qtile/config.py";
 #+end_src
@@ -3901,9 +3901,9 @@ include ./theme.conf
 #+RESULTS:
 : 20210601185823132554800
 
-#+name: 7e005c00414442d051268853d7f8cb48
+#+name: 20210601185823132554800
 #+begin_src python :tangle (jr/tangle-oreo)
-<<56382ca914291d6df41adbd417b19df2>>
+<<20210601214231713054800>>
 #+end_src
 
 *** fish
@@ -3913,7 +3913,7 @@ include ./theme.conf
 #+RESULTS:
 : 20210601185826302626100
 
-#+name: 9c831035ff1aab8cf5467639c4b6ddc4
+#+name: 20210601185826302626100
 #+begin_src nix
 ${myIf.knull (!elem system [ "aarch64-linux" ]) "fish"} = {
     enable = true;
@@ -3936,7 +3936,7 @@ starship.enableFishIntegration = true;
 #+RESULTS:
 : 20210601185828039219300
 
-#+name: 9c0077fdacc601fe6caec99e8c8f75d6
+#+name: 20210601185828039219300
 #+begin_src fish :tangle (jr/tangle-path)
 bass source ~/.nix-profile/etc/profile.d/hm-session-vars.sh
 alias sf=source ~/.config/fish/config.fish
@@ -3952,7 +3952,7 @@ starship init fish | source
 #+RESULTS:
 : 20210601185829828213000
 
-#+name: b370468cc7d7048c2fca654384bf409f
+#+name: 20210601185829828213000
 #+begin_src nix
 ".config/ion/initrc".source = "${homeDirectory}/${primary.user}/home/.config/ion/initrc";
 #+end_src
@@ -3964,7 +3964,7 @@ starship init fish | source
 #+RESULTS:
 : 20210601185831324401300
 
-#+name: d00469abd110d42d30147634bf86ace9
+#+name: 20210601185831324401300
 #+begin_src ion :tangle (jr/tangle-path)
 eval $(starship init ion)
 #+end_src
@@ -3976,7 +3976,7 @@ eval $(starship init ion)
 #+RESULTS:
 : 20210601185832861775500
 
-#+name: 8a50158d25e446dd85b7a0c8bda9c113
+#+name: 20210601185832861775500
 #+begin_src nix
 ".config/powershell/Microsoft.PowerShell_profile.ps1".source = "${homeDirectory}/${primary.user}/home/.config/powershell/Microsoft.PowerShell_profile.ps1";
 #+end_src
@@ -3988,7 +3988,7 @@ eval $(starship init ion)
 #+RESULTS:
 : 20210601185834367531900
 
-#+name: f1e0f68a73ddf5bce156364bd43b5524
+#+name: 20210601185834367531900
 #+begin_src powershell :tangle (jr/tangle-path)
 Invoke-Expression (&starship init powershell)
 #+end_src
@@ -4000,7 +4000,7 @@ Invoke-Expression (&starship init powershell)
 #+RESULTS:
 : 20210601185836015744100
 
-#+name: 1ed0e2f1a5109f8af2a280a16b4eb269
+#+name: 20210601185836015744100
 #+begin_src emacs-lisp :var oc=""
 (format-spec "
     with builtins;
@@ -4016,7 +4016,7 @@ in getAttrFromPath (attrValues stc) legacyPackages.%o" `((?o . ,oc)))
 #+RESULTS:
 : 20210601185837674888000
 
-#+name: 43603ebd7da002155f7108935561456a
+#+name: 20210601185837674888000
 #+begin_src nix
 ".config/nixpkgs/overlays.nix".source = "${homeDirectory}/${primary.user}/home/.config/nixpkgs/overlays.nix";
 ".config/nixpkgs/config.nix".source = "${homeDirectory}/${primary.user}/home/.config/nixpkgs/config.nix";
@@ -4030,9 +4030,9 @@ in getAttrFromPath (attrValues stc) legacyPackages.%o" `((?o . ,oc)))
 #+RESULTS:
 : 20210601185839211912000
 
-#+name: 2b4d9f0b772a93416e5f4674ed96ed87
+#+name: 20210601185839211912000
 #+begin_src nix :tangle (jr/tangle-path)
-<<1ed0e2f1a5109f8af2a280a16b4eb269(oc="overlays")>>
+<<20210601185836015744100(oc="overlays")>>
 #+end_src
 
 **** config.nix
@@ -4042,9 +4042,9 @@ in getAttrFromPath (attrValues stc) legacyPackages.%o" `((?o . ,oc)))
 #+RESULTS:
 : 20210601185840693626300
 
-#+name: 9c8535c9269073f1e3c081f7595eb7fe
+#+name: 20210601185840693626300
 #+begin_src nix :tangle (jr/tangle-path)
-<<1ed0e2f1a5109f8af2a280a16b4eb269(oc="config")>>
+<<20210601185836015744100(oc="config")>>
 #+end_src
 
 **** home.nix
@@ -4054,7 +4054,7 @@ in getAttrFromPath (attrValues stc) legacyPackages.%o" `((?o . ,oc)))
 #+RESULTS:
 : 20210601185842088170000
 
-#+name: 7f0e66916c2f315cb8ef3f098a5299db
+#+name: 20210601185842088170000
 #+begin_src nix
 sources' = (getFlake "/etc/nixos/flakes/home").inputs;
 inherit (flake) all;
@@ -4120,82 +4120,82 @@ hash = user: j.hostName { stc = stc // { inherit user; }; };
 #+RESULTS:
 : 20210601185843559082700
 
-#+name: b8786b3a304b41cac890b67b0d489482
+#+name: 20210601185843559082700
 #+begin_src nix
 ({
-    <<e3c9522290eaca30dc3548b3373abbee>>
+    <<20210601185430439244600>>
 })
 ({
-    <<c0f02c8e18aaf90b2db3568216a0f7b4>>
+    <<20210601213133906441600>>
 })
 ({
-    <<9c831035ff1aab8cf5467639c4b6ddc4>>
+    <<20210601185826302626100>>
 })
 ({
-    <<4790b5c880f2991fff358970c8ae652f>>
+    <<20210601185913912448600>>
 })
 ({
-    <<6c9703c9e8d7c1dfd7081a89ba30b713>>
+    <<20210601185927098034100>>
 })
 ({
-    <<0f713b3a4ffd4b5c77b96597753d4d77>>
+    <<20210601185930291067900>>
 })
 ({
-    <<6b65ba25e46bf89e07ec8b638f44e9c3>>
+    <<20210601185514628869000>>
 })
 ({
-    <<5e11372671a7413353f2df031f63bcda>>
+    <<20210601185938069815900>>
 })
 ({
-    <<b7bb86447f895ccb29ee0524e2f0ab42>>
+    <<20210601185933359940100>>
 })
 ({
-    <<7701583d01c93a70b96d051e6eee2ea8>>
+    <<20210601185942654247100>>
 })
 #+end_src
 
 #+call: hash()
 
 #+RESULTS:
-: 33a8f6e58d91e946436eee8b8f8a1fa5
+: 20210601213425809120100
 
-#+name: 33a8f6e58d91e946436eee8b8f8a1fa5
+#+name: 20210601213425809120100
 #+begin_src nix
 ({
-    <<246ca7e4d33bc1b57d6cee0768532d38>>
+    <<20210601185923733355900>>
 })
 ({
-    <<c440f22ba3bfdf95901cc661a825d4b0>>
+    <<20210601185427358430600>>
 })
 ({
-    <<686d2e9e79fc3a96bf63b5d18b5eb4cb>>
+    <<20210601185901673235100>>
 })
 ({
-    <<b370468cc7d7048c2fca654384bf409f>>
+    <<20210601185829828213000>>
 })
 ({
-    <<8a50158d25e446dd85b7a0c8bda9c113>>
+    <<20210601185832861775500>>
 })
 ({
-    <<41e1a054113e318e196b0a8a0ccf5cb5>>
+    <<20210601185906086312300>>
 })
 ({
-    <<8c9f6caafcb32cd315c3f5a8d52f4b19>>
+    <<20210601185931858588700>>
 })
 ({
-    <<e530065768d9c227fc6b5cb199d6af41>>
+    <<20210601185939558599100>>
 })
 ({
-    <<948976000227fb0afe43a2da70bcb5c6>>
+    <<20210601185944075672100>>
 })
 ({
-    <<20def59e134751937775a539588c359a>>
+    <<20210601185525000840300>>
 })
 ({
-    <<6b65ba25e46bf89e07ec8b638f44e9c3>>
+    <<20210601185517894186800>>
 })
 ({
-    <<43603ebd7da002155f7108935561456a>>
+    <<20210601185837674888000>>
 })
 #+end_src
 
@@ -4204,7 +4204,7 @@ hash = user: j.hostName { stc = stc // { inherit user; }; };
 #+RESULTS:
 : 20210601185853098066700
 
-#+name: 0fdd9f7014b87a898a3c8660a3df9d07
+#+name: 20210601185853098066700
 #+begin_src nix :tangle (jr/tangle-path)
 with builtins; let
     base = { stc, all, flake, ... }:
@@ -4214,7 +4214,7 @@ with builtins; let
         with stc;
         with integer-default-truths;
     let
-        <<7f0e66916c2f315cb8ef3f098a5299db>>
+        <<20210601185842088170000>>
     in rec {
         inherit lib;
         nixpkgs = { inherit (stc) system; inherit overlays config; };
@@ -4242,7 +4242,7 @@ with builtins; let
                         path = sources.home-manager.outPath;
                     };
                 }
-                <<b8786b3a304b41cac890b67b0d489482>>
+                <<20210601185843559082700>>
             ]
         ]));
 
@@ -4289,7 +4289,7 @@ with builtins; let
                                     permit nopass keepenv root as root
                                 '';
                             })
-                            <<33a8f6e58d91e946436eee8b8f8a1fa5>>
+                            <<20210601213425809120100>>
                         ]
                     ]
                     (map withLink (attrValues links))
@@ -4318,7 +4318,7 @@ in with lib; with j; forAllSystems' {
 #+RESULTS:
 : 20210601185855166479800
 
-#+name: 5585804cafd4d120113b762c4e097541
+#+name: 20210601185855166479800
 #+begin_src conf :tangle (jr/tangle-path)
 <<20210601184948158342800>>
 min-free = 262144000
@@ -4330,9 +4330,9 @@ max-free = 1073741824
 #+call: hash()
 
 #+RESULTS:
-: c0f02c8e18aaf90b2db3568216a0f7b4
+: 20210601213133906441600
 
-#+name: c0f02c8e18aaf90b2db3568216a0f7b4
+#+name: 20210601213133906441600
 #+begin_src nix
 bash = {
     enable = true;
@@ -4351,7 +4351,7 @@ starship.enableBashIntegration = true;
 #+RESULTS:
 : 20210601185858457019500
 
-#+name: f14c4cd75f29401f56be846a13cb86c2
+#+name: 20210601185858457019500
 #+begin_src sh :tangle (jr/tangle-path)
 source ~/.nix-profile/etc/profile.d/hm-session-vars.sh
 alias c=clear
@@ -4367,7 +4367,7 @@ eval "$(starship init bash)"
 #+RESULTS:
 : 20210601185901673235100
 
-#+name: 686d2e9e79fc3a96bf63b5d18b5eb4cb
+#+name: 20210601185901673235100
 #+begin_src nix
 "rc.elv".source = "${homeDirectory}/${primary.user}/home/rc.elv";
 #+end_src
@@ -4377,7 +4377,7 @@ eval "$(starship init bash)"
 #+RESULTS:
 : 20210601185904498814800
 
-#+name: 8563464483cb5d919d84774684320f18
+#+name: 20210601185904498814800
 #+begin_src elvish :tangle (jr/tangle-path)
 # use epm
 # epm:install github.com/tylerreckart/gondolin
@@ -4392,7 +4392,7 @@ eval (starship init elvish)
 #+RESULTS:
 : 20210601185906086312300
 
-#+name: 41e1a054113e318e196b0a8a0ccf5cb5
+#+name: 20210601185906086312300
 #+begin_src nix
 ".config/nvim" = {
     source = sources.spacevim;
@@ -4413,9 +4413,9 @@ eval (starship init elvish)
 #+RESULTS:
 : 20210601185907580979300
 
-#+name: ef0ca6b027b247fed6e95bb31f027708
+#+name: 20210601185907580979300
 #+begin_src conf :tangle (jr/tangle-oreo)
-<<610e9954e5b1fa36fd50580e2061424f>>
+<<20210601214235078130500>>
 #+end_src
 
 *** autoload
@@ -4426,9 +4426,9 @@ eval (starship init elvish)
 #+RESULTS:
 : 20210601185909239055500
 
-#+name: e4619751678bb7065fc7ec1a80a0ff98
+#+name: 20210601185909239055500
 #+begin_src vimrc :tangle (jr/tangle-oreo)
-<<a9f44e9cd05fda5b5e5dffb41d946748>>
+<<20210601214241093346900>>
 #+end_src
 
 ** makefile
@@ -4438,7 +4438,7 @@ eval (starship init elvish)
 #+RESULTS:
 : 20210601185910773859000
 
-#+name: 7e5d38a2c9af18003ca89c3dad2d1b97
+#+name: 20210601185910773859000
 #+begin_src text
 scop/bash-completion ~/<<username>>/resources/bashCompletions
 xero/figlet-fonts ~/<<username>>/resources/xeroFigletFonts
@@ -4457,12 +4457,12 @@ tmux-plugins/tpm ~/<<username>>/resources/tpm
 #+RESULTS:
 : 20210601185912312833700
 
-#+name: c9792b0b851c8df28651f125f42b1868
+#+name: 20210601185912312833700
 #+begin_src makefile :tangle (jr/tangle-path)
 .RECIPEPREFIX := |
 
 init:
-|-git clone --recurse-submodule https://github.com/<<7e5d38a2c9af18003ca89c3dad2d1b97>>
+|-git clone --recurse-submodule https://github.com/<<20210601185910773859000>>
 |-ln -sf home/.vim ~/<<username>>/home/.config/nvim
 #+end_src
 
@@ -4473,7 +4473,7 @@ init:
 #+RESULTS:
 : 20210601185913912448600
 
-#+name: 4790b5c880f2991fff358970c8ae652f
+#+name: 20210601185913912448600
 #+begin_src nix
 git = {
     # File at ~/.config/git/config
@@ -4508,7 +4508,7 @@ git = {
 #+RESULTS:
 : 20210601185923733355900
 
-#+name: 246ca7e4d33bc1b57d6cee0768532d38
+#+name: 20210601185923733355900
 #+begin_src nix
 ".gitignore".text = "${homeDirectory}/${primary.user}/home/.gitignore";
 ".gitattributes".text = "${homeDirectory}/${primary.user}/home/.gitattributes";
@@ -4521,7 +4521,7 @@ git = {
 #+RESULTS:
 : 20210601185925524999600
 
-#+name: 1ea4bb5fe97c460bf6cd50db65f78bbe
+#+name: 20210601185925524999600
 #+begin_src gitignore :tangle (jr/tangle-path)
 _gsdata_
 .boar
@@ -4552,7 +4552,7 @@ temp
 #+RESULTS:
 : 20210601185927098034100
 
-#+name: 6c9703c9e8d7c1dfd7081a89ba30b713
+#+name: 20210601185927098034100
 #+begin_src nix
 mercurial = {
     enable = true;
@@ -4587,9 +4587,9 @@ mercurial = {
 #+RESULTS:
 : 20210601185928691269400
 
-#+name: 9f58d4089d36710d31eaed9419ed38cd
+#+name: 20210601185928691269400
 #+begin_src gitignore :tangle (jr/tangle-path)
-<<1ea4bb5fe97c460bf6cd50db65f78bbe>>
+<<20210601185925524999600>>
 #+end_src
 
 ** emacs
@@ -4599,7 +4599,7 @@ mercurial = {
 #+RESULTS:
 : 20210601185930291067900
 
-#+name: 0f713b3a4ffd4b5c77b96597753d4d77
+#+name: 20210601185930291067900
 #+begin_src nix
 emacs = {
     enable = true;
@@ -4621,7 +4621,7 @@ emacs = {
 #+RESULTS:
 : 20210601185931858588700
 
-#+name: 8c9f6caafcb32cd315c3f5a8d52f4b19
+#+name: 20210601185931858588700
 #+begin_src nix
 # ".doom.d/system_init.el".text = ''
 #   (add-to-list 'exec-path "${pkgs."emacs${j.attrs.versions.emacs}Packages".emacsql-sqlite3}/bin")
@@ -4638,7 +4638,7 @@ emacs = {
 #+RESULTS:
 : 20210601185933359940100
 
-#+name: b7bb86447f895ccb29ee0524e2f0ab42
+#+name: 20210601185933359940100
 #+begin_src nix
 starship = {
     enable = true;
@@ -4656,9 +4656,9 @@ starship = {
 #+RESULTS:
 : 20210601185934915109100
 
-#+name: f8c37c2c0aee46bde39319b837f36e16
+#+name: 20210601185934915109100
 #+begin_src conf :tangle (jr/tangle-oreo)
-<<67bb84ea2b3abf4eba054728fef72e40>>
+<<20210601214259128138500>>
 #+end_src
 
 ** .byobu
@@ -4669,9 +4669,9 @@ starship = {
 #+RESULTS:
 : 20210601185936581538600
 
-#+name: 376191d12bcf3a386a37cd100cf20711
+#+name: 20210601185936581538600
 #+begin_src conf :tangle (jr/tangle-oreo)
-<<67bb84ea2b3abf4eba054728fef72e40>>
+<<20210601214259128138500>>
 #+end_src
 
 ** tmux
@@ -4681,9 +4681,9 @@ starship = {
 #+RESULTS:
 : 20210601185938069815900
 
-#+name: 5e11372671a7413353f2df031f63bcda
+#+name: 20210601185938069815900
 #+begin_src nix
-<<8182b9565b9c8ccb0a8f2c87319c9955>>
+<<20210601214337624066100>>
 #+end_src
 
 #+call: hash()
@@ -4691,7 +4691,7 @@ starship = {
 #+RESULTS:
 : 20210601185939558599100
 
-#+name: e530065768d9c227fc6b5cb199d6af41
+#+name: 20210601185939558599100
 #+begin_src nix
 ".tmuxp/default.yaml".text = "session_name: default";
 #+end_src
@@ -4703,7 +4703,7 @@ starship = {
 #+RESULTS:
 : 20210601185941178211700
 
-#+name: 0f61833f5f550b3981d8bf80354f4bc5
+#+name: 20210601185941178211700
 #+begin_src shell :tangle (jr/tangle-path)
 source $HOME/.nix-direnv/direnvrc
 source $HOME/.config/direnv/direnvrc
@@ -4720,7 +4720,7 @@ fi
 #+RESULTS:
 : 20210601185942654247100
 
-#+name: 7701583d01c93a70b96d051e6eee2ea8
+#+name: 20210601185942654247100
 #+begin_src nix
 direnv = {
     # File at ~/.config/direnv/direnvrc
@@ -4744,7 +4744,7 @@ direnv = {
 #+RESULTS:
 : 20210601185944075672100
 
-#+name: 948976000227fb0afe43a2da70bcb5c6
+#+name: 20210601185944075672100
 #+begin_src nix
 ".direnvrc".source = "${homeDirectory}/${primary.user}/home/.direnvrc";
 #+end_src
@@ -4844,7 +4844,7 @@ if not args.dry_run:
 #+RESULTS:
 : 20210601190008208069700
 
-#+name: 20da3080268b6d2673a43886dcdd8d08
+#+name: 20210601190008208069700
 #+begin_src python :tangle (jr/tangle-path) :shebang "#!/usr/bin/env python3.9"
 import argparse
 import json
@@ -4852,31 +4852,31 @@ import os
 import sys
 from subprocess import run, DEVNULL, STDOUT
 
-<<e4d410b716af24c4792d0cf33ceea79d>>
+<<20210601190005804224800>>
 
 resources = f'{os.environ["HOME"]}/<<username>>/system/etc/nixos/config'
 
 try:
     if args.subcommand == "create":
         if input('THIS WILL DELETE ALL DATA ON THE SELECTED DEVICE / PARTITION! TO CONTINUE, TYPE IN "ZFS CREATE"!\n\t') == "ZFS CREATE":
-            <<4c7380a3d87b23bf61b9f2d704fa965b>>
+            <<20210601190001707883400>>
         else:
             print("Sorry; not continuing!\n\n")
 
     if args.subcommand == "update":
         if args.files:
-            <<6b5976297f158a651e51a1aa6303c590>>
+            <<20210601190027596726400>>
         elif args.pool:
-            <<bcb6a0d82c4941db3eff8f5d0728eb6c>>
+            <<20210601190029500156200>>
         else:
-            <<6b5976297f158a651e51a1aa6303c590>>
+            <<20210601190027596726400>>
 
 finally:
     if args.subcommand:
         run(f"zpool export -f {args.Pool}", shell = True, stdout=DEVNULL, stderr=STDOUT)
 
 if args.subcommand == "mount":
-    <<f2f6ce58bd9d44b38b94e493ecca4e73>>
+    <<20210601190019160487800>>
 
 if args.generate:
     run("nixos-generate-config --root /mnt", shell = True)
@@ -4912,7 +4912,7 @@ if args.all:
 #+RESULTS:
 : 20210601190005804224800
 
-#+name: e4d410b716af24c4792d0cf33ceea79d
+#+name: 20210601190005804224800
 #+begin_src python
 parser = argparse.ArgumentParser()
 
@@ -4959,7 +4959,7 @@ args = parser.parse_args()
 #+RESULTS:
 : 20210601190001707883400
 
-#+name: 4c7380a3d87b23bf61b9f2d704fa965b
+#+name: 20210601190001707883400
 #+begin_src python
 options = {
     "xattr": "sa",
@@ -4991,7 +4991,7 @@ for key, value in options.items():
 
 run(f"{command} {args.Pool} {args.zfs_device}", shell = True)
 
-<<bcb6a0d82c4941db3eff8f5d0728eb6c>>
+<<20210601190029500156200>>
 
 #+end_src
 
@@ -5002,7 +5002,7 @@ run(f"{command} {args.Pool} {args.zfs_device}", shell = True)
 #+RESULTS:
 : 20210601185958834005400
 
-#+name: 45aac463623661787088fdbf6465759e
+#+name: 20210601185958834005400
 #+begin_src python
 users = json.loads('''
     <<20210601185359809444000>>
@@ -5023,7 +5023,7 @@ for user in users.values():
 #+RESULTS:
 : 20210601190011469159700
 
-#+name: c87d7294a0bf9ef139a1a416a45ff4fb
+#+name: 20210601190011469159700
 #+begin_src python
 with open(f"{resources}/_datasets.nix", "w") as dnix:
 
@@ -5075,7 +5075,7 @@ with open(f"{resources}/_datasets.nix", "w") as dnix:
 #+RESULTS:
 : 20210601190013799970400
 
-#+name: c417a7146013877ff5189f1f48688a79
+#+name: 20210601190013799970400
 #+begin_src python
     for key, value in ddict.get(d, dd).items():
         recurse(value, key, _dataset, mountpoint)
@@ -5093,7 +5093,7 @@ dnix.write("}")
 #+RESULTS:
 : 20210601190015343762700
 
-#+name: 9b4b3e2eab1f5b226d6cd52d8f9ff29b
+#+name: 20210601190015343762700
 #+begin_src json
 {
     "base": {  },
@@ -5136,12 +5136,12 @@ dnix.write("}")
 #+call: hash()
 
 #+RESULTS:
-: a42e6a90b4026d89c3e1c6b0e491b092
+: 20210601214823296929900
 
-#+name: a42e6a90b4026d89c3e1c6b0e491b092
+#+name: 20210601214823296929900
 #+begin_src python
 datasets = json.loads('''
-    <<9b4b3e2eab1f5b226d6cd52d8f9ff29b>>
+    <<20210601190015343762700>>
 '''.strip())
 
 dsd = datasets[s][d]
@@ -5177,13 +5177,13 @@ datasets[args.Pool] = {
     "options": [ ml ]
 }
 
-<<45aac463623661787088fdbf6465759e>>
+<<20210601185958834005400>>
 
 for backup in (las := datasets[args.Pool][d]["las"][d]).keys():
     for zz in [ "zpax", "zsyncs" ]:
         las[backup][d][zz] = dd
 
-<<c87d7294a0bf9ef139a1a416a45ff4fb>>
+<<20210601190011469159700>>
 #+end_src
 
 ****** mount
@@ -5193,7 +5193,7 @@ for backup in (las := datasets[args.Pool][d]["las"][d]).keys():
 #+RESULTS:
 : 20210601190019160487800
 
-#+name: f2f6ce58bd9d44b38b94e493ecca4e73
+#+name: 20210601190019160487800
 #+begin_src python
 import os
 from collections import namedtuple
@@ -5248,7 +5248,7 @@ if args.swap:
 #+RESULTS:
 : 20210601190021157022400
 
-#+name: 1912c98033c29905b1ad36967799623f
+#+name: 20210601190021157022400
 #+begin_src python
 snapDir = [ "snapdir=visible" ]
 extraCopies = snapDir + [ f"copies={2 if args.encrypted else 3}" ]
@@ -5259,7 +5259,7 @@ ddd = { "datasets": {  }}
 d = "datasets"
 s = "system"
 
-<<a42e6a90b4026d89c3e1c6b0e491b092>>
+<<20210601214823296929900>>
 #+end_src
 
 ******* after updating the pool
@@ -5269,7 +5269,7 @@ s = "system"
 #+RESULTS:
 : 20210601190023576455900
 
-#+name: 6efb3f37b6f2f802c281686eff7281dc
+#+name: 20210601190023576455900
 #+begin_src python
 pool_size_plus_metric = run(
     f"zpool get -H size {args.Pool}",
@@ -5322,7 +5322,7 @@ if args.swap:
 #+RESULTS:
 : 20210601190025663776100
 
-#+name: ce03e726e6169dc629b60d56a3218588
+#+name: 20210601190025663776100
 #+begin_src python
 doptions = " -o ".join(_doptions)
 
@@ -5340,11 +5340,11 @@ run(snapshot_command, shell = True)
 #+RESULTS:
 : 20210601190027596726400
 
-#+name: 6b5976297f158a651e51a1aa6303c590
+#+name: 20210601190027596726400
 #+begin_src python
-<<1912c98033c29905b1ad36967799623f>>
+<<20210601190021157022400>>
 
-    <<c417a7146013877ff5189f1f48688a79>>
+    <<20210601190013799970400>>
 
 #+end_src
 
@@ -5355,14 +5355,14 @@ run(snapshot_command, shell = True)
 #+RESULTS:
 : 20210601190029500156200
 
-#+name: bcb6a0d82c4941db3eff8f5d0728eb6c
+#+name: 20210601190029500156200
 #+begin_src python
-<<1912c98033c29905b1ad36967799623f>>
+<<20210601190021157022400>>
 
-        <<ce03e726e6169dc629b60d56a3218588>>
+        <<20210601190025663776100>>
 
-    <<c417a7146013877ff5189f1f48688a79>>
+    <<20210601190013799970400>>
 
-<<6efb3f37b6f2f802c281686eff7281dc>>
+<<20210601190023576455900>>
 
 #+end_src

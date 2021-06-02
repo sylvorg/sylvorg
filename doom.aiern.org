@@ -13,9 +13,9 @@ which was written by [[https://emacs.stackexchange.com/users/2710/andrew-swann][
 #+call: hash()
 
 #+RESULTS:
-: 13efb36a9b3eacd11a9f3b4b7385f96b
+: 20210601225221584785900
 
-#+name: 13efb36a9b3eacd11a9f3b4b7385f96b
+#+name: 20210601225221584785900
 #+begin_src text
 <<username>>/emacs-bankruptcy ~/<<username>>/home/.doom.d/emacs-bankruptcy
 chenyanming/spacemacs_module_for_doom ~/<<username>>/home/.doom.d/modules/private/spacemacs
@@ -24,24 +24,24 @@ chenyanming/spacemacs_module_for_doom ~/<<username>>/home/.doom.d/modules/privat
 #+call: hash()
 
 #+RESULTS:
-: 99d6a6f01dc482dc4142659f4b7a250a
+: 20210601225224002999000
 
-#+name: 99d6a6f01dc482dc4142659f4b7a250a
+#+name: 20210601225224002999000
 #+begin_src text
 #+end_src
 
 #+call: hash()
 
 #+RESULTS:
-: dd1688f9a6d0de76df5c19584fff233c
+: 20210601225225771621800
 
-#+name: dd1688f9a6d0de76df5c19584fff233c
+#+name: 20210601225225771621800
 #+begin_src makefile :tangle (jr/tangle-path)
 .RECIPEPREFIX := |
 
 init:
-|-git clone --recurse-submodule https://github.com/<<13efb36a9b3eacd11a9f3b4b7385f96b>>
-|-git clone --recurse-submodule https://gitlab.com/<<99d6a6f01dc482dc4142659f4b7a250a>>
+|-git clone --recurse-submodule https://github.com/<<20210601225221584785900>>
+|-git clone --recurse-submodule https://gitlab.com/<<20210601225224002999000>>
 .DEFAULT_GOAL := init
 #+end_src
 
@@ -50,9 +50,9 @@ init:
 #+call: hash()
 
 #+RESULTS:
-: 773fad046a07f82864e6bab4be9aeb4a
+: 20210601225227507463400
 
-#+name: 773fad046a07f82864e6bab4be9aeb4a
+#+name: 20210601225227507463400
 #+begin_src emacs-lisp :tangle (jr/tangle-path)
 ;;; init.el -*- lexical-binding: t; -*-
 
@@ -245,9 +245,9 @@ init:
 #+call: hash()
 
 #+RESULTS:
-: 5121f652dcfd6166521ed3ccb7fdb62c
+: 20210601225229622416900
 
-#+name: 5121f652dcfd6166521ed3ccb7fdb62c
+#+name: 20210601225229622416900
 #+begin_src emacs-lisp :tangle (jr/tangle-path)
 ;;; $DOOMDIR/config.el -*- lexical-binding: t; -*-
 
@@ -269,34 +269,34 @@ init:
         (invisible-p (point-at-eol))))
 
 ;; use-package
-<<e66c89b1b0b03e47821d84d6bdd4e30f>>
+<<20210601225235077502200>>
 
 ;; modal-modes
-<<b8e289dc4201435230e95e4bc961eff8>>
+<<20210601225306074772500>>
 
 ;; org-mode
-<<0f5b9694b164e724814320abc695bb5b>>
+<<20210601225236550932600>>
 
 ;; minibuffer
-<<d265ec51e2ef69de5f99d16281d47afa>>
+<<20210601225321180742600>>
 
 ;; git
-<<4027496311aaa540864858b0cc6d7781>>
+<<20210601225324176915500>>
 
 ;; buffer
-<<0cbddafe342ce45b8c57c5feeb0a4237>>
+<<20210601225332587709700>>
 
 ;; terminal
-<<60045541f36fe02d96c14630bbe3966a>>
+<<20210601225334126963400>>
 
 ;; window manager
-<<8016354b1cb35e0587437e68baba41d8>>
+<<20210601225346472879400>>
 
 ;; system
-<<58043a4011d978b07d42cdbe23366db4>>
+<<20210601225349590264700>>
 
 ;; etc
-<<f6fbad3008b5eaa412ac27f2ba12bd42>>
+<<20210601225354262898500>>
 
 ;; Answer: https://stackoverflow.com/a/57075163
 ;; User: https://stackoverflow.com/users/2708138/tobias
@@ -535,9 +535,9 @@ And in my experience... Not a good idea; much too confusing. Use
 #+call: hash()
 
 #+RESULTS:
-: 3bea610856c41a0d7902afd1c523b3fa
+: 20210601225231422834500
 
-#+name: 3bea610856c41a0d7902afd1c523b3fa
+#+name: 20210601225231422834500
 #+begin_src emacs-lisp
 (setq use-package-always-defer t)
 #+end_src
@@ -545,9 +545,9 @@ And in my experience... Not a good idea; much too confusing. Use
 #+call: hash()
 
 #+RESULTS:
-: e53639c897d29ff5ad0f260d8b3bc2e2
+: 20210601225233511900800
 
-#+name: e53639c897d29ff5ad0f260d8b3bc2e2
+#+name: 20210601225233511900800
 #+begin_src emacs-lisp
 (when (jr/any-popup-showing-p) (jr/which-key--hide-popup))) :post (progn (unless hydra-curr-map (jr/which-key--show-popup))
 #+end_src
@@ -555,11 +555,11 @@ And in my experience... Not a good idea; much too confusing. Use
 #+call: hash()
 
 #+RESULTS:
-: e66c89b1b0b03e47821d84d6bdd4e30f
+: 20210601225235077502200
 
-#+name: e66c89b1b0b03e47821d84d6bdd4e30f
+#+name: 20210601225235077502200
 #+begin_src emacs-lisp
-;; <<3bea610856c41a0d7902afd1c523b3fa>>
+;; <<20210601225231422834500>>
 
 ;; From: https://github.com/hartzell/straight.el/commit/882649137f73998d60741c7c8c993c7ebbe0f77a#diff-b335630551682c19a781afebcf4d07bf978fb1f8ac04c6bf87428ed5106870f5R1649
 ;; (setq straight-disable-byte-compilation t)
@@ -578,9 +578,9 @@ And in my experience... Not a good idea; much too confusing. Use
 #+call: hash()
 
 #+RESULTS:
-: 0f5b9694b164e724814320abc695bb5b
+: 20210601225236550932600
 
-#+name: 0f5b9694b164e724814320abc695bb5b
+#+name: 20210601225236550932600
 #+begin_src emacs-lisp
 (use-package! org
         :init
@@ -597,11 +597,11 @@ And in my experience... Not a good idea; much too confusing. Use
         :config
             (org-babel-lob-ingest "./README.org")
 
-            <<2d63732674461dc2b644efd020455882>>
+            <<20210601225238485517500>>
 
-            <<2797cdf9a536de59551ab5e470544e74>>
+            <<20210601225240171736300>>
 
-            <<d5f827b029c135ec0d04907f50c759b7>>
+            <<20210601225243547910600>>
 
             ;; Adapted From:
             ;; Answer: https://emacs.stackexchange.com/a/37791/31428
@@ -618,14 +618,14 @@ And in my experience... Not a good idea; much too confusing. Use
 
             (advice-add #'org-edit-special :after #'jr/src-mode-settings)
 
-            <<ed55930dc36029c49a46d842fd0ffc1b>>
+            <<20210601225401786848500>>
         :general
-            <<3df3d7bde7eda0546c77ba9a5b2aa82d>>
+            <<20210601225241973690700>>
             (:keymaps 'override
                 (naked "backtab") 'jr/evil-close-fold)
         :ryo ("o" :hydra
             '(hydra-org (:color blue :pre (progn
-                <<e53639c897d29ff5ad0f260d8b3bc2e2>>))
+                <<20210601225233511900800>>))
                   "A hydra for org-mode!"
                   ("o" org-babel-tangle "tangle")
                   ("a" jr/org-babel-tangle-append "tangle append")
@@ -655,9 +655,9 @@ This is adapted from
 #+call: hash()
 
 #+RESULTS:
-: 2d63732674461dc2b644efd020455882
+: 20210601225238485517500
 
-#+name: 2d63732674461dc2b644efd020455882
+#+name: 20210601225238485517500
 #+begin_src emacs-lisp
 (defun jr/org-babel-tangle-append nil
   "Append source code block at point to its tangle file.
@@ -681,9 +681,9 @@ This is from
 #+call: hash()
 
 #+RESULTS:
-: 2797cdf9a536de59551ab5e470544e74
+: 20210601225240171736300
 
-#+name: 2797cdf9a536de59551ab5e470544e74
+#+name: 20210601225240171736300
 #+begin_src emacs-lisp
 (defun org-babel-tangle-collect-blocks-handle-tangle-list (&optional language tangle-file)
   "Can be used as :override advice for `org-babel-tangle-collect-blocks'.
@@ -754,9 +754,9 @@ Taken from [[Org-Roam's GitHub README][https://github.com/org-roam/org-roam#inst
 #+call: hash()
 
 #+RESULTS:
-: 3df3d7bde7eda0546c77ba9a5b2aa82d
+: 20210601225241973690700
 
-#+name: 3df3d7bde7eda0546c77ba9a5b2aa82d
+#+name: 20210601225241973690700
 #+begin_src emacs-lisp
 (:keymaps 'org-roam-mode-map
       "C-c n" '(:ignore t :which-key "Org-Roam")
@@ -773,17 +773,17 @@ Taken from [[Org-Roam's GitHub README][https://github.com/org-roam/org-roam#inst
 #+call: hash()
 
 #+RESULTS:
-: d5f827b029c135ec0d04907f50c759b7
+: 20210601225243547910600
 
-#+name: d5f827b029c135ec0d04907f50c759b7
+#+name: 20210601225243547910600
 #+begin_src emacs-lisp
-<<04dbf8eb8aa0b8101102b13044392cc8>>
+<<20210601225245164850700>>
 
-<<a9ce3aa0a02c096218d0bd9f8646d606>>
+<<20210601225247241062800>>
 
-<<bc74035cf2335eb01654c90f7518def5>>
+<<20210601225252664199000>>
 
-<<7bd7723280e47c56c1734e5ce06c5ecb>>
+<<20210601225302447456900>>
 #+end_src
 
 ****** nix
@@ -791,9 +791,9 @@ Taken from [[Org-Roam's GitHub README][https://github.com/org-roam/org-roam#inst
 #+call: hash()
 
 #+RESULTS:
-: 04dbf8eb8aa0b8101102b13044392cc8
+: 20210601225245164850700
 
-#+name: 04dbf8eb8aa0b8101102b13044392cc8
+#+name: 20210601225245164850700
 #+begin_src emacs-lisp
 (use-package! nix-mode
     :commands (org-babel-execute:nix)
@@ -831,9 +831,9 @@ Taken from [[Org-Roam's GitHub README][https://github.com/org-roam/org-roam#inst
 #+call: hash()
 
 #+RESULTS:
-: a9ce3aa0a02c096218d0bd9f8646d606
+: 20210601225247241062800
 
-#+name: a9ce3aa0a02c096218d0bd9f8646d606
+#+name: 20210601225247241062800
 #+begin_src emacs-lisp
 (use-package! xonsh-mode
     :commands
@@ -865,9 +865,9 @@ Taken from [[Org-Roam's GitHub README][https://github.com/org-roam/org-roam#inst
 #+call: hash()
 
 #+RESULTS:
-: bc74035cf2335eb01654c90f7518def5
+: 20210601225252664199000
 
-#+name: bc74035cf2335eb01654c90f7518def5
+#+name: 20210601225252664199000
 #+begin_src emacs-lisp
 (use-package! dockerfile-mode
     :config
@@ -882,9 +882,9 @@ Taken from [[Org-Roam's GitHub README][https://github.com/org-roam/org-roam#inst
 #+call: hash()
 
 #+RESULTS:
-: 7bd7723280e47c56c1734e5ce06c5ecb
+: 20210601225302447456900
 
-#+name: 7bd7723280e47c56c1734e5ce06c5ecb
+#+name: 20210601225302447456900
 #+begin_src emacs-lisp
 (use-package! vimrc-mode
     :commands
@@ -898,17 +898,17 @@ Taken from [[Org-Roam's GitHub README][https://github.com/org-roam/org-roam#inst
 #+call: hash()
 
 #+RESULTS:
-: d3797553f252eabca75070bb3374df05
+: 20210601225304341247500
 
-#+name: d3797553f252eabca75070bb3374df05
+#+name: 20210601225304341247500
 #+begin_src emacs-lisp :var map="" :var mode="" :var prefix="" :var short=""
 ;; Adapted From:
 ;; Answer: https://emacs.stackexchange.com/a/7381/31428
 ;; User: https://emacs.stackexchange.com/users/719/adobe
 (format-spec "  (toggles (:color blue :pre (progn
-                <<e53639c897d29ff5ad0f260d8b3bc2e2>>)) (\"%s\" jr/toggle-%p \"%p\"))
+                <<20210601225233511900800>>)) (\"%s\" jr/toggle-%p \"%p\"))
     (all-keymaps (:color blue :pre (progn
-                <<e53639c897d29ff5ad0f260d8b3bc2e2>>)) (\"%s\" (progn (setq all-keymaps-map '%n) (jr/%p-show-top-level)) \"%p\"))
+                <<20210601225233511900800>>)) (\"%s\" (progn (setq all-keymaps-map '%n) (jr/%p-show-top-level)) \"%p\"))
 :hercules
     (:show-funs #'jr/%p-hercules-show
     :hide-funs #'jr/%p-hercules-hide
@@ -930,9 +930,9 @@ Taken from [[Org-Roam's GitHub README][https://github.com/org-roam/org-roam#inst
 #+call: hash()
 
 #+RESULTS:
-: b8e289dc4201435230e95e4bc961eff8
+: 20210601225306074772500
 
-#+name: b8e289dc4201435230e95e4bc961eff8
+#+name: 20210601225306074772500
 #+begin_src emacs-lisp
 
 ;; Adapted From:
@@ -1009,14 +1009,14 @@ Taken from [[Org-Roam's GitHub README][https://github.com/org-roam/org-roam#inst
         (ignore-errors (funcall (intern (concat "jr/" prefix "-hercules-show"))))
         (setq last-modal-mode prefix)))
 
-<<e8fba38bca841d9f8d89cd15b15754bd>>
-<<8c01d74b243996d2524244ea38efedf0>>
-<<2b6c7dfafc16cb3749d9b011c718618c>>
-<<e1785de4290e315a93e1f67553025f69>>
-<<d34ff1a4219491ae3aee30b275fd9212>>
-<<913cb77bdade14e8a517edbee7410b9a>>
-<<c323d6a8a89df885749c42fd2a0bc858>>
-<<452c54e1a8e466b834ef13df6b9e238c>>
+<<20210601225307809867100>>
+<<20210601225309546041800>>
+<<20210601225311301844400>>
+<<20210601225312959948800>>
+<<20210601225314671168300>>
+<<20210601225316366565400>>
+<<20210601225318002941000>>
+<<20210601225319683820700>>
 
 (add-hook! doom-init-ui (jr/disable-all-modal-modes))
 #+end_src
@@ -1026,9 +1026,9 @@ Taken from [[Org-Roam's GitHub README][https://github.com/org-roam/org-roam#inst
 #+call: hash()
 
 #+RESULTS:
-: e8fba38bca841d9f8d89cd15b15754bd
+: 20210601225307809867100
 
-#+name: e8fba38bca841d9f8d89cd15b15754bd
+#+name: 20210601225307809867100
 #+begin_src emacs-lisp
 (use-package! hercules
     :demand t
@@ -1036,7 +1036,7 @@ Taken from [[Org-Roam's GitHub README][https://github.com/org-roam/org-roam#inst
         (general-chord "\\\\") 'jr/toggle-which-key
         (general-chord "\\]") 'map-of-infinity/body)
     :hydra (map-of-infinity (:color blue :pre (progn
-                <<e53639c897d29ff5ad0f260d8b3bc2e2>>))
+                <<20210601225233511900800>>))
             ("`" nil "cancel")
             ("w" hydra/which-key/body "which-key")
             ("h" hydra/hercules/body "hercules")
@@ -1044,7 +1044,7 @@ Taken from [[Org-Roam's GitHub README][https://github.com/org-roam/org-roam#inst
             ("t" toggles/body "toggles")
             ("k" all-keymaps/body "all keymaps"))
         (hydra/which-key (:color blue :pre (progn
-                <<e53639c897d29ff5ad0f260d8b3bc2e2>>))
+                <<20210601225233511900800>>))
             ("`" nil "cancel")
             ("a" jr/any-popup-showing-p "any popup showing")
             ("h" jr/which-key--hide-popup "hide-popup")
@@ -1054,13 +1054,13 @@ Taken from [[Org-Roam's GitHub README][https://github.com/org-roam/org-roam#inst
             ("l" jr/which-key-show-top-level "jr/toplevel")
             ("L" which-key-show-top-level "toplevel"))
         (hydra/hercules (:color blue :pre (progn
-                <<e53639c897d29ff5ad0f260d8b3bc2e2>>))
+                <<20210601225233511900800>>))
             ("`" nil "cancel")
             ("h" jr/hercules-hide-all-modal-modes "hide all modal modes"))
         (toggles (:color blue :pre (progn
-                <<e53639c897d29ff5ad0f260d8b3bc2e2>>)) ("`" nil "cancel"))
+                <<20210601225233511900800>>)) ("`" nil "cancel"))
         (all-keymaps (:color blue :pre (progn
-                <<e53639c897d29ff5ad0f260d8b3bc2e2>>)) ("`" nil "cancel"))
+                <<20210601225233511900800>>)) ("`" nil "cancel"))
     :init
         (defun jr/which-key--hide-popup nil (interactive)
             (jr/disable-all-modal-modes)
@@ -1139,15 +1139,15 @@ Taken from [[Org-Roam's GitHub README][https://github.com/org-roam/org-roam#inst
 #+call: hash()
 
 #+RESULTS:
-: 8c01d74b243996d2524244ea38efedf0
+: 20210601225309546041800
 
-#+name: 8c01d74b243996d2524244ea38efedf0
+#+name: 20210601225309546041800
 #+begin_src emacs-lisp
 (use-package! ryo-modal
     :demand t
     :general (:keymaps 'override (general-chord "  ") 'jr/toggle-ryo)
     :hydra+
-    <<d3797553f252eabca75070bb3374df05(map="ryo-modal-mode-map", mode="ryo-modal-mode", prefix="ryo", short="r")>>
+    <<20210601225304341247500(map="ryo-modal-mode-map", mode="ryo-modal-mode", prefix="ryo", short="r")>>
         ;; From: https://github.com/Kungsgeten/ryo-modal#which-key-integration
         (push '((nil . "ryo:.*:") . (nil . "")) which-key-replacement-alist))
 #+end_src
@@ -1157,9 +1157,9 @@ Taken from [[Org-Roam's GitHub README][https://github.com/org-roam/org-roam#inst
 #+call: hash()
 
 #+RESULTS:
-: 2b6c7dfafc16cb3749d9b011c718618c
+: 20210601225311301844400
 
-#+name: 2b6c7dfafc16cb3749d9b011c718618c
+#+name: 20210601225311301844400
 #+begin_src emacs-lisp
 (use-package! evil
     :init (setq-default evil-escape-key-sequence nil)
@@ -1167,7 +1167,7 @@ Taken from [[Org-Roam's GitHub README][https://github.com/org-roam/org-roam#inst
         (general-chord "kk") 'jr/toggle-evil
         ":" 'evil-ex)
     :hydra+
-    <<d3797553f252eabca75070bb3374df05(map="evil-normal-state-map", mode="evil-mode", prefix="evil", short="e")>>
+    <<20210601225304341247500(map="evil-normal-state-map", mode="evil-mode", prefix="evil", short="e")>>
         (advice-add #'evil-insert-state :override #'jr/disable-all-modal-modes)
         (advice-add #'evil-ex :before #'jr/which-key--hide-popup)
         (advice-add #'evil-ex :after #'jr/which-key--show-popup)
@@ -1187,7 +1187,7 @@ Taken from [[Org-Roam's GitHub README][https://github.com/org-roam/org-roam#inst
     :ryo
         ("l" :hydra
                 '(evil-exits (:color blue :pre (progn
-                <<e53639c897d29ff5ad0f260d8b3bc2e2>>))
+                <<20210601225233511900800>>))
                     ;; From: https://gist.github.com/<<username>>/46b81297d1d3edfbf1e2d72d5e29171e
                     "A hydra for getting the fuck outta' here!"
                     ("`" nil "cancel")
@@ -1208,9 +1208,9 @@ Taken from [[Org-Roam's GitHub README][https://github.com/org-roam/org-roam#inst
 #+call: hash()
 
 #+RESULTS:
-: e1785de4290e315a93e1f67553025f69
+: 20210601225312959948800
 
-#+name: e1785de4290e315a93e1f67553025f69
+#+name: 20210601225312959948800
 #+begin_src emacs-lisp
 (use-package! god-mode
     :general
@@ -1218,7 +1218,7 @@ Taken from [[Org-Roam's GitHub README][https://github.com/org-roam/org-roam#inst
             (general-chord "jj") 'jr/toggle-god
             (general-chord "';") 'god-execute-with-current-bindings)
     :hydra+
-    <<d3797553f252eabca75070bb3374df05(map="global-map", mode="god-local-mode", prefix="god", short="g")>>
+    <<20210601225304341247500(map="global-map", mode="god-local-mode", prefix="god", short="g")>>
         (which-key-enable-god-mode-support))
 #+end_src
 
@@ -1227,20 +1227,20 @@ Taken from [[Org-Roam's GitHub README][https://github.com/org-roam/org-roam#inst
 #+call: hash()
 
 #+RESULTS:
-: d34ff1a4219491ae3aee30b275fd9212
+: 20210601225314671168300
 
-#+name: d34ff1a4219491ae3aee30b275fd9212
+#+name: 20210601225314671168300
 #+begin_src emacs-lisp
 (use-package! xah-fly-keys
     :ryo
         ("m" :hydra
             '(modal-modes (:color blue :pre (progn
-                <<e53639c897d29ff5ad0f260d8b3bc2e2>>))
+                <<20210601225233511900800>>))
                 "A modal hydra!"
                 ("`" nil "cancel")
                 ("x" jr/toggle-xah "xah-fly-keys")) :name "modal modes")
     :hydra+
-    <<d3797553f252eabca75070bb3374df05(map="xah-fly-command-map", mode="xah-fly-keys", prefix="xah", short="x")>>)
+    <<20210601225304341247500(map="xah-fly-command-map", mode="xah-fly-keys", prefix="xah", short="x")>>)
 #+end_src
 
 ***** objed
@@ -1248,14 +1248,14 @@ Taken from [[Org-Roam's GitHub README][https://github.com/org-roam/org-roam#inst
 #+call: hash()
 
 #+RESULTS:
-: 913cb77bdade14e8a517edbee7410b9a
+: 20210601225316366565400
 
-#+name: 913cb77bdade14e8a517edbee7410b9a
+#+name: 20210601225316366565400
 #+begin_src emacs-lisp
 (use-package! objed
     :general (:keymaps 'override (general-chord "ii") 'jr/toggle-objed)
     :hydra+
-    <<d3797553f252eabca75070bb3374df05(map="objed-map", mode="objed-mode", prefix="objed", short="o")>>)
+    <<20210601225304341247500(map="objed-map", mode="objed-mode", prefix="objed", short="o")>>)
 #+end_src
 
 ***** kakoune
@@ -1263,14 +1263,14 @@ Taken from [[Org-Roam's GitHub README][https://github.com/org-roam/org-roam#inst
 #+call: hash()
 
 #+RESULTS:
-: c323d6a8a89df885749c42fd2a0bc858
+: 20210601225318002941000
 
-#+name: c323d6a8a89df885749c42fd2a0bc858
+#+name: 20210601225318002941000
 #+begin_src emacs-lisp
 (use-package! kakoune
     :hydra+
         (modal-modes (:color blue) ("k" jr/toggle-kakoune "kakoune"))
-    <<d3797553f252eabca75070bb3374df05(map="ryo-modal-mode-map", mode="ryo-modal-mode", prefix="kakoune", short="k")>>)
+    <<20210601225304341247500(map="ryo-modal-mode-map", mode="ryo-modal-mode", prefix="kakoune", short="k")>>)
 #+end_src
 
 ***** modalka
@@ -1278,14 +1278,14 @@ Taken from [[Org-Roam's GitHub README][https://github.com/org-roam/org-roam#inst
 #+call: hash()
 
 #+RESULTS:
-: 452c54e1a8e466b834ef13df6b9e238c
+: 20210601225319683820700
 
-#+name: 452c54e1a8e466b834ef13df6b9e238c
+#+name: 20210601225319683820700
 #+begin_src emacs-lisp
 (use-package! modalka
     ;; :general (:keymaps 'override (general-chord "::") 'jr/toggle-modalka)
     :hydra+
-    <<d3797553f252eabca75070bb3374df05(map="modalka-mode-map", mode="modalka-mode", prefix="modalka", short="m")>>)
+    <<20210601225304341247500(map="modalka-mode-map", mode="modalka-mode", prefix="modalka", short="m")>>)
 #+end_src
 
 **** minibuffer
@@ -1293,16 +1293,16 @@ Taken from [[Org-Roam's GitHub README][https://github.com/org-roam/org-roam#inst
 #+call: hash()
 
 #+RESULTS:
-: d265ec51e2ef69de5f99d16281d47afa
+: 20210601225321180742600
 
-#+name: d265ec51e2ef69de5f99d16281d47afa
+#+name: 20210601225321180742600
 #+begin_src emacs-lisp
 <<b7ccdbd9b486c4c7b221f9a885c076dc>>
 
 ;; TODO: Split this into multiple `use-package!' instances using my new `hydra+' keyword
 (ryo-modal-key "x" :hydra
       '(hydra-execute (:color blue :pre (progn
-                <<e53639c897d29ff5ad0f260d8b3bc2e2>>))
+                <<20210601225233511900800>>))
             "A hydra for launching stuff!"
             ("c" counsel-M-x "counsel")
             ("h" helm-smex-major-mode-commands "helm smex major mode")
@@ -1331,7 +1331,7 @@ Taken from [[Org-Roam's GitHub README][https://github.com/org-roam/org-roam#inst
 #+call: hash()
 
 #+RESULTS:
-: b7ccdbd9b486c4c7b221f9a885c076dc
+: 20210601225322706724000
 
 #+name: helm
 #+begin_src emacs-lisp
@@ -1352,12 +1352,12 @@ Taken from [[Org-Roam's GitHub README][https://github.com/org-roam/org-roam#inst
 #+call: hash()
 
 #+RESULTS:
-: 4027496311aaa540864858b0cc6d7781
+: 20210601225324176915500
 
-#+name: 4027496311aaa540864858b0cc6d7781
+#+name: 20210601225324176915500
 #+begin_src emacs-lisp
-<<d4938f230a99ce9f6c1fb2db970a897c>>
-<<4fc4f48b4b076bf715c264568fa94979>>
+<<20210601225325712716200>>
+<<20210601225327334456900>>
 ;; (use-package! gitattributes-mode)
 #+end_src
 
@@ -1366,14 +1366,14 @@ Taken from [[Org-Roam's GitHub README][https://github.com/org-roam/org-roam#inst
 #+call: hash()
 
 #+RESULTS:
-: d4938f230a99ce9f6c1fb2db970a897c
+: 20210601225325712716200
 
-#+name: d4938f230a99ce9f6c1fb2db970a897c
+#+name: 20210601225325712716200
 #+begin_src emacs-lisp
 (use-package! git-gutter
     :ryo ("g" :hydra
         '(hydra-git (:pre (progn
-                <<e53639c897d29ff5ad0f260d8b3bc2e2>>))
+                <<20210601225233511900800>>))
             "A hydra for git!"
             ("`" nil "cancel" :color blue)
             ("j" git-gutter:next-hunk "next")
@@ -1389,14 +1389,14 @@ Taken from [[Org-Roam's GitHub README][https://github.com/org-roam/org-roam#inst
 #+call: hash()
 
 #+RESULTS:
-: 4fc4f48b4b076bf715c264568fa94979
+: 20210601225327334456900
 
-#+name: 4fc4f48b4b076bf715c264568fa94979
+#+name: 20210601225327334456900
 #+begin_src emacs-lisp
 (when (or (featurep! :tools magit) (featurep 'magit)) (use-package! magit
     :ryo ("g" :hydra+
         '(hydra-git (:pre (progn
-                <<e53639c897d29ff5ad0f260d8b3bc2e2>>))
+                <<20210601225233511900800>>))
             "A hydra for git!"
             ("g" magit-status "magit" :color blue)))))
 #+end_src
@@ -1406,9 +1406,9 @@ Taken from [[Org-Roam's GitHub README][https://github.com/org-roam/org-roam#inst
 #+call: hash()
 
 #+RESULTS:
-: 0cbddafe342ce45b8c57c5feeb0a4237
+: 20210601225332587709700
 
-#+name: 0cbddafe342ce45b8c57c5feeb0a4237
+#+name: 20210601225332587709700
 #+begin_src emacs-lisp
 (remove-hook 'doom-first-buffer-hook #'global-hl-line-mode)
 
@@ -1546,26 +1546,26 @@ is already narrowed."
 #+call: hash()
 
 #+RESULTS:
-: 60045541f36fe02d96c14630bbe3966a
+: 20210601225334126963400
 
-#+name: 60045541f36fe02d96c14630bbe3966a
+#+name: 20210601225334126963400
 #+begin_src emacs-lisp
-;; <<4250ee7991caad7d0b372c862bb7ea60>>
+;; <<20210601225337340164800>>
 
 ;; (ansi-term-color-vector [unspecified "white" "red" "green" "yellow" "royal blue" "magenta" "cyan" "white"] t)
 ;; (ansi-color-names-vector [unspecified "white" "red" "green" "yellow" "royal blue" "magenta" "cyan" "white"] t)
 ;; (fringe-mode (quote (1 . 1)) nil (fringe))
 
-;; <<89ad94f1851f27ff068c501e83a47f34>>
+;; <<20210601225339037191900>>
 
-<<c10ad90226a9f6a574b7ceb93390d6e0>>
+<<20210601225340625970700>>
 
 ;; NOTE: Not working
-;; <<4019311714fe7bab6950a6a8202833f6>>
+;; <<20210601225342116066300>>
 
-;; <<cf7d26f4d252982b512c2d9108f5cb86>>
+;; <<20210601225343633878500>>
 
-<<6703a9628cab6263b981af4274971ef2>>
+<<20210601225345097323100>>
 
 #+end_src
 
@@ -1574,9 +1574,9 @@ is already narrowed."
 #+call: hash()
 
 #+RESULTS:
-: 4250ee7991caad7d0b372c862bb7ea60
+: 20210601225337340164800
 
-#+name: 4250ee7991caad7d0b372c862bb7ea60
+#+name: 20210601225337340164800
 #+begin_src emacs-lisp
 (use-package! term
     :general
@@ -1601,9 +1601,9 @@ is already narrowed."
 #+call: hash()
 
 #+RESULTS:
-: 89ad94f1851f27ff068c501e83a47f34
+: 20210601225339037191900
 
-#+name: 89ad94f1851f27ff068c501e83a47f34
+#+name: 20210601225339037191900
 #+begin_src emacs-lisp
 (use-package! vterm
     :custom
@@ -1617,9 +1617,9 @@ is already narrowed."
 #+call: hash()
 
 #+RESULTS:
-: c10ad90226a9f6a574b7ceb93390d6e0
+: 20210601225340625970700
 
-#+name: c10ad90226a9f6a574b7ceb93390d6e0
+#+name: 20210601225340625970700
 #+begin_src emacs-lisp
 (use-package! multi-term
     :custom
@@ -1634,9 +1634,9 @@ Mostly from [[Emux's After Installing Section][https://github.com/re5et/emux#aft
 #+call: hash()
 
 #+RESULTS:
-: 4019311714fe7bab6950a6a8202833f6
+: 20210601225342116066300
 
-#+name: 4019311714fe7bab6950a6a8202833f6
+#+name: 20210601225342116066300
 #+begin_src emacs-lisp
 (use-package! emux-session
     :config
@@ -1687,9 +1687,9 @@ Mostly from [[Emux's After Installing Section][https://github.com/re5et/emux#aft
 #+call: hash()
 
 #+RESULTS:
-: cf7d26f4d252982b512c2d9108f5cb86
+: 20210601225343633878500
 
-#+name: cf7d26f4d252982b512c2d9108f5cb86
+#+name: 20210601225343633878500
 #+begin_src emacs-lisp
 (use-package! elscreen
     :hook
@@ -1712,9 +1712,9 @@ Mostly from [[Emux's After Installing Section][https://github.com/re5et/emux#aft
 #+call: hash()
 
 #+RESULTS:
-: 6703a9628cab6263b981af4274971ef2
+: 20210601225345097323100
 
-#+name: 6703a9628cab6263b981af4274971ef2
+#+name: 20210601225345097323100
 #+begin_src emacs-lisp
 (load! "escreen")
 (use-package! escreen
@@ -1790,11 +1790,11 @@ Mostly from [[Emux's After Installing Section][https://github.com/re5et/emux#aft
 #+call: hash()
 
 #+RESULTS:
-: 8016354b1cb35e0587437e68baba41d8
+: 20210601225346472879400
 
-#+name: 8016354b1cb35e0587437e68baba41d8
+#+name: 20210601225346472879400
 #+begin_src emacs-lisp
-<<e77fd0ac138b6ad85673ea56d24b1cfe>>
+<<20210601225348036290600>>
 #+end_src
 
 ***** exwm
@@ -1802,9 +1802,9 @@ Mostly from [[Emux's After Installing Section][https://github.com/re5et/emux#aft
 #+call: hash()
 
 #+RESULTS:
-: e77fd0ac138b6ad85673ea56d24b1cfe
+: 20210601225348036290600
 
-#+name: e77fd0ac138b6ad85673ea56d24b1cfe
+#+name: 20210601225348036290600
 #+begin_src emacs-lisp
 #+end_src
 
@@ -1813,12 +1813,12 @@ Mostly from [[Emux's After Installing Section][https://github.com/re5et/emux#aft
 #+call: hash()
 
 #+RESULTS:
-: 58043a4011d978b07d42cdbe23366db4
+: 20210601225349590264700
 
-#+name: 58043a4011d978b07d42cdbe23366db4
+#+name: 20210601225349590264700
 #+begin_src emacs-lisp
-<<8df0b63f0fd76eebb81255e9cb13e72f>>
-<<a150a1120f94eead3d23c10b77f66dda>>
+<<20210601225351155331200>>
+<<20210601225352808354500>>
 #+end_src
 
 ***** paths
@@ -1830,9 +1830,9 @@ Adapted from [[Ergoemacs' Emacs Lisp Code for Setting PATH and exec-path section
 #+call: hash()
 
 #+RESULTS:
-: 8df0b63f0fd76eebb81255e9cb13e72f
+: 20210601225351155331200
 
-#+name: 8df0b63f0fd76eebb81255e9cb13e72f
+#+name: 20210601225351155331200
 #+begin_src emacs-lisp
 ;; (eval `(let ((mypaths
 ;;     '(
@@ -1853,9 +1853,9 @@ Adapted from [[Ergoemacs' Emacs Lisp Code for Setting PATH and exec-path section
 #+call: hash()
 
 #+RESULTS:
-: a150a1120f94eead3d23c10b77f66dda
+: 20210601225352808354500
 
-#+name: a150a1120f94eead3d23c10b77f66dda
+#+name: 20210601225352808354500
 #+begin_src emacs-lisp
 #+end_src
 
@@ -1864,9 +1864,9 @@ Adapted from [[Ergoemacs' Emacs Lisp Code for Setting PATH and exec-path section
 #+call: hash()
 
 #+RESULTS:
-: f6fbad3008b5eaa412ac27f2ba12bd42
+: 20210601225354262898500
 
-#+name: f6fbad3008b5eaa412ac27f2ba12bd42
+#+name: 20210601225354262898500
 #+begin_src emacs-lisp
 (setq-default indent-tabs-mode nil)
 
@@ -1900,9 +1900,9 @@ Adapted from [[Ergoemacs' Emacs Lisp Code for Setting PATH and exec-path section
 #+call: hash()
 
 #+RESULTS:
-: c7d72604b58a79d5829fe508390b7d98
+: 20210601225358082343800
 
-#+name: c7d72604b58a79d5829fe508390b7d98
+#+name: 20210601225358082343800
 #+begin_src emacs-lisp :tangle (jr/tangle-path)
 ;; -*- no-byte-compile: t; -*-
 ;;; $DOOMDIR/packages.el
@@ -1976,9 +1976,9 @@ Adapted from: https://github.com/hlissner/doom-emacs/blob/develop/bin/org-tangle
 #+call: hash()
 
 #+RESULTS:
-: 83c3bfeb4ead1c7f196c8c263b4ba388
+: 20210601225359807196100
 
-#+name: 83c3bfeb4ead1c7f196c8c263b4ba388
+#+name: 20210601225359807196100
 #+begin_src emacs-lisp :tangle (jr/tangle-path) :shebang "#!/usr/bin/env sh"
 ":"; exec emacs --quick --script "$0" -- "$@" # -*- mode: emacs-lisp; lexical-binding: t; -*-
 
@@ -1988,7 +1988,7 @@ Adapted from: https://github.com/hlissner/doom-emacs/blob/develop/bin/org-tangle
 (require 'ox)
 (require 'ob-tangle)
 
-<<ed55930dc36029c49a46d842fd0ffc1b>>
+<<20210601225401786848500>>
 
 (defun usage ()
   (with-temp-buffer
@@ -2125,9 +2125,9 @@ trees with the :notangle: tag."
 #+call: hash()
 
 #+RESULTS:
-: ed55930dc36029c49a46d842fd0ffc1b
+: 20210601225401786848500
 
-#+name: ed55930dc36029c49a46d842fd0ffc1b
+#+name: 20210601225401786848500
 #+begin_src emacs-lisp :tangle (jr/tangle-path)
 (defun jr/get-header nil (interactive)
     (nth 4 (org-heading-components)))

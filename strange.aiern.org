@@ -12,9 +12,9 @@ This is used to supplement =./oreo.aiern.org=.
 #+call: hash()
 
 #+RESULTS:
-: 56382ca914291d6df41adbd417b19df2
+: 20210601214231713054800
 
-#+name: 56382ca914291d6df41adbd417b19df2
+#+name: 20210601214231713054800
 #+begin_src python
 # From: http://gegenokitaro.github.io/tuts/2015/05/14/qtile-ricchan/
 #
@@ -239,9 +239,9 @@ wmname = "LG3D"
 #+call: hash()
 
 #+RESULTS:
-: 610e9954e5b1fa36fd50580e2061424f
+: 20210601214235078130500
 
-#+name: 610e9954e5b1fa36fd50580e2061424f
+#+name: 20210601214235078130500
 #+begin_src conf
 #=============================================================================
 # dark_powered.toml --- dark powered configuration example for SpaceVim
@@ -272,9 +272,9 @@ wmname = "LG3D"
     bootstrap_after = 'vimrc#after'
     escape_key_binding = ""
 
-<<0bc1237939b0cf939f15095ba9b5029f>>
+<<20210601214237032954500>>
 
-<<0c3bb9c504afc0c047e2b6d34e1a3cdd>>
+<<20210601214239113273400>>
 #+end_src
 
 ***** layers
@@ -282,9 +282,9 @@ wmname = "LG3D"
 #+call: hash()
 
 #+RESULTS:
-: 0bc1237939b0cf939f15095ba9b5029f
+: 20210601214237032954500
 
-#+name: 0bc1237939b0cf939f15095ba9b5029f
+#+name: 20210601214237032954500
 #+begin_src toml
 # Enable autocomplete layer
 [[layers]]
@@ -306,9 +306,9 @@ name = "lang#nix"
 #+call: hash()
 
 #+RESULTS:
-: 0c3bb9c504afc0c047e2b6d34e1a3cdd
+: 20210601214239113273400
 
-#+name: 0c3bb9c504afc0c047e2b6d34e1a3cdd
+#+name: 20210601214239113273400
 #+begin_src toml
 [[custom_plugins]]
     repo = "tssm/fairyfloss.vim"
@@ -372,9 +372,9 @@ name = "lang#nix"
 #+call: hash()
 
 #+RESULTS:
-: a9f44e9cd05fda5b5e5dffb41d946748
+: 20210601214241093346900
 
-#+name: a9f44e9cd05fda5b5e5dffb41d946748
+#+name: 20210601214241093346900
 #+begin_src vimrc
 function! vimrc#before() abort
 endfunction
@@ -463,16 +463,16 @@ endfunction
 #+call: hash()
 
 #+RESULTS:
-: b7a800fefe161963d69a4d47eb645f78
+: 20210601214242951916200
 
-#+name: b7a800fefe161963d69a4d47eb645f78
+#+name: 20210601214242951916200
 #+begin_src xonsh
-<<ff32af32d525c61902a3880068787437>>
-<<be99679f97958058d1db9a3bbb466302>>
-<<8ae634bcedb2c643f8f9c98d5a85616b>>
-<<8446ecc4bed901db8f4905fb30fea958>>
-<<ca83cb21bd1358278e3ac18fe108d4b8>>
-<<fc32a19c2ab83bb5a9d886f6fee7ef1d>>
+<<20210601214244821056000>>
+<<20210601214246907351900>>
+<<20210601214250331932200>>
+<<20210601214251955822800>>
+<<20210601214253725251000>>
+<<20210601214255358803900>>
 #+end_src
 
 **** setup
@@ -480,9 +480,9 @@ endfunction
 #+call: hash()
 
 #+RESULTS:
-: ff32af32d525c61902a3880068787437
+: 20210601214244821056000
 
-#+name: ff32af32d525c61902a3880068787437
+#+name: 20210601214244821056000
 #+begin_src xonsh
 # Note that type hints cannot be used
 
@@ -507,9 +507,9 @@ except NameError:
 #+call: hash()
 
 #+RESULTS:
-: be99679f97958058d1db9a3bbb466302
+: 20210601214246907351900
 
-#+name: be99679f97958058d1db9a3bbb466302
+#+name: 20210601214246907351900
 #+begin_src xonsh
 from sys import path as sys_path
 from datetime import datetime
@@ -523,9 +523,9 @@ from inspect import getsourcefile
 #+call: hash()
 
 #+RESULTS:
-: 8ae634bcedb2c643f8f9c98d5a85616b
+: 20210601214250331932200
 
-#+name: 8ae634bcedb2c643f8f9c98d5a85616b
+#+name: 20210601214250331932200
 #+begin_src xonsh
 source-bash ~/.nix-profile/etc/profile.d/hm-session-vars.sh
 $AUTO_CD = True
@@ -597,9 +597,9 @@ $LESS = " -R "
 #+call: hash()
 
 #+RESULTS:
-: 8446ecc4bed901db8f4905fb30fea958
+: 20210601214251955822800
 
-#+name: 8446ecc4bed901db8f4905fb30fea958
+#+name: 20210601214251955822800
 #+begin_src xonsh
 def _yadm(args, stdin=None):
     if args[0] == "edit":
@@ -688,9 +688,9 @@ def _ssh(args, stdin=None):
 #+call: hash()
 
 #+RESULTS:
-: ca83cb21bd1358278e3ac18fe108d4b8
+: 20210601214253725251000
 
-#+name: ca83cb21bd1358278e3ac18fe108d4b8
+#+name: 20210601214253725251000
 #+begin_src xonsh
 # xontrib load autojump
 # xontrib load direnv
@@ -722,9 +722,9 @@ xontrib load z
 #+call: hash()
 
 #+RESULTS:
-: fc32a19c2ab83bb5a9d886f6fee7ef1d
+: 20210601214255358803900
 
-#+name: fc32a19c2ab83bb5a9d886f6fee7ef1d
+#+name: 20210601214255358803900
 #+begin_src xonsh
 # byobu attach -t <<username>> &> /dev/null
 
@@ -798,9 +798,9 @@ and [[https://rehansaeed.com/gitattributes-best-practices/#final-form][here]]:
 #+call: hash()
 
 #+RESULTS:
-: 08dbff12d7941b00d17c353f5fe4e078
+: 20210601214257298335500
 
-#+name: 08dbff12d7941b00d17c353f5fe4e078
+#+name: 20210601214257298335500
 #+begin_src gitattributes
 *.sec filter=git-crypt diff=git-crypt
 id_* filter=git-crypt diff=git-crypt
@@ -1073,21 +1073,21 @@ id_* filter=git-crypt diff=git-crypt
 #+call: hash()
 
 #+RESULTS:
-: 67bb84ea2b3abf4eba054728fef72e40
+: 20210601214259128138500
 
-#+name: 67bb84ea2b3abf4eba054728fef72e40
+#+name: 20210601214259128138500
 #+begin_src conf
-<<35b53d4db39376fa9493c72476947e13()>>
-<<ffaf951006ac2045f71901e9c141479a>>
-<<6e891f261f3ddf1e6637eba10f3135a2>>
-<<4c4e640b8c51c87456357db69516eb7d>>
-<<4221501a2ee55389ca7ee32bd36e0313>>
-<<7295ba7adaacbfbdbabc6bf0bdaea9d9>>
-<<c2bc1c963dd11d859a53ab98db3dc6ea>>
-<<7cf18f74ce0b99d1871605c4641ca25d>>
-<<29de090b65f26fdf00641c96c0531a70>>
-<<4c0b32a4459b124d35e6463181fb7d73>>
-<<9211c969eb8ee679547174313ca4ffdc>>
+<<20210601214303404504400()>>
+<<20210601214311502164600>>
+<<20210601214313059204900>>
+<<20210601214315811010800>>
+<<20210601214318746065100>>
+<<20210601214321538145800>>
+<<20210601214324354163600>>
+<<20210601214327190098900>>
+<<20210601214333167596800>>
+<<20210601214300856128700>>
+<<20210601214335900412400>>
 run "./resources/tpm/tpm"
 #+end_src
 
@@ -1096,9 +1096,9 @@ run "./resources/tpm/tpm"
 #+call: hash()
 
 #+RESULTS:
-: 4c0b32a4459b124d35e6463181fb7d73
+: 20210601214300856128700
 
-#+name: 4c0b32a4459b124d35e6463181fb7d73
+#+name: 20210601214300856128700
 #+begin_src conf
 # set -g prefix2 S-Space
 
@@ -1166,9 +1166,9 @@ bind-key -T prefix C-Space {
 #+call: hash()
 
 #+RESULTS:
-: 35b53d4db39376fa9493c72476947e13
+: 20210601214303404504400
 
-#+name: 35b53d4db39376fa9493c72476947e13
+#+name: 20210601214303404504400
 #+begin_src emacs-lisp
 (replace-regexp-in-string
     "set -g prefix C-a"
@@ -1189,9 +1189,9 @@ bind-key -T prefix C-Space {
 #+call: hash()
 
 #+RESULTS:
-: ffaf951006ac2045f71901e9c141479a
+: 20210601214311502164600
 
-#+name: ffaf951006ac2045f71901e9c141479a
+#+name: 20210601214311502164600
 #+begin_src conf
 # source ./resources/powerline/powerline/bindings/tmux/powerline-base.conf
 source ./resources/powerline/powerline/bindings/tmux/powerline.conf
@@ -1203,9 +1203,9 @@ source ./resources/powerline/powerline/bindings/tmux/powerline.conf
 #+call: hash()
 
 #+RESULTS:
-: 6e891f261f3ddf1e6637eba10f3135a2
+: 20210601214313059204900
 
-#+name: 6e891f261f3ddf1e6637eba10f3135a2
+#+name: 20210601214313059204900
 #+begin_src conf
 source ./resources/oh-my-tmux/.tmux.conf
 source ./resources/oh-my-tmux/.tmux.conf.local
@@ -1220,9 +1220,9 @@ From: https://man7.org/linux/man-pages/man1/tmux.1.html#KEY_BINDINGS
 #+call: hash()
 
 #+RESULTS:
-: 03d84ec2e2a38e205ecef8554848c6fb
+: 20210601214314440746200
 
-#+name: 03d84ec2e2a38e205ecef8554848c6fb
+#+name: 20210601214314440746200
 #+begin_src text
 C-b
 C-x
@@ -1232,11 +1232,11 @@ C-z
 #+call: hash()
 
 #+RESULTS:
-: 4c4e640b8c51c87456357db69516eb7d
+: 20210601214315811010800
 
-#+name: 4c4e640b8c51c87456357db69516eb7d
+#+name: 20210601214315811010800
 #+begin_src conf
-unbind <<03d84ec2e2a38e205ecef8554848c6fb>>
+unbind <<20210601214314440746200>>
 #+end_src
 
 ***** bindings
@@ -1244,20 +1244,20 @@ unbind <<03d84ec2e2a38e205ecef8554848c6fb>>
 #+call: hash()
 
 #+RESULTS:
-: fe7b82dc2f4511169e57ccd048f34865
+: 20210601214317258641300
 
-#+name: fe7b82dc2f4511169e57ccd048f34865
+#+name: 20210601214317258641300
 #+begin_src text
 #+end_src
 
 #+call: hash()
 
 #+RESULTS:
-: 4221501a2ee55389ca7ee32bd36e0313
+: 20210601214318746065100
 
-#+name: 4221501a2ee55389ca7ee32bd36e0313
+#+name: 20210601214318746065100
 #+begin_src conf
-bind-key <<fe7b82dc2f4511169e57ccd048f34865>>
+bind-key <<20210601214317258641300>>
 #+end_src
 
 ***** root bindings
@@ -1265,20 +1265,20 @@ bind-key <<fe7b82dc2f4511169e57ccd048f34865>>
 #+call: hash()
 
 #+RESULTS:
-: 2bb4047366438ff19e5bd531ae6289c1
+: 20210601214320148298300
 
-#+name: 2bb4047366438ff19e5bd531ae6289c1
+#+name: 20210601214320148298300
 #+begin_src text
 #+end_src
 
 #+call: hash()
 
 #+RESULTS:
-: 7295ba7adaacbfbdbabc6bf0bdaea9d9
+: 20210601214321538145800
 
-#+name: 7295ba7adaacbfbdbabc6bf0bdaea9d9
+#+name: 20210601214321538145800
 #+begin_src conf
-bind-key -n <<2bb4047366438ff19e5bd531ae6289c1>>
+bind-key -n <<20210601214320148298300>>
 #+end_src
 
 ***** root repeting bindings
@@ -1286,9 +1286,9 @@ bind-key -n <<2bb4047366438ff19e5bd531ae6289c1>>
 #+call: hash()
 
 #+RESULTS:
-: 31d5b10832324a65443e66592ac31a3d
+: 20210601214322950137300
 
-#+name: 31d5b10832324a65443e66592ac31a3d
+#+name: 20210601214322950137300
 #+begin_src text
 M-s send-prefix
 C-S-F5 send-keys M-F5
@@ -1299,11 +1299,11 @@ C-S-Right send-keys M-Right
 #+call: hash()
 
 #+RESULTS:
-: c2bc1c963dd11d859a53ab98db3dc6ea
+: 20210601214324354163600
 
-#+name: c2bc1c963dd11d859a53ab98db3dc6ea
+#+name: 20210601214324354163600
 #+begin_src conf
-bind-key -nr <<31d5b10832324a65443e66592ac31a3d>>
+bind-key -nr <<20210601214322950137300>>
 #+end_src
 
 ***** repeting bindings
@@ -1311,20 +1311,20 @@ bind-key -nr <<31d5b10832324a65443e66592ac31a3d>>
 #+call: hash()
 
 #+RESULTS:
-: a20613fd2ed03b18c39928bf44f3641c
+: 20210601214325764323500
 
-#+name: a20613fd2ed03b18c39928bf44f3641c
+#+name: 20210601214325764323500
 #+begin_src text
 #+end_src
 
 #+call: hash()
 
 #+RESULTS:
-: 7cf18f74ce0b99d1871605c4641ca25d
+: 20210601214327190098900
 
-#+name: 7cf18f74ce0b99d1871605c4641ca25d
+#+name: 20210601214327190098900
 #+begin_src conf
-bind-key -r <<a20613fd2ed03b18c39928bf44f3641c>>
+bind-key -r <<20210601214325764323500>>
 #+end_src
 
 ***** prefix table bindings
@@ -1332,20 +1332,20 @@ bind-key -r <<a20613fd2ed03b18c39928bf44f3641c>>
 #+call: hash()
 
 #+RESULTS:
-: 28ecde9dce9ba0347fd970e8c803fc3b
+: 20210601214331744518200
 
-#+name: 28ecde9dce9ba0347fd970e8c803fc3b
+#+name: 20210601214331744518200
 #+begin_src text
 #+end_src
 
 #+call: hash()
 
 #+RESULTS:
-: 29de090b65f26fdf00641c96c0531a70
+: 20210601214333167596800
 
-#+name: 29de090b65f26fdf00641c96c0531a70
+#+name: 20210601214333167596800
 #+begin_src conf
-bind-key -T prefix <<28ecde9dce9ba0347fd970e8c803fc3b>>
+bind-key -T prefix <<20210601214331744518200>>
 #+end_src
 
 **** plugins
@@ -1353,9 +1353,9 @@ bind-key -T prefix <<28ecde9dce9ba0347fd970e8c803fc3b>>
 #+call: hash()
 
 #+RESULTS:
-: 47934bcadbc5c8af14ffd00cc8b8350b
+: 20210601214334528396400
 
-#+name: 47934bcadbc5c8af14ffd00cc8b8350b
+#+name: 20210601214334528396400
 #+begin_src text
 tmux-plugins/tpm
 jlipps/tmux-safekill
@@ -1366,11 +1366,11 @@ addisonlynch/tmux-sidebar-plus
 #+call: hash()
 
 #+RESULTS:
-: 9211c969eb8ee679547174313ca4ffdc
+: 20210601214335900412400
 
-#+name: 9211c969eb8ee679547174313ca4ffdc
+#+name: 20210601214335900412400
 #+begin_src conf
-set -g @plugin <<47934bcadbc5c8af14ffd00cc8b8350b>>
+set -g @plugin <<20210601214334528396400>>
 #+end_src
 
 *** tmux
@@ -1378,9 +1378,9 @@ set -g @plugin <<47934bcadbc5c8af14ffd00cc8b8350b>>
 #+call: hash()
 
 #+RESULTS:
-: 8182b9565b9c8ccb0a8f2c87319c9955
+: 20210601214337624066100
 
-#+name: 8182b9565b9c8ccb0a8f2c87319c9955
+#+name: 20210601214337624066100
 #+begin_src nix
 tmux = {
     aggressiveResize = true;
@@ -1443,7 +1443,7 @@ tmux = {
         (ccSSS "bind-key -T prefix" prefixTableBindings)
 
         ''
-            <<4c0b32a4459b124d35e6463181fb7d73>>
+            <<20210601214300856128700>>
         ''
 
         (ccSS "set -g @plugin" plugins')

@@ -844,11 +844,7 @@ with builtins; let
                                 ".config/qtile/config.py".source = "${homeDirectory}/${primary.user}/home/.config/qtile/config.py";
                             })
                             ({
-                                kitty = {
-                                    enable = true;
-                                    extraConfig = readFile "${homeDirectory}/${primary.user}/home/.config/kitty/kitty.conf";
-                                    settings.font_family = "Cartograph CF Light Italic";
-                                };
+                                ".config/kitty/theme.conf".source = sources.kittyThemes + "/themes/Monokai_Soda.conf";
                             })
                             ({
                                 ".config/nixpkgs/overlays.nix".source = "${homeDirectory}/${primary.user}/home/.config/nixpkgs/overlays.nix";
