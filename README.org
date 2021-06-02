@@ -14,40 +14,45 @@
 shadowrylander
 #+end_src
 
-#+name: hash
+#+name: hash-deprecated
 #+begin_src emacs-lisp :var name="" :exports none
 (md5 (concat (replace-regexp-in-string "/" "" (
     org-format-outline-path (org-get-outline-path))) (
         nth 4 (org-heading-components)) name))
 #+end_src
 
+#+name: hash
+#+begin_src emacs-lisp :exports none
+(format-time-string "%Y%m%d%H%M%S%N")
+#+end_src
+
 * current projects
 
 # !!! Local projects are in the `inca' directory !!!
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
-: 00321739e2bcd1e57750b641564afebe
+: 20210601181716264678600
 
-#+name: 00321739e2bcd1e57750b641564afebe
+#+name: 20210601181716264678600
 #+begin_src text
 <<username>>/<<username>> ~/<<username>>/home/<<username>>
 #+end_src
 
 * makefile
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
-: cd5dbf3629c558b0104ba8f0937d6816
+: 20210601181725825830000
 
-#+name: cd5dbf3629c558b0104ba8f0937d6816
+#+name: 20210601181725825830000
 #+begin_src makefile :tangle makefile
 .RECIPEPREFIX := |
 
 init:
-|-git clone --recurse-submodule https://github.com/<<00321739e2bcd1e57750b641564afebe>>
+|-git clone --recurse-submodule https://github.com/<<20210601181716264678600>>
 .DEFAULT_GOAL := init
 
 rebuild:
@@ -108,9 +113,9 @@ this python module allows you to import shell commands as modules as well. For e
 # How does the code below work exactly, again? Revise it!
 
 #+begin_src python
-<<55cd2acb7ad806fd92712b939e778c43>>
-<<063c7e217d5d2bc6b70a3fd3633eca26>>
-<<c67b0687e4684ea7b068fc3e90e3d2b6>>
+<<20210601181755824433500>>
+<<20210601181800630609300>>
+<<20210601181804730771100>>
 #+end_src
 
 You might be thinking to yourself, "Cool!" And also, "...Wait what?"
@@ -119,12 +124,12 @@ You might be thinking to yourself, "Cool!" And also, "...Wait what?"
 
 -----
 
-#+call: hash("from baker.y import git")
+#+call: hash()
 
 #+RESULTS:
-: 55cd2acb7ad806fd92712b939e778c43
+: 20210601181755824433500
 
-#+name: 55cd2acb7ad806fd92712b939e778c43
+#+name: 20210601181755824433500
 #+begin_src python
 from baker.y import git
 #+end_src
@@ -140,12 +145,12 @@ one can simply use =git.help()= instead.
 
 -----
 
-#+call: hash("git.clone")
+#+call: hash()
 
 #+RESULTS:
-: 063c7e217d5d2bc6b70a3fd3633eca26
+: 20210601181800630609300
 
-#+name: 063c7e217d5d2bc6b70a3fd3633eca26
+#+name: 20210601181800630609300
 #+begin_src python
 git.clone(
     b = "master",
@@ -158,12 +163,12 @@ git.clone(
 
 -----
 
-#+call: hash("print(git(C = "~/<<username>>").status())")
+#+call: hash()
 
 #+RESULTS:
-: c67b0687e4684ea7b068fc3e90e3d2b6
+: 20210601181804730771100
 
-#+name: c67b0687e4684ea7b068fc3e90e3d2b6
+#+name: 20210601181804730771100
 #+begin_src python
 print(git(C = "~/<<username>>").status())
 #+end_src

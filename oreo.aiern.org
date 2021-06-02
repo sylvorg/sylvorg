@@ -10,577 +10,27 @@ which was written by [[https://emacs.stackexchange.com/users/2710/andrew-swann][
 ** yadm
 *** bootstrap
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
-: 5918a1d90f5b7e61007371faf087dff7
+: 20210601184651836098700
 
-#+name: 5918a1d90f5b7e61007371faf087dff7
+#+name: 20210601184651836098700
 #+begin_src sh :tangle (jr/tangle-path) :shebang "#!/usr/bin/env bash"
 
 #+end_src
 
-* root
-** .config
-**** yadm
-***** bootstrap
-
-# Rewrite this for python 3.9
-
-#+call: hash("")
-
-#+RESULTS:
-: 20da3080268b6d2673a43886dcdd8d08
-
-#+name: 20da3080268b6d2673a43886dcdd8d08
-#+begin_src python :tangle (jr/tangle-path) :shebang "#!/usr/bin/env python3.9"
-import argparse
-import json
-import os
-import sys
-from subprocess import run, DEVNULL, STDOUT
-
-<<e4d410b716af24c4792d0cf33ceea79d>>
-
-resources = f'{os.environ["HOME"]}/<<username>>/system/etc/nixos/config'
-
-try:
-    if args.subcommand == "create":
-        if input('THIS WILL DELETE ALL DATA ON THE SELECTED DEVICE / PARTITION! TO CONTINUE, TYPE IN "ZFS CREATE"!\n\t') == "ZFS CREATE":
-            <<4c7380a3d87b23bf61b9f2d704fa965b>>
-        else:
-            print("Sorry; not continuing!\n\n")
-
-    if args.subcommand == "update":
-        if args.files:
-            <<6b5976297f158a651e51a1aa6303c590>>
-        elif args.pool:
-            <<bcb6a0d82c4941db3eff8f5d0728eb6c>>
-        else:
-            <<6b5976297f158a651e51a1aa6303c590>>
-
-finally:
-    if args.subcommand:
-        run(f"zpool export -f {args.Pool}", shell = True, stdout=DEVNULL, stderr=STDOUT)
-
-if args.subcommand == "mount":
-    <<f2f6ce58bd9d44b38b94e493ecca4e73>>
-
-if args.generate:
-    run("nixos-generate-config --root /mnt", shell = True)
-
-if args.move:
-    run("mkdir -p /mnt/etc/nixos/config", shell = True)
-    run("mv /mnt/etc/nixos/{,config/}configuration.nix", shell = True)
-    run("mv /mnt/etc/nixos/{,config/}hardware-configuration.nix", shell = True)
-
-if args.link:
-    run("ln -sf /mnt/persist /persist", shell = True)
-
-if args.rsync:
-    run("nix-env -iA nixos.rsync", shell = True)
-    run("rsync -avvczz ~/<<username>>/system/ /mnt/", shell = True)
-
-if args.install:
-    run("nixos-install --show-trace", shell = True)
-
-# TODO
-if args.home_manager:
-    pass
-
-# TODO: Also include a one-stop-install, mounting, generating, copying, etc. all in one go
-if args.all:
-    pass
-#+end_src
-
-****** argparse
-
-#+call: hash("")
-
-#+RESULTS:
-: e4d410b716af24c4792d0cf33ceea79d
-
-#+name: e4d410b716af24c4792d0cf33ceea79d
-#+begin_src python
-parser = argparse.ArgumentParser()
-
-# From: https://gist.github.com/amarao/36327a6f77b86b90c2bca72ba03c9d3a
-subparsers = parser.add_subparsers(dest='subcommand')
-create = subparsers.add_parser("create")
-mount = subparsers.add_parser("mount")
-update = subparsers.add_parser("update")
-
-for subparser in [ create, mount, update ]:
-    subparser.add_argument("Pool")
-    subparser.add_argument("-d", "--deduplicated", action="store_true")
-    subparser.add_argument("-e", "--encrypted", action="store_true")
-
-create.add_argument("-z", "--zfs-device", required=True)
-create.add_argument("-s", "--swap")
-mount.add_argument("-b", "--boot-device", required=True)
-mount.add_argument("-s", "--swap", action="store_true")
-update.add_argument("-p", "--pool", action="store_true")
-update.add_argument("-f", "--files", action="store_true")
-
-parser.add_argument("-g", "--generate", action="store_true")
-parser.add_argument("-m", "--move", action="store_true")
-parser.add_argument("-l", "--link", action="store_true")
-parser.add_argument("-r", "--rsync", action="store_true")
-parser.add_argument("-i", "--install", action="store_true")
-parser.add_argument("-H", "--home-manager", action="store_true")
-parser.add_argument("-a", "--all", action="store_true")
-
-# Adapted From:
-# Answer: https://stackoverflow.com/a/29312757/10827766
-# User: https://stackoverflow.com/users/2664549/cgseller
-if len(sys.argv) == 1:
-    parser.print_help(sys.stderr)
-    sys.exit(1)
-
-args = parser.parse_args()
-#+end_src
-
-****** create
-
-#+call: hash("")
-
-#+RESULTS:
-: 4c7380a3d87b23bf61b9f2d704fa965b
-
-#+name: 4c7380a3d87b23bf61b9f2d704fa965b
-#+begin_src python
-options = {
-    "xattr": "sa",
-    "acltype": "posixacl",
-    "mountpoint": "none",
-    "compression": "zstd-19",
-    "checksum": "edonr",
-    "atime": "off",
-    "relatime": "off",
-}
-
-if args.encrypted:
-    options["encryption"] = "aes-256-gcm"
-    options["keyformat"] = "passphrase"
-if args.deduplicated:
-    options["dedup"] = "edonr,verify"
-
-if os.path.isdir("/mnt"):
-    run("umount -R /mnt", shell = True, stdout=DEVNULL, stderr=STDOUT)
-else:
-    run("mkdir /mnt", shell = True, stdout=DEVNULL, stderr=STDOUT)
-
-run(f"zpool export -f {args.Pool}", shell = True, stdout=DEVNULL, stderr=STDOUT)
-
-command = f"zpool create -fo autotrim=on -o altroot=/mnt"
-
-for key, value in options.items():
-    command += f" -O {key}={value}"
-
-run(f"{command} {args.Pool} {args.zfs_device}", shell = True)
-
-<<bcb6a0d82c4941db3eff8f5d0728eb6c>>
-
-#+end_src
-
-******* open =f{resources}/users.json=
-
-#+call: hash("")
-
-#+RESULTS:
-: 45aac463623661787088fdbf6465759e
-
-#+name: 45aac463623661787088fdbf6465759e
-#+begin_src python
-users = json.loads('''
-    <<4b4166b2bebff5d6dc0a9118372f6e36>>
-'''.strip())
-
-for user in users.values():
-    dsd["home"][d][user] = dd
-    datasets["virt"][d]["podman"][d][user] = dd
-    for dataset in (persist := dsd["persist"][d]).keys():
-        persist[dataset][d][user] = dd
-#+end_src
-
-******* open =f{resources}/_datasets.nix=
-******** before opening =f{resources}/_datasets.nix=
-
-#+call: hash("")
-
-#+RESULTS:
-: c87d7294a0bf9ef139a1a416a45ff4fb
-
-#+name: c87d7294a0bf9ef139a1a416a45ff4fb
-#+begin_src python
-with open(f"{resources}/_datasets.nix", "w") as dnix:
-
-    dnix.write("host: {\n")
-
-    def recurse(ddict, dname, droot, mountpoint = ""):
-
-        _dataset = f"{droot}/{dname}"
-
-        # cc: clone or create
-        # son: snapshot or none
-        if (dname != "base") and (args.encrypted and args.deduplicated):
-            cc = "clone"
-            son = f"{args.Pool}/base@root"
-        else:
-            cc = "create"
-            son = ""
-
-        prefixes = (
-            "system",
-            "system/root",
-            "swap",
-            "base",
-            "hold",
-            "omniverse",
-            "reserved",
-        )
-        _doptions = ddict.get("options", [])
-        if _dataset not in ( f"{args.Pool}/{dataset}" for dataset in prefixes):
-            if (_mountpoint := ddict.get("mountpoint", "")):
-                mountpoint = _mountpoint
-            else:
-                if mountpoint:
-                    mountpoint += f"/{dname}"
-                    _mountpoint = mountpoint
-                else:
-                    _mountpoint = _dataset.removeprefix(args.Pool + "/")
-                    for prefix in prefixes:
-                        _mountpoint = _mountpoint.removeprefix(prefix + "/")
-                    _mountpoint = "/" + _mountpoint
-
-            dnix.write(f'\t"{_dataset}" = "{_mountpoint}";\n')
-#+end_src
-
-******** after opening =f{resources}/_datasets.nix=
-
-#+call: hash("")
-
-#+RESULTS:
-: c417a7146013877ff5189f1f48688a79
-
-#+name: c417a7146013877ff5189f1f48688a79
-#+begin_src python
-    for key, value in ddict.get(d, dd).items():
-        recurse(value, key, _dataset, mountpoint)
-
-for key, value in datasets.items():
-    recurse(value, key, args.Pool)
-
-dnix.write("}")
-#+end_src
-
-******* open =datasets.json=
-
-#+call: hash("datasets-json")
-
-#+RESULTS:
-: 9b4b3e2eab1f5b226d6cd52d8f9ff29b
-
-#+name: 9b4b3e2eab1f5b226d6cd52d8f9ff29b
-#+begin_src json
-{
-    "base": {  },
-    "hold": {  },
-    "omniverse": {  },
-    "reserved": {  },
-    "system": {
-        "datasets": {
-            "home": { "datasets": { "root": { "mountpoint": "/root" }}},
-            "nix": {  },
-            "persist": {
-                "datasets": {
-                    "cache": {
-                        "datasets": { "root": {  }},
-                        "options": [ "sync=disabled" ]
-                    },
-                    "home": { "datasets": { "root": {  }}}
-                }
-            },
-            "root": {  },
-            "tmp": { "options": [ "sync=disabled" ] }
-        },
-        "options": [ "mountpoint=legacy" ]
-    },
-    "virt": {
-        "datasets": {
-            "docker": {  },
-            "kvm": {  },
-            "podman": { "datasets": {  }},
-            "qemu": {  },
-            "vagrant": {  },
-            "xen": {  }
-        },
-        "options": [ "mountpoint=legacy", "refreservation=none" ],
-        "mountpoint": "/var/lib"
-    }
-}
-#+end_src
-
-#+call: hash("")
-
-#+RESULTS:
-: a42e6a90b4026d89c3e1c6b0e491b092
-
-#+name: a42e6a90b4026d89c3e1c6b0e491b092
-#+begin_src python
-datasets = json.loads('''
-    <<9b4b3e2eab1f5b226d6cd52d8f9ff29b>>
-'''.strip())
-
-dsd = datasets[s][d]
-
-datasets[args.Pool] = {
-    "datasets": {
-        "b": {
-            "datasets": {
-                "a": dd,
-                "cc": { "options": snapDir },
-                "cl": dd,
-                "cj": { "datasets": {
-                    "cc": { "options": extraCopies },
-                    "m": { "options": snapDir }
-                }},
-                "eb": { "options": extraCopies },
-                "oreo": { "option": snapDir },
-                "p": { "options": snapDir }
-            },
-        },
-        "borg": { "datasets": { "cache": { "options": cache }}},
-        "jails": { "datasets": { "base": dd}},
-        "las": {
-            "datasets": {
-                "dreadnought": ddd,
-                "redstone": ddd,
-                "sinnoh": ddd
-            }
-        },
-        "y": dd,
-        "z": dd
-    },
-    "options": [ ml ]
-}
-
-<<45aac463623661787088fdbf6465759e>>
-
-for backup in (las := datasets[args.Pool][d]["las"][d]).keys():
-    for zz in [ "zpax", "zsyncs" ]:
-        las[backup][d][zz] = dd
-
-<<c87d7294a0bf9ef139a1a416a45ff4fb>>
-#+end_src
-
-****** mount
-
-#+call: hash("")
-
-#+RESULTS:
-: f2f6ce58bd9d44b38b94e493ecca4e73
-
-#+name: f2f6ce58bd9d44b38b94e493ecca4e73
-#+begin_src python
-import os
-from collections import namedtuple
-from functools import partial
-from subprocess import DEVNULL
-
-for dataset in run("zfs list -rH", shell = True, capture_output = True).stdout.decode().split("\n"):
-    if args.Pool in dataset:
-        break
-else:
-    run(f"zpool import -f {args.Pool}", shell = True)
-
-if args.encrypted:
-    run(f"zfs load-key {args.Pool}", shell = True)
-
-if os.path.isdir("/mnt"):
-    run("umount -R /mnt", shell = True, stdout=DEVNULL, stderr=STDOUT)
-else:
-    run("mkdir /mnt", shell = True, stdout=DEVNULL, stderr=STDOUT)
-
-run(f"mount -t zfs {args.Pool}/system/root /mnt", shell = True)
-
-with open(f"{resources}/_datasets.nix") as datasets:
-    for __dataset in datasets.readlines()[1:-1]:
-        _dataset, _mount = __dataset.split("=")
-        dataset = _dataset.strip()
-        mount = '"/mnt' + _mount.strip().lstrip('"').replace(
-            "${host}",
-            args.Pool,
-        )
-
-        if not os.path.isdir(mount):
-            run(f"mkdir -p {mount}", shell = True)
-        mount_command = f"mount -t zfs {dataset} {mount}"
-        # print(mount_command)
-        run(mount_command, shell = True)
-
-if not os.path.isdir(boot := "/mnt/boot/efi"):
-    run(f"mkdir -p {boot}", shell = True)
-
-run(f"mount {args.boot_device} {boot}", shell = True)
-
-if args.swap:
-    run(f"swapon /dev/zvol/{args.Pool}/swap", shell = True)
-#+end_src
-
-****** update
-******* before updating
-
-#+call: hash("")
-
-#+RESULTS:
-: 1912c98033c29905b1ad36967799623f
-
-#+name: 1912c98033c29905b1ad36967799623f
-#+begin_src python
-snapDir = [ "snapdir=visible" ]
-extraCopies = snapDir + [ f"copies={2 if args.encrypted else 3}" ]
-cache = [ "sync=disabled" ]
-ml = "mountpoint=legacy"
-dd = {  }
-ddd = { "datasets": {  }}
-d = "datasets"
-s = "system"
-
-<<a42e6a90b4026d89c3e1c6b0e491b092>>
-#+end_src
-
-******* after updating the pool
-
-#+call: hash("")
-
-#+RESULTS:
-: 6efb3f37b6f2f802c281686eff7281dc
-
-#+name: 6efb3f37b6f2f802c281686eff7281dc
-#+begin_src python
-pool_size_plus_metric = run(
-    f"zpool get -H size {args.Pool}",
-    shell = True,
-    capture_output = True
-).stdout.decode().split("\n")[0].split("\t")[2]
-pool_size = round(float(pool_size_plus_metric[:-1]), 2)
-pool_metric = pool_size_plus_metric[-1]
-
-def pool_percentage_value(percentage):
-    return (
-        str(
-            round(
-                (
-                    (float(percentage) / 100)
-                    * pool_size
-                ),
-                2,
-            )
-        )
-        + pool_metric
-    )
-
-# Apparently, if python internal keywords exist in the argument, such as "set", etc.
-# the command errors out; perhaps something to raise an issue of.
-# This seems to work as an alternative.
-run(f"zfs set refreservation={pool_percentage_value(15)} {args.Pool}/reserved", shell = True)
-
-if args.swap:
-    _swoptions = [
-        "com.sun:auto-snapshot=false",
-        "compression=zle",
-        "logbias=throughput",
-        "primarycache=metadata",
-        "secondarycache=none"
-        "sync=standard",
-    ]
-    swoptions = " -o ".join(_swoptions)
-
-    ps = run("getconf PAGESIZE", shell = True, capture_output = True).stdout.decode().split("\n")[0]
-    run(f"zfs create -V {2**args.swap}G -b {ps} -o {swoptions} {args.Pool}/swap", shell = True)
-
-    run(f"mkswap -f /dev/zvol/{args.Pool}/swap", shell = True)
-#+end_src
-
-******* if updating the pool
-
-#+call: hash("")
-
-#+RESULTS:
-: ce03e726e6169dc629b60d56a3218588
-
-#+name: ce03e726e6169dc629b60d56a3218588
-#+begin_src python
-doptions = " -o ".join(_doptions)
-
-dataset_command = " ".join(f"zfs {cc} {'-o ' if _doptions else ''} {doptions} {son} {_dataset}".split())
-snapshot_command = " ".join(f"zfs snapshot -r {_dataset}@root".split())
-
-run(dataset_command, shell = True)
-run(snapshot_command, shell = True)
-#+end_src
-
-******* files
-
-#+call: hash("")
-
-#+RESULTS:
-: 6b5976297f158a651e51a1aa6303c590
-
-#+name: 6b5976297f158a651e51a1aa6303c590
-#+begin_src python
-<<1912c98033c29905b1ad36967799623f>>
-
-    <<c417a7146013877ff5189f1f48688a79>>
-
-#+end_src
-
-******* pool
-
-#+call: hash("")
-
-#+RESULTS:
-: bcb6a0d82c4941db3eff8f5d0728eb6c
-
-#+name: bcb6a0d82c4941db3eff8f5d0728eb6c
-#+begin_src python
-<<1912c98033c29905b1ad36967799623f>>
-
-        <<ce03e726e6169dc629b60d56a3218588>>
-
-    <<c417a7146013877ff5189f1f48688a79>>
-
-<<6efb3f37b6f2f802c281686eff7281dc>>
-
-#+end_src
-
 * system
-** root
-*** .config
-**** yadm
-***** bootstrap
-
-#+call: hash("")
-
-#+RESULTS:
-: 1e3b2d3bfdbf5758a8979e072b5a8127
-
-#+name: 1e3b2d3bfdbf5758a8979e072b5a8127
-#+begin_src python :tangle (jr/tangle-path) :shebang "#!/usr/bin/env python3.9"
-<<20da3080268b6d2673a43886dcdd8d08>>
-#+end_src
-
 ** etc
 *** nixos
 **** configs
 
-#+call: hash("pre")
+#+call: hash()
 
 #+RESULTS:
-: 4c712913b902da3ab3e4d6a6c4b61f4e
+: 20210601184724193852200
 
-#+name: 4c712913b902da3ab3e4d6a6c4b61f4e
+#+name: 20210601184724193852200
 #+begin_src nix
 { config, lib, ... }: with builtins; with lib; with j; {
     imports = flatten [
@@ -594,17 +44,17 @@ run(snapshot_command, shell = True)
 (concat "\"" (string-trim (shell-command-to-string "head -c4 /dev/urandom | od -A none -t x4")) "\"")
 #+end_src
 
-***** doppel
+***** dross
 ****** default.nix
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
-: 29a9e8bb050717f9b80f1642ae7a4ec6
+: 20210601184730035302100
 
-#+name: 29a9e8bb050717f9b80f1642ae7a4ec6
+#+name: 20210601184730035302100
 #+begin_src nix :tangle (jr/tangle-path)
-<<4c712913b902da3ab3e4d6a6c4b61f4e>>
+<<20210601184724193852200>>
     config.networking.hostId = <<hostId()>>;
 }
 #+end_src
@@ -612,29 +62,29 @@ run(snapshot_command, shell = True)
 ***** sandshrew
 ****** default.nix
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
-: be5dee49c9f1a4329ab24cbd0e992e52
+: 20210601184744001979300
 
-#+name: be5dee49c9f1a4329ab24cbd0e992e52
+#+name: 20210601184744001979300
 #+begin_src nix :tangle (jr/tangle-path)
-<<4c712913b902da3ab3e4d6a6c4b61f4e>>
+<<20210601184724193852200>>
     config.networking.hostId = <<hostId()>>;
 }
 #+end_src
 
-***** volturnus
+***** yggdrasil
 ****** default.nix
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
-: 4a16768f61babd032702c71505f72e22
+: 20210601184747964016700
 
-#+name: 4a16768f61babd032702c71505f72e22
+#+name: 20210601184747964016700
 #+begin_src nix :tangle (jr/tangle-path)
-<<4c712913b902da3ab3e4d6a6c4b61f4e>>
+<<20210601184724193852200>>
     config.networking.hostId = <<hostId()>>;
 }
 #+end_src
@@ -643,12 +93,12 @@ run(snapshot_command, shell = True)
 ***** bootstrap
 ****** flake.nix
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
-: 1db0e9fcbfbdf6bb7d9fb9816e975c52
+: 20210601184751675181500
 
-#+name: 1db0e9fcbfbdf6bb7d9fb9816e975c52
+#+name: 20210601184751675181500
 #+begin_src nix :tangle (jr/tangle-path)
 {
     description = "";
@@ -677,12 +127,12 @@ run(snapshot_command, shell = True)
 ***** home
 ****** flake.nix
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
-: 7af54258644d4f471a1ae39a0dd658d0
+: 20210601184754536351000
 
-#+name: 7af54258644d4f471a1ae39a0dd658d0
+#+name: 20210601184754536351000
 #+begin_src nix :tangle (jr/tangle-path)
 {
     description = "";
@@ -696,146 +146,18 @@ run(snapshot_command, shell = True)
 }
 #+end_src
 
-**** configuration.nix
-
-#+call: hash("")
-
-#+RESULTS:
-: 85c71d57cb6422039ae10ee7e4a830ed
-
-#+name: 85c71d57cb6422039ae10ee7e4a830ed
-#+begin_src nix :tangle (jr/tangle-path)
-inputs@{ config, pkgs, ... } : with builtins; let
-    sources' = (getFlake "${./.}/flakes/bootstrap").inputs;
-    source = sources'.<<username>>;
-    flake = getFlake "${source}/system/etc/nixos";
-    inherit (flake) lib;
-    inherit (flake.legacyPackages) sources;
-
-    stc = lib.j.attrs.default-stc // {
-        device = "";
-        host = "";
-        type = "";
-    };
-    stc-home = stc // {
-        nixos = 1;
-        zfs = null;
-    };
-
-    integer-default-truths = lib.mapAttrs (
-        n: v: v == 1
-    ) (lib.filterAttrs (n: v: isInt v) stc-home);
-
-    inherit (sources') home-manager' impermanence;
-    hash = user: lib.j.hostName { stc = stc-home // { inherit user; }; };
-    customInputs = inputs // { inherit stc lib sources; };
-in
-with lib;
-with j;
-with stc;
-with integer-default-truths;
-if (
-    device == "" || host == "" || type == "" || zfs == null
-) then (abort "Sorry! The device, host, type, and zfs status must be set!") else {
-    <<e76b4601025ef4ed0071b29a0161182f>>
-    imports = [
-        (import (./. + "/configs/${stc.host}") customInputs)
-        (import ./modules/variables.nix customInputs)
-        (import ./modules/users.nix customInputs)
-        (import "${home-manager'}/nixos")
-        (import "${impermanence}/nixos.nix")
-        (myIf.set (type == "pinebook") (
-            "${sources'.wip-pinebook-pro}/pinebook_pro.nix"
-        ))
-        (myIf.shell (type == "rpi") (import ./devices/rpi (inputs // stc)))
-    ];
-    config = {
-
-        # No need to merge "v" here, as that is taken care of by the module system
-        users.users = mapAttrs (n: v: { packages = mkForce []; }) attrs.allUsers;
-
-        home-manager = {
-            useUserPackages = true;
-            useGlobalPkgs = true;
-            backupFileExtension = "bak";
-            verbose = true;
-
-            # TODO
-            sharedModules = [
-                {  }
-            ];
-
-            extraSpecialArgs = flake.legacyPackages.make.specialArgs { inherit stc; };
-
-            users = listToAttrs (map (user: nameValuePair user (let
-                homeDirectory = attrs.allHomes.${user};
-            in {
-                imports = [ (import "${impermanence}/home-manager.nix") ];
-                programs.home-manager = {
-                    enable = true;
-                    path = home-manager';
-                };
-                home = {
-                    file = mkMerge [{
-                            "${attrs.users.primary}".source = source;
-                            <<43603ebd7da002155f7108935561456a>>
-                        }
-                        (myIf.set (user == "root") (attrs.link "/" "${source}/system"))
-                        (attrs.link homeDirectory "${source}/home")
-                    ];
-                    ${myIf.knull (nixos && zfs) "persistence"} = attrs.persistence.home {  };
-                };
-            })) attrs.allUsers);
-        };
-        environment = {
-            ${myIf.knull zfs "persistence"} = attrs.persistence.system {  };
-            etc."nix/nix.conf".text = attrs.configs.nix;
-        };
-        nixpkgs = {
-            overlays = import ./overlays { inherit stc; };
-            config = {
-                <<ee56d4a974b19cdf64e1e8f02e47ccaa>>
-            };
-        };
-        boot.loader = {
-            systemd-boot.enable = mkForce config.vars.bootPart;
-            efi.efiSysMountPoint = "/boot/efi";
-            efi.canTouchEfiVariables = mkForce true;
-            grub.efiInstallAsRemovable = mkForce false;
-            grub.enable = mkForce false;
-            grub.efiSupport = mkForce true;
-            grub.device = mkForce "nodev";
-            grub.version = mkForce 1;
-            grub.copyKernels = mkForce true;
-            grub.forceInstall = mkForce true;
-            grub.zfsSupport = mkForce false;
-
-            # Used for Bedrock Linux
-            initScript.enable = mkForce true;
-        };
-        nix = {
-            package = pkgs.nixUnstable;
-            extraOptions = '' experimental-features = nix-command flakes '';
-        };
-        environment.systemPackages = with pkgs; [ vim git rsync tmux byobu xonsh yadm
-            # python39
-        ];
-    };
-}
-#+end_src
-
 **** devices
 ***** hyper-v
 ****** boot.nix
 
 Taken from [[https://github.com/NixOS/nixos-hardware/tree/master/microsoft/hyper-v][here]]:
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
-: 30fdd17346f1ba60dd27355abe17b217
+: 20210601184759139337200
 
-#+name: 30fdd17346f1ba60dd27355abe17b217
+#+name: 20210601184759139337200
 #+begin_src nix :tangle (jr/tangle-path)
 { config, lib, pkgs, ... }: with builtins; with lib; with j; {
     boot = {
@@ -863,12 +185,12 @@ Taken from [[https://github.com/NixOS/nixos-hardware/tree/master/microsoft/hyper
 
 ****** default.nix
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
-: 67725f65856c58234fc34b9275c4da43
+: 20210601184801744311100
 
-#+name: 67725f65856c58234fc34b9275c4da43
+#+name: 20210601184801744311100
 #+begin_src nix :tangle (jr/tangle-path)
 { config, lib, ... }: with builtins; with lib; with j; {
     imports = imprelib.list { dir = ./.; };
@@ -886,12 +208,12 @@ Taken from [[https://github.com/NixOS/nixos-hardware/tree/master/microsoft/hyper
 ***** linode
 ****** default.nix
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
-: c8c26a3e2ac4a096597804d50e69fca2
+: 20210601184803930214900
 
-#+name: c8c26a3e2ac4a096597804d50e69fca2
+#+name: 20210601184803930214900
 #+begin_src nix :tangle (jr/tangle-path)
 { config, lib, ... }: with builtins; with lib; with j; {
     imports = imprelib.list { dir = ./.; };
@@ -916,12 +238,12 @@ Taken from [[https://github.com/NixOS/nixos-hardware/tree/master/microsoft/hyper
 ***** rpi
 ****** 3b.nix
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
-: 210b033fdaac881a3a29e9cb4224e623
+: 20210601184806549418800
 
-#+name: 210b033fdaac881a3a29e9cb4224e623
+#+name: 20210601184806549418800
 #+begin_src nix :tangle (jr/tangle-path)
 { config, lib, pkgs, device, ... }: with builtins; with lib; with j; mkIf (device == "3b") {
     vars.terminal = true;
@@ -942,12 +264,12 @@ Taken from [[https://github.com/NixOS/nixos-hardware/tree/master/microsoft/hyper
 
 ****** 4b.nix
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
-: cca75de16da0c6105a43698cfaa4062d
+: 20210601184808685869700
 
-#+name: cca75de16da0c6105a43698cfaa4062d
+#+name: 20210601184808685869700
 #+begin_src nix :tangle (jr/tangle-path)
 { config, lib, pkgs, device, ... }: with builtins; with lib; with j; mkIf (device == "4b") {
     vars.terminal = true;
@@ -991,12 +313,12 @@ Taken from [[https://github.com/NixOS/nixos-hardware/tree/master/microsoft/hyper
 
 ****** default.nix
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
-: de4cfea4004dafc40636fe57881e6b9d
+: 20210601184810839651300
 
-#+name: de4cfea4004dafc40636fe57881e6b9d
+#+name: 20210601184810839651300
 #+begin_src nix :tangle (jr/tangle-path)
 { config, lib, ... }: with builtins; with lib; with j; {
     imports = imprelib.list { dir = ./.; };
@@ -1006,17 +328,17 @@ Taken from [[https://github.com/NixOS/nixos-hardware/tree/master/microsoft/hyper
 ***** surface
 ****** _specialisation.nix
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
-: ea28ac80f3af59ac23ca4fbb069d6c65
+: 20210601184813562748800
 
-#+name: ea28ac80f3af59ac23ca4fbb069d6c65
+#+name: 20210601184813562748800
 #+begin_src nix :tangle (jr/tangle-path)
 { config, lib, pkgs, ... }: with builtins; with lib; with j; {
     specialisation = let
         specialisation_base =
-            <<bcfc9f879ab6b1c92ceecdb3462cc32d>>;
+            <<20210601185055287903500>>;
         inherit (specialisation_base) patches base;
     in {
         clear = base.settings // {
@@ -1082,17 +404,17 @@ Taken from [[https://github.com/NixOS/nixos-hardware/tree/master/microsoft/hyper
 
 ****** nixpkgs.nix
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
-: eee0f35786c35108f7d2dadbf8184200
+: 20210601184835588960800
 
-#+name: eee0f35786c35108f7d2dadbf8184200
+#+name: 20210601184835588960800
 #+begin_src nix :tangle (jr/tangle-path)
 { config, lib, pkgs, ... }: with builtins; with lib; with j; {
     nixpkgs.overlays = let
         specialisation_base =
-            <<bcfc9f879ab6b1c92ceecdb3462cc32d>>;
+            <<20210601185055287903500>>;
         inherit (specialisation_base) patches base;
     in [
         (self: super: { surface_kernel_latest = super.linuxPackages_zen.extend (
@@ -1111,12 +433,12 @@ Taken from [[https://github.com/NixOS/nixos-hardware/tree/master/microsoft/hyper
 
 ****** b2.nix
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
-: 8d6dfe74baf8060aa28a2739c067d0ef
+: 20210601184839546821900
 
-#+name: 8d6dfe74baf8060aa28a2739c067d0ef
+#+name: 20210601184839546821900
 #+begin_src nix :tangle (jr/tangle-path)
 { config, lib, device, ... }: with builtins; with lib; with j; mkIf (device == "b2") {
     boot.extraModprobeConfig = mkAfter '' options ipts singletouch=y '';
@@ -1134,12 +456,12 @@ Taken from [[https://github.com/NixOS/nixos-hardware/tree/master/microsoft/hyper
 
 ****** default.nix
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
-: 39c1556081e175b60672d04d9b7323c4
+: 20210601184841857888100
 
-#+name: 39c1556081e175b60672d04d9b7323c4
+#+name: 20210601184841857888100
 #+begin_src nix :tangle (jr/tangle-path)
 { config, lib, ... }: with builtins; with lib; with j; {
     imports = imprelib.list { dir = ./.; };
@@ -1159,24 +481,24 @@ Taken from [[https://github.com/NixOS/nixos-hardware/tree/master/microsoft/hyper
 ***** pinebook
 ****** import.nix
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
-: e0a851a952ea6c27e7ad3ec227fd2a0d
+: 20210601184843916803200
 
-#+name: e0a851a952ea6c27e7ad3ec227fd2a0d
+#+name: 20210601184843916803200
 #+begin_src nix :tangle (jr/tangle-path)
 { sources, ... }: { imports = [ "${sources.wip-pinebook-pro}/pinebook_pro.nix" ]; }
 #+end_src
 
 ****** default.nix
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
-: 0237cb109adc9f4a9631623c0b89fd0b
+: 20210601184849683569900
 
-#+name: 0237cb109adc9f4a9631623c0b89fd0b
+#+name: 20210601184849683569900
 #+begin_src nix :tangle (jr/tangle-path)
 { config, lib, ... }: with builtins; with lib; with j; {
     imports = imprelib.list { dir = ./.; };
@@ -1186,12 +508,12 @@ Taken from [[https://github.com/NixOS/nixos-hardware/tree/master/microsoft/hyper
 ***** android
 ****** default.nix
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
-: 55b5d44226e5746225157e35195ad435
+: 20210601184853359396100
 
-#+name: 55b5d44226e5746225157e35195ad435
+#+name: 20210601184853359396100
 #+begin_src nix :tangle (jr/tangle-path)
 { config, lib, ... }: with builtins; with lib; with j; {
     imports = imprelib.list { dir = ./.; };
@@ -1201,29 +523,29 @@ Taken from [[https://github.com/NixOS/nixos-hardware/tree/master/microsoft/hyper
 
 **** flake.nix
 
-#+call: hash("modules")
+#+call: hash()
 
 #+RESULTS:
-: bc8e4c4ef661dde1e91ee70adf2a661f
+: 20210601184855143779200
 
-#+name: bc8e4c4ef661dde1e91ee70adf2a661f
+#+name: 20210601184855143779200
 #+begin_src nix
 inherit (stc) system;
 pkgs = let configBase = { inherit stc; ignoredAttrs = [ "host" ];}; in j.get (configBase // { set = all.pkgs; });
 #+end_src
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
-: 7b32bbc9949ccb99f79e4c691b878b5a
+: 20210601184856989112400
 
-#+name: 7b32bbc9949ccb99f79e4c691b878b5a
+#+name: 20210601184856989112400
 #+begin_src nix :tangle (jr/tangle-path)
 {
     description = "Wheee!";
 
     inputs = rec {
-        <<da5fe3496669eea2dcae419277ad3927>>
+        <<20210601184858790744200>>
     };
 
     outputs = inputs@{ self, nixpkgs, flake-utils, flake-compat, ... }: with builtins; with nixpkgs.lib; with flake-utils.lib; let
@@ -1234,7 +556,7 @@ pkgs = let configBase = { inherit stc; ignoredAttrs = [ "host" ];}; in j.get (co
             overlays = mkOverlay {};
             config = {
                 system = currentSystem;
-                <<ee56d4a974b19cdf64e1e8f02e47ccaa>>
+                <<20210601184936599601300>>
             };
         };
 
@@ -1287,7 +609,7 @@ pkgs = let configBase = { inherit stc; ignoredAttrs = [ "host" ];}; in j.get (co
                 ])
             ];
             nixosConfiguration = { stc, ... }: lib.nixosSystem {
-                <<bc8e4c4ef661dde1e91ee70adf2a661f>>
+                <<20210601184855143779200>>
                 specialArgs = make.specialArgs { inherit stc; };
                 modules = flatten [
                     (j.imprelib.list { dir = ./modules; })
@@ -1366,7 +688,7 @@ pkgs = let configBase = { inherit stc; ignoredAttrs = [ "host" ];}; in j.get (co
             ) then (
                 abort "Sorry! The device, host, type, and zfs status must be set!"
             ) else lib.nixosSystem {
-                <<bc8e4c4ef661dde1e91ee70adf2a661f>>
+                <<20210601184855143779200>>
                 specialArgs = make.specialArgs { inherit stc; };
                 modules = flatten [
                     (make.modules { inherit stc; })
@@ -1404,30 +726,30 @@ pkgs = let configBase = { inherit stc; ignoredAttrs = [ "host" ];}; in j.get (co
 };" `((?n . ,name) (?u . ,ur)))
 #+end_src
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
-: da5fe3496669eea2dcae419277ad3927
+: 20210601184858790744200
 
-#+name: da5fe3496669eea2dcae419277ad3927
+#+name: 20210601184858790744200
 #+begin_src nix :exports none
-<<1ec89530455a22dd615fef7bcc833129>>
-<<c5166e5f5e4c4cc5aa86a74ab5790120>>
-<<7838098bf5241e080fc8c4f9bbe060f5>>
-<<7461570ae52d935de8ba8b2f3c302192>>
-<<90806cf21053b8c9c0b3da27fd374329>>
-<<afedeb2f54e96f9a6beedcf19ece0d42>>
-<<d51a5c8bfac4ed3d6a289147d52ec8e1>>
+<<20210601184900737083000>>
+<<20210601184903047234700>>
+<<20210601184907763806400>>
+<<20210601184909601517300>>
+<<20210601184911358827500>>
+<<20210601184913280508200>>
+<<20210601184933880458900>>
 #+end_src
 
 ****** base
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
-: 1ec89530455a22dd615fef7bcc833129
+: 20210601184900737083000
 
-#+name: 1ec89530455a22dd615fef7bcc833129
+#+name: 20210601184900737083000
 #+begin_src nix
 home-manager-flake = {
     url = "github:nix-community/home-manager/master";
@@ -1461,12 +783,12 @@ nixpkgs.url = "github:NixOS/nixpkgs/master";
 
 ****** tmux
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
-: c5166e5f5e4c4cc5aa86a74ab5790120
+: 20210601184903047234700
 
-#+name: c5166e5f5e4c4cc5aa86a74ab5790120
+#+name: 20210601184903047234700
 #+begin_src nix
 <<ff(name="aleclearmind", ur="aleclearmind/nested-tmux")>>
 <<ff(name="oh-my-tmux", ur="gpakosz/.tmux")>>
@@ -1476,12 +798,12 @@ nixpkgs.url = "github:NixOS/nixpkgs/master";
 
 ****** editors
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
-: 7838098bf5241e080fc8c4f9bbe060f5
+: 20210601184907763806400
 
-#+name: 7838098bf5241e080fc8c4f9bbe060f5
+#+name: 20210601184907763806400
 #+begin_src nix
 <<ff(name="doom-emacs", ur="hlissner/doom-emacs")>>
 <<ff(name="spacevim", ur="spacevim/spacevim")>>
@@ -1489,12 +811,12 @@ nixpkgs.url = "github:NixOS/nixpkgs/master";
 
 ****** shell
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
-: 7461570ae52d935de8ba8b2f3c302192
+: 20210601184909601517300
 
-#+name: 7461570ae52d935de8ba8b2f3c302192
+#+name: 20210601184909601517300
 #+begin_src nix
 <<ff(name="bashCompletions", ur="scop/bash-completion")>>
 <<ff(name="grml", ur="grml/grml-etc-core")>>
@@ -1502,12 +824,12 @@ nixpkgs.url = "github:NixOS/nixpkgs/master";
 
 ****** terminal
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
-: 90806cf21053b8c9c0b3da27fd374329
+: 20210601184911358827500
 
-#+name: 90806cf21053b8c9c0b3da27fd374329
+#+name: 20210601184911358827500
 #+begin_src nix
 <<ff(name="kittyThemes", ur="dexpota/kitty-themes")>>
 <<ff(name="xeroFigletFonts", ur="xero/figlet-fonts")>>
@@ -1515,12 +837,12 @@ nixpkgs.url = "github:NixOS/nixpkgs/master";
 
 ****** nixos
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
-: afedeb2f54e96f9a6beedcf19ece0d42
+: 20210601184913280508200
 
-#+name: afedeb2f54e96f9a6beedcf19ece0d42
+#+name: 20210601184913280508200
 #+begin_src nix
 <<ff(name="extraContainer", ur="erikarvstedt/extra-container")>>
 <<ff(name="nixos-surface", ur="anthe/nixos-surface")>>
@@ -1528,12 +850,12 @@ nixpkgs.url = "github:NixOS/nixpkgs/master";
 
 ****** kernels
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
-: d51a5c8bfac4ed3d6a289147d52ec8e1
+: 20210601184933880458900
 
-#+name: d51a5c8bfac4ed3d6a289147d52ec8e1
+#+name: 20210601184933880458900
 #+begin_src nix
 xanmodV5104Cacule = {
     url = "github:xanmod/linux/5.10.4-xanmod1-cacule";
@@ -1547,12 +869,12 @@ xanmodV5914Cacule = {
 
 **** lib
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
-: ee56d4a974b19cdf64e1e8f02e47ccaa
+: 20210601184936599601300
 
-#+name: ee56d4a974b19cdf64e1e8f02e47ccaa
+#+name: 20210601184936599601300
 #+begin_src nix
 allowUnfree = true;
 allowBroken = true;
@@ -1570,12 +892,12 @@ permittedInsecurePackages = [
 
 With help from [[Henrik Lissner / hlissner][https://github.com/hlissner/dotfiles]]:
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
-: 7415044e41c4923b87ec041b1f78173b
+: 20210601184940615217500
 
-#+name: 7415044e41c4923b87ec041b1f78173b
+#+name: 20210601184940615217500
 #+begin_src nix :tangle (jr/tangle-path)
 inputs@{
     sources ? ({
@@ -1612,12 +934,12 @@ in __.extend (final: prev: prelib.foldToSet (attrValues prev))
 
 ***** _preattrs.nix
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
-: 218fdf4ae891826e566d02e51d8f323b
+: 20210601184942521692400
 
-#+name: 218fdf4ae891826e566d02e51d8f323b
+#+name: 20210601184942521692400
 #+begin_src nix :tangle (jr/tangle-path)
 lib: with builtins; with lib; rec {
     integer-defaults = {
@@ -1644,12 +966,12 @@ lib: with builtins; with lib; rec {
 
 ***** _prelib.nix
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
-: 67c8aa904c9f23a0cd84d5743c7af83b
+: 20210601184944473723100
 
-#+name: 67c8aa904c9f23a0cd84d5743c7af83b
+#+name: 20210601184944473723100
 #+begin_src nix :tangle (jr/tangle-path)
 preattrs: lib:
 with builtins;
@@ -1771,7 +1093,7 @@ rec {
         ...
     } : with stc; {
         inherit system;
-        <<ee56d4a974b19cdf64e1e8f02e47ccaa>>
+        <<20210601184936599601300>>
         ${if buildEnvOvr then null else "buildEnv"} = {
             override = { inherit stdenv; };
         };
@@ -1793,12 +1115,12 @@ rec {
 
 ***** _primprelib.nix
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
-: dee6dcfbb1931e148059399abb661232
+: 20210601184946256510900
 
-#+name: dee6dcfbb1931e148059399abb661232
+#+name: 20210601184946256510900
 #+begin_src nix :tangle (jr/tangle-path)
 preattrs: prelib: lib:
 with builtins;
@@ -1869,12 +1191,12 @@ rec {
 
 ***** _attrs.nix
 
-#+call: hash("prenix")
+#+call: hash()
 
 #+RESULTS:
-: 4f8559fab44b31eee3bd94b54447bea2
+: 20210601184948158342800
 
-#+name: 4f8559fab44b31eee3bd94b54447bea2
+#+name: 20210601184948158342800
 #+begin_src conf
 keep-derivations = true
 keep-outputs = true
@@ -1882,12 +1204,12 @@ experimental-features = nix-command flakes
 allow-unsafe-native-code-during-evaluation = true
 #+end_src
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
-: fae48c3c1376c250513d68afedbb6450
+: 20210601184949937949100
 
-#+name: fae48c3c1376c250513d68afedbb6450
+#+name: 20210601184949937949100
 #+begin_src nix :tangle (jr/tangle-path)
 { lib, prelib, preattrs, primprelib, ... }:
 with builtins;
@@ -2046,7 +1368,7 @@ rec {
 
     configs = rec {
         prenix = ''
-            <<4f8559fab44b31eee3bd94b54447bea2>>
+            <<20210601184948158342800>>
         '';
         nix = let
             MG = size: let
@@ -2105,12 +1427,12 @@ rec {
 
 ***** paths.nix
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
-: f91c0d27c14d4f8930db2234747ec9dc
+: 20210601184952773228000
 
-#+name: f91c0d27c14d4f8930db2234747ec9dc
+#+name: 20210601184952773228000
 #+begin_src nix :tangle (jr/tangle-path)
 { sources, ... }: with builtins; rec {
     nixos = toString (./. + "/..");
@@ -2128,12 +1450,12 @@ rec {
 
 ***** _imprelib.nix
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
-: 445fa1f5b80d0f6437d4b366f304bc6f
+: 20210601184956312357000
 
-#+name: 445fa1f5b80d0f6437d4b366f304bc6f
+#+name: 20210601184956312357000
 #+begin_src nix :tangle (jr/tangle-path)
 { lib, primprelib, ... }:
 with builtins;
@@ -2162,12 +1484,12 @@ rec {
 
 From: https://github.com/pukkamustard/nixpkgs/blob/guix/nixos/modules/services/development/guix.nix
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
-: 878fb4a9151b726f061f94ec62420845
+: 20210601184958501115000
 
-#+name: 878fb4a9151b726f061f94ec62420845
+#+name: 20210601184958501115000
 #+begin_src nix :tangle (jr/tangle-path)
 {config, pkgs, lib, ...}:
 
@@ -2268,14 +1590,14 @@ in {
 
 ***** bcachefs.nix
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
-: a796b1296ba0c7f4a66ce7467b7afe59
+: 20210601185001135617000
 
 # TODO: Does not work on aarch64-linux yet
 
-#+name: a796b1296ba0c7f4a66ce7467b7afe59
+#+name: 20210601185001135617000
 #+begin_src nix :tangle (jr/tangle-path)
 { config, pkgs, lib, system, ... }: with builtins; with lib; with j; let b = "bcachefs"; in mkIf (
     !elem system [ "aarch64-linux" ]
@@ -2294,12 +1616,12 @@ in {
 
 ***** boot.nix
 
-#+call: hash("loader")
+#+call: hash()
 
 #+RESULTS:
-: c0328b5b40730a0936ba5b5b494421a9
+: 20210601185002667222800
 
-#+name: c0328b5b40730a0936ba5b5b494421a9
+#+name: 20210601185002667222800
 #+begin_src nix
 loader = {
     systemd-boot = {
@@ -2331,19 +1653,19 @@ loader = {
 };
 #+end_src
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
-: a741daba47568ef930a9860652930bed
+: 20210601185004200076000
 
-#+name: a741daba47568ef930a9860652930bed
+#+name: 20210601185004200076000
 #+begin_src nix :tangle (jr/tangle-path)
 { config, lib, pkgs, host, ... }: with builtins; with lib; with j; {
     boot = let
         p = attrs.users.primary;
         pHome = config.users.users.${p}.home;
     in mkMerge [{
-            <<c0328b5b40730a0936ba5b5b494421a9>>
+            <<20210601185002667222800>>
             supportedFilesystems = attrs.fileSystems.supported;
             initrd = {
                 inherit (config.boot) supportedFilesystems;
@@ -2368,12 +1690,12 @@ loader = {
 
 ***** console.nix
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
-: 92ac647bd78a14f38ebb0cd944903507
+: 20210601185005838819700
 
-#+name: 92ac647bd78a14f38ebb0cd944903507
+#+name: 20210601185005838819700
 #+begin_src nix :tangle (jr/tangle-path)
 { config, lib, ... }: with builtins; with lib; with j; {
     console = {
@@ -2387,12 +1709,12 @@ loader = {
 
 ***** etc.nix
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
-: 0fa3e0c1eb2ddb98d1de605ae7d805dc
+: 20210601185007760601200
 
-#+name: 0fa3e0c1eb2ddb98d1de605ae7d805dc
+#+name: 20210601185007760601200
 #+begin_src nix :tangle (jr/tangle-path)
 { config, lib, pkgs, system, ... }: with builtins; with lib; with j; {
     environment.etc = let
@@ -2424,12 +1746,12 @@ loader = {
 
 ***** filesystems.nix
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
-: f75c7aea962922162380ecc15061163b
+: 20210601185009548172600
 
-#+name: f75c7aea962922162380ecc15061163b
+#+name: 20210601185009548172600
 #+begin_src nix :tangle (jr/tangle-path)
 { config, lib, stc, ... }: with builtins; with lib; with j; mkIf (config.vars.zfs) { fileSystems = let
     inherit (attrs.fileSystems) base;
@@ -2448,12 +1770,12 @@ Help is available in the configuration.nix(5) man page
 and in the NixOS manual (accessible by running ‘nixos-help’).
 #+end_src
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
-: 84e11f81345c124be7b087d5c8c17d6a
+: 20210601185011702577000
 
-#+name: 84e11f81345c124be7b087d5c8c17d6a
+#+name: 20210601185011702577000
 #+begin_src nix :tangle (jr/tangle-path)
 { config, lib, nixpkgset, system, ... }: with builtins; with lib; with j; {
     nixpkgs = nixpkgset;
@@ -2494,12 +1816,12 @@ and in the NixOS manual (accessible by running ‘nixos-help’).
 
 ***** hardware.nix
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
-: 3ae0b13c8f587784975d67a4717c20d8
+: 20210601185027009881400
 
-#+name: 3ae0b13c8f587784975d67a4717c20d8
+#+name: 20210601185027009881400
 #+begin_src nix :tangle (jr/tangle-path)
 { config, lib, ... }: with builtins; with lib; with j; {
     hardware = {
@@ -2513,12 +1835,12 @@ and in the NixOS manual (accessible by running ‘nixos-help’).
 
 ***** home.nix
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
-: baefabe5722e89e236e4925fa4c88af2
+: 20210601185029141785800
 
-#+name: baefabe5722e89e236e4925fa4c88af2
+#+name: 20210601185029141785800
 #+begin_src nix :tangle (jr/tangle-path)
 { config, lib, ... }: with builtins; with lib; with j; {
     # home-manager.users = let
@@ -2530,12 +1852,12 @@ and in the NixOS manual (accessible by running ‘nixos-help’).
 
 ***** kernel.nix
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
-: 1f6b4bbf4b1e571f3b746ff11b294b91
+: 20210601185030781221800
 
-#+name: 1f6b4bbf4b1e571f3b746ff11b294b91
+#+name: 20210601185030781221800
 #+begin_src nix :tangle (jr/tangle-path)
 { config, lib, pkgs, ... }: with builtins; with lib; with j; {
     boot = {
@@ -2570,12 +1892,12 @@ Set the =SWAP= device if:
 I am currently not using =SWAP= on =ZFS Zvols= due to the issues detailed
 [[https://github.com/openzfs/zfs/issues/7734][here]].
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
-: da58947ae8facffd0bc1115d35641080
+: 20210601185032403282100
 
-#+name: da58947ae8facffd0bc1115d35641080
+#+name: 20210601185032403282100
 #+begin_src nix :tangle (jr/tangle-path)
 { config, lib, host, ... }: with builtins; with lib; with j; mkIf (
     config.vars.minimal -> config.vars.noSwap
@@ -2584,12 +1906,12 @@ I am currently not using =SWAP= on =ZFS Zvols= due to the issues detailed
 
 ***** networking.nix
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
-: 8c1c76e68a6ad327be798ea5c62a7fc1
+: 20210601185033854488300
 
-#+name: 8c1c76e68a6ad327be798ea5c62a7fc1
+#+name: 20210601185033854488300
 #+begin_src nix :tangle (jr/tangle-path)
 { config, lib, hostName, ... }: with builtins; with lib; with j; {
     networking = let
@@ -2642,12 +1964,12 @@ I am currently not using =SWAP= on =ZFS Zvols= due to the issues detailed
 
 ***** nix.nix
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
-: c0cedf33f5b5d915586e1ff9899331b0
+: 20210601185035246626000
 
-#+name: c0cedf33f5b5d915586e1ff9899331b0
+#+name: 20210601185035246626000
 #+begin_src nix :tangle (jr/tangle-path)
 { config, lib, ... }: with builtins; with lib; with j; {
     nix = rec {
@@ -2683,24 +2005,24 @@ I am currently not using =SWAP= on =ZFS Zvols= due to the issues detailed
 
 ***** packages.nix
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
-: 150fb2f9ed97ee98bfb4c13d444892d0
+: 20210601185037079389900
 
-#+name: 150fb2f9ed97ee98bfb4c13d444892d0
+#+name: 20210601185037079389900
 #+begin_src nix :tangle (jr/tangle-path)
 inputs@{ config, pkgs, sources, lib, ... } : { environment.systemPackages = import ../packages.nix inputs; }
 #+end_src
 
 ***** persistence.nix
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
-: a83c0f0caee15a1e432a618311cfb94f
+: 20210601185038697262200
 
-#+name: a83c0f0caee15a1e432a618311cfb94f
+#+name: 20210601185038697262200
 #+begin_src nix :tangle (jr/tangle-path)
 { config, lib, ... }: with builtins; with lib; with j; {
     environment.${myIf.knull config.vars.zfs "persistence"} = attrs.persistence.system {};
@@ -2709,12 +2031,12 @@ inputs@{ config, pkgs, sources, lib, ... } : { environment.systemPackages = impo
 
 ***** power.nix
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
-: 6be210bd87996e57ea0297c46c5b432b
+: 20210601185040292063500
 
-#+name: 6be210bd87996e57ea0297c46c5b432b
+#+name: 20210601185040292063500
 #+begin_src nix :tangle (jr/tangle-path)
 { config, lib, ... }: with builtins; with lib; with j; {
     services.logind.lidSwitch = "hybrid-sleep";
@@ -2729,12 +2051,12 @@ inputs@{ config, pkgs, sources, lib, ... } : { environment.systemPackages = impo
 
 This is mostly for Yubikey Authentication:
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
-: 758b0e4461401df04a7c98e6aee9c027
+: 20210601185041882938600
 
-#+name: 758b0e4461401df04a7c98e6aee9c027
+#+name: 20210601185041882938600
 #+begin_src nix :tangle (jr/tangle-path)
 { config, lib, ... }: with builtins; with lib; with j; {
     # For Yubikey SSH-GPG Authentication
@@ -2770,12 +2092,12 @@ This is mostly for Yubikey Authentication:
 
 ***** services.nix
 
-#+call: hash("sanoid")
+#+call: hash()
 
 #+RESULTS:
-: 6b796fbba5d593b48cdc5c6eadab9b65
+: 20210601185043527440500
 
-#+name: 6b796fbba5d593b48cdc5c6eadab9b65
+#+name: 20210601185043527440500
 #+begin_src nix
 ${myIf.knull config.vars.zfs "sanoid"} = let
     sanoidBase = {
@@ -2811,12 +2133,12 @@ in {
 };
 #+end_src
 
-#+call: hash("syncoid")
+#+call: hash()
 
 #+RESULTS:
-: 97c4bebd14fdabfc6ae83b9c0808043e
+: 20210601185045150190700
 
-#+name: 97c4bebd14fdabfc6ae83b9c0808043e
+#+name: 20210601185045150190700
 #+begin_src nix
 ${myIf.knull config.vars.zfs "syncoid"} = let
     syncoidBase = mkMerge [{
@@ -2849,18 +2171,18 @@ in {
 };
 #+end_src
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
-: 5aecf05c58be2fe47ff406f3fdb2a823
+: 20210601185046664836000
 
-#+name: 5aecf05c58be2fe47ff406f3fdb2a823
+#+name: 20210601185046664836000
 #+begin_src nix :tangle (jr/tangle-path)
 { config, lib, pkgs, host, system, ... }: with builtins; with lib; with j; {
     services = {
-        <<6b796fbba5d593b48cdc5c6eadab9b65>>
+        <<20210601185043527440500>>
 
-        <<97c4bebd14fdabfc6ae83b9c0808043e>>
+        <<20210601185045150190700>>
 
         wakeonlan.interfaces = map (interface:
             { inherit interface; method = "magicpacket"; }
@@ -2933,12 +2255,12 @@ in {
 
 ***** shell.nix
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
-: 7eb7fea5811e26ec2a492a053e899cf5
+: 20210601185048305544300
 
-#+name: 7eb7fea5811e26ec2a492a053e899cf5
+#+name: 20210601185048305544300
 #+begin_src nix :tangle (jr/tangle-path)
 { config, lib, system, ... }: with builtins; with lib; with j; {
     programs = {
@@ -2953,12 +2275,12 @@ in {
 
 ***** _specialisation.nix
 
-#+call: hash("base")
+#+call: hash()
 
 #+RESULTS:
-: bcfc9f879ab6b1c92ceecdb3462cc32d
+: 20210601185055287903500
 
-#+name: bcfc9f879ab6b1c92ceecdb3462cc32d
+#+name: 20210601185055287903500
 #+begin_src nix
 rec {
     patches = {
@@ -2997,17 +2319,17 @@ rec {
 }
 #+end_src
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
-: 62aabe9c8df8861b6117e855abd978f6
+: 20210601185057188906700
 
-#+name: 62aabe9c8df8861b6117e855abd978f6
+#+name: 20210601185057188906700
 #+begin_src nix :tangle (jr/tangle-path)
 { config, lib, pkgs, ... }: with builtins; with lib; with j; {
     specialisation = let
         specialisation_base =
-            <<bcfc9f879ab6b1c92ceecdb3462cc32d>>;
+            <<20210601185055287903500>>;
         inherit (lib.j.paths.patches) _;
         base = {
             specialisation = { inheritParentConfig = true; };
@@ -3059,12 +2381,12 @@ rec {
 
 ***** systemd.nix
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
-: 5e996eb2911402ddd75e66eb5df1fc51
+: 20210601185059100247400
 
-#+name: 5e996eb2911402ddd75e66eb5df1fc51
+#+name: 20210601185059100247400
 #+begin_src nix :tangle (jr/tangle-path)
 { config, lib, pkgs, ... }: with builtins; with lib; with j; {
     systemd = {
@@ -3079,12 +2401,12 @@ rec {
 
 ***** users.nix
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
-: 9d513589a6349ecf2f69e7f3a3fd695d
+: 20210601185100896555400
 
-#+name: 9d513589a6349ecf2f69e7f3a3fd695d
+#+name: 20210601185100896555400
 #+begin_src nix :tangle (jr/tangle-path)
 inputs@{ config, lib, pkgs, sources, stc, system, ... }: with builtins; with lib; with j; {
     users = with attrs.users; let
@@ -3167,12 +2489,12 @@ inputs@{ config, lib, pkgs, sources, stc, system, ... }: with builtins; with lib
 
 ***** variables.nix
 
-#+call: hash("options")
+#+call: hash()
 
 #+RESULTS:
-: e76b4601025ef4ed0071b29a0161182f
+: 20210601185102627466300
 
-#+name: e76b4601025ef4ed0071b29a0161182f
+#+name: 20210601185102627466300
 #+begin_src nix
 options = {
     vars = mkOption {
@@ -3182,15 +2504,15 @@ options = {
 };
 #+end_src
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
-: 33c7c54f72f832ea599cfbf1021691f9
+: 20210601185104370957400
 
-#+name: 33c7c54f72f832ea599cfbf1021691f9
+#+name: 20210601185104370957400
 #+begin_src nix :tangle (jr/tangle-path)
 { config, lib, stc, ... }: with builtins; with lib; with j; {
-    <<e76b4601025ef4ed0071b29a0161182f>>
+    <<20210601185102627466300>>
     config.vars = {
         bootPart = mkDefault true;
         syncDevice = mkDefault false;
@@ -3202,12 +2524,12 @@ options = {
 
 ***** virtualisation.nix
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
-: 03ee73c0ac41094064d4eac783592662
+: 20210601185106194079000
 
-#+name: 03ee73c0ac41094064d4eac783592662
+#+name: 20210601185106194079000
 #+begin_src nix :tangle (jr/tangle-path)
 { config, lib, pkgs, system, ... }: with builtins; with lib; with j; mkIf (
     !(config.vars.minimal || elem system [ "aarch64-linux" ])
@@ -3229,12 +2551,12 @@ options = {
 
 ***** zfs.nix
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
-: 43de72c9036fc67563aafc176269d329
+: 20210601185108071879200
 
-#+name: 43de72c9036fc67563aafc176269d329
+#+name: 20210601185108071879200
 #+begin_src nix :tangle (jr/tangle-path)
 { config, lib, host, ... }: with builtins; with lib; with j; {
     boot = {
@@ -3262,12 +2584,12 @@ options = {
 **** overlays
 ***** base
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
-: dc8e809f242cfa0de24ca1a4feb6134f
+: 20210601185110013135100
 
-#+name: dc8e809f242cfa0de24ca1a4feb6134f
+#+name: 20210601185110013135100
 #+begin_src nix
 let
     sc = { inherit pkgs stc; };
@@ -3353,7 +2675,7 @@ in flatten [
     # (map (kernel': let
     #     kernel = "linuxPackages_${kernel'}";
     # in [( final: prev: { "${kernel}" = prev."${kernel}".extend (self:
-    #     <<ab69b7b5650b908a61c99f5d0b07b92b>>
+    #     <<20210601185345398351400>>
     # );})]) [ "lqx" "testing_bcachefs" "zen" ])
 
     # TODO
@@ -3372,19 +2694,19 @@ in flatten [
 
     # TODO
     # (
-    #     <<624779f89c5c4412effd0af738d38bdc>>
+    #     <<20210601185346927223400>>
     # )
 ]
 #+end_src
 
 ***** overrides
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
-: 89dc592c50565b862b8b7f8585a34890
+: 20210601185111589161600
 
-#+name: 89dc592c50565b862b8b7f8585a34890
+#+name: 20210601185111589161600
 #+begin_src nix
 let pkgsets' = { unstable = [ "git" "go" "webkitgtk" ]; };
 in flatten (mapAttrsToList (
@@ -3398,12 +2720,12 @@ in flatten (mapAttrsToList (
 
 ***** _mach-nix
 
-#+call: hash("inputs")
+#+call: hash()
 
 #+RESULTS:
-: 8ec5744691821b51c17805abe3a39695
+: 20210601185113382242300
 
-#+name: 8ec5744691821b51c17805abe3a39695
+#+name: 20210601185113382242300
 #+begin_src nix
 {
   sources ? (builtins.getFlake "${./.}/.."),
@@ -3413,12 +2735,12 @@ in flatten (mapAttrsToList (
 }
 #+end_src
 
-#+call: hash("extra")
+#+call: hash()
 
 #+RESULTS:
-: fd90f4bebcfee78f3ce5049d7270da6c
+: 20210601185114873837100
 
-#+name: fd90f4bebcfee78f3ce5049d7270da6c
+#+name: 20210601185114873837100
 #+begin_src nix
 packagesExtra = [
     # "https://github.com/psf/requests/tarball/v2.22.0"
@@ -3427,22 +2749,22 @@ packagesExtra = [
 ];
 #+end_src
 
-#+call: hash("providers")
+#+call: hash()
 
 #+RESULTS:
-: b32c37f54eb384ffef676ce5785892e6
+: 20210601185116284142400
 
-#+name: b32c37f54eb384ffef676ce5785892e6
+#+name: 20210601185116284142400
 #+begin_src nix
 providers._defaults = "conda-forge,conda,wheel,sdist,nixpkgs";
 #+end_src
 
-#+call: hash("post")
+#+call: hash()
 
 #+RESULTS:
-: 60a9ccf457d076fd00a2b7388fb3f993
+: 20210601185118202517300
 
-#+name: 60a9ccf457d076fd00a2b7388fb3f993
+#+name: 20210601185118202517300
 #+begin_src emacs-lisp :var pkg="" :var version="" :var pythonPackages=""
 (format-spec "
     newPkgs = machnixPy.nixpkgs;
@@ -3461,26 +2783,26 @@ in finalOverlay" `((?p . ,pkg) (?q . ,pythonPackages) (?v . ,version)))
 
 ****** qtile.nix
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
-: 90dea894ffe829f2e6306a244e87fa27
+: 20210601185125138787100
 
-#+name: 90dea894ffe829f2e6306a244e87fa27
+#+name: 20210601185125138787100
 #+begin_src nix :tangle (jr/tangle-path)
-<<8ec5744691821b51c17805abe3a39695>>:
+<<20210601185113382242300>>:
 
 with builtins; let
 
     # build a mach-nix python env
     machnixPy = mach-nix.mkPython {
-        <<fd90f4bebcfee78f3ce5049d7270da6c>>
+        <<20210601185114873837100>>
         requirements = ''
         cairocffi
         iwlib
         '';
         _.iwlib.buildInputs.add = [ pkgs.wirelesstools ];
-        <<b32c37f54eb384ffef676ce5785892e6>>
+        <<20210601185116284142400>>
         providers.cairocffi = "wheel,sdist";
     };
 
@@ -3499,24 +2821,24 @@ with builtins; let
             nixpkgs
         ]);
 
-<<60a9ccf457d076fd00a2b7388fb3f993(pkg="qtile", version="39", pythonPackages="python37Packages")>>
+<<20210601185118202517300(pkg="qtile", version="39", pythonPackages="python37Packages")>>
 #+end_src
 
 ****** xonsh.nix
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
-: 763dc29c9c55bfc541566514bc8fda66
+: 20210601185127082738200
 
-#+name: 763dc29c9c55bfc541566514bc8fda66
+#+name: 20210601185127082738200
 #+begin_src nix :tangle (jr/tangle-path)
-<<8ec5744691821b51c17805abe3a39695>>:
+<<20210601185113382242300>>:
 
 with builtins; let
     # build a mach-nix python env
     machnixPy = mach-nix.mkPython {
-        <<fd90f4bebcfee78f3ce5049d7270da6c>>
+        <<20210601185114873837100>>
         requirements = ''
         # add requirements here
         # jedi
@@ -3546,7 +2868,7 @@ with builtins; let
         xontrib-schedule
         xontrib-z
         '';
-        <<b32c37f54eb384ffef676ce5785892e6>>
+        <<20210601185116284142400>>
     };
 
     pythonPath =
@@ -3561,17 +2883,17 @@ with builtins; let
             nixpkgs
         ]);
 
-<<60a9ccf457d076fd00a2b7388fb3f993(pkg="xonsh", version="39", pythonPackages="python3Packages")>>
+<<20210601185118202517300(pkg="xonsh", version="39", pythonPackages="python3Packages")>>
 #+end_src
 
 ***** default.nix
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
-: e7292651473712daff5abd4bee73fd9a
+: 20210601185341615106400
 
-#+name: e7292651473712daff5abd4bee73fd9a
+#+name: 20210601185341615106400
 #+begin_src nix :tangle (jr/tangle-path)
 with builtins; {
     stc ? ({ system = currentSystem; channel = "pkgs"; }),
@@ -3588,7 +2910,7 @@ with builtins; {
     pkgs = import nixpkgs {
         inherit (stc) system;
         config = {
-            <<ee56d4a974b19cdf64e1e8f02e47ccaa>>
+            <<20210601184936599601300>>
         };
     };
     lib = nixpkgs.lib.extend (final: prev: {
@@ -3599,15 +2921,15 @@ with builtins; {
     });
 in with lib; flatten [
     (
-        <<dc8e809f242cfa0de24ca1a4feb6134f>>
+        <<20210601185110013135100>>
     )
     (
-        <<89dc592c50565b862b8b7f8585a34890>>
+        <<20210601185111589161600>>
     )
     (
         # Adapted From: https://github.com/NixOS/nixpkgs/issues/75669#issuecomment-579432702
         [( self: super: { guix = self.callPackage (
-            <<a94fac17961b2b8dcb9db7567f31c665>>
+            <<20210601185343563328200>>
         ) {}; })]
     )
 ]
@@ -3617,12 +2939,12 @@ in with lib; flatten [
 
 From: https://github.com/pukkamustard/nixpkgs/blob/guix/pkgs/development/guix/guix.nix
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
-: a94fac17961b2b8dcb9db7567f31c665
+: 20210601185343563328200
 
-#+name: a94fac17961b2b8dcb9db7567f31c665
+#+name: 20210601185343563328200
 #+begin_src nix
 {stdenv, fetchurl}:
 stdenv.mkDerivation rec
@@ -3673,12 +2995,12 @@ stdenv.mkDerivation rec
 This is the base extension, overriding the =nativeBuildInputs= attribute to include the =zstd= package, to facilitate =zstd=
 compression for the kernel:
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
-: ab69b7b5650b908a61c99f5d0b07b92b
+: 20210601185345398351400
 
-#+name: ab69b7b5650b908a61c99f5d0b07b92b
+#+name: 20210601185345398351400
 #+begin_src nix
 const (super: { kernel = super.kernel.overrideDerivation (drv: {
     nativeBuildInputs = drv.nativeBuildInputs ++ [ pkgs.zstd ];
@@ -3689,12 +3011,12 @@ const (super: { kernel = super.kernel.overrideDerivation (drv: {
 
 Adapted from [[https://www.reddit.com/r/NixOS/comments/jtgi35/cant_build_custom_kernel/][here]]:
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
-: 624779f89c5c4412effd0af738d38bdc
+: 20210601185346927223400
 
-#+name: 624779f89c5c4412effd0af738d38bdc
+#+name: 20210601185346927223400
 #+begin_src nix
 map (ver: let
         inherit ver;
@@ -3722,18 +3044,18 @@ map (ver: let
             )
         );};
     in [( final: prev: { "linuxPackages_xanmod_v${ver}_cacule" = _.extend (self:
-        <<ab69b7b5650b908a61c99f5d0b07b92b>>
+        <<20210601185345398351400>>
 );})]) [ "5.9.14" "5.10.4" ]
 #+end_src
 
 ***** flake.nix
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
-: 4e3ff4df217af0a51d77a1a30c4a3f60
+: 20210601185348536012000
 
-#+name: 4e3ff4df217af0a51d77a1a30c4a3f60
+#+name: 20210601185348536012000
 #+begin_src nix :tangle (jr/tangle-path)
 {
     description = "Overlay Sources";
@@ -3769,6 +3091,12 @@ map (ver: let
 
 **** packages.nix
 
+#+call: hash()
+
+#+RESULTS:
+: 20210601195930734248900
+
+#+name: 20210601195930734248900
 #+begin_src nix :tangle (jr/tangle-path)
 inputs@{
     pkgs,
@@ -3970,12 +3298,12 @@ in [
 ***** shared
 ****** armv67l.nix
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
-: ae4d89307b8e79de7de4d6b3b013fe4f
+: 20210601185350150461400
 
-#+name: ae4d89307b8e79de7de4d6b3b013fe4f
+#+name: 20210601185350150461400
 #+begin_src nix :tangle (jr/tangle-path)
 { config, lib, ... }: with builtins; with lib; with j; {
     nix = {
@@ -3994,12 +3322,12 @@ in [
 ***** arm
 ****** default.nix
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
-: 66a218b142afada2a828f04a8d8a3ba7
+: 20210601185351622602000
 
-#+name: 66a218b142afada2a828f04a8d8a3ba7
+#+name: 20210601185351622602000
 #+begin_src nix :tangle (jr/tangle-path)
 inputs@{ config, lib, ... }: with builtins; with lib; with j; {
     imports = map (file: import file inputs) (imprelib.list { dir = ./.; });
@@ -4015,12 +3343,12 @@ inputs@{ config, lib, ... }: with builtins; with lib; with j; {
 ***** armv6l-linux
 ****** default.nix
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
-: 72cb27fb954a94b3fb1f5fe55e70b000
+: 20210601185353321602000
 
-#+name: 72cb27fb954a94b3fb1f5fe55e70b000
+#+name: 20210601185353321602000
 #+begin_src nix :tangle (jr/tangle-path)
 inputs@{ config, lib, ... }: with builtins; with lib; with j; {
     imports = map (fd: import fd inputs) (flatten [
@@ -4033,12 +3361,12 @@ inputs@{ config, lib, ... }: with builtins; with lib; with j; {
 ***** armv7l-linux
 ****** default.nix
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
-: c35840e7b11bd1168fcb3322bfb98fef
+: 20210601185354863625500
 
-#+name: c35840e7b11bd1168fcb3322bfb98fef
+#+name: 20210601185354863625500
 #+begin_src nix :tangle (jr/tangle-path)
 inputs@{ config, lib, ... }: with builtins; with lib; with j; {
     imports = map (fd: import fd inputs) (flatten [
@@ -4051,12 +3379,12 @@ inputs@{ config, lib, ... }: with builtins; with lib; with j; {
 ***** aarch64-linux
 ****** default.nix
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
-: a5b3a096d1cdc7efefdc21274f566aef
+: 20210601185356455654500
 
-#+name: a5b3a096d1cdc7efefdc21274f566aef
+#+name: 20210601185356455654500
 #+begin_src nix :tangle (jr/tangle-path)
 inputs@{ config, lib, ... }: with builtins; with lib; with j; {
     imports = map (fd: import fd inputs) (flatten [
@@ -4068,12 +3396,12 @@ inputs@{ config, lib, ... }: with builtins; with lib; with j; {
 
 **** repl.nix
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
-: d97b95e355f4a2c3ea9b4b071a3b6f89
+: 20210601185357956752000
 
-#+name: d97b95e355f4a2c3ea9b4b071a3b6f89
+#+name: 20210601185357956752000
 #+begin_src nix :tangle (jr/tangle-path)
 let
   flake = builtins.getFlake (toString ./.);
@@ -4090,12 +3418,12 @@ in
 **** resources
 ***** users.json
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
-: 4b4166b2bebff5d6dc0a9118372f6e36
+: 20210601185359809444000
 
-#+name: 4b4166b2bebff5d6dc0a9118372f6e36
+#+name: 20210601185359809444000
 #+begin_src json :tangle (jr/tangle-path)
 {
     "primary": "<<username>>",
@@ -4107,12 +3435,12 @@ in
 *** nix
 **** nix.conf
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
-: 34e26ea775bf30b2ee891fce9fcd39a5
+: 20210601185401285170600
 
-#+name: 34e26ea775bf30b2ee891fce9fcd39a5
+#+name: 20210601185401285170600
 #+begin_src nix :tangle (jr/tangle-path)
 <<5585804cafd4d120113b762c4e097541>>
 #+end_src
@@ -4120,12 +3448,12 @@ in
 *** zsh
 **** keephack
 
-#+call: hash("pre")
+#+call: hash()
 
 #+RESULTS:
-: 70d62a901e2d13d41930afa279c62a5f
+: 20210601185403002625400
 
-#+name: 70d62a901e2d13d41930afa279c62a5f
+#+name: 20210601185403002625400
 #+begin_src emacs-lisp
 (concat
     (let
@@ -4139,23 +3467,23 @@ in
 # From: https://www.draketo.de/light/english/minimal-example-for-literate-programming-noweb-emacs-org-mode
 # From: https://emacs.stackexchange.com/questions/47474/setting-variable-for-org-mode-html-export
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
-: 7fa800ae7af5b2ef406e2ae619952c6a
+: 20210601185408210445400
 
-#+name: 7fa800ae7af5b2ef406e2ae619952c6a
+#+name: 20210601185408210445400
 #+begin_src sh :tangle (jr/tangle-path)
-<<70d62a901e2d13d41930afa279c62a5f()>>
+<<20210601185403002625400()>>
 #+end_src
 
 * home
 ** .gitattributes
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
-: 0e934803846ff23710dd8874b37bcd39
+: 20210601185410274391500
 
 #+name: 0e934803846ff23710dd8874b37bcd39
 #+begin_src gitattributes :tangle (jr/tangle-oreo)
@@ -4165,10 +3493,10 @@ in
 ** .xonsh.d
 *** fzf_tmux_dir_file.sh
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
-: 0de7faf0cd17a1a0331065aecac3d1f3
+: 20210601185418661581700
 
 #+name: 0de7faf0cd17a1a0331065aecac3d1f3
 #+begin_src sh :tangle (jr/tangle-path)
@@ -4177,10 +3505,10 @@ echo $(find "$1" | fzf-tmux)
 
 *** fzf_tmux_pkg.sh
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
-: 4e80721df27f5fe6796c0a85ae03d390
+: 20210601185421600244400
 
 #+name: 4e80721df27f5fe6796c0a85ae03d390
 #+begin_src sh :tangle (jr/tangle-path)
@@ -4189,20 +3517,20 @@ echo $(dpkg --get-selections | fzf-tmux)
 
 ** .xonshrc
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
-: 7ac499a656c336e7e715cc4c56df6fac
+: 20210601185424827789400
 
 #+name: 7ac499a656c336e7e715cc4c56df6fac
 #+begin_src xonsh :tangle (jr/tangle-oreo)
 <<b7a800fefe161963d69a4d47eb645f78>>
 #+end_src
 
-#+call: hash("hm")
+#+call: hash()
 
 #+RESULTS:
-: c440f22ba3bfdf95901cc661a825d4b0
+: 20210601185427358430600
 
 #+name: c440f22ba3bfdf95901cc661a825d4b0
 #+begin_src nix
@@ -4221,10 +3549,10 @@ homeManager = True
 
 *** nixos
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
-: 8bdf510b6e8257d68db1657608ac1add
+: 20210601185428842611300
 
 #+name: 8bdf510b6e8257d68db1657608ac1add
 #+begin_src xonsh
@@ -4249,10 +3577,10 @@ aliases["deploy"] = _deploy
 
 ** zsh
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
-: e3c9522290eaca30dc3548b3373abbee
+: 20210601185430439244600
 
 #+name: e3c9522290eaca30dc3548b3373abbee
 #+begin_src nix
@@ -4309,10 +3637,10 @@ starship.enableZshIntegration = true;
 
 ** .zshrc
 
-#+call: hash("pre")
+#+call: hash()
 
 #+RESULTS:
-: 9d1f2431e218c2cb00bf6f327a47eb2e
+: 20210601185442157612700
 
 #+name: 9d1f2431e218c2cb00bf6f327a47eb2e
 #+begin_src emacs-lisp
@@ -4330,10 +3658,10 @@ starship.enableZshIntegration = true;
 # From: https://www.draketo.de/light/english/minimal-example-for-literate-programming-noweb-emacs-org-mode
 # From: https://emacs.stackexchange.com/questions/47474/setting-variable-for-org-mode-html-export
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
-: eedec1f071fc8797a259ee4782ef4ae1
+: 20210601185446405488200
 
 #+name: eedec1f071fc8797a259ee4782ef4ae1
 #+begin_src sh :tangle (jr/tangle-path)
@@ -4342,10 +3670,10 @@ starship.enableZshIntegration = true;
 
 ** .zshenv
 
-#+call: hash("pre")
+#+call: hash()
 
 #+RESULTS:
-: 4574f2b39635370ecb451f6bb98ac782
+: 20210601185451794769400
 
 #+name: 4574f2b39635370ecb451f6bb98ac782
 #+begin_src emacs-lisp
@@ -4361,10 +3689,10 @@ starship.enableZshIntegration = true;
 # From: https://www.draketo.de/light/english/minimal-example-for-literate-programming-noweb-emacs-org-mode
 # From: https://emacs.stackexchange.com/questions/47474/setting-variable-for-org-mode-html-export
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
-: e4bdd7035e68ad25bf7601a613a30286
+: 20210601185454964123500
 
 #+name: e4bdd7035e68ad25bf7601a613a30286
 #+begin_src sh :tangle (jr/tangle-path)
@@ -4373,10 +3701,10 @@ starship.enableZshIntegration = true;
 
 ** .zprofile
 
-#+call: hash("pre")
+#+call: hash()
 
 #+RESULTS:
-: 78ce427e065f3552c838fe54085acdfd
+: 20210601185457701910200
 
 #+name: 78ce427e065f3552c838fe54085acdfd
 #+begin_src emacs-lisp
@@ -4392,10 +3720,10 @@ starship.enableZshIntegration = true;
 # From: https://www.draketo.de/light/english/minimal-example-for-literate-programming-noweb-emacs-org-mode
 # From: https://emacs.stackexchange.com/questions/47474/setting-variable-for-org-mode-html-export
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
-: 756501ce3e856f5ca93fffddf7d1fb22
+: 20210601185459709528000
 
 #+name: 756501ce3e856f5ca93fffddf7d1fb22
 #+begin_src sh :tangle (jr/tangle-path)
@@ -4404,10 +3732,10 @@ starship.enableZshIntegration = true;
 
 ** .zlogout
 
-#+call: hash("pre")
+#+call: hash()
 
 #+RESULTS:
-: 1ed1e29f1f67c0bdc343b12368df60a5
+: 20210601185501472232200
 
 #+name: 1ed1e29f1f67c0bdc343b12368df60a5
 #+begin_src emacs-lisp
@@ -4423,10 +3751,10 @@ starship.enableZshIntegration = true;
 # From: https://www.draketo.de/light/english/minimal-example-for-literate-programming-noweb-emacs-org-mode
 # From: https://emacs.stackexchange.com/questions/47474/setting-variable-for-org-mode-html-export
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
-: 87b1d7b7615b7888dc93cc7b7924808f
+: 20210601185503163928300
 
 #+name: 87b1d7b7615b7888dc93cc7b7924808f
 #+begin_src sh :tangle (jr/tangle-path)
@@ -4435,10 +3763,10 @@ starship.enableZshIntegration = true;
 
 ** .zlogin
 
-#+call: hash("pre")
+#+call: hash()
 
 #+RESULTS:
-: cec0e99ea02e55fb6dbf99f230a283c5
+: 20210601185504929349900
 
 #+name: cec0e99ea02e55fb6dbf99f230a283c5
 #+begin_src emacs-lisp
@@ -4454,10 +3782,10 @@ starship.enableZshIntegration = true;
 # From: https://www.draketo.de/light/english/minimal-example-for-literate-programming-noweb-emacs-org-mode
 # From: https://emacs.stackexchange.com/questions/47474/setting-variable-for-org-mode-html-export
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
-: fff4069a824df27cfa8f20481fcb466d
+: 20210601185506839665700
 
 #+name: fff4069a824df27cfa8f20481fcb466d
 #+begin_src sh :tangle (jr/tangle-path)
@@ -4468,22 +3796,22 @@ starship.enableZshIntegration = true;
 *** yadm
 **** bootstrap
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
-: 6fe6b364d9fba7cd66bd9cf730282b2a
+: 20210601185512741369900
 
 #+name: 6fe6b364d9fba7cd66bd9cf730282b2a
 #+begin_src sh :tangle (jr/tangle-path) :shebang "#!/usr/bin/env bash"
-<<5918a1d90f5b7e61007371faf087dff7>>
+<<20210601184651836098700>>
 #+end_src
 
 *** kitty
 
-#+call: hash("programs")
+#+call: hash()
 
 #+RESULTS:
-: d46b4b74ffb23d4335d4797f45067031
+: 20210601185514628869000
 
 #+name: 6b65ba25e46bf89e07ec8b638f44e9c3
 #+begin_src nix
@@ -4494,20 +3822,20 @@ kitty = {
 };
 #+end_src
 
-#+call: hash("theme")
+#+call: hash()
 
 #+RESULTS:
-: 338a3b4e851f416dd70aa64a977efb96
+: 20210601185516365354300
 
 #+name: 338a3b4e851f416dd70aa64a977efb96
 #+begin_src text
 Monokai_Soda
 #+end_src
 
-#+call: hash("files")
+#+call: hash()
 
 #+RESULTS:
-: 6b65ba25e46bf89e07ec8b638f44e9c3
+: 20210601185517894186800
 
 #+name: 6b65ba25e46bf89e07ec8b638f44e9c3
 #+begin_src nix
@@ -4516,10 +3844,10 @@ Monokai_Soda
 
 **** kitty.conf
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
-: d5cad3354664f4ad4e5802cf2dc76abd
+: 20210601185519555635200
 
 #+name: d5cad3354664f4ad4e5802cf2dc76abd
 #+begin_src conf :tangle (jr/tangle-path)
@@ -4528,10 +3856,10 @@ include ./theme.conf
 
 **** theme.conf
 
-#+call: hash("pre")
+#+call: hash()
 
 #+RESULTS:
-: 641e23c8f738164a8ff4f2234396e19d
+: 20210601185521282472600
 
 #+name: 641e23c8f738164a8ff4f2234396e19d
 #+begin_src emacs-lisp
@@ -4544,10 +3872,10 @@ include ./theme.conf
             "")))
 #+end_src
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
-: bc36e158c20fa8907fa07bb998f74ddc
+: 20210601185522915194400
 
 #+name: bc36e158c20fa8907fa07bb998f74ddc
 #+begin_src conf :tangle (jr/tangle-path)
@@ -4556,10 +3884,10 @@ include ./theme.conf
 
 *** qtile
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
-: 20def59e134751937775a539588c359a
+: 20210601185525000840300
 
 #+name: 20def59e134751937775a539588c359a
 #+begin_src nix
@@ -4568,10 +3896,10 @@ include ./theme.conf
 
 **** config.py
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
-: 7e005c00414442d051268853d7f8cb48
+: 20210601185823132554800
 
 #+name: 7e005c00414442d051268853d7f8cb48
 #+begin_src python :tangle (jr/tangle-oreo)
@@ -4580,10 +3908,10 @@ include ./theme.conf
 
 *** fish
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
-: 9c831035ff1aab8cf5467639c4b6ddc4
+: 20210601185826302626100
 
 #+name: 9c831035ff1aab8cf5467639c4b6ddc4
 #+begin_src nix
@@ -4603,10 +3931,10 @@ starship.enableFishIntegration = true;
 
 **** config.fish
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
-: 9c0077fdacc601fe6caec99e8c8f75d6
+: 20210601185828039219300
 
 #+name: 9c0077fdacc601fe6caec99e8c8f75d6
 #+begin_src fish :tangle (jr/tangle-path)
@@ -4619,10 +3947,10 @@ starship init fish | source
 
 *** ion
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
-: b370468cc7d7048c2fca654384bf409f
+: 20210601185829828213000
 
 #+name: b370468cc7d7048c2fca654384bf409f
 #+begin_src nix
@@ -4631,10 +3959,10 @@ starship init fish | source
 
 **** initrc
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
-: d00469abd110d42d30147634bf86ace9
+: 20210601185831324401300
 
 #+name: d00469abd110d42d30147634bf86ace9
 #+begin_src ion :tangle (jr/tangle-path)
@@ -4643,10 +3971,10 @@ eval $(starship init ion)
 
 *** powershell
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
-: 8a50158d25e446dd85b7a0c8bda9c113
+: 20210601185832861775500
 
 #+name: 8a50158d25e446dd85b7a0c8bda9c113
 #+begin_src nix
@@ -4655,10 +3983,10 @@ eval $(starship init ion)
 
 **** Microsoft.PowerShell_profile.ps1
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
-: f1e0f68a73ddf5bce156364bd43b5524
+: 20210601185834367531900
 
 #+name: f1e0f68a73ddf5bce156364bd43b5524
 #+begin_src powershell :tangle (jr/tangle-path)
@@ -4667,10 +3995,10 @@ Invoke-Expression (&starship init powershell)
 
 *** nixpkgs
 
-#+call: hash("pre")
+#+call: hash()
 
 #+RESULTS:
-: 1ed0e2f1a5109f8af2a280a16b4eb269
+: 20210601185836015744100
 
 #+name: 1ed0e2f1a5109f8af2a280a16b4eb269
 #+begin_src emacs-lisp :var oc=""
@@ -4683,10 +4011,10 @@ let stc = legacyPackages.hostName.${getEnv \"HOSTNAME\"};
 in getAttrFromPath (attrValues stc) legacyPackages.%o" `((?o . ,oc)))
 #+end_src
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
-: 43603ebd7da002155f7108935561456a
+: 20210601185837674888000
 
 #+name: 43603ebd7da002155f7108935561456a
 #+begin_src nix
@@ -4697,10 +4025,10 @@ in getAttrFromPath (attrValues stc) legacyPackages.%o" `((?o . ,oc)))
 
 **** overlays.nix
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
-: 2b4d9f0b772a93416e5f4674ed96ed87
+: 20210601185839211912000
 
 #+name: 2b4d9f0b772a93416e5f4674ed96ed87
 #+begin_src nix :tangle (jr/tangle-path)
@@ -4709,10 +4037,10 @@ in getAttrFromPath (attrValues stc) legacyPackages.%o" `((?o . ,oc)))
 
 **** config.nix
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
-: 9c8535c9269073f1e3c081f7595eb7fe
+: 20210601185840693626300
 
 #+name: 9c8535c9269073f1e3c081f7595eb7fe
 #+begin_src nix :tangle (jr/tangle-path)
@@ -4721,10 +4049,10 @@ in getAttrFromPath (attrValues stc) legacyPackages.%o" `((?o . ,oc)))
 
 **** home.nix
 
-#+call: hash("vars")
+#+call: hash()
 
 #+RESULTS:
-: 7f0e66916c2f315cb8ef3f098a5299db
+: 20210601185842088170000
 
 #+name: 7f0e66916c2f315cb8ef3f098a5299db
 #+begin_src nix
@@ -4787,10 +4115,10 @@ withLink = link: with link; { "${target}" = { inherit source; }; };
 hash = user: j.hostName { stc = stc // { inherit user; }; };
 #+end_src
 
-#+call: hash("programs")
+#+call: hash()
 
 #+RESULTS:
-: b8786b3a304b41cac890b67b0d489482
+: 20210601185843559082700
 
 #+name: b8786b3a304b41cac890b67b0d489482
 #+begin_src nix
@@ -4826,7 +4154,7 @@ hash = user: j.hostName { stc = stc // { inherit user; }; };
 })
 #+end_src
 
-#+call: hash("files")
+#+call: hash()
 
 #+RESULTS:
 : 33a8f6e58d91e946436eee8b8f8a1fa5
@@ -4871,10 +4199,10 @@ hash = user: j.hostName { stc = stc // { inherit user; }; };
 })
 #+end_src
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
-: 0fdd9f7014b87a898a3c8660a3df9d07
+: 20210601185853098066700
 
 #+name: 0fdd9f7014b87a898a3c8660a3df9d07
 #+begin_src nix :tangle (jr/tangle-path)
@@ -4985,21 +4313,21 @@ in with lib; with j; forAllSystems' {
 *** nix
 **** nix.conf
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
-: 5585804cafd4d120113b762c4e097541
+: 20210601185855166479800
 
 #+name: 5585804cafd4d120113b762c4e097541
 #+begin_src conf :tangle (jr/tangle-path)
-<<4f8559fab44b31eee3bd94b54447bea2>>
+<<20210601184948158342800>>
 min-free = 262144000
 max-free = 1073741824
 #+end_src
 
 ** .bashrc
 
-#+call: hash("hm")
+#+call: hash()
 
 #+RESULTS:
 : c0f02c8e18aaf90b2db3568216a0f7b4
@@ -5018,10 +4346,10 @@ bash = {
 starship.enableBashIntegration = true;
 #+end_src
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
-: f14c4cd75f29401f56be846a13cb86c2
+: 20210601185858457019500
 
 #+name: f14c4cd75f29401f56be846a13cb86c2
 #+begin_src sh :tangle (jr/tangle-path)
@@ -5034,20 +4362,20 @@ eval "$(starship init bash)"
 
 ** rc.elv
 
-#+call: hash("hm")
+#+call: hash()
 
 #+RESULTS:
-: 686d2e9e79fc3a96bf63b5d18b5eb4cb
+: 20210601185901673235100
 
 #+name: 686d2e9e79fc3a96bf63b5d18b5eb4cb
 #+begin_src nix
 "rc.elv".source = "${homeDirectory}/${primary.user}/home/rc.elv";
 #+end_src
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
-: 8563464483cb5d919d84774684320f18
+: 20210601185904498814800
 
 #+name: 8563464483cb5d919d84774684320f18
 #+begin_src elvish :tangle (jr/tangle-path)
@@ -5059,10 +4387,10 @@ eval (starship init elvish)
 
 ** .SpaceVim.d
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
-: 41e1a054113e318e196b0a8a0ccf5cb5
+: 20210601185906086312300
 
 #+name: 41e1a054113e318e196b0a8a0ccf5cb5
 #+begin_src nix
@@ -5080,10 +4408,10 @@ eval (starship init elvish)
 
 *** init.toml
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
-: ef0ca6b027b247fed6e95bb31f027708
+: 20210601185907580979300
 
 #+name: ef0ca6b027b247fed6e95bb31f027708
 #+begin_src conf :tangle (jr/tangle-oreo)
@@ -5093,10 +4421,10 @@ eval (starship init elvish)
 *** autoload
 **** vimrc.vim
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
-: e4619751678bb7065fc7ec1a80a0ff98
+: 20210601185909239055500
 
 #+name: e4619751678bb7065fc7ec1a80a0ff98
 #+begin_src vimrc :tangle (jr/tangle-oreo)
@@ -5105,10 +4433,10 @@ eval (starship init elvish)
 
 ** makefile
 
-#+call: hash("repos")
+#+call: hash()
 
 #+RESULTS:
-: 7e5d38a2c9af18003ca89c3dad2d1b97
+: 20210601185910773859000
 
 #+name: 7e5d38a2c9af18003ca89c3dad2d1b97
 #+begin_src text
@@ -5124,10 +4452,10 @@ powerline/powerline ~/<<username>>/resources/powerline
 tmux-plugins/tpm ~/<<username>>/resources/tpm
 #+end_src
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
-: c9792b0b851c8df28651f125f42b1868
+: 20210601185912312833700
 
 #+name: c9792b0b851c8df28651f125f42b1868
 #+begin_src makefile :tangle (jr/tangle-path)
@@ -5140,10 +4468,10 @@ init:
 
 ** git
 
-#+call: hash("programs")
+#+call: hash()
 
 #+RESULTS:
-: 4790b5c880f2991fff358970c8ae652f
+: 20210601185913912448600
 
 #+name: 4790b5c880f2991fff358970c8ae652f
 #+begin_src nix
@@ -5175,10 +4503,10 @@ git = {
 };
 #+end_src
 
-#+call: hash("files")
+#+call: hash()
 
 #+RESULTS:
-: 246ca7e4d33bc1b57d6cee0768532d38
+: 20210601185923733355900
 
 #+name: 246ca7e4d33bc1b57d6cee0768532d38
 #+begin_src nix
@@ -5188,10 +4516,10 @@ git = {
 
 ** .gitignore
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
-: 1ea4bb5fe97c460bf6cd50db65f78bbe
+: 20210601185925524999600
 
 #+name: 1ea4bb5fe97c460bf6cd50db65f78bbe
 #+begin_src gitignore :tangle (jr/tangle-path)
@@ -5219,10 +4547,10 @@ temp
 
 ** .hgrc
 
-#+call: hash("hm")
+#+call: hash()
 
 #+RESULTS:
-: 6c9703c9e8d7c1dfd7081a89ba30b713
+: 20210601185927098034100
 
 #+name: 6c9703c9e8d7c1dfd7081a89ba30b713
 #+begin_src nix
@@ -5254,10 +4582,10 @@ mercurial = {
 
 ** .hgignore
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
-: 9f58d4089d36710d31eaed9419ed38cd
+: 20210601185928691269400
 
 #+name: 9f58d4089d36710d31eaed9419ed38cd
 #+begin_src gitignore :tangle (jr/tangle-path)
@@ -5266,10 +4594,10 @@ mercurial = {
 
 ** emacs
 
-#+call: hash("programs")
+#+call: hash()
 
 #+RESULTS:
-: 0f713b3a4ffd4b5c77b96597753d4d77
+: 20210601185930291067900
 
 #+name: 0f713b3a4ffd4b5c77b96597753d4d77
 #+begin_src nix
@@ -5288,10 +4616,10 @@ emacs = {
 };
 #+end_src
 
-#+call: hash("files")
+#+call: hash()
 
 #+RESULTS:
-: 8c9f6caafcb32cd315c3f5a8d52f4b19
+: 20210601185931858588700
 
 #+name: 8c9f6caafcb32cd315c3f5a8d52f4b19
 #+begin_src nix
@@ -5305,10 +4633,10 @@ emacs = {
 
 ** starship
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
-: b7bb86447f895ccb29ee0524e2f0ab42
+: 20210601185933359940100
 
 #+name: b7bb86447f895ccb29ee0524e2f0ab42
 #+begin_src nix
@@ -5323,10 +4651,10 @@ starship = {
 
 ** .tmux.conf
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
-: f8c37c2c0aee46bde39319b837f36e16
+: 20210601185934915109100
 
 #+name: f8c37c2c0aee46bde39319b837f36e16
 #+begin_src conf :tangle (jr/tangle-oreo)
@@ -5336,10 +4664,10 @@ starship = {
 ** .byobu
 *** .tmux.conf
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
-: 376191d12bcf3a386a37cd100cf20711
+: 20210601185936581538600
 
 #+name: 376191d12bcf3a386a37cd100cf20711
 #+begin_src conf :tangle (jr/tangle-oreo)
@@ -5348,20 +4676,20 @@ starship = {
 
 ** tmux
 
-#+call: hash("programs")
+#+call: hash()
 
 #+RESULTS:
-: 5e11372671a7413353f2df031f63bcda
+: 20210601185938069815900
 
 #+name: 5e11372671a7413353f2df031f63bcda
 #+begin_src nix
 <<8182b9565b9c8ccb0a8f2c87319c9955>>
 #+end_src
 
-#+call: hash("files")
+#+call: hash()
 
 #+RESULTS:
-: e530065768d9c227fc6b5cb199d6af41
+: 20210601185939558599100
 
 #+name: e530065768d9c227fc6b5cb199d6af41
 #+begin_src nix
@@ -5370,10 +4698,10 @@ starship = {
 
 ** .direnvrc
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
-: 0f61833f5f550b3981d8bf80354f4bc5
+: 20210601185941178211700
 
 #+name: 0f61833f5f550b3981d8bf80354f4bc5
 #+begin_src shell :tangle (jr/tangle-path)
@@ -5387,10 +4715,10 @@ fi
 
 ** direnv
 
-#+call: hash("programs")
+#+call: hash()
 
 #+RESULTS:
-: 7701583d01c93a70b96d051e6eee2ea8
+: 20210601185942654247100
 
 #+name: 7701583d01c93a70b96d051e6eee2ea8
 #+begin_src nix
@@ -5411,10 +4739,10 @@ direnv = {
 };
 #+end_src
 
-#+call: hash("files")
+#+call: hash()
 
 #+RESULTS:
-: 948976000227fb0afe43a2da70bcb5c6
+: 20210601185944075672100
 
 #+name: 948976000227fb0afe43a2da70bcb5c6
 #+begin_src nix
@@ -5424,10 +4752,10 @@ direnv = {
 
 * wheee
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
-: 98b2f4dcc6b880dfefca30da2b287931
+: 20210601185945571372600
 
 #+name: 98b2f4dcc6b880dfefca30da2b287931
 #+begin_src python :tangle (jr/tangle-path) :shebang "#!/usr/bin/env python3.9"
@@ -5509,12 +4837,532 @@ if not args.dry_run:
 
 * bootstrap
 
-#+call: hash("")
+# Rewrite this for python 3.9
+
+#+call: hash()
 
 #+RESULTS:
-: ca4c50b905dc21ea17a10549a6f5944f
+: 20210601190008208069700
 
-#+name: ca4c50b905dc21ea17a10549a6f5944f
+#+name: 20da3080268b6d2673a43886dcdd8d08
 #+begin_src python :tangle (jr/tangle-path) :shebang "#!/usr/bin/env python3.9"
-<<20da3080268b6d2673a43886dcdd8d08>>
+import argparse
+import json
+import os
+import sys
+from subprocess import run, DEVNULL, STDOUT
+
+<<e4d410b716af24c4792d0cf33ceea79d>>
+
+resources = f'{os.environ["HOME"]}/<<username>>/system/etc/nixos/config'
+
+try:
+    if args.subcommand == "create":
+        if input('THIS WILL DELETE ALL DATA ON THE SELECTED DEVICE / PARTITION! TO CONTINUE, TYPE IN "ZFS CREATE"!\n\t') == "ZFS CREATE":
+            <<4c7380a3d87b23bf61b9f2d704fa965b>>
+        else:
+            print("Sorry; not continuing!\n\n")
+
+    if args.subcommand == "update":
+        if args.files:
+            <<6b5976297f158a651e51a1aa6303c590>>
+        elif args.pool:
+            <<bcb6a0d82c4941db3eff8f5d0728eb6c>>
+        else:
+            <<6b5976297f158a651e51a1aa6303c590>>
+
+finally:
+    if args.subcommand:
+        run(f"zpool export -f {args.Pool}", shell = True, stdout=DEVNULL, stderr=STDOUT)
+
+if args.subcommand == "mount":
+    <<f2f6ce58bd9d44b38b94e493ecca4e73>>
+
+if args.generate:
+    run("nixos-generate-config --root /mnt", shell = True)
+
+if args.move:
+    run("mkdir -p /mnt/etc/nixos/config", shell = True)
+    run("mv /mnt/etc/nixos/{,config/}configuration.nix", shell = True)
+    run("mv /mnt/etc/nixos/{,config/}hardware-configuration.nix", shell = True)
+
+if args.link:
+    run("ln -sf /mnt/persist /persist", shell = True)
+
+if args.rsync:
+    run("nix-env -iA nixos.rsync", shell = True)
+    run("rsync -avvczz ~/<<username>>/system/ /mnt/", shell = True)
+
+if args.install:
+    run("nixos-install --show-trace", shell = True)
+
+# TODO
+if args.home_manager:
+    pass
+
+# TODO: Also include a one-stop-install, mounting, generating, copying, etc. all in one go
+if args.all:
+    pass
+#+end_src
+
+****** argparse
+
+#+call: hash()
+
+#+RESULTS:
+: 20210601190005804224800
+
+#+name: e4d410b716af24c4792d0cf33ceea79d
+#+begin_src python
+parser = argparse.ArgumentParser()
+
+# From: https://gist.github.com/amarao/36327a6f77b86b90c2bca72ba03c9d3a
+subparsers = parser.add_subparsers(dest='subcommand')
+create = subparsers.add_parser("create")
+mount = subparsers.add_parser("mount")
+update = subparsers.add_parser("update")
+
+for subparser in [ create, mount, update ]:
+    subparser.add_argument("Pool")
+    subparser.add_argument("-d", "--deduplicated", action="store_true")
+    subparser.add_argument("-e", "--encrypted", action="store_true")
+
+create.add_argument("-z", "--zfs-device", required=True)
+create.add_argument("-s", "--swap")
+mount.add_argument("-b", "--boot-device", required=True)
+mount.add_argument("-s", "--swap", action="store_true")
+update.add_argument("-p", "--pool", action="store_true")
+update.add_argument("-f", "--files", action="store_true")
+
+parser.add_argument("-g", "--generate", action="store_true")
+parser.add_argument("-m", "--move", action="store_true")
+parser.add_argument("-l", "--link", action="store_true")
+parser.add_argument("-r", "--rsync", action="store_true")
+parser.add_argument("-i", "--install", action="store_true")
+parser.add_argument("-H", "--home-manager", action="store_true")
+parser.add_argument("-a", "--all", action="store_true")
+
+# Adapted From:
+# Answer: https://stackoverflow.com/a/29312757/10827766
+# User: https://stackoverflow.com/users/2664549/cgseller
+if len(sys.argv) == 1:
+    parser.print_help(sys.stderr)
+    sys.exit(1)
+
+args = parser.parse_args()
+#+end_src
+
+****** create
+
+#+call: hash()
+
+#+RESULTS:
+: 20210601190001707883400
+
+#+name: 4c7380a3d87b23bf61b9f2d704fa965b
+#+begin_src python
+options = {
+    "xattr": "sa",
+    "acltype": "posixacl",
+    "mountpoint": "none",
+    "compression": "zstd-19",
+    "checksum": "edonr",
+    "atime": "off",
+    "relatime": "off",
+}
+
+if args.encrypted:
+    options["encryption"] = "aes-256-gcm"
+    options["keyformat"] = "passphrase"
+if args.deduplicated:
+    options["dedup"] = "edonr,verify"
+
+if os.path.isdir("/mnt"):
+    run("umount -R /mnt", shell = True, stdout=DEVNULL, stderr=STDOUT)
+else:
+    run("mkdir /mnt", shell = True, stdout=DEVNULL, stderr=STDOUT)
+
+run(f"zpool export -f {args.Pool}", shell = True, stdout=DEVNULL, stderr=STDOUT)
+
+command = f"zpool create -fo autotrim=on -o altroot=/mnt"
+
+for key, value in options.items():
+    command += f" -O {key}={value}"
+
+run(f"{command} {args.Pool} {args.zfs_device}", shell = True)
+
+<<bcb6a0d82c4941db3eff8f5d0728eb6c>>
+
+#+end_src
+
+******* open =f{resources}/users.json=
+
+#+call: hash()
+
+#+RESULTS:
+: 20210601185958834005400
+
+#+name: 45aac463623661787088fdbf6465759e
+#+begin_src python
+users = json.loads('''
+    <<20210601185359809444000>>
+'''.strip())
+
+for user in users.values():
+    dsd["home"][d][user] = dd
+    datasets["virt"][d]["podman"][d][user] = dd
+    for dataset in (persist := dsd["persist"][d]).keys():
+        persist[dataset][d][user] = dd
+#+end_src
+
+******* open =f{resources}/_datasets.nix=
+******** before opening =f{resources}/_datasets.nix=
+
+#+call: hash()
+
+#+RESULTS:
+: 20210601190011469159700
+
+#+name: c87d7294a0bf9ef139a1a416a45ff4fb
+#+begin_src python
+with open(f"{resources}/_datasets.nix", "w") as dnix:
+
+    dnix.write("host: {\n")
+
+    def recurse(ddict, dname, droot, mountpoint = ""):
+
+        _dataset = f"{droot}/{dname}"
+
+        # cc: clone or create
+        # son: snapshot or none
+        if (dname != "base") and (args.encrypted and args.deduplicated):
+            cc = "clone"
+            son = f"{args.Pool}/base@root"
+        else:
+            cc = "create"
+            son = ""
+
+        prefixes = (
+            "system",
+            "system/root",
+            "swap",
+            "base",
+            "hold",
+            "omniverse",
+            "reserved",
+        )
+        _doptions = ddict.get("options", [])
+        if _dataset not in ( f"{args.Pool}/{dataset}" for dataset in prefixes):
+            if (_mountpoint := ddict.get("mountpoint", "")):
+                mountpoint = _mountpoint
+            else:
+                if mountpoint:
+                    mountpoint += f"/{dname}"
+                    _mountpoint = mountpoint
+                else:
+                    _mountpoint = _dataset.removeprefix(args.Pool + "/")
+                    for prefix in prefixes:
+                        _mountpoint = _mountpoint.removeprefix(prefix + "/")
+                    _mountpoint = "/" + _mountpoint
+
+            dnix.write(f'\t"{_dataset}" = "{_mountpoint}";\n')
+#+end_src
+
+******** after opening =f{resources}/_datasets.nix=
+
+#+call: hash()
+
+#+RESULTS:
+: 20210601190013799970400
+
+#+name: c417a7146013877ff5189f1f48688a79
+#+begin_src python
+    for key, value in ddict.get(d, dd).items():
+        recurse(value, key, _dataset, mountpoint)
+
+for key, value in datasets.items():
+    recurse(value, key, args.Pool)
+
+dnix.write("}")
+#+end_src
+
+******* open =datasets.json=
+
+#+call: hash()
+
+#+RESULTS:
+: 20210601190015343762700
+
+#+name: 9b4b3e2eab1f5b226d6cd52d8f9ff29b
+#+begin_src json
+{
+    "base": {  },
+    "hold": {  },
+    "omniverse": {  },
+    "reserved": {  },
+    "system": {
+        "datasets": {
+            "home": { "datasets": { "root": { "mountpoint": "/root" }}},
+            "nix": {  },
+            "persist": {
+                "datasets": {
+                    "cache": {
+                        "datasets": { "root": {  }},
+                        "options": [ "sync=disabled" ]
+                    },
+                    "home": { "datasets": { "root": {  }}}
+                }
+            },
+            "root": {  },
+            "tmp": { "options": [ "sync=disabled" ] }
+        },
+        "options": [ "mountpoint=legacy" ]
+    },
+    "virt": {
+        "datasets": {
+            "docker": {  },
+            "kvm": {  },
+            "podman": { "datasets": {  }},
+            "qemu": {  },
+            "vagrant": {  },
+            "xen": {  }
+        },
+        "options": [ "mountpoint=legacy", "refreservation=none" ],
+        "mountpoint": "/var/lib"
+    }
+}
+#+end_src
+
+#+call: hash()
+
+#+RESULTS:
+: a42e6a90b4026d89c3e1c6b0e491b092
+
+#+name: a42e6a90b4026d89c3e1c6b0e491b092
+#+begin_src python
+datasets = json.loads('''
+    <<9b4b3e2eab1f5b226d6cd52d8f9ff29b>>
+'''.strip())
+
+dsd = datasets[s][d]
+
+datasets[args.Pool] = {
+    "datasets": {
+        "b": {
+            "datasets": {
+                "a": dd,
+                "cc": { "options": snapDir },
+                "cl": dd,
+                "cj": { "datasets": {
+                    "cc": { "options": extraCopies },
+                    "m": { "options": snapDir }
+                }},
+                "eb": { "options": extraCopies },
+                "oreo": { "option": snapDir },
+                "p": { "options": snapDir }
+            },
+        },
+        "borg": { "datasets": { "cache": { "options": cache }}},
+        "jails": { "datasets": { "base": dd}},
+        "las": {
+            "datasets": {
+                "dreadnought": ddd,
+                "redstone": ddd,
+                "sinnoh": ddd
+            }
+        },
+        "y": dd,
+        "z": dd
+    },
+    "options": [ ml ]
+}
+
+<<45aac463623661787088fdbf6465759e>>
+
+for backup in (las := datasets[args.Pool][d]["las"][d]).keys():
+    for zz in [ "zpax", "zsyncs" ]:
+        las[backup][d][zz] = dd
+
+<<c87d7294a0bf9ef139a1a416a45ff4fb>>
+#+end_src
+
+****** mount
+
+#+call: hash()
+
+#+RESULTS:
+: 20210601190019160487800
+
+#+name: f2f6ce58bd9d44b38b94e493ecca4e73
+#+begin_src python
+import os
+from collections import namedtuple
+from functools import partial
+from subprocess import DEVNULL
+
+for dataset in run("zfs list -rH", shell = True, capture_output = True).stdout.decode().split("\n"):
+    if args.Pool in dataset:
+        break
+else:
+    run(f"zpool import -f {args.Pool}", shell = True)
+
+if args.encrypted:
+    run(f"zfs load-key {args.Pool}", shell = True)
+
+if os.path.isdir("/mnt"):
+    run("umount -R /mnt", shell = True, stdout=DEVNULL, stderr=STDOUT)
+else:
+    run("mkdir /mnt", shell = True, stdout=DEVNULL, stderr=STDOUT)
+
+run(f"mount -t zfs {args.Pool}/system/root /mnt", shell = True)
+
+with open(f"{resources}/_datasets.nix") as datasets:
+    for __dataset in datasets.readlines()[1:-1]:
+        _dataset, _mount = __dataset.split("=")
+        dataset = _dataset.strip()
+        mount = '"/mnt' + _mount.strip().lstrip('"').replace(
+            "${host}",
+            args.Pool,
+        )
+
+        if not os.path.isdir(mount):
+            run(f"mkdir -p {mount}", shell = True)
+        mount_command = f"mount -t zfs {dataset} {mount}"
+        # print(mount_command)
+        run(mount_command, shell = True)
+
+if not os.path.isdir(boot := "/mnt/boot/efi"):
+    run(f"mkdir -p {boot}", shell = True)
+
+run(f"mount {args.boot_device} {boot}", shell = True)
+
+if args.swap:
+    run(f"swapon /dev/zvol/{args.Pool}/swap", shell = True)
+#+end_src
+
+****** update
+******* before updating
+
+#+call: hash()
+
+#+RESULTS:
+: 20210601190021157022400
+
+#+name: 1912c98033c29905b1ad36967799623f
+#+begin_src python
+snapDir = [ "snapdir=visible" ]
+extraCopies = snapDir + [ f"copies={2 if args.encrypted else 3}" ]
+cache = [ "sync=disabled" ]
+ml = "mountpoint=legacy"
+dd = {  }
+ddd = { "datasets": {  }}
+d = "datasets"
+s = "system"
+
+<<a42e6a90b4026d89c3e1c6b0e491b092>>
+#+end_src
+
+******* after updating the pool
+
+#+call: hash()
+
+#+RESULTS:
+: 20210601190023576455900
+
+#+name: 6efb3f37b6f2f802c281686eff7281dc
+#+begin_src python
+pool_size_plus_metric = run(
+    f"zpool get -H size {args.Pool}",
+    shell = True,
+    capture_output = True
+).stdout.decode().split("\n")[0].split("\t")[2]
+pool_size = round(float(pool_size_plus_metric[:-1]), 2)
+pool_metric = pool_size_plus_metric[-1]
+
+def pool_percentage_value(percentage):
+    return (
+        str(
+            round(
+                (
+                    (float(percentage) / 100)
+                    * pool_size
+                ),
+                2,
+            )
+        )
+        + pool_metric
+    )
+
+# Apparently, if python internal keywords exist in the argument, such as "set", etc.
+# the command errors out; perhaps something to raise an issue of.
+# This seems to work as an alternative.
+run(f"zfs set refreservation={pool_percentage_value(15)} {args.Pool}/reserved", shell = True)
+
+if args.swap:
+    _swoptions = [
+        "com.sun:auto-snapshot=false",
+        "compression=zle",
+        "logbias=throughput",
+        "primarycache=metadata",
+        "secondarycache=none"
+        "sync=standard",
+    ]
+    swoptions = " -o ".join(_swoptions)
+
+    ps = run("getconf PAGESIZE", shell = True, capture_output = True).stdout.decode().split("\n")[0]
+    run(f"zfs create -V {2**args.swap}G -b {ps} -o {swoptions} {args.Pool}/swap", shell = True)
+
+    run(f"mkswap -f /dev/zvol/{args.Pool}/swap", shell = True)
+#+end_src
+
+******* if updating the pool
+
+#+call: hash()
+
+#+RESULTS:
+: 20210601190025663776100
+
+#+name: ce03e726e6169dc629b60d56a3218588
+#+begin_src python
+doptions = " -o ".join(_doptions)
+
+dataset_command = " ".join(f"zfs {cc} {'-o ' if _doptions else ''} {doptions} {son} {_dataset}".split())
+snapshot_command = " ".join(f"zfs snapshot -r {_dataset}@root".split())
+
+run(dataset_command, shell = True)
+run(snapshot_command, shell = True)
+#+end_src
+
+******* files
+
+#+call: hash()
+
+#+RESULTS:
+: 20210601190027596726400
+
+#+name: 6b5976297f158a651e51a1aa6303c590
+#+begin_src python
+<<1912c98033c29905b1ad36967799623f>>
+
+    <<c417a7146013877ff5189f1f48688a79>>
+
+#+end_src
+
+******* pool
+
+#+call: hash()
+
+#+RESULTS:
+: 20210601190029500156200
+
+#+name: bcb6a0d82c4941db3eff8f5d0728eb6c
+#+begin_src python
+<<1912c98033c29905b1ad36967799623f>>
+
+        <<ce03e726e6169dc629b60d56a3218588>>
+
+    <<c417a7146013877ff5189f1f48688a79>>
+
+<<6efb3f37b6f2f802c281686eff7281dc>>
+
 #+end_src

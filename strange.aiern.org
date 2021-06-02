@@ -9,7 +9,7 @@ This is used to supplement =./oreo.aiern.org=.
 **** qtile
 ***** config.py
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
 : 56382ca914291d6df41adbd417b19df2
@@ -236,7 +236,7 @@ wmname = "LG3D"
 *** .SpaceVim.d
 **** init.toml
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
 : 610e9954e5b1fa36fd50580e2061424f
@@ -279,7 +279,7 @@ wmname = "LG3D"
 
 ***** layers
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
 : 0bc1237939b0cf939f15095ba9b5029f
@@ -303,7 +303,7 @@ name = "lang#nix"
 
 ***** plugins
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
 : 0c3bb9c504afc0c047e2b6d34e1a3cdd
@@ -369,7 +369,7 @@ name = "lang#nix"
 **** autoload
 ***** vimrc.vim
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
 : a9f44e9cd05fda5b5e5dffb41d946748
@@ -460,7 +460,7 @@ endfunction
 
 *** .xonshrc
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
 : b7a800fefe161963d69a4d47eb645f78
@@ -477,7 +477,7 @@ endfunction
 
 **** setup
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
 : ff32af32d525c61902a3880068787437
@@ -504,7 +504,7 @@ except NameError:
 
 **** imports
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
 : be99679f97958058d1db9a3bbb466302
@@ -520,7 +520,7 @@ from inspect import getsourcefile
 
 **** environment
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
 : 8ae634bcedb2c643f8f9c98d5a85616b
@@ -594,7 +594,7 @@ $LESS = " -R "
 
 **** functions
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
 : 8446ecc4bed901db8f4905fb30fea958
@@ -685,7 +685,7 @@ def _ssh(args, stdin=None):
 
 **** xontribs
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
 : ca83cb21bd1358278e3ac18fe108d4b8
@@ -719,7 +719,7 @@ xontrib load z
 
 **** base
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
 : fc32a19c2ab83bb5a9d886f6fee7ef1d
@@ -795,7 +795,7 @@ aliases[_fzf_df_alias] = _fzf
 The LFS filter are from both [[https://raw.githubusercontent.com/sindresorhus/binary-extensions/main/binary-extensions.json][here]]
 and [[https://rehansaeed.com/gitattributes-best-practices/#final-form][here]]:
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
 : 08dbff12d7941b00d17c353f5fe4e078
@@ -1070,7 +1070,7 @@ id_* filter=git-crypt diff=git-crypt
 
 *** .tmux.conf
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
 : 67bb84ea2b3abf4eba054728fef72e40
@@ -1093,7 +1093,7 @@ run "./resources/tpm/tpm"
 
 **** base
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
 : 4c0b32a4459b124d35e6463181fb7d73
@@ -1163,7 +1163,7 @@ bind-key -T prefix C-Space {
 
 **** aleclearmind active-row replacement
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
 : 35b53d4db39376fa9493c72476947e13
@@ -1186,7 +1186,7 @@ bind-key -T prefix C-Space {
 
 **** powerline
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
 : ffaf951006ac2045f71901e9c141479a
@@ -1200,7 +1200,7 @@ source ./resources/powerline/powerline/bindings/tmux/powerline.conf
 
 **** oh-my-tmux
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
 : 6e891f261f3ddf1e6637eba10f3135a2
@@ -1217,7 +1217,7 @@ From: https://man7.org/linux/man-pages/man1/tmux.1.html#KEY_BINDINGS
 
 ***** unbindings
 
-#+call: hash("keys")
+#+call: hash()
 
 #+RESULTS:
 : 03d84ec2e2a38e205ecef8554848c6fb
@@ -1229,7 +1229,7 @@ C-x
 C-z
 #+end_src
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
 : 4c4e640b8c51c87456357db69516eb7d
@@ -1241,7 +1241,7 @@ unbind <<03d84ec2e2a38e205ecef8554848c6fb>>
 
 ***** bindings
 
-#+call: hash("keys")
+#+call: hash()
 
 #+RESULTS:
 : fe7b82dc2f4511169e57ccd048f34865
@@ -1250,7 +1250,7 @@ unbind <<03d84ec2e2a38e205ecef8554848c6fb>>
 #+begin_src text
 #+end_src
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
 : 4221501a2ee55389ca7ee32bd36e0313
@@ -1262,7 +1262,7 @@ bind-key <<fe7b82dc2f4511169e57ccd048f34865>>
 
 ***** root bindings
 
-#+call: hash("keys")
+#+call: hash()
 
 #+RESULTS:
 : 2bb4047366438ff19e5bd531ae6289c1
@@ -1271,7 +1271,7 @@ bind-key <<fe7b82dc2f4511169e57ccd048f34865>>
 #+begin_src text
 #+end_src
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
 : 7295ba7adaacbfbdbabc6bf0bdaea9d9
@@ -1283,7 +1283,7 @@ bind-key -n <<2bb4047366438ff19e5bd531ae6289c1>>
 
 ***** root repeting bindings
 
-#+call: hash("keys")
+#+call: hash()
 
 #+RESULTS:
 : 31d5b10832324a65443e66592ac31a3d
@@ -1296,7 +1296,7 @@ C-S-Left send-keys M-Left
 C-S-Right send-keys M-Right
 #+end_src
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
 : c2bc1c963dd11d859a53ab98db3dc6ea
@@ -1308,7 +1308,7 @@ bind-key -nr <<31d5b10832324a65443e66592ac31a3d>>
 
 ***** repeting bindings
 
-#+call: hash("keys")
+#+call: hash()
 
 #+RESULTS:
 : a20613fd2ed03b18c39928bf44f3641c
@@ -1317,7 +1317,7 @@ bind-key -nr <<31d5b10832324a65443e66592ac31a3d>>
 #+begin_src text
 #+end_src
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
 : 7cf18f74ce0b99d1871605c4641ca25d
@@ -1329,7 +1329,7 @@ bind-key -r <<a20613fd2ed03b18c39928bf44f3641c>>
 
 ***** prefix table bindings
 
-#+call: hash("keys")
+#+call: hash()
 
 #+RESULTS:
 : 28ecde9dce9ba0347fd970e8c803fc3b
@@ -1338,7 +1338,7 @@ bind-key -r <<a20613fd2ed03b18c39928bf44f3641c>>
 #+begin_src text
 #+end_src
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
 : 29de090b65f26fdf00641c96c0531a70
@@ -1350,7 +1350,7 @@ bind-key -T prefix <<28ecde9dce9ba0347fd970e8c803fc3b>>
 
 **** plugins
 
-#+call: hash("plugins")
+#+call: hash()
 
 #+RESULTS:
 : 47934bcadbc5c8af14ffd00cc8b8350b
@@ -1363,7 +1363,7 @@ fcsonline/tmux-thumbs
 addisonlynch/tmux-sidebar-plus
 #+end_src
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
 : 9211c969eb8ee679547174313ca4ffdc
@@ -1375,7 +1375,7 @@ set -g @plugin <<47934bcadbc5c8af14ffd00cc8b8350b>>
 
 *** tmux
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
 : 8182b9565b9c8ccb0a8f2c87319c9955

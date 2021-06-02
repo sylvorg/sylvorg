@@ -9,7 +9,7 @@ This is used to hold larger files for =./oreo.aiern.org=.
 **** overlays
 ***** _kataContainers.nix
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
 : 0cc55c4a9547e4205ab191c4aeeef795
@@ -216,7 +216,7 @@ in {
 **** patches
 ***** BACKPORT-Linux-5.8-compat-__vmalloc.patch
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
 : 928b7053098bd8b58c6bb3b11c7f2138
@@ -380,7 +380,7 @@ index cee69ad43..ca1fc145f 100644
 
 ***** 0110-initialize-ata-before-graphics.patch
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
 : fc3edbb09363ebff0f5ab7c7a91e8816
@@ -440,7 +440,7 @@ https://clearlinux.org
 
 ***** export_kernel_fpu_functions_5_3.patch
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
 : 243e368f70b55d126887480a4d4b6fb0
@@ -492,7 +492,7 @@ index 12c70840980e..352538b3bb5d 100644
 
 ***** fetchpypi.patch
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
 : a16b7e1d24613cbcab570cebb8c2d63d
@@ -514,7 +514,7 @@ index e60c9df..df50c0d 100644
 
 ***** fetchurl.patch
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
 : e514edfc99898c7f058d2a7d93b94ea7
@@ -565,7 +565,7 @@ index c61df8ceb00..d973837f0d3 100644
 
 ***** grub_zfs.patch
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
 : 86b1ce952cf7cacf52c28f5e903aa788
@@ -585,7 +585,7 @@ index c61df8ceb00..d973837f0d3 100644
 
 ***** set_power_mgmt.patch
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
 : 4c357c0be0f342085007deacecff91c5
@@ -612,7 +612,7 @@ index c61df8ceb00..d973837f0d3 100644
 ** .doom.d
 *** strings.el
 
-#+call: hash("")
+#+call: hash()
 
 #+name: 
 #+begin_src emacs-lisp :tangle (jr/tangle-path)
@@ -1399,7 +1399,7 @@ NOTE:
 
 *** eyedropper.el
 
-#+call: hash("")
+#+call: hash()
 
 #+name: 
 #+begin_src emacs-lisp :tangle (jr/tangle-path)
@@ -1741,7 +1741,7 @@ Non-nil optional arg MSG-P means display an informative message."
 
 *** naked.el
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
 : 42afddafd5b1bc2d1d687e5b25ee590c
@@ -2086,7 +2086,7 @@ instead of \"C-x <delete>\" and \"C-<delete>\"."
 
 *** help+20.el
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
 : 76562b6bc9a2d6ff3252277966805443
@@ -3519,7 +3519,7 @@ If you click elsewhere in a buffer other than the minibuffer, then
 
 *** escreen.el
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
 : 3457efc690700fd2400f9b5425d30336
@@ -4465,7 +4465,7 @@ Returns a list of numbers which represent screen numbers presently in use."
 
 *** oneonone.el
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
 : b32726089f982ecc20f6daf4ba46b294
@@ -6630,7 +6630,7 @@ The top left corner of the frame is offset from POSITION according to
 
 *** frame-cmds.el
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
 : 04ba6822f8ca446a975eab633fc7883e
@@ -8826,7 +8826,7 @@ VARIABLE is a symbol that names a user option."
 
 *** autofit-frame.el
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
 : 5f9b3902a2ff65934c0874dd3592306e
@@ -9359,7 +9359,7 @@ If the selected window is not dedicated, then:
 
 *** buff-menu+.el
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
 : 570116f0cedd33c656a0b327575f6ad8
@@ -11327,7 +11327,7 @@ marked/flagged."
 
 *** compile-.el
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
 : 9735d956b3f9781a15c3d67bb77e6f90
@@ -11483,7 +11483,7 @@ Usable, e.g., as a member of `compilation-finish-functions'."
 
 *** compile+.el
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
 : 6d936de5588b8af8b3fc15b80d8e74a1
@@ -12135,7 +12135,7 @@ FMTS is a list of format specs for transforming the file name.
 
 *** grep+.el
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
 : c5c3503c922d670c70871679dc137a4d
@@ -12811,7 +12811,7 @@ code \\([0-9]+\\)\\)?.*"
 
 *** dired+.el
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
 : a51fdec1f0a4be3898daca6360cd11c5
@@ -28787,7 +28787,7 @@ If no one is selected, symmetric encryption will be performed.  "
 
 *** dired-details+.el
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
 : d9f2163142a06783cb73ee7a626be954
@@ -29031,7 +29031,7 @@ Otherwise, use the default state, as determined by
 
 *** doremi-frm.el
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
 : 3ec5a0fc25d60c493bb34eb9d1a27959
@@ -31497,7 +31497,7 @@ FACE is a face symbol."
 
 *** facemenu+.el
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
 : d72d94ecbc0de16ca42f6b678c4b7573
@@ -33360,7 +33360,7 @@ effect.  See `facemenu-remove-face-function'."
 
 *** fit-frame.el
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
 : 94def39b0c3a2dbc0ede7c457aa38a34
@@ -34214,7 +34214,7 @@ FRAME is the frame to apply factor to."
 
 *** frame-fns.el
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
 : bf0065f6dc5413eeb0c56c45d4050eb9
@@ -34537,7 +34537,7 @@ Terminates any keyboard macro executing, unless arg DO-NOT-TERMINATE non-nil."
 
 *** frame+.el
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
 : 5ba413d82beedc5d4933fc05f0030fae
@@ -34741,7 +34741,7 @@ arguments."
 
 *** help+.el
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
 : 87d5fe9f019de034eae3b3efccfc2671
@@ -35442,7 +35442,7 @@ If you click elsewhere in a buffer other than the minibuffer, then
 
 *** info+.el
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
 : bae293e7aaf349a7358382a8da9f303a
@@ -42005,7 +42005,7 @@ See `Info-bookmark-name-for-node' for the form of the bookmark name."
 
 *** mouse+.el
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
 : fa2964cb85d1abe3ec2f1bcf390efed2
@@ -42596,7 +42596,7 @@ If command `yank-secondary' is defined (see library `second-sel.el'),
 
 *** simple+.el
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
 : c0a415c662a0afad47a8710b47fe729c
@@ -43199,7 +43199,7 @@ the front of the kill ring, rather than being added to the list."
 
 *** window+.el
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
 : da0ed956dcbf6c2d5e7781e8fc3b4959
@@ -43495,7 +43495,7 @@ and the buffer that is killed or buried is the one in that window."
 
 *** dired-details.el
 
-#+call: hash("")
+#+call: hash()
 
 #+name: 
 #+begin_src emacs-lisp :tangle (jr/tangle-path)

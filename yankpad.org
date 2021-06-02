@@ -5,7 +5,7 @@
 ** src
 *** src: template :t:
 
-#+call: hash("")
+#+call: hash()
 
 #+name: 
 #+begin_src $1 :tangle (jr/tangle-path)
@@ -14,7 +14,7 @@ $0
 
 *** nix-src: nix :n:
 
-#+call: hash("")
+#+call: hash()
 
 #+name: 
 #+begin_src nix :tangle (jr/tangle-path)
@@ -23,7 +23,7 @@ $0
 
 *** elisp-src: emacs-lisp :e:
 
-#+call: hash("")
+#+call: hash()
 
 #+name: 
 #+begin_src emacs-lisp :tangle (jr/tangle-path)

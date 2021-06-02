@@ -436,7 +436,7 @@
             ;; Adapted From: https://www.reddit.com/r/emacs/comments/6klewl/org_cyclingto_go_from_folded_to_children_skipping/djniygy?utm_source=share&utm_medium=web2x&context=3
             (org-cycle . (lambda (state) (interactive) (when (eq state 'children) (setq org-cycle-subtree-status 'subtree)))))
         :config
-            (org-babel-lob-ingest "/README.org")
+            (org-babel-lob-ingest "./README.org")
 
             (defun jr/org-babel-tangle-append nil
               "Append source code block at point to its tangle file.

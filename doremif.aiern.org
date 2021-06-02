@@ -7,7 +7,7 @@ This is used to hold larger files for =./oreo.aiern.org=.
 ** .doom.d
 *** faces+.el
 
-#+call: hash("")
+#+call: hash()
 
 #+name: 
 #+begin_src emacs-lisp :tangle (jr/tangle-path)
@@ -240,7 +240,7 @@ as a face, leave it unmodified.  Value is FACE."
 
 *** doremi.el
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
 : c17c9ec5829070cd65521a457c8f8efb
@@ -848,7 +848,7 @@ MAX must be greater than min."
 
 *** doremi-cmd.el
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
 : de5b63de3d70f3f532704758a780e0fc
@@ -1456,7 +1456,7 @@ WINDOW is selected.  WINDOW defaults to the selected window."
 
 *** doremi-mac.el
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
 : ee1c1df458a0d0f643721fc4aca3fd1a
@@ -1668,7 +1668,7 @@ INCREMENT, provided interactively by the prefix argument."
 
 *** ring+.el
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
 : 074ff75875d6c2f70731b4a953339f80
@@ -1834,7 +1834,7 @@ If SEQ is already a ring, return it."
 
 *** hexrgb.el
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
 : 8edb95348dd555d861f194f857cf28f0
@@ -2829,7 +2829,7 @@ X must be between 0.0 and 1.0, or else an error is raised."
 
 *** menu-bar+.el
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
 : 8454942040d593f096b5160d3209134e
@@ -4782,7 +4782,7 @@ setting the variable and displaying a status message (not MESSAGE)."
 
 *** setup-keys.el
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
 : 92557d704937bd3fc45126e1039362d0
@@ -5805,7 +5805,7 @@ This has no effect unless you use library `misc-cmds.el'.")
 
 *** thumb-frm.el
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
 : 893bdd644b3fc998d3671942a5fd0105
@@ -7019,7 +7019,7 @@ of window creation."
 
 *** zoom-frm.el
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
 : f18add0cfaf815b9a2ea085b41ed997f

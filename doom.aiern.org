@@ -10,7 +10,7 @@ which was written by [[https://emacs.stackexchange.com/users/2710/andrew-swann][
 ** .doom.d
 *** makefile
 
-#+call: hash("github")
+#+call: hash()
 
 #+RESULTS:
 : 13efb36a9b3eacd11a9f3b4b7385f96b
@@ -21,7 +21,7 @@ which was written by [[https://emacs.stackexchange.com/users/2710/andrew-swann][
 chenyanming/spacemacs_module_for_doom ~/<<username>>/home/.doom.d/modules/private/spacemacs
 #+end_src
 
-#+call: hash("gitlab")
+#+call: hash()
 
 #+RESULTS:
 : 99d6a6f01dc482dc4142659f4b7a250a
@@ -30,7 +30,7 @@ chenyanming/spacemacs_module_for_doom ~/<<username>>/home/.doom.d/modules/privat
 #+begin_src text
 #+end_src
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
 : dd1688f9a6d0de76df5c19584fff233c
@@ -47,7 +47,7 @@ init:
 
 *** init.el
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
 : 773fad046a07f82864e6bab4be9aeb4a
@@ -195,13 +195,7 @@ init:
        nim               ; python + lisp at the speed of c
        (nix +lsp)               ; I hereby declare "nix geht mehr!"
        ;;(ocaml +lsp)             ; an objective camel
-
-
-       ;; TODO
-       (org +roam)               ; organize your plain life in plain text
-       ;;org               ; organize your plain life in plain text
-
-       ;; org               ; organize your plain life in plain text
+       org               ; organize your plain life in plain text
        ;;(php +lsp)               ; perl's insecure younger brother
        ;;plantuml          ; diagrams for confusing people more
        ;;(purescript +lsp)        ; javascript, but functional
@@ -248,7 +242,7 @@ init:
 
 *** config.el
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
 : 5121f652dcfd6166521ed3ccb7fdb62c
@@ -538,7 +532,7 @@ Note that I assume that [[chords][https://github.com/jwiegley/use-package#use-pa
 And in my experience... Not a good idea; much too confusing. Use
 [[the arguments here][https://www.reddit.com/r/emacs/comments/j2xezg/usepackage_best_practices/]] to decide whether to use this or =:defer <n>= instead.
 
-#+call: hash("ad")
+#+call: hash()
 
 #+RESULTS:
 : 3bea610856c41a0d7902afd1c523b3fa
@@ -548,7 +542,7 @@ And in my experience... Not a good idea; much too confusing. Use
 (setq use-package-always-defer t)
 #+end_src
 
-#+call: hash("post-pre")
+#+call: hash()
 
 #+RESULTS:
 : e53639c897d29ff5ad0f260d8b3bc2e2
@@ -558,7 +552,7 @@ And in my experience... Not a good idea; much too confusing. Use
 (when (jr/any-popup-showing-p) (jr/which-key--hide-popup))) :post (progn (unless hydra-curr-map (jr/which-key--show-popup))
 #+end_src
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
 : e66c89b1b0b03e47821d84d6bdd4e30f
@@ -581,7 +575,7 @@ And in my experience... Not a good idea; much too confusing. Use
 
 **** org-mode
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
 : 0f5b9694b164e724814320abc695bb5b
@@ -601,7 +595,7 @@ And in my experience... Not a good idea; much too confusing. Use
             ;; Adapted From: https://www.reddit.com/r/emacs/comments/6klewl/org_cyclingto_go_from_folded_to_children_skipping/djniygy?utm_source=share&utm_medium=web2x&context=3
             (org-cycle . (lambda (state) (interactive) (when (eq state 'children) (setq org-cycle-subtree-status 'subtree)))))
         :config
-            (org-babel-lob-ingest "/README.org")
+            (org-babel-lob-ingest "./README.org")
 
             <<2d63732674461dc2b644efd020455882>>
 
@@ -658,7 +652,7 @@ This is adapted from
 [[https://emacs.stackexchange.com/questions/28098/how-to-change-org-mode-babel-tangle-write-to-file-way-as-append-instead-of-overr/38898#38898][How to change Org-mode babel tangle write to file way as append instead of override by default?
 ]], by [[https://emacs.stackexchange.com/users/2370/tobias][Tobias]]:
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
 : 2d63732674461dc2b644efd020455882
@@ -684,7 +678,7 @@ This is from
 [[https://emacs.stackexchange.com/questions/39032/tangle-the-same-src-block-to-different-files/39039#39039][tangle the same src block to different files
 ]], by [[https://emacs.stackexchange.com/users/2370/tobias][Tobias]]:
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
 : 2797cdf9a536de59551ab5e470544e74
@@ -757,7 +751,7 @@ If the :tangle header arg is a list of files. Handle all files"
 
 Taken from [[Org-Roam's GitHub README][https://github.com/org-roam/org-roam#installation]], adapted by yours truely:
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
 : 3df3d7bde7eda0546c77ba9a5b2aa82d
@@ -776,7 +770,7 @@ Taken from [[Org-Roam's GitHub README][https://github.com/org-roam/org-roam#inst
 
 ***** languages
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
 : d5f827b029c135ec0d04907f50c759b7
@@ -794,7 +788,7 @@ Taken from [[Org-Roam's GitHub README][https://github.com/org-roam/org-roam#inst
 
 ****** nix
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
 : 04dbf8eb8aa0b8101102b13044392cc8
@@ -834,7 +828,7 @@ Taken from [[Org-Roam's GitHub README][https://github.com/org-roam/org-roam#inst
 
 ****** xonsh
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
 : a9ce3aa0a02c096218d0bd9f8646d606
@@ -868,7 +862,7 @@ Taken from [[Org-Roam's GitHub README][https://github.com/org-roam/org-roam#inst
 
 ****** dockerfile
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
 : bc74035cf2335eb01654c90f7518def5
@@ -885,7 +879,7 @@ Taken from [[Org-Roam's GitHub README][https://github.com/org-roam/org-roam#inst
 
 ****** vimrc
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
 : 7bd7723280e47c56c1734e5ce06c5ecb
@@ -901,7 +895,7 @@ Taken from [[Org-Roam's GitHub README][https://github.com/org-roam/org-roam#inst
 
 **** modal modes
 
-#+call: hash("setup")
+#+call: hash()
 
 #+RESULTS:
 : d3797553f252eabca75070bb3374df05
@@ -933,7 +927,7 @@ Taken from [[Org-Roam's GitHub README][https://github.com/org-roam/org-roam#inst
         (funcall 'jr/toggle-inner '%n \"%p\" (fbatp %n) '%m))" `((?m . ,map) (?n . ,mode) (?p . ,prefix) (?s . ,short)))
 #+end_src
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
 : b8e289dc4201435230e95e4bc961eff8
@@ -1029,7 +1023,7 @@ Taken from [[Org-Roam's GitHub README][https://github.com/org-roam/org-roam#inst
 
 ***** hercules
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
 : e8fba38bca841d9f8d89cd15b15754bd
@@ -1142,7 +1136,7 @@ Taken from [[Org-Roam's GitHub README][https://github.com/org-roam/org-roam#inst
 
 ***** ryo modal
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
 : 8c01d74b243996d2524244ea38efedf0
@@ -1160,7 +1154,7 @@ Taken from [[Org-Roam's GitHub README][https://github.com/org-roam/org-roam#inst
 
 ***** evil
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
 : 2b6c7dfafc16cb3749d9b011c718618c
@@ -1211,7 +1205,7 @@ Taken from [[Org-Roam's GitHub README][https://github.com/org-roam/org-roam#inst
 
 ***** god mode
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
 : e1785de4290e315a93e1f67553025f69
@@ -1230,7 +1224,7 @@ Taken from [[Org-Roam's GitHub README][https://github.com/org-roam/org-roam#inst
 
 ***** xah-fly-keys
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
 : d34ff1a4219491ae3aee30b275fd9212
@@ -1251,7 +1245,7 @@ Taken from [[Org-Roam's GitHub README][https://github.com/org-roam/org-roam#inst
 
 ***** objed
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
 : 913cb77bdade14e8a517edbee7410b9a
@@ -1266,7 +1260,7 @@ Taken from [[Org-Roam's GitHub README][https://github.com/org-roam/org-roam#inst
 
 ***** kakoune
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
 : c323d6a8a89df885749c42fd2a0bc858
@@ -1281,7 +1275,7 @@ Taken from [[Org-Roam's GitHub README][https://github.com/org-roam/org-roam#inst
 
 ***** modalka
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
 : 452c54e1a8e466b834ef13df6b9e238c
@@ -1296,7 +1290,7 @@ Taken from [[Org-Roam's GitHub README][https://github.com/org-roam/org-roam#inst
 
 **** minibuffer
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
 : d265ec51e2ef69de5f99d16281d47afa
@@ -1334,7 +1328,7 @@ Taken from [[Org-Roam's GitHub README][https://github.com/org-roam/org-roam#inst
 
 ***** helm
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
 : b7ccdbd9b486c4c7b221f9a885c076dc
@@ -1355,7 +1349,7 @@ Taken from [[Org-Roam's GitHub README][https://github.com/org-roam/org-roam#inst
 
 **** git
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
 : 4027496311aaa540864858b0cc6d7781
@@ -1369,7 +1363,7 @@ Taken from [[Org-Roam's GitHub README][https://github.com/org-roam/org-roam#inst
 
 ***** git-gutter
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
 : d4938f230a99ce9f6c1fb2db970a897c
@@ -1392,7 +1386,7 @@ Taken from [[Org-Roam's GitHub README][https://github.com/org-roam/org-roam#inst
 
 ***** magit
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
 : 4fc4f48b4b076bf715c264568fa94979
@@ -1409,7 +1403,7 @@ Taken from [[Org-Roam's GitHub README][https://github.com/org-roam/org-roam#inst
 
 **** buffer
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
 : 0cbddafe342ce45b8c57c5feeb0a4237
@@ -1549,7 +1543,7 @@ is already narrowed."
 
 **** terminal
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
 : 60045541f36fe02d96c14630bbe3966a
@@ -1577,7 +1571,7 @@ is already narrowed."
 
 ***** term
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
 : 4250ee7991caad7d0b372c862bb7ea60
@@ -1604,7 +1598,7 @@ is already narrowed."
 
 ***** vterm
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
 : 89ad94f1851f27ff068c501e83a47f34
@@ -1620,7 +1614,7 @@ is already narrowed."
 
 ***** multi-term
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
 : c10ad90226a9f6a574b7ceb93390d6e0
@@ -1637,7 +1631,7 @@ is already narrowed."
 
 Mostly from [[Emux's After Installing Section][https://github.com/re5et/emux#after-installing]]:
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
 : 4019311714fe7bab6950a6a8202833f6
@@ -1690,7 +1684,7 @@ Mostly from [[Emux's After Installing Section][https://github.com/re5et/emux#aft
 
 ***** elscreen
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
 : cf7d26f4d252982b512c2d9108f5cb86
@@ -1715,7 +1709,7 @@ Mostly from [[Emux's After Installing Section][https://github.com/re5et/emux#aft
 
 ***** escreen
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
 : 6703a9628cab6263b981af4274971ef2
@@ -1793,7 +1787,7 @@ Mostly from [[Emux's After Installing Section][https://github.com/re5et/emux#aft
 
 **** window manager
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
 : 8016354b1cb35e0587437e68baba41d8
@@ -1805,7 +1799,7 @@ Mostly from [[Emux's After Installing Section][https://github.com/re5et/emux#aft
 
 ***** exwm
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
 : e77fd0ac138b6ad85673ea56d24b1cfe
@@ -1816,7 +1810,7 @@ Mostly from [[Emux's After Installing Section][https://github.com/re5et/emux#aft
 
 **** system
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
 : 58043a4011d978b07d42cdbe23366db4
@@ -1833,7 +1827,7 @@ Adapted from [[Ergoemacs' Emacs Lisp Code for Setting PATH and exec-path section
 
 # TODO: Combine the current `$PATH' with `exec-path'
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
 : 8df0b63f0fd76eebb81255e9cb13e72f
@@ -1856,7 +1850,7 @@ Adapted from [[Ergoemacs' Emacs Lisp Code for Setting PATH and exec-path section
 
 ***** etc
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
 : a150a1120f94eead3d23c10b77f66dda
@@ -1867,7 +1861,7 @@ Adapted from [[Ergoemacs' Emacs Lisp Code for Setting PATH and exec-path section
 
 **** etc
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
 : f6fbad3008b5eaa412ac27f2ba12bd42
@@ -1903,7 +1897,7 @@ Adapted from [[Ergoemacs' Emacs Lisp Code for Setting PATH and exec-path section
 
 *** packages.el
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
 : c7d72604b58a79d5829fe508390b7d98
@@ -1979,7 +1973,7 @@ Adapted from [[Ergoemacs' Emacs Lisp Code for Setting PATH and exec-path section
 
 Adapted from: https://github.com/hlissner/doom-emacs/blob/develop/bin/org-tangle
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
 : 83c3bfeb4ead1c7f196c8c263b4ba388
@@ -2128,7 +2122,7 @@ trees with the :notangle: tag."
 
 *** org-tangle-functions.el
 
-#+call: hash("")
+#+call: hash()
 
 #+RESULTS:
 : ed55930dc36029c49a46d842fd0ffc1b
