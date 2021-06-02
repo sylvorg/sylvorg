@@ -4886,9 +4886,6 @@ if args.move:
     run("mv /mnt/etc/nixos/{,config/}configuration.nix", shell = True)
     run("mv /mnt/etc/nixos/{,config/}hardware-configuration.nix", shell = True)
 
-if args.link:
-    run("ln -sf /mnt/persist /persist", shell = True)
-
 if args.rsync:
     run("nix-env -iA nixos.rsync", shell = True)
     run("rsync -avvczz ~/<<username>>/system/ /mnt/", shell = True)
@@ -4928,7 +4925,7 @@ for subparser in [ create, mount, update ]:
     subparser.add_argument("-e", "--encrypted", action="store_true")
 
 create.add_argument("-z", "--zfs-device", required=True)
-create.add_argument("-s", "--swap")
+create.add_argument("-s", "--swap", type=int)
 mount.add_argument("-b", "--boot-device", required=True)
 mount.add_argument("-s", "--swap", action="store_true")
 update.add_argument("-p", "--pool", action="store_true")
@@ -5304,13 +5301,14 @@ if args.swap:
         "compression=zle",
         "logbias=throughput",
         "primarycache=metadata",
-        "secondarycache=none"
+        "secondarycache=none",
         "sync=standard",
     ]
     swoptions = " -o ".join(_swoptions)
 
     ps = run("getconf PAGESIZE", shell = True, capture_output = True).stdout.decode().split("\n")[0]
-    run(f"zfs create -V {2**args.swap}G -b {ps} -o {swoptions} {args.Pool}/swap", shell = True)
+    swap_command = f"zfs create -V {args.swap}G -b {ps} -o {swoptions} {args.Pool}/swap"
+    run(swap_command, shell = True)
 
     run(f"mkswap -f /dev/zvol/{args.Pool}/swap", shell = True)
 #+end_src
