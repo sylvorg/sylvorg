@@ -7,13 +7,13 @@ This is used to hold larger files for =./oreo.aiern.org=.
 ** .doom.d
 *** grep+.el
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601220410729118900
 
 #+name: 20210601220410729118900
-#+begin_src emacs-lisp :tangle (jr/tangle-path)
+#+begin_src emacs-lisp :tangle (aiern/tangle-path)
 ;;; grep+.el --- Extensions to standard library `grep.el'.
 ;;
 ;; Filename: grep+.el
@@ -683,13 +683,13 @@ code \\([0-9]+\\)\\)?.*"
 
 *** dired+.el
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601220413315315300
 
 #+name: 20210601220413315315300
-#+begin_src emacs-lisp :tangle (jr/tangle-path)
+#+begin_src emacs-lisp :tangle (aiern/tangle-path)
 ;;; dired+.el --- Extensions to Dired.
 ;;
 ;; Filename: dired+.el
@@ -16659,13 +16659,13 @@ If no one is selected, symmetric encryption will be performed.  "
 
 *** dired-details+.el
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601220434714952000
 
 #+name: 20210601220434714952000
-#+begin_src emacs-lisp :tangle (jr/tangle-path)
+#+begin_src emacs-lisp :tangle (aiern/tangle-path)
 ;;; dired-details+.el --- Enhancements to library `dired-details+.el'.
 ;;
 ;; Filename: dired-details+.el
@@ -16903,13 +16903,13 @@ Otherwise, use the default state, as determined by
 
 *** doremi-frm.el
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601220444734995300
 
 #+name: 20210601220444734995300
-#+begin_src emacs-lisp :tangle (jr/tangle-path)
+#+begin_src emacs-lisp :tangle (aiern/tangle-path)
 ;;; doremi-frm.el --- Incrementally adjust face attributes and frame parameters.
 ;;
 ;; Filename: doremi-frm.el
@@ -19369,13 +19369,13 @@ FACE is a face symbol."
 
 *** facemenu+.el
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601220449908089400
 
 #+name: 20210601220449908089400
-#+begin_src emacs-lisp :tangle (jr/tangle-path)
+#+begin_src emacs-lisp :tangle (aiern/tangle-path)
 ;;; facemenu+.el --- Extensions to `facemenu.el'.
 ;;
 ;; Filename: facemenu+.el
@@ -21232,13 +21232,13 @@ effect.  See `facemenu-remove-face-function'."
 
 *** fit-frame.el
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601220455404939700
 
 #+name: 20210601220455404939700
-#+begin_src emacs-lisp :tangle (jr/tangle-path)
+#+begin_src emacs-lisp :tangle (aiern/tangle-path)
 ;;; fit-frame.el --- Resize a frame.  In particular, fit a frame to its buffers.
 ;;
 ;; Filename: fit-frame.el
@@ -22086,13 +22086,13 @@ FRAME is the frame to apply factor to."
 
 *** frame-fns.el
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601220500125486500
 
 #+name: 20210601220500125486500
-#+begin_src emacs-lisp :tangle (jr/tangle-path)
+#+begin_src emacs-lisp :tangle (aiern/tangle-path)
 ;;; frame-fns.el --- Non-interactive frame and window functions.
 ;;
 ;; Filename: frame-fns.el
@@ -22409,13 +22409,13 @@ Terminates any keyboard macro executing, unless arg DO-NOT-TERMINATE non-nil."
 
 *** frame+.el
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601220504090444700
 
 #+name: 20210601220504090444700
-#+begin_src emacs-lisp :tangle (jr/tangle-path)
+#+begin_src emacs-lisp :tangle (aiern/tangle-path)
 ;;; frame+.el --- Extensions to `frame.el'.
 ;;
 ;; Filename: frame+.el
@@ -22613,13 +22613,13 @@ arguments."
 
 *** info+.el
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601220517776845400
 
 #+name: 20210601220517776845400
-#+begin_src emacs-lisp :tangle (jr/tangle-path)
+#+begin_src emacs-lisp :tangle (aiern/tangle-path)
 ;;; info+.el --- Extensions to `info.el'.     -*- coding:utf-8 -*-
 ;;
 ;; Filename: info+.el
@@ -29176,13 +29176,13 @@ See `Info-bookmark-name-for-node' for the form of the bookmark name."
 
 *** mouse+.el
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601220536098434900
 
 #+name: 20210601220536098434900
-#+begin_src emacs-lisp :tangle (jr/tangle-path)
+#+begin_src emacs-lisp :tangle (aiern/tangle-path)
 ;;; mouse+.el --- Extensions to `mouse.el'.
 ;;
 ;; Filename: mouse+.el

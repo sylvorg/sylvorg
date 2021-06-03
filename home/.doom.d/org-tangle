@@ -7,18 +7,18 @@
 (require 'ox)
 (require 'ob-tangle)
 
-(defun jr/get-header nil (interactive)
+(defun aiern/get-header nil (interactive)
     (nth 4 (org-heading-components)))
-(defun jr/tangle-path nil (interactive)
+(defun aiern/tangle-path nil (interactive)
     (org-babel-lob-ingest "./README.org")
     (string-remove-prefix "/" (concat
         (org-format-outline-path (org-get-outline-path)) "/"
-            (jr/get-header))))
-(defun jr/tangle-oreo nil (interactive)
+            (aiern/get-header))))
+(defun aiern/tangle-oreo nil (interactive)
     (org-babel-lob-ingest "./strange.aiern.org")
-    (jr/tangle-path))
-(defun jr/get-theme-from-header nil (interactive)
-    (string-remove-suffix "-theme.el" (jr/get-header)))
+    (aiern/tangle-path))
+(defun aiern/get-theme-from-header nil (interactive)
+    (string-remove-suffix "-theme.el" (aiern/get-header)))
 
 (defun usage ()
   (with-temp-buffer
@@ -98,8 +98,6 @@ trees with the :notangle: tag."
                      (push (cons src-lang (list block)) blocks))))))))
     ;; Ensure blocks are in the correct order.
     (mapcar (lambda (b) (cons (car b) (nreverse (cdr b)))) blocks)))
-(advice-add #'org-babel-tangle-collect-blocks
-            :override #'*org-babel-tangle-collect-blocks)
 
 (defvar all-blocks nil)
 (defvar and-tags nil)

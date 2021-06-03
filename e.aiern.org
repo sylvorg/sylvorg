@@ -7,13 +7,13 @@ This is used to hold larger files for =./oreo.aiern.org=.
 ** .doom.d
 *** simple+.el
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601220542751717900
 
 #+name: 20210601220542751717900
-#+begin_src emacs-lisp :tangle (jr/tangle-path)
+#+begin_src emacs-lisp :tangle (aiern/tangle-path)
 ;;; simple+.el --- Extensions to standard library `simple.el'.
 ;;
 ;; Filename: simple+.el
@@ -610,13 +610,13 @@ the front of the kill ring, rather than being added to the list."
 
 *** window+.el
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601220546246471000
 
 #+name: 20210601220546246471000
-#+begin_src emacs-lisp :tangle (jr/tangle-path)
+#+begin_src emacs-lisp :tangle (aiern/tangle-path)
 ;;; window+.el --- Extensions to `window.el'.
 ;;
 ;; Filename: window+.el
@@ -906,13 +906,13 @@ and the buffer that is killed or buried is the one in that window."
 
 *** dired-details.el
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601220552477105500
 
 #+name: 20210601220552477105500
-#+begin_src emacs-lisp :tangle (jr/tangle-path)
+#+begin_src emacs-lisp :tangle (aiern/tangle-path)
 ;;; dired-details.el --- make file details hide-able in dired
 
 ;; Copyright (C) 2003-2011 Rob Giardina

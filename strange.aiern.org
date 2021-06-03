@@ -9,7 +9,7 @@ This is used to supplement =./oreo.aiern.org=.
 **** qtile
 ***** config.py
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601214231713054800
@@ -236,7 +236,7 @@ wmname = "LG3D"
 *** .SpaceVim.d
 **** init.toml
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601214235078130500
@@ -279,7 +279,7 @@ wmname = "LG3D"
 
 ***** layers
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601214237032954500
@@ -303,7 +303,7 @@ name = "lang#nix"
 
 ***** plugins
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601214239113273400
@@ -369,7 +369,7 @@ name = "lang#nix"
 **** autoload
 ***** vimrc.vim
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601214241093346900
@@ -460,7 +460,7 @@ endfunction
 
 *** .xonshrc
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601214242951916200
@@ -477,7 +477,7 @@ endfunction
 
 **** setup
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601214244821056000
@@ -504,7 +504,7 @@ except NameError:
 
 **** imports
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601214246907351900
@@ -520,7 +520,7 @@ from inspect import getsourcefile
 
 **** environment
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601214250331932200
@@ -594,7 +594,7 @@ $LESS = " -R "
 
 **** functions
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601214251955822800
@@ -685,7 +685,7 @@ def _ssh(args, stdin=None):
 
 **** xontribs
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601214253725251000
@@ -719,7 +719,7 @@ xontrib load z
 
 **** base
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601214255358803900
@@ -795,7 +795,7 @@ aliases[_fzf_df_alias] = _fzf
 The LFS filter are from both [[https://raw.githubusercontent.com/sindresorhus/binary-extensions/main/binary-extensions.json][here]]
 and [[https://rehansaeed.com/gitattributes-best-practices/#final-form][here]]:
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601214257298335500
@@ -1070,7 +1070,7 @@ id_* filter=git-crypt diff=git-crypt
 
 *** .tmux.conf
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601214259128138500
@@ -1093,7 +1093,7 @@ run "./resources/tpm/tpm"
 
 **** base
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601214300856128700
@@ -1163,7 +1163,7 @@ bind-key -T prefix C-Space {
 
 **** aleclearmind active-row replacement
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601214303404504400
@@ -1186,7 +1186,7 @@ bind-key -T prefix C-Space {
 
 **** powerline
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601214311502164600
@@ -1200,7 +1200,7 @@ source ./resources/powerline/powerline/bindings/tmux/powerline.conf
 
 **** oh-my-tmux
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601214313059204900
@@ -1217,7 +1217,7 @@ From: https://man7.org/linux/man-pages/man1/tmux.1.html#KEY_BINDINGS
 
 ***** unbindings
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601214314440746200
@@ -1229,7 +1229,7 @@ C-x
 C-z
 #+end_src
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601214315811010800
@@ -1241,7 +1241,7 @@ unbind <<20210601214314440746200>>
 
 ***** bindings
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601214317258641300
@@ -1250,7 +1250,7 @@ unbind <<20210601214314440746200>>
 #+begin_src text
 #+end_src
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601214318746065100
@@ -1262,7 +1262,7 @@ bind-key <<20210601214317258641300>>
 
 ***** root bindings
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601214320148298300
@@ -1271,7 +1271,7 @@ bind-key <<20210601214317258641300>>
 #+begin_src text
 #+end_src
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601214321538145800
@@ -1283,7 +1283,7 @@ bind-key -n <<20210601214320148298300>>
 
 ***** root repeting bindings
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601214322950137300
@@ -1296,7 +1296,7 @@ C-S-Left send-keys M-Left
 C-S-Right send-keys M-Right
 #+end_src
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601214324354163600
@@ -1308,7 +1308,7 @@ bind-key -nr <<20210601214322950137300>>
 
 ***** repeting bindings
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601214325764323500
@@ -1317,7 +1317,7 @@ bind-key -nr <<20210601214322950137300>>
 #+begin_src text
 #+end_src
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601214327190098900
@@ -1329,7 +1329,7 @@ bind-key -r <<20210601214325764323500>>
 
 ***** prefix table bindings
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601214331744518200
@@ -1338,7 +1338,7 @@ bind-key -r <<20210601214325764323500>>
 #+begin_src text
 #+end_src
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601214333167596800
@@ -1350,7 +1350,7 @@ bind-key -T prefix <<20210601214331744518200>>
 
 **** plugins
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601214334528396400
@@ -1363,7 +1363,7 @@ fcsonline/tmux-thumbs
 addisonlynch/tmux-sidebar-plus
 #+end_src
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601214335900412400
@@ -1375,7 +1375,7 @@ set -g @plugin <<20210601214334528396400>>
 
 *** tmux
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601214337624066100

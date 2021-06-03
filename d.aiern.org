@@ -7,13 +7,13 @@ This is used to hold larger files for =./oreo.aiern.org=.
 ** .doom.d
 *** faces+.el
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601222912247931000
 
 #+name: 20210601222912247931000
-#+begin_src emacs-lisp :tangle (jr/tangle-path)
+#+begin_src emacs-lisp :tangle (aiern/tangle-path)
 ;;; faces+.el --- Extensions to `faces.el'.
 ;;
 ;; Filename: faces+.el
@@ -243,13 +243,13 @@ as a face, leave it unmodified.  Value is FACE."
 
 *** doremi.el
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601222914695012500
 
 #+name: 20210601222914695012500
-#+begin_src emacs-lisp :tangle (jr/tangle-path)
+#+begin_src emacs-lisp :tangle (aiern/tangle-path)
 ;;; doremi.el --- Do Re Mi: Incremental change using arrow keys or mouse wheel.
 ;;
 ;; Filename: doremi.el
@@ -851,13 +851,13 @@ MAX must be greater than min."
 
 *** doremi-cmd.el
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601222916938013900
 
 #+name: 20210601222916938013900
-#+begin_src emacs-lisp :tangle (jr/tangle-path)
+#+begin_src emacs-lisp :tangle (aiern/tangle-path)
 ;;; doremi-cmd.el --- Miscellaneous Do Re Mi commands
 ;;
 ;; Filename: doremi-cmd.el
@@ -1459,13 +1459,13 @@ WINDOW is selected.  WINDOW defaults to the selected window."
 
 *** doremi-mac.el
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601222919591278100
 
 #+name: 20210601222919591278100
-#+begin_src emacs-lisp :tangle (jr/tangle-path)
+#+begin_src emacs-lisp :tangle (aiern/tangle-path)
 ;;; doremi-mac.el --- A macro for defining Do Re Mi commands.
 ;;
 ;; Filename: doremi-mac.el
@@ -1671,13 +1671,13 @@ INCREMENT, provided interactively by the prefix argument."
 
 *** ring+.el
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601222921699965800
 
 #+name: 20210601222921699965800
-#+begin_src emacs-lisp :tangle (jr/tangle-path)
+#+begin_src emacs-lisp :tangle (aiern/tangle-path)
 ;;; ring+.el --- Extensions to `ring.el'.
 ;;
 ;; Filename: ring+.el
@@ -1837,13 +1837,13 @@ If SEQ is already a ring, return it."
 
 *** hexrgb.el
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601222923703645700
 
 #+name: 20210601222923703645700
-#+begin_src emacs-lisp :tangle (jr/tangle-path)
+#+begin_src emacs-lisp :tangle (aiern/tangle-path)
 ;;; hexrgb.el --- Functions to manipulate colors, including RGB hex strings.
 ;;
 ;; Filename: hexrgb.el
@@ -2832,13 +2832,13 @@ X must be between 0.0 and 1.0, or else an error is raised."
 
 *** menu-bar+.el
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601222926008086500
 
 #+name: 20210601222926008086500
-#+begin_src emacs-lisp :tangle (jr/tangle-path)
+#+begin_src emacs-lisp :tangle (aiern/tangle-path)
 ;;; menu-bar+.el --- Extensions to `menu-bar.el'.
 ;;
 ;; Filename: menu-bar+.el
@@ -4785,13 +4785,13 @@ setting the variable and displaying a status message (not MESSAGE)."
 
 *** setup-keys.el
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601222930469855200
 
 #+name: 20210601222930469855200
-#+begin_src emacs-lisp :tangle (jr/tangle-path)
+#+begin_src emacs-lisp :tangle (aiern/tangle-path)
 ;;; setup-keys.el --- Some key bindings.
 ;;
 ;; Filename: setup-keys.el
@@ -5808,13 +5808,13 @@ This has no effect unless you use library `misc-cmds.el'.")
 
 *** thumb-frm.el
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601222933145700100
 
 #+name: 20210601222933145700100
-#+begin_src emacs-lisp :tangle (jr/tangle-path)
+#+begin_src emacs-lisp :tangle (aiern/tangle-path)
 ;;; thumb-frm.el --- Commands for thumbnail frames.
 ;;
 ;; Filename: thumb-frm.el
@@ -7022,13 +7022,13 @@ of window creation."
 
 *** zoom-frm.el
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601222936042835800
 
 #+name: 20210601222936042835800
-#+begin_src emacs-lisp :tangle (jr/tangle-path)
+#+begin_src emacs-lisp :tangle (aiern/tangle-path)
 ;;; zoom-frm.el --- Commands to zoom frame font size.
 ;;
 ;; Filename: zoom-frm.el

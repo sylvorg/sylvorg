@@ -10,13 +10,13 @@ which was written by [[https://emacs.stackexchange.com/users/2710/andrew-swann][
 ** yadm
 *** bootstrap
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601184651836098700
 
 #+name: 20210601184651836098700
-#+begin_src sh :tangle (jr/tangle-path) :shebang "#!/usr/bin/env bash"
+#+begin_src sh :tangle (aiern/tangle-path) :shebang "#!/usr/bin/env bash"
 
 #+end_src
 
@@ -25,7 +25,7 @@ which was written by [[https://emacs.stackexchange.com/users/2710/andrew-swann][
 *** nixos
 **** configs
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601184724193852200
@@ -47,13 +47,13 @@ which was written by [[https://emacs.stackexchange.com/users/2710/andrew-swann][
 ***** dross
 ****** default.nix
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601184730035302100
 
 #+name: 20210601184730035302100
-#+begin_src nix :tangle (jr/tangle-path)
+#+begin_src nix :tangle (aiern/tangle-path)
 <<20210601184724193852200>>
     config.networking.hostId = <<hostId()>>;
 }
@@ -62,13 +62,13 @@ which was written by [[https://emacs.stackexchange.com/users/2710/andrew-swann][
 ***** sandshrew
 ****** default.nix
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601184744001979300
 
 #+name: 20210601184744001979300
-#+begin_src nix :tangle (jr/tangle-path)
+#+begin_src nix :tangle (aiern/tangle-path)
 <<20210601184724193852200>>
     config.networking.hostId = <<hostId()>>;
 }
@@ -77,13 +77,13 @@ which was written by [[https://emacs.stackexchange.com/users/2710/andrew-swann][
 ***** yggdrasil
 ****** default.nix
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601184747964016700
 
 #+name: 20210601184747964016700
-#+begin_src nix :tangle (jr/tangle-path)
+#+begin_src nix :tangle (aiern/tangle-path)
 <<20210601184724193852200>>
     config.networking.hostId = <<hostId()>>;
 }
@@ -93,13 +93,13 @@ which was written by [[https://emacs.stackexchange.com/users/2710/andrew-swann][
 ***** bootstrap
 ****** flake.nix
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601184751675181500
 
 #+name: 20210601184751675181500
-#+begin_src nix :tangle (jr/tangle-path)
+#+begin_src nix :tangle (aiern/tangle-path)
 {
     description = "";
     inputs = {
@@ -127,13 +127,13 @@ which was written by [[https://emacs.stackexchange.com/users/2710/andrew-swann][
 ***** home
 ****** flake.nix
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601184754536351000
 
 #+name: 20210601184754536351000
-#+begin_src nix :tangle (jr/tangle-path)
+#+begin_src nix :tangle (aiern/tangle-path)
 {
     description = "";
     inputs = {
@@ -152,13 +152,13 @@ which was written by [[https://emacs.stackexchange.com/users/2710/andrew-swann][
 
 Taken from [[https://github.com/NixOS/nixos-hardware/tree/master/microsoft/hyper-v][here]]:
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601184759139337200
 
 #+name: 20210601184759139337200
-#+begin_src nix :tangle (jr/tangle-path)
+#+begin_src nix :tangle (aiern/tangle-path)
 { config, lib, pkgs, ... }: with builtins; with lib; with j; {
     boot = {
         # REQUIRED - see: https://github.com/nixos/nixpkgs/issues/9899
@@ -185,13 +185,13 @@ Taken from [[https://github.com/NixOS/nixos-hardware/tree/master/microsoft/hyper
 
 ****** default.nix
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601184801744311100
 
 #+name: 20210601184801744311100
-#+begin_src nix :tangle (jr/tangle-path)
+#+begin_src nix :tangle (aiern/tangle-path)
 { config, lib, ... }: with builtins; with lib; with j; {
     imports = imprelib.list { dir = ./.; };
     config = {
@@ -208,13 +208,13 @@ Taken from [[https://github.com/NixOS/nixos-hardware/tree/master/microsoft/hyper
 ***** linode
 ****** default.nix
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601184803930214900
 
 #+name: 20210601184803930214900
-#+begin_src nix :tangle (jr/tangle-path)
+#+begin_src nix :tangle (aiern/tangle-path)
 { config, lib, ... }: with builtins; with lib; with j; {
     imports = imprelib.list { dir = ./.; };
     config = {
@@ -238,13 +238,13 @@ Taken from [[https://github.com/NixOS/nixos-hardware/tree/master/microsoft/hyper
 ***** rpi
 ****** 3b.nix
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601184806549418800
 
 #+name: 20210601184806549418800
-#+begin_src nix :tangle (jr/tangle-path)
+#+begin_src nix :tangle (aiern/tangle-path)
 { config, lib, pkgs, device, ... }: with builtins; with lib; with j; mkIf (device == "3b") {
     vars.terminal = true;
     boot = {
@@ -264,13 +264,13 @@ Taken from [[https://github.com/NixOS/nixos-hardware/tree/master/microsoft/hyper
 
 ****** 4b.nix
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601184808685869700
 
 #+name: 20210601184808685869700
-#+begin_src nix :tangle (jr/tangle-path)
+#+begin_src nix :tangle (aiern/tangle-path)
 { config, lib, pkgs, device, ... }: with builtins; with lib; with j; mkIf (device == "4b") {
     vars.terminal = true;
     boot = {
@@ -313,13 +313,13 @@ Taken from [[https://github.com/NixOS/nixos-hardware/tree/master/microsoft/hyper
 
 ****** default.nix
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601184810839651300
 
 #+name: 20210601184810839651300
-#+begin_src nix :tangle (jr/tangle-path)
+#+begin_src nix :tangle (aiern/tangle-path)
 { config, lib, ... }: with builtins; with lib; with j; {
     imports = imprelib.list { dir = ./.; };
 }
@@ -328,13 +328,13 @@ Taken from [[https://github.com/NixOS/nixos-hardware/tree/master/microsoft/hyper
 ***** surface
 ****** _specialisation.nix
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601184813562748800
 
 #+name: 20210601184813562748800
-#+begin_src nix :tangle (jr/tangle-path)
+#+begin_src nix :tangle (aiern/tangle-path)
 { config, lib, pkgs, ... }: with builtins; with lib; with j; {
     specialisation = let
         specialisation_base =
@@ -404,13 +404,13 @@ Taken from [[https://github.com/NixOS/nixos-hardware/tree/master/microsoft/hyper
 
 ****** nixpkgs.nix
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601184835588960800
 
 #+name: 20210601184835588960800
-#+begin_src nix :tangle (jr/tangle-path)
+#+begin_src nix :tangle (aiern/tangle-path)
 { config, lib, pkgs, ... }: with builtins; with lib; with j; {
     nixpkgs.overlays = let
         specialisation_base =
@@ -433,13 +433,13 @@ Taken from [[https://github.com/NixOS/nixos-hardware/tree/master/microsoft/hyper
 
 ****** b2.nix
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601184839546821900
 
 #+name: 20210601184839546821900
-#+begin_src nix :tangle (jr/tangle-path)
+#+begin_src nix :tangle (aiern/tangle-path)
 { config, lib, device, ... }: with builtins; with lib; with j; mkIf (device == "b2") {
     boot.extraModprobeConfig = mkAfter '' options ipts singletouch=y '';
     powerManagement.resumeCommands = mkAfter '' modprobe ipts_surface singletouch=y '';
@@ -456,13 +456,13 @@ Taken from [[https://github.com/NixOS/nixos-hardware/tree/master/microsoft/hyper
 
 ****** default.nix
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601184841857888100
 
 #+name: 20210601184841857888100
-#+begin_src nix :tangle (jr/tangle-path)
+#+begin_src nix :tangle (aiern/tangle-path)
 { config, lib, ... }: with builtins; with lib; with j; {
     imports = imprelib.list { dir = ./.; };
     config = {
@@ -481,25 +481,25 @@ Taken from [[https://github.com/NixOS/nixos-hardware/tree/master/microsoft/hyper
 ***** pinebook
 ****** import.nix
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601184843916803200
 
 #+name: 20210601184843916803200
-#+begin_src nix :tangle (jr/tangle-path)
+#+begin_src nix :tangle (aiern/tangle-path)
 { sources, ... }: { imports = [ "${sources.wip-pinebook-pro}/pinebook_pro.nix" ]; }
 #+end_src
 
 ****** default.nix
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601184849683569900
 
 #+name: 20210601184849683569900
-#+begin_src nix :tangle (jr/tangle-path)
+#+begin_src nix :tangle (aiern/tangle-path)
 { config, lib, ... }: with builtins; with lib; with j; {
     imports = imprelib.list { dir = ./.; };
 }
@@ -508,13 +508,13 @@ Taken from [[https://github.com/NixOS/nixos-hardware/tree/master/microsoft/hyper
 ***** android
 ****** default.nix
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601184853359396100
 
 #+name: 20210601184853359396100
-#+begin_src nix :tangle (jr/tangle-path)
+#+begin_src nix :tangle (aiern/tangle-path)
 { config, lib, ... }: with builtins; with lib; with j; {
     imports = imprelib.list { dir = ./.; };
     config.vars = { terminal = true; minimal = true; };
@@ -523,7 +523,7 @@ Taken from [[https://github.com/NixOS/nixos-hardware/tree/master/microsoft/hyper
 
 **** flake.nix
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601184855143779200
@@ -534,13 +534,13 @@ inherit (stc) system;
 pkgs = let configBase = { inherit stc; ignoredAttrs = [ "host" ];}; in j.get (configBase // { set = all.pkgs; });
 #+end_src
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601184856989112400
 
 #+name: 20210601184856989112400
-#+begin_src nix :tangle (jr/tangle-path)
+#+begin_src nix :tangle (aiern/tangle-path)
 {
     description = "Wheee!";
 
@@ -726,7 +726,7 @@ pkgs = let configBase = { inherit stc; ignoredAttrs = [ "host" ];}; in j.get (co
 };" `((?n . ,name) (?u . ,ur)))
 #+end_src
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601184858790744200
@@ -744,7 +744,7 @@ pkgs = let configBase = { inherit stc; ignoredAttrs = [ "host" ];}; in j.get (co
 
 ****** base
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601184900737083000
@@ -783,7 +783,7 @@ nixpkgs.url = "github:NixOS/nixpkgs/master";
 
 ****** tmux
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601184903047234700
@@ -798,7 +798,7 @@ nixpkgs.url = "github:NixOS/nixpkgs/master";
 
 ****** editors
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601184907763806400
@@ -811,7 +811,7 @@ nixpkgs.url = "github:NixOS/nixpkgs/master";
 
 ****** shell
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601184909601517300
@@ -824,7 +824,7 @@ nixpkgs.url = "github:NixOS/nixpkgs/master";
 
 ****** terminal
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601184911358827500
@@ -837,7 +837,7 @@ nixpkgs.url = "github:NixOS/nixpkgs/master";
 
 ****** nixos
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601184913280508200
@@ -850,7 +850,7 @@ nixpkgs.url = "github:NixOS/nixpkgs/master";
 
 ****** kernels
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601184933880458900
@@ -869,7 +869,7 @@ xanmodV5914Cacule = {
 
 **** lib
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601184936599601300
@@ -892,13 +892,13 @@ permittedInsecurePackages = [
 
 With help from [[Henrik Lissner / hlissner][https://github.com/hlissner/dotfiles]]:
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601184940615217500
 
 #+name: 20210601184940615217500
-#+begin_src nix :tangle (jr/tangle-path)
+#+begin_src nix :tangle (aiern/tangle-path)
 inputs@{
     sources ? ({
         nixpkgs = <nixpkgs>;
@@ -934,13 +934,13 @@ in __.extend (final: prev: prelib.foldToSet (attrValues prev))
 
 ***** _preattrs.nix
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601184942521692400
 
 #+name: 20210601184942521692400
-#+begin_src nix :tangle (jr/tangle-path)
+#+begin_src nix :tangle (aiern/tangle-path)
 lib: with builtins; with lib; rec {
     integer-defaults = {
         minimal = 0;
@@ -966,13 +966,13 @@ lib: with builtins; with lib; rec {
 
 ***** _prelib.nix
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601184944473723100
 
 #+name: 20210601184944473723100
-#+begin_src nix :tangle (jr/tangle-path)
+#+begin_src nix :tangle (aiern/tangle-path)
 preattrs: lib:
 with builtins;
 with preattrs;
@@ -1115,13 +1115,13 @@ rec {
 
 ***** _primprelib.nix
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601184946256510900
 
 #+name: 20210601184946256510900
-#+begin_src nix :tangle (jr/tangle-path)
+#+begin_src nix :tangle (aiern/tangle-path)
 preattrs: prelib: lib:
 with builtins;
 with preattrs;
@@ -1191,7 +1191,7 @@ rec {
 
 ***** _attrs.nix
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601184948158342800
@@ -1204,13 +1204,13 @@ experimental-features = nix-command flakes
 allow-unsafe-native-code-during-evaluation = true
 #+end_src
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601184949937949100
 
 #+name: 20210601184949937949100
-#+begin_src nix :tangle (jr/tangle-path)
+#+begin_src nix :tangle (aiern/tangle-path)
 { lib, prelib, preattrs, primprelib, ... }:
 with builtins;
 with prelib;
@@ -1427,13 +1427,13 @@ rec {
 
 ***** paths.nix
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601184952773228000
 
 #+name: 20210601184952773228000
-#+begin_src nix :tangle (jr/tangle-path)
+#+begin_src nix :tangle (aiern/tangle-path)
 { sources, ... }: with builtins; rec {
     nixos = toString (./. + "/..");
     lib = "${nixos}/lib";
@@ -1450,13 +1450,13 @@ rec {
 
 ***** _imprelib.nix
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601184956312357000
 
 #+name: 20210601184956312357000
-#+begin_src nix :tangle (jr/tangle-path)
+#+begin_src nix :tangle (aiern/tangle-path)
 { lib, primprelib, ... }:
 with builtins;
 with primprelib;
@@ -1484,13 +1484,13 @@ rec {
 
 From: https://github.com/pukkamustard/nixpkgs/blob/guix/nixos/modules/services/development/guix.nix
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601184958501115000
 
 #+name: 20210601184958501115000
-#+begin_src nix :tangle (jr/tangle-path)
+#+begin_src nix :tangle (aiern/tangle-path)
 {config, pkgs, lib, ...}:
 
 with lib;
@@ -1590,7 +1590,7 @@ in {
 
 ***** bcachefs.nix
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601185001135617000
@@ -1598,7 +1598,7 @@ in {
 # TODO: Does not work on aarch64-linux yet
 
 #+name: 20210601185001135617000
-#+begin_src nix :tangle (jr/tangle-path)
+#+begin_src nix :tangle (aiern/tangle-path)
 { config, pkgs, lib, system, ... }: with builtins; with lib; with j; let b = "bcachefs"; in mkIf (
     !elem system [ "aarch64-linux" ]
 ) {
@@ -1616,7 +1616,7 @@ in {
 
 ***** boot.nix
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601185002667222800
@@ -1653,13 +1653,13 @@ loader = {
 };
 #+end_src
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601185004200076000
 
 #+name: 20210601185004200076000
-#+begin_src nix :tangle (jr/tangle-path)
+#+begin_src nix :tangle (aiern/tangle-path)
 { config, lib, pkgs, host, ... }: with builtins; with lib; with j; {
     boot = let
         p = attrs.users.primary;
@@ -1690,13 +1690,13 @@ loader = {
 
 ***** console.nix
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601185005838819700
 
 #+name: 20210601185005838819700
-#+begin_src nix :tangle (jr/tangle-path)
+#+begin_src nix :tangle (aiern/tangle-path)
 { config, lib, ... }: with builtins; with lib; with j; {
     console = {
         # Select internationalisation properties.
@@ -1709,13 +1709,13 @@ loader = {
 
 ***** etc.nix
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601185007760601200
 
 #+name: 20210601185007760601200
-#+begin_src nix :tangle (jr/tangle-path)
+#+begin_src nix :tangle (aiern/tangle-path)
 { config, lib, pkgs, system, ... }: with builtins; with lib; with j; {
     environment.etc = let
         kata-containers = {
@@ -1746,13 +1746,13 @@ loader = {
 
 ***** filesystems.nix
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601185009548172600
 
 #+name: 20210601185009548172600
-#+begin_src nix :tangle (jr/tangle-path)
+#+begin_src nix :tangle (aiern/tangle-path)
 { config, lib, stc, ... }: with builtins; with lib; with j; mkIf (config.vars.zfs) { fileSystems = let
     inherit (attrs.fileSystems) base;
     fileSystems' = import ../config/_datasets.nix stc.host;
@@ -1770,13 +1770,13 @@ Help is available in the configuration.nix(5) man page
 and in the NixOS manual (accessible by running ‘nixos-help’).
 #+end_src
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601185011702577000
 
 #+name: 20210601185011702577000
-#+begin_src nix :tangle (jr/tangle-path)
+#+begin_src nix :tangle (aiern/tangle-path)
 { config, lib, nixpkgset, system, ... }: with builtins; with lib; with j; {
     nixpkgs = nixpkgset;
     i18n = {
@@ -1816,13 +1816,13 @@ and in the NixOS manual (accessible by running ‘nixos-help’).
 
 ***** hardware.nix
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601185027009881400
 
 #+name: 20210601185027009881400
-#+begin_src nix :tangle (jr/tangle-path)
+#+begin_src nix :tangle (aiern/tangle-path)
 { config, lib, ... }: with builtins; with lib; with j; {
     hardware = {
         enableRedistributableFirmware = lib.mkDefault true;
@@ -1835,13 +1835,13 @@ and in the NixOS manual (accessible by running ‘nixos-help’).
 
 ***** home.nix
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601185029141785800
 
 #+name: 20210601185029141785800
-#+begin_src nix :tangle (jr/tangle-path)
+#+begin_src nix :tangle (aiern/tangle-path)
 { config, lib, ... }: with builtins; with lib; with j; {
     # home-manager.users = let
     #     stc = {}
@@ -1852,13 +1852,13 @@ and in the NixOS manual (accessible by running ‘nixos-help’).
 
 ***** kernel.nix
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601185030781221800
 
 #+name: 20210601185030781221800
-#+begin_src nix :tangle (jr/tangle-path)
+#+begin_src nix :tangle (aiern/tangle-path)
 { config, lib, pkgs, ... }: with builtins; with lib; with j; {
     boot = {
         # kernelPackages = pkgs.linuxPackages_latest_xen_dom0_hardened;
@@ -1892,13 +1892,13 @@ Set the =SWAP= device if:
 I am currently not using =SWAP= on =ZFS Zvols= due to the issues detailed
 [[https://github.com/openzfs/zfs/issues/7734][here]].
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601185032403282100
 
 #+name: 20210601185032403282100
-#+begin_src nix :tangle (jr/tangle-path)
+#+begin_src nix :tangle (aiern/tangle-path)
 { config, lib, host, ... }: with builtins; with lib; with j; mkIf (
     config.vars.minimal -> config.vars.noSwap
 ) { swapDevices = [{ device = "/dev/zvol/${host}/swap"; }]; }
@@ -1906,13 +1906,13 @@ I am currently not using =SWAP= on =ZFS Zvols= due to the issues detailed
 
 ***** networking.nix
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601185033854488300
 
 #+name: 20210601185033854488300
-#+begin_src nix :tangle (jr/tangle-path)
+#+begin_src nix :tangle (aiern/tangle-path)
 { config, lib, hostName, ... }: with builtins; with lib; with j; {
     networking = let
         primus = "58a4bafc38c2cc6e91ba27c7f1ca910c8fba857ee02f03648450b963db2519fc";
@@ -1964,13 +1964,13 @@ I am currently not using =SWAP= on =ZFS Zvols= due to the issues detailed
 
 ***** nix.nix
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601185035246626000
 
 #+name: 20210601185035246626000
-#+begin_src nix :tangle (jr/tangle-path)
+#+begin_src nix :tangle (aiern/tangle-path)
 { config, lib, ... }: with builtins; with lib; with j; {
     nix = rec {
         gc = foldToSet [
@@ -2005,25 +2005,25 @@ I am currently not using =SWAP= on =ZFS Zvols= due to the issues detailed
 
 ***** packages.nix
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601185037079389900
 
 #+name: 20210601185037079389900
-#+begin_src nix :tangle (jr/tangle-path)
+#+begin_src nix :tangle (aiern/tangle-path)
 inputs@{ config, pkgs, sources, lib, ... } : { environment.systemPackages = import ../packages.nix inputs; }
 #+end_src
 
 ***** persistence.nix
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601185038697262200
 
 #+name: 20210601185038697262200
-#+begin_src nix :tangle (jr/tangle-path)
+#+begin_src nix :tangle (aiern/tangle-path)
 { config, lib, ... }: with builtins; with lib; with j; {
     environment.${myIf.knull config.vars.zfs "persistence"} = attrs.persistence.system {};
 }
@@ -2031,13 +2031,13 @@ inputs@{ config, pkgs, sources, lib, ... } : { environment.systemPackages = impo
 
 ***** power.nix
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601185040292063500
 
 #+name: 20210601185040292063500
-#+begin_src nix :tangle (jr/tangle-path)
+#+begin_src nix :tangle (aiern/tangle-path)
 { config, lib, ... }: with builtins; with lib; with j; {
     services.logind.lidSwitch = "hybrid-sleep";
     powerManagement = {
@@ -2051,13 +2051,13 @@ inputs@{ config, pkgs, sources, lib, ... } : { environment.systemPackages = impo
 
 This is mostly for Yubikey Authentication:
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601185041882938600
 
 #+name: 20210601185041882938600
-#+begin_src nix :tangle (jr/tangle-path)
+#+begin_src nix :tangle (aiern/tangle-path)
 { config, lib, ... }: with builtins; with lib; with j; {
     # For Yubikey SSH-GPG Authentication
     environment.shellInit = ''
@@ -2092,7 +2092,7 @@ This is mostly for Yubikey Authentication:
 
 ***** services.nix
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601185043527440500
@@ -2133,7 +2133,7 @@ in {
 };
 #+end_src
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601185045150190700
@@ -2171,13 +2171,13 @@ in {
 };
 #+end_src
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601185046664836000
 
 #+name: 20210601185046664836000
-#+begin_src nix :tangle (jr/tangle-path)
+#+begin_src nix :tangle (aiern/tangle-path)
 { config, lib, pkgs, host, system, ... }: with builtins; with lib; with j; {
     services = {
         <<20210601185043527440500>>
@@ -2255,13 +2255,13 @@ in {
 
 ***** shell.nix
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601185048305544300
 
 #+name: 20210601185048305544300
-#+begin_src nix :tangle (jr/tangle-path)
+#+begin_src nix :tangle (aiern/tangle-path)
 { config, lib, system, ... }: with builtins; with lib; with j; {
     programs = {
         xonsh.enable = true;
@@ -2275,7 +2275,7 @@ in {
 
 ***** _specialisation.nix
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601185055287903500
@@ -2319,13 +2319,13 @@ rec {
 }
 #+end_src
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601185057188906700
 
 #+name: 20210601185057188906700
-#+begin_src nix :tangle (jr/tangle-path)
+#+begin_src nix :tangle (aiern/tangle-path)
 { config, lib, pkgs, ... }: with builtins; with lib; with j; {
     specialisation = let
         specialisation_base =
@@ -2381,13 +2381,13 @@ rec {
 
 ***** systemd.nix
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601185059100247400
 
 #+name: 20210601185059100247400
-#+begin_src nix :tangle (jr/tangle-path)
+#+begin_src nix :tangle (aiern/tangle-path)
 { config, lib, pkgs, ... }: with builtins; with lib; with j; {
     systemd = {
         packages = with pkgs; [ runit ly ];
@@ -2401,13 +2401,13 @@ rec {
 
 ***** users.nix
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601185100896555400
 
 #+name: 20210601185100896555400
-#+begin_src nix :tangle (jr/tangle-path)
+#+begin_src nix :tangle (aiern/tangle-path)
 inputs@{ config, lib, pkgs, sources, stc, system, ... }: with builtins; with lib; with j; {
     users = with attrs.users; let
         base = mkMerge [{
@@ -2489,7 +2489,7 @@ inputs@{ config, lib, pkgs, sources, stc, system, ... }: with builtins; with lib
 
 ***** variables.nix
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601185102627466300
@@ -2504,13 +2504,13 @@ options = {
 };
 #+end_src
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601185104370957400
 
 #+name: 20210601185104370957400
-#+begin_src nix :tangle (jr/tangle-path)
+#+begin_src nix :tangle (aiern/tangle-path)
 { config, lib, stc, ... }: with builtins; with lib; with j; {
     <<20210601185102627466300>>
     config.vars = {
@@ -2524,13 +2524,13 @@ options = {
 
 ***** virtualisation.nix
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601185106194079000
 
 #+name: 20210601185106194079000
-#+begin_src nix :tangle (jr/tangle-path)
+#+begin_src nix :tangle (aiern/tangle-path)
 { config, lib, pkgs, system, ... }: with builtins; with lib; with j; mkIf (
     !(config.vars.minimal || elem system [ "aarch64-linux" ])
 ) {
@@ -2551,13 +2551,13 @@ options = {
 
 ***** zfs.nix
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601185108071879200
 
 #+name: 20210601185108071879200
-#+begin_src nix :tangle (jr/tangle-path)
+#+begin_src nix :tangle (aiern/tangle-path)
 { config, lib, host, ... }: with builtins; with lib; with j; {
     boot = {
         kernelModules = [ "zfs" ];
@@ -2584,7 +2584,7 @@ options = {
 **** overlays
 ***** base
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601185110013135100
@@ -2701,7 +2701,7 @@ in flatten [
 
 ***** overrides
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601185111589161600
@@ -2720,7 +2720,7 @@ in flatten (mapAttrsToList (
 
 ***** _mach-nix
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601185113382242300
@@ -2735,7 +2735,7 @@ in flatten (mapAttrsToList (
 }
 #+end_src
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601185114873837100
@@ -2749,7 +2749,7 @@ packagesExtra = [
 ];
 #+end_src
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601185116284142400
@@ -2759,7 +2759,7 @@ packagesExtra = [
 providers._defaults = "conda-forge,conda,wheel,sdist,nixpkgs";
 #+end_src
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601185118202517300
@@ -2783,13 +2783,13 @@ in finalOverlay" `((?p . ,pkg) (?q . ,pythonPackages) (?v . ,version)))
 
 ****** qtile.nix
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601185125138787100
 
 #+name: 20210601185125138787100
-#+begin_src nix :tangle (jr/tangle-path)
+#+begin_src nix :tangle (aiern/tangle-path)
 <<20210601185113382242300>>:
 
 with builtins; let
@@ -2826,13 +2826,13 @@ with builtins; let
 
 ****** xonsh.nix
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601185127082738200
 
 #+name: 20210601185127082738200
-#+begin_src nix :tangle (jr/tangle-path)
+#+begin_src nix :tangle (aiern/tangle-path)
 <<20210601185113382242300>>:
 
 with builtins; let
@@ -2888,13 +2888,13 @@ with builtins; let
 
 ***** default.nix
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601185341615106400
 
 #+name: 20210601185341615106400
-#+begin_src nix :tangle (jr/tangle-path)
+#+begin_src nix :tangle (aiern/tangle-path)
 with builtins; {
     stc ? ({ system = currentSystem; channel = "pkgs"; }),
     ...
@@ -2939,7 +2939,7 @@ in with lib; flatten [
 
 From: https://github.com/pukkamustard/nixpkgs/blob/guix/pkgs/development/guix/guix.nix
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601185343563328200
@@ -2995,7 +2995,7 @@ stdenv.mkDerivation rec
 This is the base extension, overriding the =nativeBuildInputs= attribute to include the =zstd= package, to facilitate =zstd=
 compression for the kernel:
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601185345398351400
@@ -3011,7 +3011,7 @@ const (super: { kernel = super.kernel.overrideDerivation (drv: {
 
 Adapted from [[https://www.reddit.com/r/NixOS/comments/jtgi35/cant_build_custom_kernel/][here]]:
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601185346927223400
@@ -3050,13 +3050,13 @@ map (ver: let
 
 ***** flake.nix
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601185348536012000
 
 #+name: 20210601185348536012000
-#+begin_src nix :tangle (jr/tangle-path)
+#+begin_src nix :tangle (aiern/tangle-path)
 {
     description = "Overlay Sources";
 
@@ -3091,13 +3091,13 @@ map (ver: let
 
 **** packages.nix
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601195930734248900
 
 #+name: 20210601195930734248900
-#+begin_src nix :tangle (jr/tangle-path)
+#+begin_src nix :tangle (aiern/tangle-path)
 inputs@{
     pkgs,
     lib,
@@ -3298,13 +3298,13 @@ in [
 ***** shared
 ****** armv67l.nix
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601185350150461400
 
 #+name: 20210601185350150461400
-#+begin_src nix :tangle (jr/tangle-path)
+#+begin_src nix :tangle (aiern/tangle-path)
 { config, lib, ... }: with builtins; with lib; with j; {
     nix = {
         binaryCaches = [
@@ -3322,13 +3322,13 @@ in [
 ***** arm
 ****** default.nix
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601185351622602000
 
 #+name: 20210601185351622602000
-#+begin_src nix :tangle (jr/tangle-path)
+#+begin_src nix :tangle (aiern/tangle-path)
 inputs@{ config, lib, ... }: with builtins; with lib; with j; {
     imports = map (file: import file inputs) (imprelib.list { dir = ./.; });
     config = {
@@ -3343,13 +3343,13 @@ inputs@{ config, lib, ... }: with builtins; with lib; with j; {
 ***** armv6l-linux
 ****** default.nix
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601185353321602000
 
 #+name: 20210601185353321602000
-#+begin_src nix :tangle (jr/tangle-path)
+#+begin_src nix :tangle (aiern/tangle-path)
 inputs@{ config, lib, ... }: with builtins; with lib; with j; {
     imports = map (fd: import fd inputs) (flatten [
         [ ../arm ../shared/armv67l.nix ]
@@ -3361,13 +3361,13 @@ inputs@{ config, lib, ... }: with builtins; with lib; with j; {
 ***** armv7l-linux
 ****** default.nix
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601185354863625500
 
 #+name: 20210601185354863625500
-#+begin_src nix :tangle (jr/tangle-path)
+#+begin_src nix :tangle (aiern/tangle-path)
 inputs@{ config, lib, ... }: with builtins; with lib; with j; {
     imports = map (fd: import fd inputs) (flatten [
         [ ../arm ../shared/armv67l.nix ]
@@ -3379,13 +3379,13 @@ inputs@{ config, lib, ... }: with builtins; with lib; with j; {
 ***** aarch64-linux
 ****** default.nix
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601185356455654500
 
 #+name: 20210601185356455654500
-#+begin_src nix :tangle (jr/tangle-path)
+#+begin_src nix :tangle (aiern/tangle-path)
 inputs@{ config, lib, ... }: with builtins; with lib; with j; {
     imports = map (fd: import fd inputs) (flatten [
         [ ../arm ]
@@ -3396,13 +3396,13 @@ inputs@{ config, lib, ... }: with builtins; with lib; with j; {
 
 **** repl.nix
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601185357956752000
 
 #+name: 20210601185357956752000
-#+begin_src nix :tangle (jr/tangle-path)
+#+begin_src nix :tangle (aiern/tangle-path)
 let
   flake = builtins.getFlake (toString ./.);
   nixpkgs = import <nixpkgs> { };
@@ -3418,13 +3418,13 @@ in
 **** resources
 ***** users.json
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601185359809444000
 
 #+name: 20210601185359809444000
-#+begin_src json :tangle (jr/tangle-path)
+#+begin_src json :tangle (aiern/tangle-path)
 {
     "primary": "<<username>>",
     "secondary": "frost",
@@ -3435,20 +3435,20 @@ in
 *** nix
 **** nix.conf
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601185401285170600
 
 #+name: 20210601185401285170600
-#+begin_src nix :tangle (jr/tangle-path)
+#+begin_src nix :tangle (aiern/tangle-path)
 <<20210601185855166479800>>
 #+end_src
 
 *** zsh
 **** keephack
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601185403002625400
@@ -3467,67 +3467,67 @@ in
 # From: https://www.draketo.de/light/english/minimal-example-for-literate-programming-noweb-emacs-org-mode
 # From: https://emacs.stackexchange.com/questions/47474/setting-variable-for-org-mode-html-export
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601185408210445400
 
 #+name: 20210601185408210445400
-#+begin_src sh :tangle (jr/tangle-path)
+#+begin_src sh :tangle (aiern/tangle-path)
 <<20210601185403002625400()>>
 #+end_src
 
 * home
 ** .gitattributes
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601185410274391500
 
 #+name: 20210601185410274391500
-#+begin_src gitattributes :tangle (jr/tangle-oreo)
+#+begin_src gitattributes :tangle (aiern/tangle-oreo)
 <<20210601214257298335500>>
 #+end_src
 
 ** .xonsh.d
 *** fzf_tmux_dir_file.sh
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601185418661581700
 
 #+name: 20210601185418661581700
-#+begin_src sh :tangle (jr/tangle-path)
+#+begin_src sh :tangle (aiern/tangle-path)
 echo $(find "$1" | fzf-tmux)
 #+end_src
 
 *** fzf_tmux_pkg.sh
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601185421600244400
 
 #+name: 20210601185421600244400
-#+begin_src sh :tangle (jr/tangle-path)
+#+begin_src sh :tangle (aiern/tangle-path)
 echo $(dpkg --get-selections | fzf-tmux)
 #+end_src
 
 ** .xonshrc
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601185424827789400
 
 #+name: 20210601185424827789400
-#+begin_src xonsh :tangle (jr/tangle-oreo)
+#+begin_src xonsh :tangle (aiern/tangle-oreo)
 <<20210601214242951916200>>
 #+end_src
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601185427358430600
@@ -3549,7 +3549,7 @@ homeManager = True
 
 *** nixos
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601185428842611300
@@ -3577,7 +3577,7 @@ aliases["deploy"] = _deploy
 
 ** zsh
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601185430439244600
@@ -3637,7 +3637,7 @@ starship.enableZshIntegration = true;
 
 ** .zshrc
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601185442157612700
@@ -3658,19 +3658,19 @@ starship.enableZshIntegration = true;
 # From: https://www.draketo.de/light/english/minimal-example-for-literate-programming-noweb-emacs-org-mode
 # From: https://emacs.stackexchange.com/questions/47474/setting-variable-for-org-mode-html-export
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601185446405488200
 
 #+name: 20210601185446405488200
-#+begin_src sh :tangle (jr/tangle-path)
+#+begin_src sh :tangle (aiern/tangle-path)
 <<20210601185442157612700()>>
 #+end_src
 
 ** .zshenv
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601185451794769400
@@ -3689,19 +3689,19 @@ starship.enableZshIntegration = true;
 # From: https://www.draketo.de/light/english/minimal-example-for-literate-programming-noweb-emacs-org-mode
 # From: https://emacs.stackexchange.com/questions/47474/setting-variable-for-org-mode-html-export
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601185454964123500
 
 #+name: 20210601185454964123500
-#+begin_src sh :tangle (jr/tangle-path)
+#+begin_src sh :tangle (aiern/tangle-path)
 <<20210601185451794769400()>>
 #+end_src
 
 ** .zprofile
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601185457701910200
@@ -3720,19 +3720,19 @@ starship.enableZshIntegration = true;
 # From: https://www.draketo.de/light/english/minimal-example-for-literate-programming-noweb-emacs-org-mode
 # From: https://emacs.stackexchange.com/questions/47474/setting-variable-for-org-mode-html-export
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601185459709528000
 
 #+name: 20210601185459709528000
-#+begin_src sh :tangle (jr/tangle-path)
+#+begin_src sh :tangle (aiern/tangle-path)
 <<20210601185457701910200()>>
 #+end_src
 
 ** .zlogout
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601185501472232200
@@ -3751,19 +3751,19 @@ starship.enableZshIntegration = true;
 # From: https://www.draketo.de/light/english/minimal-example-for-literate-programming-noweb-emacs-org-mode
 # From: https://emacs.stackexchange.com/questions/47474/setting-variable-for-org-mode-html-export
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601185503163928300
 
 #+name: 20210601185503163928300
-#+begin_src sh :tangle (jr/tangle-path)
+#+begin_src sh :tangle (aiern/tangle-path)
 <<20210601185501472232200()>>
 #+end_src
 
 ** .zlogin
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601185504929349900
@@ -3782,13 +3782,13 @@ starship.enableZshIntegration = true;
 # From: https://www.draketo.de/light/english/minimal-example-for-literate-programming-noweb-emacs-org-mode
 # From: https://emacs.stackexchange.com/questions/47474/setting-variable-for-org-mode-html-export
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601185506839665700
 
 #+name: 20210601185506839665700
-#+begin_src sh :tangle (jr/tangle-path)
+#+begin_src sh :tangle (aiern/tangle-path)
 <<20210601185504929349900()>>
 #+end_src
 
@@ -3796,19 +3796,19 @@ starship.enableZshIntegration = true;
 *** yadm
 **** bootstrap
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601185512741369900
 
 #+name: 20210601185512741369900
-#+begin_src sh :tangle (jr/tangle-path) :shebang "#!/usr/bin/env bash"
+#+begin_src sh :tangle (aiern/tangle-path) :shebang "#!/usr/bin/env bash"
 <<20210601184651836098700>>
 #+end_src
 
 *** kitty
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601185514628869000
@@ -3822,7 +3822,7 @@ kitty = {
 };
 #+end_src
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601185516365354300
@@ -3832,7 +3832,7 @@ kitty = {
 Monokai_Soda
 #+end_src
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601185517894186800
@@ -3844,19 +3844,19 @@ Monokai_Soda
 
 **** kitty.conf
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601185519555635200
 
 #+name: 20210601185519555635200
-#+begin_src conf :tangle (jr/tangle-path)
+#+begin_src conf :tangle (aiern/tangle-path)
 include ./theme.conf
 #+end_src
 
 **** theme.conf
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601185521282472600
@@ -3872,19 +3872,19 @@ include ./theme.conf
             "")))
 #+end_src
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601185522915194400
 
 #+name: 20210601185522915194400
-#+begin_src conf :tangle (jr/tangle-path)
+#+begin_src conf :tangle (aiern/tangle-path)
 <<20210601185521282472600()>>
 #+end_src
 
 *** qtile
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601185525000840300
@@ -3896,19 +3896,19 @@ include ./theme.conf
 
 **** config.py
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601185823132554800
 
 #+name: 20210601185823132554800
-#+begin_src python :tangle (jr/tangle-oreo)
+#+begin_src python :tangle (aiern/tangle-oreo)
 <<20210601214231713054800>>
 #+end_src
 
 *** fish
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601185826302626100
@@ -3931,13 +3931,13 @@ starship.enableFishIntegration = true;
 
 **** config.fish
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601185828039219300
 
 #+name: 20210601185828039219300
-#+begin_src fish :tangle (jr/tangle-path)
+#+begin_src fish :tangle (aiern/tangle-path)
 bass source ~/.nix-profile/etc/profile.d/hm-session-vars.sh
 alias sf=source ~/.config/fish/config.fish
 alias n=exit
@@ -3947,7 +3947,7 @@ starship init fish | source
 
 *** ion
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601185829828213000
@@ -3959,19 +3959,19 @@ starship init fish | source
 
 **** initrc
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601185831324401300
 
 #+name: 20210601185831324401300
-#+begin_src ion :tangle (jr/tangle-path)
+#+begin_src ion :tangle (aiern/tangle-path)
 eval $(starship init ion)
 #+end_src
 
 *** powershell
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601185832861775500
@@ -3983,19 +3983,19 @@ eval $(starship init ion)
 
 **** Microsoft.PowerShell_profile.ps1
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601185834367531900
 
 #+name: 20210601185834367531900
-#+begin_src powershell :tangle (jr/tangle-path)
+#+begin_src powershell :tangle (aiern/tangle-path)
 Invoke-Expression (&starship init powershell)
 #+end_src
 
 *** nixpkgs
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601185836015744100
@@ -4011,7 +4011,7 @@ let stc = legacyPackages.hostName.${getEnv \"HOSTNAME\"};
 in getAttrFromPath (attrValues stc) legacyPackages.%o" `((?o . ,oc)))
 #+end_src
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601185837674888000
@@ -4025,31 +4025,31 @@ in getAttrFromPath (attrValues stc) legacyPackages.%o" `((?o . ,oc)))
 
 **** overlays.nix
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601185839211912000
 
 #+name: 20210601185839211912000
-#+begin_src nix :tangle (jr/tangle-path)
+#+begin_src nix :tangle (aiern/tangle-path)
 <<20210601185836015744100(oc="overlays")>>
 #+end_src
 
 **** config.nix
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601185840693626300
 
 #+name: 20210601185840693626300
-#+begin_src nix :tangle (jr/tangle-path)
+#+begin_src nix :tangle (aiern/tangle-path)
 <<20210601185836015744100(oc="config")>>
 #+end_src
 
 **** home.nix
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601185842088170000
@@ -4115,7 +4115,7 @@ withLink = link: with link; { "${target}" = { inherit source; }; };
 hash = user: j.hostName { stc = stc // { inherit user; }; };
 #+end_src
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601185843559082700
@@ -4154,7 +4154,7 @@ hash = user: j.hostName { stc = stc // { inherit user; }; };
 })
 #+end_src
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601213425809120100
@@ -4199,13 +4199,13 @@ hash = user: j.hostName { stc = stc // { inherit user; }; };
 })
 #+end_src
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601185853098066700
 
 #+name: 20210601185853098066700
-#+begin_src nix :tangle (jr/tangle-path)
+#+begin_src nix :tangle (aiern/tangle-path)
 with builtins; let
     base = { stc, all, flake, ... }:
         with builtins;
@@ -4313,13 +4313,13 @@ in with lib; with j; forAllSystems' {
 *** nix
 **** nix.conf
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601185855166479800
 
 #+name: 20210601185855166479800
-#+begin_src conf :tangle (jr/tangle-path)
+#+begin_src conf :tangle (aiern/tangle-path)
 <<20210601184948158342800>>
 min-free = 262144000
 max-free = 1073741824
@@ -4327,7 +4327,7 @@ max-free = 1073741824
 
 ** .bashrc
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601213133906441600
@@ -4346,13 +4346,13 @@ bash = {
 starship.enableBashIntegration = true;
 #+end_src
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601185858457019500
 
 #+name: 20210601185858457019500
-#+begin_src sh :tangle (jr/tangle-path)
+#+begin_src sh :tangle (aiern/tangle-path)
 source ~/.nix-profile/etc/profile.d/hm-session-vars.sh
 alias c=clear
 alias n=exit
@@ -4362,7 +4362,7 @@ eval "$(starship init bash)"
 
 ** rc.elv
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601185901673235100
@@ -4372,13 +4372,13 @@ eval "$(starship init bash)"
 "rc.elv".source = "${homeDirectory}/${primary.user}/home/rc.elv";
 #+end_src
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601185904498814800
 
 #+name: 20210601185904498814800
-#+begin_src elvish :tangle (jr/tangle-path)
+#+begin_src elvish :tangle (aiern/tangle-path)
 # use epm
 # epm:install github.com/tylerreckart/gondolin
 # use github.com/tylerreckart/gondolin/gondolin
@@ -4387,7 +4387,7 @@ eval (starship init elvish)
 
 ** .SpaceVim.d
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601185906086312300
@@ -4408,32 +4408,32 @@ eval (starship init elvish)
 
 *** init.toml
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601185907580979300
 
 #+name: 20210601185907580979300
-#+begin_src conf :tangle (jr/tangle-oreo)
+#+begin_src conf :tangle (aiern/tangle-oreo)
 <<20210601214235078130500>>
 #+end_src
 
 *** autoload
 **** vimrc.vim
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601185909239055500
 
 #+name: 20210601185909239055500
-#+begin_src vimrc :tangle (jr/tangle-oreo)
+#+begin_src vimrc :tangle (aiern/tangle-oreo)
 <<20210601214241093346900>>
 #+end_src
 
 ** makefile
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601185910773859000
@@ -4452,13 +4452,13 @@ powerline/powerline ~/<<username>>/resources/powerline
 tmux-plugins/tpm ~/<<username>>/resources/tpm
 #+end_src
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601185912312833700
 
 #+name: 20210601185912312833700
-#+begin_src makefile :tangle (jr/tangle-path)
+#+begin_src makefile :tangle (aiern/tangle-path)
 .RECIPEPREFIX := |
 
 init:
@@ -4468,7 +4468,7 @@ init:
 
 ** git
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601185913912448600
@@ -4503,7 +4503,7 @@ git = {
 };
 #+end_src
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601185923733355900
@@ -4516,13 +4516,13 @@ git = {
 
 ** .gitignore
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601185925524999600
 
 #+name: 20210601185925524999600
-#+begin_src gitignore :tangle (jr/tangle-path)
+#+begin_src gitignore :tangle (aiern/tangle-path)
 _gsdata_
 .boar
 .git
@@ -4547,7 +4547,7 @@ temp
 
 ** .hgrc
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601185927098034100
@@ -4582,19 +4582,19 @@ mercurial = {
 
 ** .hgignore
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601185928691269400
 
 #+name: 20210601185928691269400
-#+begin_src gitignore :tangle (jr/tangle-path)
+#+begin_src gitignore :tangle (aiern/tangle-path)
 <<20210601185925524999600>>
 #+end_src
 
 ** emacs
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601185930291067900
@@ -4616,7 +4616,7 @@ emacs = {
 };
 #+end_src
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601185931858588700
@@ -4633,7 +4633,7 @@ emacs = {
 
 ** starship
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601185933359940100
@@ -4651,32 +4651,32 @@ starship = {
 
 ** .tmux.conf
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601185934915109100
 
 #+name: 20210601185934915109100
-#+begin_src conf :tangle (jr/tangle-oreo)
+#+begin_src conf :tangle (aiern/tangle-oreo)
 <<20210601214259128138500>>
 #+end_src
 
 ** .byobu
 *** .tmux.conf
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601185936581538600
 
 #+name: 20210601185936581538600
-#+begin_src conf :tangle (jr/tangle-oreo)
+#+begin_src conf :tangle (aiern/tangle-oreo)
 <<20210601214259128138500>>
 #+end_src
 
 ** tmux
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601185938069815900
@@ -4686,7 +4686,7 @@ starship = {
 <<20210601214337624066100>>
 #+end_src
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601185939558599100
@@ -4698,13 +4698,13 @@ starship = {
 
 ** .direnvrc
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601185941178211700
 
 #+name: 20210601185941178211700
-#+begin_src shell :tangle (jr/tangle-path)
+#+begin_src shell :tangle (aiern/tangle-path)
 source $HOME/.nix-direnv/direnvrc
 source $HOME/.config/direnv/direnvrc
 
@@ -4715,7 +4715,7 @@ fi
 
 ** direnv
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601185942654247100
@@ -4739,7 +4739,7 @@ direnv = {
 };
 #+end_src
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601185944075672100
@@ -4752,13 +4752,13 @@ direnv = {
 
 * wheee
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601185945571372600
 
 #+name: 98b2f4dcc6b880dfefca30da2b287931
-#+begin_src python :tangle (jr/tangle-path) :shebang "#!/usr/bin/env python3.9"
+#+begin_src python :tangle (aiern/tangle-path) :shebang "#!/usr/bin/env python3.9"
 import argparse
 import os
 from sys import argv
@@ -4839,13 +4839,13 @@ if not args.dry_run:
 
 # Rewrite this for python 3.9
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601190008208069700
 
 #+name: 20210601190008208069700
-#+begin_src python :tangle (jr/tangle-path) :shebang "#!/usr/bin/env python3.9"
+#+begin_src python :tangle (aiern/tangle-path) :shebang "#!/usr/bin/env python3.9"
 import argparse
 import json
 import os
@@ -4904,7 +4904,7 @@ if args.all:
 
 ****** argparse
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601190005804224800
@@ -4951,7 +4951,7 @@ args = parser.parse_args()
 
 ****** create
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601190001707883400
@@ -4994,7 +4994,7 @@ run(f"{command} {args.Pool} {args.zfs_device}", shell = True)
 
 ******* open =f{resources}/users.json=
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601185958834005400
@@ -5015,7 +5015,7 @@ for user in users.values():
 ******* open =f{resources}/_datasets.nix=
 ******** before opening =f{resources}/_datasets.nix=
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601190011469159700
@@ -5067,7 +5067,7 @@ with open(f"{resources}/_datasets.nix", "w") as dnix:
 
 ******** after opening =f{resources}/_datasets.nix=
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601190013799970400
@@ -5085,7 +5085,7 @@ dnix.write("}")
 
 ******* open =datasets.json=
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601190015343762700
@@ -5130,7 +5130,7 @@ dnix.write("}")
 }
 #+end_src
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601214823296929900
@@ -5185,7 +5185,7 @@ for backup in (las := datasets[args.Pool][d]["las"][d]).keys():
 
 ****** mount
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601190019160487800
@@ -5240,7 +5240,7 @@ if args.swap:
 ****** update
 ******* before updating
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601190021157022400
@@ -5261,7 +5261,7 @@ s = "system"
 
 ******* after updating the pool
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601190023576455900
@@ -5315,7 +5315,7 @@ if args.swap:
 
 ******* if updating the pool
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601190025663776100
@@ -5333,7 +5333,7 @@ run(snapshot_command, shell = True)
 
 ******* files
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601190027596726400
@@ -5348,7 +5348,7 @@ run(snapshot_command, shell = True)
 
 ******* pool
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601190029500156200

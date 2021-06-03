@@ -5,36 +5,36 @@
 ** src
 *** src: template :t:
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601220934981016400
 
 #+name: 20210601220934981016400
-#+begin_src $1 :tangle (jr/tangle-path)
+#+begin_src $1 :tangle (aiern/tangle-path)
 $0
 #+end_src
 
 *** nix-src: nix :n:
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601220938466234900
 
 #+name: 20210601220938466234900
-#+begin_src nix :tangle (jr/tangle-path)
+#+begin_src nix :tangle (aiern/tangle-path)
 $0
 #+end_src
 
 *** elisp-src: emacs-lisp :e:
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601220943523404100
 
 #+name: 20210601220943523404100
-#+begin_src emacs-lisp :tangle (jr/tangle-path)
+#+begin_src emacs-lisp :tangle (aiern/tangle-path)
 $0
 #+end_src

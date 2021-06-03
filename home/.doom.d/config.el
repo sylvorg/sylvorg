@@ -3,20 +3,6 @@
 (load! "help+20")
 ;; (when (eq (find-font (font-spec :family "all-the-icons")) nil) (all-the-icons-install-fonts))
 
-;; Adapted From:
-;; Answer: https://emacs.stackexchange.com/a/26840/31428
-;; User: https://emacs.stackexchange.com/users/253/dan
-;; Adapted From: https://emacsredux.com/blog/2020/06/14/checking-the-major-mode-in-emacs-lisp/
-(defun jr/outline-folded-p nil
-    "Returns non-nil if point is on a folded headline or plain list
-    item."
-    (interactive)
-    (and (if (eq major-mode 'org-mode)
-            (or (org-at-heading-p)
-                (org-at-item-p))
-            outline-on-heading-p)
-        (invisible-p (point-at-eol))))
-
 ;; use-package
 ;; (setq use-package-always-defer t)
 
@@ -25,172 +11,62 @@
 
 ;; Adapted From: https://github.com/jwiegley/use-package#use-package-chords
 ;; Important: https://github.com/noctuid/general.el/issues/53#issuecomment-307262154
-(use-package! use-package-chords :demand t :hook (after-init . key-chord-mode))
+(use-package! use-package-chords :demand t)
 (use-package! use-package-hydra :demand t :custom (hydra-hint-display-type 'lv))
 (use-package! use-package-hydra+ :demand t)
 (use-package! use-package-hercules :demand t)
+
+(use-package! aiern :load-path "aiern")
+
+;; keys
 (load! "naked")
+(general-auto-unbind-keys)
+(setq general-implicit-kbd t)
+
+(general-def :keymaps 'override
+    (general-chord "zz") '+zen/toggle-fullscreen)
+(general-def :keymaps '(
+    minibuffer-local-keymap
+    counsel-describe-map
+    helm-buffer-map) "M-x" 'exit-minibuffer)
 
 ;; modal-modes
-
-;; Adapted From:
-;; Answer: https://emacs.stackexchange.com/a/42240
-;; User: user12563
-
-;; This list is prefilled with modal-modes that are also doom-emacs modules
-(defvar modal-modes '(evil-mode god-local-mode objed-mode))
-(defvar modal-prefixes (mapcar (lambda (mode) (interactive) (car (split-string (symbol-name mode) "-"))) modal-modes))
-(defvar last-modal-mode nil)
-(defvar all-keymaps-map nil)
-(defvar which-key-was-here t)
-
-(defun jr/any-popup-showing-p nil (interactive) (or hercules--popup-showing-p (which-key--popup-showing-p)))
-(defun jr/which-key-show-top-level (&optional keymap) (interactive)
-    (let* ((current-map (or (symbol-value keymap) (or overriding-terminal-local-map global-map)))
-        (which-key-function
-            ;; #'which-key-show-top-level
-            ;; #'(lambda nil (interactive) (which-key-show-full-keymap 'global-map))
-            ;; #'which-key-show-full-major-mode
-            ;; #'which-key-show-major-mode
-
-            ;; Adapted From:
-            ;; https://github.com/justbur/emacs-which-key/blob/master/which-key.el#L2359
-            ;; https://github.com/justbur/emacs-which-key/blob/master/which-key.el#L2666
-            #'(lambda nil (interactive) (
-                which-key--create-buffer-and-show nil current-map nil "Current bindings"))))
-        (if (which-key--popup-showing-p)
-            (when (or (member last-modal-mode modal-prefixes) keymap)
-                (funcall which-key-function) (setq last-modal-mode nil))
-            (funcall which-key-function))))
-(defun jr/hercules-hide-all-modal-modes (&optional keymap) (interactive)
-    (when overriding-terminal-local-map (mapc #'(lambda (prefix) (interactive)
-        (message (format "Hiding %s" prefix))
-        (ignore-errors (funcall (intern (concat "jr/" prefix "-hercules-hide"))))
-        ;; (internal-push-keymap 'global-map 'overriding-terminal-local-map)
-        ;; (internal-push-keymap nil 'overriding-terminal-local-map)
-        (setq overriding-terminal-local-map nil)) modal-prefixes))
-    (jr/which-key-show-top-level keymap))
-
-;; Adapted From:
-;; Answer: https://stackoverflow.com/a/10088995/10827766
-;; User: https://stackoverflow.com/users/324105/phils
-(defun fbatp (mode) (interactive)
-    (let* ((is-it-bound (boundp mode)))
-        (when is-it-bound (and (or (boundp (symbol-value mode))) (or (fboundp mode) (functionp mode))) mode)))
-
-(defun jr/disable-all-modal-modes (&optional keymap) (interactive)
-    (mapc
-        (lambda (mode-symbol)
-            ;; some symbols are functions which aren't normal mode functions
-            (when (fbatp mode-symbol)
-                (message (format "Disabling %s" (symbol-name mode-symbol)))
-                (ignore-errors
-                    (funcall mode-symbol -1))))
-            modal-modes)
-    (jr/hercules-hide-all-modal-modes keymap))
-
-;; Answer: https://stackoverflow.com/a/14490054/10827766
-;; User: https://stackoverflow.com/users/1600898/user4815162342
-(defun jr/keymap-symbol (keymap)
-    "Return the symbol to which KEYMAP is bound, or nil if no such symbol exists."
-    (catch 'gotit
-            (mapatoms (lambda (sym)
-                (and (boundp sym)
-                        (eq (symbol-value sym) keymap)
-                        (not (eq sym 'keymap))
-                        (throw 'gotit sym))))))
-
-;; Adapted From: https://gitlab.com/jjzmajic/hercules.el/-/blob/master/hercules.el#L83
-(defun jr/toggle-inner (mode prefix mode-on map) (interactive)
-    (jr/disable-all-modal-modes)
-    (unless mode-on
-        (funcall mode 1)
-        (ignore-errors (funcall (intern (concat "jr/" prefix "-hercules-show"))))
-        (setq last-modal-mode prefix)))
-
+;; hercules
 (use-package! hercules
     :demand t
     :general (:keymaps 'override
-        (general-chord "\\\\") 'jr/toggle-which-key
+        (general-chord "\\\\") 'aiern/toggle-which-key
         (general-chord "\\]") 'map-of-infinity/body)
     :hydra (map-of-infinity (:color blue :pre (progn
-                (when (jr/any-popup-showing-p) (jr/which-key--hide-popup))) :post (progn (unless hydra-curr-map (jr/which-key--show-popup))))
+                (when (aiern/any-popup-showing-p) (aiern/which-key--hide-popup))) :post (progn (unless hydra-curr-map (aiern/which-key--show-popup))))
             ("`" nil "cancel")
             ("w" hydra/which-key/body "which-key")
             ("h" hydra/hercules/body "hercules")
-            ("d" jr/disable-all-modal-modes "disable all modal modes")
+            ("d" aiern/disable-all-modal-modes "disable all modal modes")
             ("t" toggles/body "toggles")
             ("k" all-keymaps/body "all keymaps"))
         (hydra/which-key (:color blue :pre (progn
-                (when (jr/any-popup-showing-p) (jr/which-key--hide-popup))) :post (progn (unless hydra-curr-map (jr/which-key--show-popup))))
+                (when (aiern/any-popup-showing-p) (aiern/which-key--hide-popup))) :post (progn (unless hydra-curr-map (aiern/which-key--show-popup))))
             ("`" nil "cancel")
-            ("a" jr/any-popup-showing-p "any popup showing")
-            ("h" jr/which-key--hide-popup "hide-popup")
-            ("s" jr/which-key--show-popup "show-popup")
-            ("r" jr/which-key--refresh-popup "refresh-popup")
-            ("t" jr/toggle-which-key "toggle")
-            ("l" jr/which-key-show-top-level "jr/toplevel")
+            ("a" aiern/any-popup-showing-p "any popup showing")
+            ("h" aiern/which-key--hide-popup "hide-popup")
+            ("s" aiern/which-key--show-popup "show-popup")
+            ("r" aiern/which-key--refresh-popup "refresh-popup")
+            ("t" aiern/toggle-which-key "toggle")
+            ("l" aiern/which-key-show-top-level "aiern/toplevel")
             ("L" which-key-show-top-level "toplevel"))
         (hydra/hercules (:color blue :pre (progn
-                (when (jr/any-popup-showing-p) (jr/which-key--hide-popup))) :post (progn (unless hydra-curr-map (jr/which-key--show-popup))))
+                (when (aiern/any-popup-showing-p) (aiern/which-key--hide-popup))) :post (progn (unless hydra-curr-map (aiern/which-key--show-popup))))
             ("`" nil "cancel")
-            ("h" jr/hercules-hide-all-modal-modes "hide all modal modes"))
+            ("h" aiern/hercules-hide-all-modal-modes "hide all modal modes"))
         (toggles (:color blue :pre (progn
-                (when (jr/any-popup-showing-p) (jr/which-key--hide-popup))) :post (progn (unless hydra-curr-map (jr/which-key--show-popup)))) ("`" nil "cancel"))
+                (when (aiern/any-popup-showing-p) (aiern/which-key--hide-popup))) :post (progn (unless hydra-curr-map (aiern/which-key--show-popup)))) ("`" nil "cancel"))
         (all-keymaps (:color blue :pre (progn
-                (when (jr/any-popup-showing-p) (jr/which-key--hide-popup))) :post (progn (unless hydra-curr-map (jr/which-key--show-popup)))) ("`" nil "cancel"))
+                (when (aiern/any-popup-showing-p) (aiern/which-key--hide-popup))) :post (progn (unless hydra-curr-map (aiern/which-key--show-popup)))) ("`" nil "cancel"))
     :init
-        (defun jr/which-key--hide-popup nil (interactive)
-            (jr/disable-all-modal-modes)
-            (setq which-key-persistent-popup nil) (which-key--hide-popup)
-            (which-key-mode -1))
-        (defun jr/which-key--show-popup (&optional keymap force) (interactive)
-            (when (or which-key-was-here force) (jr/disable-all-modal-modes keymap)
-            (which-key-mode 1)
-            (setq which-key-persistent-popup t)))
-        (defun jr/which-key--refresh-popup (&optional keymap) (interactive)
-            (jr/which-key--hide-popup)
-            (jr/which-key--show-popup keymap t))
-        (defun jr/toggle-which-key (&optional keymap) (interactive)
-
-            ;; TODO: How does this bit work again...?
-            (setq which-key-was-here (not (jr/any-popup-showing-p)))
-
-            (if (jr/any-popup-showing-p)
-                (jr/which-key--hide-popup)
-                (jr/which-key--show-popup keymap t)))
         (setq which-key-enable-extended-define-key t)
         (setq which-key-idle-delay 0.1)
         (setq which-key-idle-secondary-delay nil)
-    :config
-
-        ;; TODO: This is causing hydra to always show the which-key popup
-        ;; (advice-add #'hydra-disable :after #'jr/which-key--show-popup)
-        ;; (advice-add #'hydra-disable :after #'jr/which-key--hide-popup)
-
-        (defun jr/hercules--hide (&optional keymap flatten &rest _)
-                "Dismiss hercules.el.
-            Pop KEYMAP from `overriding-terminal-local-map' when it is not
-            nil.  If FLATTEN is t, `hercules--show' was called with the same
-            argument.  Restore `which-key--update' after such a call."
-                (setq hercules--popup-showing-p nil
-
-                    ;; I like to dismiss the popups' myself
-                    which-key-persistent-popup t)
-                    ;; (which-key--hide-popup)
-
-                ;; I would like the value of `overriding-terminal-local-map' to be `nil'
-                (setq overriding-terminal-local-map nil)
-                ;; (when keymap
-                ;;     (internal-pop-keymap (symbol-value keymap)
-                ;;         'overriding-terminal-local-map))
-
-                (when flatten
-                    (advice-remove #'which-key--update #'ignore))
-
-                ;; Show the global popup, i.e. keep the popup
-                (jr/which-key-show-top-level))
-        (advice-add #'hercules--hide :override #'jr/hercules--hide)
     :custom
 
         ;; NOTE: When using the side window, this doesn't matter, apparently;
@@ -214,62 +90,66 @@
         (which-key-side-window-max-width 0.5)
         
         (which-key-side-window-max-height 0.25))
+
+;; ryo modal
 (use-package! ryo-modal
     :demand t
-    :general (:keymaps 'override (general-chord "  ") 'jr/toggle-ryo)
+    :general (:keymaps 'override (general-chord "  ") 'aiern/toggle-ryo-hercules)
     :hydra+
       (toggles (:color blue :pre (progn
-                    (when (jr/any-popup-showing-p) (jr/which-key--hide-popup))) :post (progn (unless hydra-curr-map (jr/which-key--show-popup)))) ("r" jr/toggle-ryo "ryo"))
+                    (when (aiern/any-popup-showing-p) (aiern/which-key--hide-popup))) :post (progn (unless hydra-curr-map (aiern/which-key--show-popup)))) ("r" aiern/toggle-ryo "ryo"))
         (all-keymaps (:color blue :pre (progn
-                    (when (jr/any-popup-showing-p) (jr/which-key--hide-popup))) :post (progn (unless hydra-curr-map (jr/which-key--show-popup)))) ("r" (progn (setq all-keymaps-map 'ryo-modal-mode) (jr/ryo-show-top-level)) "ryo"))
+                    (when (aiern/any-popup-showing-p) (aiern/which-key--hide-popup))) :post (progn (unless hydra-curr-map (aiern/which-key--show-popup)))) ("r" (progn (setq all-keymaps-map 'ryo-modal-mode) (aiern/ryo-show-top-level)) "ryo"))
     :hercules
-        (:show-funs #'jr/ryo-hercules-show
-        :hide-funs #'jr/ryo-hercules-hide
-        :toggle-funs #'jr/ryo-hercules-toggle
+        (:show-funs #'aiern/ryo-hercules-show
+        :hide-funs #'aiern/ryo-hercules-hide
+        :toggle-funs #'aiern/ryo-hercules-toggle
         :keymap 'ryo-modal-mode-map
         ;; :transient t
         )
     :config
-        (defun jr/ryo-hercules-toggle nil (interactive))
-        (defun jr/ryo-show-top-level nil (interactive)
-            (jr/which-key-show-top-level 'ryo-modal-mode-map))
+        (defun aiern/ryo-hercules-toggle nil (interactive))
+        (defun aiern/ryo-show-top-level nil (interactive)
+            (aiern/which-key-show-top-level 'ryo-modal-mode-map))
         (add-to-list 'modal-modes 'ryo-modal-mode)
         (add-to-list 'modal-prefixes "ryo")
     
-        (defun jr/toggle-ryo nil (interactive)
-            (funcall 'jr/toggle-inner 'ryo-modal-mode "ryo" (fbatp ryo-modal-mode) 'ryo-modal-mode-map))
+        (defun aiern/toggle-ryo nil (interactive)
+            (funcall 'aiern/toggle-inner 'ryo-modal-mode "ryo" (fbatp ryo-modal-mode) 'ryo-modal-mode-map))
+        (defun aiern/toggle-ryo-hercules nil (interactive)
+            (funcall 'aiern/toggle-inner 'ryo-modal-mode "ryo" (fbatp ryo-modal-mode) 'ryo-modal-mode-map t))
         ;; From: https://github.com/Kungsgeten/ryo-modal#which-key-integration
         (push '((nil . "ryo:.*:") . (nil . "")) which-key-replacement-alist))
+
+;; evil
 (use-package! evil
     :init (setq-default evil-escape-key-sequence nil)
     :general (:keymaps 'override
-        (general-chord "kk") 'jr/toggle-evil
-        ":" 'evil-ex)
+        (general-chord "kk") 'aiern/toggle-evil
+        (general-chord ",,") 'evil-ex)
     :hydra+
       (toggles (:color blue :pre (progn
-                    (when (jr/any-popup-showing-p) (jr/which-key--hide-popup))) :post (progn (unless hydra-curr-map (jr/which-key--show-popup)))) ("e" jr/toggle-evil "evil"))
+                    (when (aiern/any-popup-showing-p) (aiern/which-key--hide-popup))) :post (progn (unless hydra-curr-map (aiern/which-key--show-popup)))) ("e" aiern/toggle-evil "evil"))
         (all-keymaps (:color blue :pre (progn
-                    (when (jr/any-popup-showing-p) (jr/which-key--hide-popup))) :post (progn (unless hydra-curr-map (jr/which-key--show-popup)))) ("e" (progn (setq all-keymaps-map 'evil-mode) (jr/evil-show-top-level)) "evil"))
+                    (when (aiern/any-popup-showing-p) (aiern/which-key--hide-popup))) :post (progn (unless hydra-curr-map (aiern/which-key--show-popup)))) ("e" (progn (setq all-keymaps-map 'evil-mode) (aiern/evil-show-top-level)) "evil"))
     :hercules
-        (:show-funs #'jr/evil-hercules-show
-        :hide-funs #'jr/evil-hercules-hide
-        :toggle-funs #'jr/evil-hercules-toggle
+        (:show-funs #'aiern/evil-hercules-show
+        :hide-funs #'aiern/evil-hercules-hide
+        :toggle-funs #'aiern/evil-hercules-toggle
         :keymap 'evil-normal-state-map
         ;; :transient t
         )
     :config
-        (defun jr/evil-hercules-toggle nil (interactive))
-        (defun jr/evil-show-top-level nil (interactive)
-            (jr/which-key-show-top-level 'evil-normal-state-map))
+        (defun aiern/evil-hercules-toggle nil (interactive))
+        (defun aiern/evil-show-top-level nil (interactive)
+            (aiern/which-key-show-top-level 'evil-normal-state-map))
         (add-to-list 'modal-modes 'evil-mode)
         (add-to-list 'modal-prefixes "evil")
     
-        (defun jr/toggle-evil nil (interactive)
-            (funcall 'jr/toggle-inner 'evil-mode "evil" (fbatp evil-mode) 'evil-normal-state-map))
-        (advice-add #'evil-insert-state :override #'jr/disable-all-modal-modes)
-        (advice-add #'evil-ex :before #'jr/which-key--hide-popup)
-        (advice-add #'evil-ex :after #'jr/which-key--show-popup)
-
+        (defun aiern/toggle-evil nil (interactive)
+            (funcall 'aiern/toggle-inner 'evil-mode "evil" (fbatp evil-mode) 'evil-normal-state-map))
+        (defun aiern/toggle-evil-hercules nil (interactive)
+            (funcall 'aiern/toggle-inner 'evil-mode "evil" (fbatp evil-mode) 'evil-normal-state-map t))
         ;; From: https://www.reddit.com/r/emacs/comments/lp45zd/help_requested_in_configuring_ryomodal/gp3rfx9?utm_source=share&utm_medium=web2x&context=3
         ;; Kept for documentation porpoises
         ;; (eval
@@ -285,7 +165,7 @@
     :ryo
         ("l" :hydra
                 '(evil-exits (:color blue :pre (progn
-                (when (jr/any-popup-showing-p) (jr/which-key--hide-popup))) :post (progn (unless hydra-curr-map (jr/which-key--show-popup))))
+                (when (aiern/any-popup-showing-p) (aiern/which-key--hide-popup))) :post (progn (unless hydra-curr-map (aiern/which-key--show-popup))))
                     ;; From: https://gist.github.com/shadowrylander/46b81297d1d3edfbf1e2d72d5e29171e
                     "A hydra for getting the fuck outta' here!"
                     ("`" nil "cancel")
@@ -299,133 +179,151 @@
 
 ;; Adapted From: https://github.com/mohsenil85/evil-evilified-state and https://github.com/syl20bnr/spacemacs
 (use-package! evil-evilified-state :after evil)
+
+;; god mode
 (use-package! god-mode
     :general
         (:keymaps 'override
-            (general-chord "jj") 'jr/toggle-god
+            (general-chord "jj") 'aiern/toggle-god-hercules
             (general-chord "';") 'god-execute-with-current-bindings)
     :hydra+
       (toggles (:color blue :pre (progn
-                    (when (jr/any-popup-showing-p) (jr/which-key--hide-popup))) :post (progn (unless hydra-curr-map (jr/which-key--show-popup)))) ("g" jr/toggle-god "god"))
+                    (when (aiern/any-popup-showing-p) (aiern/which-key--hide-popup))) :post (progn (unless hydra-curr-map (aiern/which-key--show-popup)))) ("g" aiern/toggle-god "god"))
         (all-keymaps (:color blue :pre (progn
-                    (when (jr/any-popup-showing-p) (jr/which-key--hide-popup))) :post (progn (unless hydra-curr-map (jr/which-key--show-popup)))) ("g" (progn (setq all-keymaps-map 'god-local-mode) (jr/god-show-top-level)) "god"))
+                    (when (aiern/any-popup-showing-p) (aiern/which-key--hide-popup))) :post (progn (unless hydra-curr-map (aiern/which-key--show-popup)))) ("g" (progn (setq all-keymaps-map 'god-local-mode) (aiern/god-show-top-level)) "god"))
     :hercules
-        (:show-funs #'jr/god-hercules-show
-        :hide-funs #'jr/god-hercules-hide
-        :toggle-funs #'jr/god-hercules-toggle
+        (:show-funs #'aiern/god-hercules-show
+        :hide-funs #'aiern/god-hercules-hide
+        :toggle-funs #'aiern/god-hercules-toggle
         :keymap 'global-map
         ;; :transient t
         )
     :config
-        (defun jr/god-hercules-toggle nil (interactive))
-        (defun jr/god-show-top-level nil (interactive)
-            (jr/which-key-show-top-level 'global-map))
+        (defun aiern/god-hercules-toggle nil (interactive))
+        (defun aiern/god-show-top-level nil (interactive)
+            (aiern/which-key-show-top-level 'global-map))
         (add-to-list 'modal-modes 'god-local-mode)
         (add-to-list 'modal-prefixes "god")
     
-        (defun jr/toggle-god nil (interactive)
-            (funcall 'jr/toggle-inner 'god-local-mode "god" (fbatp god-local-mode) 'global-map))
+        (defun aiern/toggle-god nil (interactive)
+            (funcall 'aiern/toggle-inner 'god-local-mode "god" (fbatp god-local-mode) 'global-map))
+        (defun aiern/toggle-god-hercules nil (interactive)
+            (funcall 'aiern/toggle-inner 'god-local-mode "god" (fbatp god-local-mode) 'global-map t))
         (which-key-enable-god-mode-support))
+
+;; xah-fly-keys
 (use-package! xah-fly-keys
     :ryo
         ("m" :hydra
             '(modal-modes (:color blue :pre (progn
-                (when (jr/any-popup-showing-p) (jr/which-key--hide-popup))) :post (progn (unless hydra-curr-map (jr/which-key--show-popup))))
+                (when (aiern/any-popup-showing-p) (aiern/which-key--hide-popup))) :post (progn (unless hydra-curr-map (aiern/which-key--show-popup))))
                 "A modal hydra!"
                 ("`" nil "cancel")
-                ("x" jr/toggle-xah "xah-fly-keys")) :name "modal modes")
+                ("x" aiern/toggle-xah "xah-fly-keys")) :name "modal modes")
     :hydra+
       (toggles (:color blue :pre (progn
-                    (when (jr/any-popup-showing-p) (jr/which-key--hide-popup))) :post (progn (unless hydra-curr-map (jr/which-key--show-popup)))) ("x" jr/toggle-xah "xah"))
+                    (when (aiern/any-popup-showing-p) (aiern/which-key--hide-popup))) :post (progn (unless hydra-curr-map (aiern/which-key--show-popup)))) ("x" aiern/toggle-xah "xah"))
         (all-keymaps (:color blue :pre (progn
-                    (when (jr/any-popup-showing-p) (jr/which-key--hide-popup))) :post (progn (unless hydra-curr-map (jr/which-key--show-popup)))) ("x" (progn (setq all-keymaps-map 'xah-fly-keys) (jr/xah-show-top-level)) "xah"))
+                    (when (aiern/any-popup-showing-p) (aiern/which-key--hide-popup))) :post (progn (unless hydra-curr-map (aiern/which-key--show-popup)))) ("x" (progn (setq all-keymaps-map 'xah-fly-keys) (aiern/xah-show-top-level)) "xah"))
     :hercules
-        (:show-funs #'jr/xah-hercules-show
-        :hide-funs #'jr/xah-hercules-hide
-        :toggle-funs #'jr/xah-hercules-toggle
+        (:show-funs #'aiern/xah-hercules-show
+        :hide-funs #'aiern/xah-hercules-hide
+        :toggle-funs #'aiern/xah-hercules-toggle
         :keymap 'xah-fly-command-map
         ;; :transient t
         )
     :config
-        (defun jr/xah-hercules-toggle nil (interactive))
-        (defun jr/xah-show-top-level nil (interactive)
-            (jr/which-key-show-top-level 'xah-fly-command-map))
+        (defun aiern/xah-hercules-toggle nil (interactive))
+        (defun aiern/xah-show-top-level nil (interactive)
+            (aiern/which-key-show-top-level 'xah-fly-command-map))
         (add-to-list 'modal-modes 'xah-fly-keys)
         (add-to-list 'modal-prefixes "xah")
     
-        (defun jr/toggle-xah nil (interactive)
-            (funcall 'jr/toggle-inner 'xah-fly-keys "xah" (fbatp xah-fly-keys) 'xah-fly-command-map)))
+        (defun aiern/toggle-xah nil (interactive)
+            (funcall 'aiern/toggle-inner 'xah-fly-keys "xah" (fbatp xah-fly-keys) 'xah-fly-command-map))
+        (defun aiern/toggle-xah-hercules nil (interactive)
+            (funcall 'aiern/toggle-inner 'xah-fly-keys "xah" (fbatp xah-fly-keys) 'xah-fly-command-map t)))
+
+;; objed
 (use-package! objed
-    :general (:keymaps 'override (general-chord "ii") 'jr/toggle-objed)
+    :general (:keymaps 'override (general-chord "ii") 'aiern/toggle-objed)
     :hydra+
       (toggles (:color blue :pre (progn
-                    (when (jr/any-popup-showing-p) (jr/which-key--hide-popup))) :post (progn (unless hydra-curr-map (jr/which-key--show-popup)))) ("o" jr/toggle-objed "objed"))
+                    (when (aiern/any-popup-showing-p) (aiern/which-key--hide-popup))) :post (progn (unless hydra-curr-map (aiern/which-key--show-popup)))) ("o" aiern/toggle-objed "objed"))
         (all-keymaps (:color blue :pre (progn
-                    (when (jr/any-popup-showing-p) (jr/which-key--hide-popup))) :post (progn (unless hydra-curr-map (jr/which-key--show-popup)))) ("o" (progn (setq all-keymaps-map 'objed-mode) (jr/objed-show-top-level)) "objed"))
+                    (when (aiern/any-popup-showing-p) (aiern/which-key--hide-popup))) :post (progn (unless hydra-curr-map (aiern/which-key--show-popup)))) ("o" (progn (setq all-keymaps-map 'objed-mode) (aiern/objed-show-top-level)) "objed"))
     :hercules
-        (:show-funs #'jr/objed-hercules-show
-        :hide-funs #'jr/objed-hercules-hide
-        :toggle-funs #'jr/objed-hercules-toggle
+        (:show-funs #'aiern/objed-hercules-show
+        :hide-funs #'aiern/objed-hercules-hide
+        :toggle-funs #'aiern/objed-hercules-toggle
         :keymap 'objed-map
         ;; :transient t
         )
     :config
-        (defun jr/objed-hercules-toggle nil (interactive))
-        (defun jr/objed-show-top-level nil (interactive)
-            (jr/which-key-show-top-level 'objed-map))
+        (defun aiern/objed-hercules-toggle nil (interactive))
+        (defun aiern/objed-show-top-level nil (interactive)
+            (aiern/which-key-show-top-level 'objed-map))
         (add-to-list 'modal-modes 'objed-mode)
         (add-to-list 'modal-prefixes "objed")
     
-        (defun jr/toggle-objed nil (interactive)
-            (funcall 'jr/toggle-inner 'objed-mode "objed" (fbatp objed-mode) 'objed-map)))
+        (defun aiern/toggle-objed nil (interactive)
+            (funcall 'aiern/toggle-inner 'objed-mode "objed" (fbatp objed-mode) 'objed-map))
+        (defun aiern/toggle-objed-hercules nil (interactive)
+            (funcall 'aiern/toggle-inner 'objed-mode "objed" (fbatp objed-mode) 'objed-map t)))
+
+;; kakoune
 (use-package! kakoune
     :hydra+
-        (modal-modes (:color blue) ("k" jr/toggle-kakoune "kakoune"))
+        (modal-modes (:color blue) ("k" aiern/toggle-kakoune-hercules "kakoune"))
       (toggles (:color blue :pre (progn
-                    (when (jr/any-popup-showing-p) (jr/which-key--hide-popup))) :post (progn (unless hydra-curr-map (jr/which-key--show-popup)))) ("k" jr/toggle-kakoune "kakoune"))
+                    (when (aiern/any-popup-showing-p) (aiern/which-key--hide-popup))) :post (progn (unless hydra-curr-map (aiern/which-key--show-popup)))) ("k" aiern/toggle-kakoune "kakoune"))
         (all-keymaps (:color blue :pre (progn
-                    (when (jr/any-popup-showing-p) (jr/which-key--hide-popup))) :post (progn (unless hydra-curr-map (jr/which-key--show-popup)))) ("k" (progn (setq all-keymaps-map 'ryo-modal-mode) (jr/kakoune-show-top-level)) "kakoune"))
+                    (when (aiern/any-popup-showing-p) (aiern/which-key--hide-popup))) :post (progn (unless hydra-curr-map (aiern/which-key--show-popup)))) ("k" (progn (setq all-keymaps-map 'ryo-modal-mode) (aiern/kakoune-show-top-level)) "kakoune"))
     :hercules
-        (:show-funs #'jr/kakoune-hercules-show
-        :hide-funs #'jr/kakoune-hercules-hide
-        :toggle-funs #'jr/kakoune-hercules-toggle
+        (:show-funs #'aiern/kakoune-hercules-show
+        :hide-funs #'aiern/kakoune-hercules-hide
+        :toggle-funs #'aiern/kakoune-hercules-toggle
         :keymap 'ryo-modal-mode-map
         ;; :transient t
         )
     :config
-        (defun jr/kakoune-hercules-toggle nil (interactive))
-        (defun jr/kakoune-show-top-level nil (interactive)
-            (jr/which-key-show-top-level 'ryo-modal-mode-map))
+        (defun aiern/kakoune-hercules-toggle nil (interactive))
+        (defun aiern/kakoune-show-top-level nil (interactive)
+            (aiern/which-key-show-top-level 'ryo-modal-mode-map))
         (add-to-list 'modal-modes 'ryo-modal-mode)
         (add-to-list 'modal-prefixes "kakoune")
     
-        (defun jr/toggle-kakoune nil (interactive)
-            (funcall 'jr/toggle-inner 'ryo-modal-mode "kakoune" (fbatp ryo-modal-mode) 'ryo-modal-mode-map)))
+        (defun aiern/toggle-kakoune nil (interactive)
+            (funcall 'aiern/toggle-inner 'ryo-modal-mode "kakoune" (fbatp ryo-modal-mode) 'ryo-modal-mode-map))
+        (defun aiern/toggle-kakoune-hercules nil (interactive)
+            (funcall 'aiern/toggle-inner 'ryo-modal-mode "kakoune" (fbatp ryo-modal-mode) 'ryo-modal-mode-map t)))
+
+;; modalka
 (use-package! modalka
-    ;; :general (:keymaps 'override (general-chord "::") 'jr/toggle-modalka)
+    ;; :general (:keymaps 'override (general-chord "::") 'aiern/toggle-modalka)
     :hydra+
       (toggles (:color blue :pre (progn
-                    (when (jr/any-popup-showing-p) (jr/which-key--hide-popup))) :post (progn (unless hydra-curr-map (jr/which-key--show-popup)))) ("m" jr/toggle-modalka "modalka"))
+                    (when (aiern/any-popup-showing-p) (aiern/which-key--hide-popup))) :post (progn (unless hydra-curr-map (aiern/which-key--show-popup)))) ("m" aiern/toggle-modalka "modalka"))
         (all-keymaps (:color blue :pre (progn
-                    (when (jr/any-popup-showing-p) (jr/which-key--hide-popup))) :post (progn (unless hydra-curr-map (jr/which-key--show-popup)))) ("m" (progn (setq all-keymaps-map 'modalka-mode) (jr/modalka-show-top-level)) "modalka"))
+                    (when (aiern/any-popup-showing-p) (aiern/which-key--hide-popup))) :post (progn (unless hydra-curr-map (aiern/which-key--show-popup)))) ("m" (progn (setq all-keymaps-map 'modalka-mode) (aiern/modalka-show-top-level)) "modalka"))
     :hercules
-        (:show-funs #'jr/modalka-hercules-show
-        :hide-funs #'jr/modalka-hercules-hide
-        :toggle-funs #'jr/modalka-hercules-toggle
+        (:show-funs #'aiern/modalka-hercules-show
+        :hide-funs #'aiern/modalka-hercules-hide
+        :toggle-funs #'aiern/modalka-hercules-toggle
         :keymap 'modalka-mode-map
         ;; :transient t
         )
     :config
-        (defun jr/modalka-hercules-toggle nil (interactive))
-        (defun jr/modalka-show-top-level nil (interactive)
-            (jr/which-key-show-top-level 'modalka-mode-map))
+        (defun aiern/modalka-hercules-toggle nil (interactive))
+        (defun aiern/modalka-show-top-level nil (interactive)
+            (aiern/which-key-show-top-level 'modalka-mode-map))
         (add-to-list 'modal-modes 'modalka-mode)
         (add-to-list 'modal-prefixes "modalka")
     
-        (defun jr/toggle-modalka nil (interactive)
-            (funcall 'jr/toggle-inner 'modalka-mode "modalka" (fbatp modalka-mode) 'modalka-mode-map)))
-
-(add-hook! doom-init-ui (jr/disable-all-modal-modes))
+        (defun aiern/toggle-modalka nil (interactive)
+            (funcall 'aiern/toggle-inner 'modalka-mode "modalka" (fbatp modalka-mode) 'modalka-mode-map))
+        (defun aiern/toggle-modalka-hercules nil (interactive)
+            (funcall 'aiern/toggle-inner 'modalka-mode "modalka" (fbatp modalka-mode) 'modalka-mode-map t)))
 
 ;; org-mode
 (use-package! org
@@ -434,182 +332,35 @@
             ;; (setq org-export-backends '(md gfm latex odt org))
             (setq org-directory "/tmp")
             (setq org-roam-directory org-directory)
-        :hook
-            ((org-mode . 'jr/org-babel-tangle-append-setup)
-            ;; (kill-emacs . 'org-babel-tangle)
-
-            ;; Adapted From: https://www.reddit.com/r/emacs/comments/6klewl/org_cyclingto_go_from_folded_to_children_skipping/djniygy?utm_source=share&utm_medium=web2x&context=3
-            (org-cycle . (lambda (state) (interactive) (when (eq state 'children) (setq org-cycle-subtree-status 'subtree)))))
         :config
             (org-babel-lob-ingest "./README.org")
 
-            (defun jr/org-babel-tangle-append nil
-              "Append source code block at point to its tangle file.
-            The command works like `org-babel-tangle' with prefix arg
-            but `delete-file' is ignored."
-              (interactive)
-              (cl-letf (((symbol-function 'delete-file) #'ignore))
-                (org-babel-tangle '(4))))
-            
-            (defun jr/org-babel-tangle-append-setup nil
-              "Add key-binding C-c C-v C-t for `jr/org-babel-tangle-append'."
-              (org-defkey org-mode-map (kbd "C-c C-v +") 'jr/org-babel-tangle-append))
-
-            (defun org-babel-tangle-collect-blocks-handle-tangle-list (&optional language tangle-file)
-              "Can be used as :override advice for `org-babel-tangle-collect-blocks'.
-            Handles lists of :tangle files."
-              (let ((counter 0) last-heading-pos blocks)
-                (org-babel-map-src-blocks (buffer-file-name)
-                  (let ((current-heading-pos
-                     (org-with-wide-buffer
-                      (org-with-limited-levels (outline-previous-heading)))))
-                (if (eq last-heading-pos current-heading-pos) (cl-incf counter)
-                  (setq counter 1)
-                  (setq last-heading-pos current-heading-pos)))
-                  (unless (org-in-commented-heading-p)
-                (let* ((info (org-babel-get-src-block-info 'light))
-                       (src-lang (nth 0 info))
-                       (src-tfiles (cdr (assq :tangle (nth 2 info))))) ; Tobias: accept list for :tangle
-                  (unless (consp src-tfiles) ; Tobias: unify handling of strings and lists for :tangle
-                    (setq src-tfiles (list src-tfiles))) ; Tobias: unify handling
-                  (dolist (src-tfile src-tfiles) ; Tobias: iterate over list
-                    (unless (or (string= src-tfile "no")
-                        (and tangle-file (not (equal tangle-file src-tfile)))
-                        (and language (not (string= language src-lang))))
-                      ;; Add the spec for this block to blocks under its
-                      ;; language.
-                      (let ((by-lang (assoc src-lang blocks))
-                        (block (org-babel-tangle-single-block counter)))
-                    (setcdr (assoc :tangle (nth 4 block)) src-tfile) ; Tobias: 
-                    (if by-lang (setcdr by-lang (cons block (cdr by-lang)))
-                      (push (cons src-lang (list block)) blocks)))))))) ; Tobias: just ()
-                ;; Ensure blocks are in the correct order.
-                (mapcar (lambda (b) (cons (car b) (nreverse (cdr b)))) blocks)))
-            
-            (defun org-babel-tangle-single-block-handle-tangle-list (oldfun block-counter &optional only-this-block)
-              "Can be used as :around advice for `org-babel-tangle-single-block'.
-            If the :tangle header arg is a list of files. Handle all files"
-              (let* ((info (org-babel-get-src-block-info))
-                 (params (nth 2 info))
-                 (tfiles (cdr (assoc :tangle params))))
-                (if (null (and only-this-block (consp tfiles)))
-                (funcall oldfun block-counter only-this-block)
-                  (cl-assert (listp tfiles) nil
-                     ":tangle only allows a tangle file name or a list of tangle file names")
-                  (let ((ret (mapcar
-                      (lambda (tfile)
-                        (let (old-get-info)
-                          (cl-letf* (((symbol-function 'old-get-info) (symbol-function 'org-babel-get-src-block-info))
-                             ((symbol-function 'org-babel-get-src-block-info)
-                              `(lambda (&rest get-info-args)
-                                 (let* ((info (apply 'old-get-info get-info-args))
-                                    (params (nth 2 info))
-                                    (tfile-cons (assoc :tangle params)))
-                                   (setcdr tfile-cons ,tfile)
-                                   info))))
-                        (funcall oldfun block-counter only-this-block))))
-                      tfiles)))
-                (if only-this-block
-                    (list (cons (cl-caaar ret) (mapcar #'cadar ret)))
-                  ret)))))
-            
-            (advice-add 'org-babel-tangle-collect-blocks :override #'org-babel-tangle-collect-blocks-handle-tangle-list)
-            (advice-add 'org-babel-tangle-single-block :around #'org-babel-tangle-single-block-handle-tangle-list)
-
-            (use-package! nix-mode
-                :commands (org-babel-execute:nix)
-                :mode ("\\.nix\\'")
-                :config
-                    ;; Adapted From:
-                    ;; Answer: https://emacs.stackexchange.com/a/61442
-                    ;; User: https://emacs.stackexchange.com/users/20061/zeta
-                    (defun org-babel-execute:nix (body params)
-                        "Execute a block of Nix code with org-babel."
-                        (message "executing Nix source code block")
-                        (let ((in-file (org-babel-temp-file "n" ".nix"))
-                            (json (or (cdr (assoc :json params)) nil))
-                            (opts (or (cdr (assoc :opts params)) nil))
-                            (args (or (cdr (assoc :args params)) nil))
-                            (read-write-mode (or (cdr (assoc :read-write-mode params)) nil))
-                            (eval (or (cdr (assoc :eval params)) nil))
-                            (show-trace (or (cdr (assoc :show-trace params)) nil)))
-                        (with-temp-file in-file
-                            (insert body))
-                        (org-babel-eval
-                            (format "nix-instantiate %s %s %s %s %s %s %s"
-                                (if (xor (eq json nil) (<= json 0)) "" "--json")
-                                (if (xor (eq show-trace nil) (<= show-trace 0)) "" "--show-trace")
-                                (if (xor (eq read-write-mode nil) (<= read-write-mode 0)) "" "--read-write-mode")
-                                (if (xor (eq eval nil) (<= eval 0)) "" "--eval")
-                                (if (eq opts nil) "" opts)
-                                (if (eq args nil) "" args)
-                                (org-babel-process-file-name in-file))
-                        ""))))
-            
-            (use-package! xonsh-mode
-                :commands
-                    (org-babel-execute:xonsh
-                    org-babel-expand-body:xonsh)
-                :mode ("\\.xonshrc\\'" "\\.xsh\\'")
-                :config
-                    ;; Adapted From:
-                    ;; Answer: https://emacs.stackexchange.com/a/61442
-                    ;; User: https://emacs.stackexchange.com/users/20061/zeta
-                    (defun org-babel-execute:xonsh (body params)
-                        "Execute a block of Xonsh code with org-babel."
-                        (message "executing Xonsh source code block")
-                        (let ((in-file (org-babel-temp-file "x" ".xsh"))
-                            (opts (or (cdr (assoc :opts params)) nil))
-                            (args (or (cdr (assoc :args params)) nil)))
-                        (with-temp-file in-file
-                            (insert body))
-                        (org-babel-eval
-                            (format "xonsh %s %s %s"
-                                (if (eq opts nil) "" opts)
-                                (if (eq args nil) "" args)
-                                (org-babel-process-file-name in-file))
-                        ""))))
-            
+            (use-package! nix-mode :commands (org-babel-execute:nix) :mode ("\\.nix\\'"))
+            (use-package! xonsh-mode :commands (org-babel-execute:xonsh org-babel-expand-body:xonsh) :mode ("\\.xonshrc\\'" "\\.xsh\\'"))
             (use-package! dockerfile-mode
                 :config
                     (org-babel-do-load-languages 'org-babel-load-languages
                         (append org-babel-load-languages
                             '((Dockerfile . t))))
                 :mode ("\\Dockerfile\\'"))
-            
             (use-package! vimrc-mode
                 :commands
                     (org-babel-execute:vimrc
                     org-babel-expand-body:vimrc)
                 :mode "\\.vim\\(rc\\)?\\'")
 
-            ;; Adapted From:
-            ;; Answer: https://emacs.stackexchange.com/a/37791/31428
-            ;; User: https://emacs.stackexchange.com/users/12497/toothrot
-            (defun jr/go-to-parent nil (interactive)
-                (outline-up-heading (if (and (or (org-at-heading-p) (invisible-p (point))) (invisible-p (point-at-eol))
-                        (>= (org-current-level) 2))
-                    1 0)))
-
-            (defun jr/evil-close-fold nil (interactive) (jr/go-to-parent) (evil-close-fold))
-
-            (defun jr/org-cycle nil (interactive)
-                (if (jr/outline-folded-p) (org-cycle) (jr/evil-close-fold)))
-
-            (advice-add #'org-edit-special :after #'jr/src-mode-settings)
-
-            (defun jr/get-header nil (interactive)
+            (defun aiern/get-header nil (interactive)
                 (nth 4 (org-heading-components)))
-            (defun jr/tangle-path nil (interactive)
+            (defun aiern/tangle-path nil (interactive)
                 (org-babel-lob-ingest "./README.org")
                 (string-remove-prefix "/" (concat
                     (org-format-outline-path (org-get-outline-path)) "/"
-                        (jr/get-header))))
-            (defun jr/tangle-oreo nil (interactive)
+                        (aiern/get-header))))
+            (defun aiern/tangle-oreo nil (interactive)
                 (org-babel-lob-ingest "./strange.aiern.org")
-                (jr/tangle-path))
-            (defun jr/get-theme-from-header nil (interactive)
-                (string-remove-suffix "-theme.el" (jr/get-header)))
+                (aiern/tangle-path))
+            (defun aiern/get-theme-from-header nil (interactive)
+                (string-remove-suffix "-theme.el" (aiern/get-header)))
         :general
             (:keymaps 'org-roam-mode-map
                   "C-c n" '(:ignore t :which-key "Org-Roam")
@@ -620,15 +371,15 @@
                   "C-c n i" 'org-roam-insert
                   "C-c n I" 'org-roam-insert-immediate)
             (:keymaps 'override
-                (naked "backtab") 'jr/evil-close-fold)
+                (naked "backtab") 'aiern/evil-close-fold)
         :ryo ("o" :hydra
             '(hydra-org (:color blue :pre (progn
-                (when (jr/any-popup-showing-p) (jr/which-key--hide-popup))) :post (progn (unless hydra-curr-map (jr/which-key--show-popup))))
+                (when (aiern/any-popup-showing-p) (aiern/which-key--hide-popup))) :post (progn (unless hydra-curr-map (aiern/which-key--show-popup))))
                   "A hydra for org-mode!"
                   ("o" org-babel-tangle "tangle")
-                  ("a" jr/org-babel-tangle-append "tangle append")
+                  ("a" aiern/org-babel-tangle-append "tangle append")
                   ("f" org-babel-tangle-file "tangle file")
-                  ("n" jr/narrow-or-widen-dwim "narrow")
+                  ("n" aiern/narrow-or-widen-dwim "narrow")
                   ("s" org-edit-special "org edit special")
                   ("q" nil "cancel")))
         :custom
@@ -639,9 +390,7 @@
             ;; (org-src-window-setup 'current-window)
             (org-cycle-emulate-tab 'whitestart))
 
-(use-package! org-numbers-overlay
-    :load-path "emacs-bankruptcy/site-lisp"
-    :hook (org-mode . org-numbers-overlay-mode))
+(use-package! org-numbers-overlay :load-path "emacs-bankruptcy/site-lisp")
 
 ;; minibuffer
 
@@ -649,7 +398,7 @@
 ;; TODO: Split this into multiple `use-package!' instances using my new `hydra+' keyword
 (ryo-modal-key "x" :hydra
       '(hydra-execute (:color blue :pre (progn
-                (when (jr/any-popup-showing-p) (jr/which-key--hide-popup))) :post (progn (unless hydra-curr-map (jr/which-key--show-popup))))
+                (when (aiern/any-popup-showing-p) (aiern/which-key--hide-popup))) :post (progn (unless hydra-curr-map (aiern/which-key--show-popup))))
             "A hydra for launching stuff!"
             ("c" counsel-M-x "counsel")
             ("h" helm-smex-major-mode-commands "helm smex major mode")
@@ -658,25 +407,11 @@
             ("q" nil "cancel"))
             :name "execute order 65")
 
-(advice-add #'counsel-M-x :before #'jr/which-key--hide-popup)
-(advice-add #'helm-smex-major-mode-commands :before #'jr/which-key--hide-popup)
-(advice-add #'helm-smex :before #'jr/which-key--hide-popup)
-(advice-add #'execute-extended-command :before #'jr/which-key--hide-popup)
-(advice-add #'doom-escape :after #'jr/which-key--show-popup)
-(advice-add #'keyboard-escape-quit :after #'jr/which-key--show-popup)
-(advice-add #'keyboard-quit :after #'jr/which-key--show-popup)
-(advice-add #'exit-minibuffer :after #'jr/which-key--show-popup)
-
-(general-def :keymaps '(
-    minibuffer-local-keymap
-    counsel-describe-map
-    helm-buffer-map) "M-x" 'exit-minibuffer)
-
 ;; git
 (use-package! git-gutter
     :ryo ("g" :hydra
         '(hydra-git (:pre (progn
-                (when (jr/any-popup-showing-p) (jr/which-key--hide-popup))) :post (progn (unless hydra-curr-map (jr/which-key--show-popup))))
+                (when (aiern/any-popup-showing-p) (aiern/which-key--hide-popup))) :post (progn (unless hydra-curr-map (aiern/which-key--show-popup))))
             "A hydra for git!"
             ("`" nil "cancel" :color blue)
             ("j" git-gutter:next-hunk "next")
@@ -688,68 +423,19 @@
 (when (or (featurep! :tools magit) (featurep 'magit)) (use-package! magit
     :ryo ("g" :hydra+
         '(hydra-git (:pre (progn
-                (when (jr/any-popup-showing-p) (jr/which-key--hide-popup))) :post (progn (unless hydra-curr-map (jr/which-key--show-popup))))
+                (when (aiern/any-popup-showing-p) (aiern/which-key--hide-popup))) :post (progn (unless hydra-curr-map (aiern/which-key--show-popup))))
             "A hydra for git!"
             ("g" magit-status "magit" :color blue)))))
 ;; (use-package! gitattributes-mode)
 
 ;; buffer
-(remove-hook 'doom-first-buffer-hook #'global-hl-line-mode)
-
-(defun display-startup-echo-area-message ()
-  (jr/which-key-show-top-level))
-
-(defun jr/src-mode-settings nil (interactive)
-    (jr/disable-all-modal-modes)
-    (focus-mode 1))
-
-(defun jr/src-mode-exit nil (interactive)
-    (winner-undo)
-    (jr/disable-all-modal-modes))
-
-;; Adapted From: http://endlessparentheses.com/emacs-narrow-or-widen-dwim.html
-(defun jr/narrow-or-widen-dwim (p)
-  "Widen if buffer is narrowed, narrow-dwim otherwise.
-Dwim means: region, org-src-block, org-subtree, or
-defun, whichever applies first. Narrowing to
-org-src-block actually calls `org-edit-src-code'.
-
-With prefix P, don't widen, just narrow even if buffer
-is already narrowed."
-  (interactive "P")
-  (declare (interactive-only))
-  (cond ((and (buffer-narrowed-p) (not p)) (widen))
-        ((region-active-p)
-         (narrow-to-region (region-beginning)
-                           (region-end)))
-        ((derived-mode-p 'org-mode)
-         ;; `org-edit-src-code' is not a real narrowing
-         ;; command. Remove this first conditional if
-         ;; you don't want it.
-         (cond ((ignore-errors (org-edit-src-code) t)
-                (delete-other-windows))
-               ((ignore-errors (org-narrow-to-block) t))
-               (t (org-narrow-to-subtree))))
-        ((derived-mode-p 'latex-mode)
-         (LaTeX-narrow-to-environment))
-        (t (narrow-to-defun)))
-    (jr/src-mode-settings))
-
-;; Adapted From: https://github.com/syl20bnr/spacemacs/issues/13058#issuecomment-565741009
-(advice-add #'org-edit-src-exit :after #'jr/src-mode-exit)
-(advice-add #'org-edit-src-abort :after #'jr/src-mode-exit)
+(defun display-startup-echo-area-message nil (aiern/which-key-show-top-level))
 
 ;; (use-package! writeroom-mode
 ;;     :general (:keymaps 'override (general-chord "zz") 'writeroom-mode)
-;;     :custom (writeroom-fullscreen-effect t)
-;;     :hook after-init)
-
-(general-def
-    :keymaps 'override
-    (general-chord "zz") '+zen/toggle-fullscreen)
+;;     :custom (writeroom-fullscreen-effect t))
 
 (use-package! focus
-    ;; :hook (doom-init-ui . focus-mode)
     :custom
         (focus-mode-to-thing '(
             ;; (prog-mode . defun)
@@ -757,12 +443,6 @@ is already narrowed."
             ;; (text-mode . sentence)
             (text-mode . line)
             (outline-mode . line))))
-
-(use-package! rainbow-delimiters
-    :hook ((prog-mode . rainbow-delimiters-mode)
-
-        ;; Add more modes here
-        ))
 
 (when (featurep! :editor parinfer) (use-package! parinfer-rust-mode
     :hook emacs-lisp-mode
@@ -773,15 +453,15 @@ is already narrowed."
     :demand t
     :init
         (setq yankpad-file "./yankpad.org")
-        (defun jr/yankpad-hercules-toggle nil (interactive))
+        (defun aiern/yankpad-hercules-toggle nil (interactive))
     :general (:keymap 'override
-        (general-chord "[[") 'jr/yankpad-hercules-toggle
+        (general-chord "[[") 'aiern/yankpad-hercules-toggle
         (general-chord "]]") 'yankpad-expand)
     :config (yankpad-map)
     :hercules
-        (:show-funs #'jr/yankpad-hercules-show
-            :hide-funs #'jr/yankpad-hercules-hide
-            :toggle-funs #'jr/yankpad-hercules-toggle
+        (:show-funs #'aiern/yankpad-hercules-show
+            :hide-funs #'aiern/yankpad-hercules-hide
+            :toggle-funs #'aiern/yankpad-hercules-toggle
             :keymap 'yankpad-keymap
             ;; :transient t
         ))
@@ -819,7 +499,6 @@ is already narrowed."
 ;;     (load! "oneonone")
 ;;     (use-package! oneonone
 ;;         :demand t
-;;         :hook (after-init . 1on1-emacs)
 ;;         :custom
 ;;             (1on1-minibuffer-frame-width 10000)
 ;;             (1on1-minibuffer-frame-height 10000)))
@@ -862,12 +541,12 @@ is already narrowed."
 ;;     :config
 ;;         (emux-completing-read-command (quote ido-completing-read))
 ;; 
-;;         (defun jr/make-frame nil (interactive) (modify-frame-parameters (make-frame) ((name . "emux"))))
-;;         (defun jr/select-emux nil (interactive) (select-frame-by-name "emux"))
+;;         (defun aiern/make-frame nil (interactive) (modify-frame-parameters (make-frame) ((name . "emux"))))
+;;         (defun aiern/select-emux nil (interactive) (select-frame-by-name "emux"))
 ;;     :general
 ;;         (:keymaps 'override
-;;             ;; ""          'jr/make-frame
-;;             ;; ""          'jr/select-emux
+;;             ;; ""          'aiern/make-frame
+;;             ;; ""          'aiern/select-emux
 ;;             "C-x c"     'emux-term-create
 ;;             "C-x P"     'emux-session-load-template)
 ;;         (:keymaps 'term-mode-map
@@ -890,41 +569,34 @@ is already narrowed."
 ;;             "C-x S"     'emux-session-switch
 ;;             "M-."       'comint-dynamic-complete
 ;; 
-;;             ";" 'jr/emux-hercules-toggle)
+;;             ";" 'aiern/emux-hercules-toggle)
 ;;     :hercules
-;;         (:show-funs #'jr/emux-hercules-show
-;;         :hide-funs #'jr/emux-hercules-hide
-;;         :toggle-funs #'jr/emux-hercules-toggle
+;;         (:show-funs #'aiern/emux-hercules-show
+;;         :hide-funs #'aiern/emux-hercules-hide
+;;         :toggle-funs #'aiern/emux-hercules-toggle
 ;;         :keymap 'term-mode-map
 ;;         ;; :transient t
-;;         )
-;;     ;; :hook (after-init . emux-mode)
-;;         )
+;;         ))
 
 ;; (use-package! elscreen
-;;     :hook
-;;         ;; (emacs-startup . elscreen-start)
-;;         (after-init . elscreen-start)
 ;;     :custom
 ;;         ;; NOTE: Remember to escape the backslash
 ;;         (elscreen-prefix-key "C-S-\\")
 ;;     :hercules
-;;         (:show-funs #'jr/elscreen-hercules-show
-;;         :hide-funs #'jr/elscreen-hercules-hide
-;;         :toggle-funs #'jr/elscreen-hercules-toggle
+;;         (:show-funs #'aiern/elscreen-hercules-show
+;;         :hide-funs #'aiern/elscreen-hercules-hide
+;;         :toggle-funs #'aiern/elscreen-hercules-toggle
 ;;         :keymap 'elscreen-map
 ;;         ;; :transient t
 ;;         ))
 
 (load! "escreen")
 (use-package! escreen
-    :hook
-        (after-init . escreen-install)
     :general
         (:keymaps 'override
-            (general-chord "||") 'jr/escreen-hercules-toggle)
+            (general-chord "||") 'aiern/escreen-hercules-toggle)
     :config
-        (defun jr/escreen-hercules-toggle nil(interactive))
+        (defun aiern/escreen-hercules-toggle nil(interactive))
 
         ;; Adapted From: https://tapoueh.org/blog/2009/09/escreen-integration/
 
@@ -977,9 +649,9 @@ is already narrowed."
         ;; (define-key term-raw-map (kbd "M-[") 'dim:escreen-goto-prev-screen)
         ;; (define-key term-raw-map (kbd "M-]") 'dim:escreen-goto-next-screen)
     :hercules
-        (:show-funs #'jr/escreen-hercules-show
-        :hide-funs #'jr/escreen-hercules-hide
-        :toggle-funs #'jr/escreen-hercules-toggle
+        (:show-funs #'aiern/escreen-hercules-show
+        :hide-funs #'aiern/escreen-hercules-hide
+        :toggle-funs #'aiern/escreen-hercules-toggle
         :keymap 'escreen-map
         ;; :transient t
         ))
@@ -1005,61 +677,9 @@ is already narrowed."
 
 ;; etc
 (setq-default indent-tabs-mode nil)
-
-;; From:
-;; Answer: https://stackoverflow.com/questions/24832699/emacs-24-untabify-on-save-for-everything-except-makefiles
-;; User: https://stackoverflow.com/users/2677392/ryan-m
-(defun untabify-everything ()
-  (untabify (point-min) (point-max)))
-(defun untabify-everything-on-save ()
-  (add-hook 'before-save-hook 'untabify-everything)
-  nil)
-
-;; Adapted From:
-;; Answer: https://stackoverflow.com/a/24857101/10827766
-;; User: https://stackoverflow.com/users/936762/dan
-(defun untabify-except-makefiles nil
-  "Replace tabs with spaces except in makefiles."
-  (unless (derived-mode-p 'makefile-mode)
-    (untabify-everything)))
-
-(add-hook 'before-save-hook 'untabify-except-makefiles)
-
-(general-auto-unbind-keys)
 (when (featurep! :private spacemacs) (use-package! spacemacs
     :init (remove-hook 'org-load-hook #'+org-init-keybinds-h)
     :hook (doom-init-ui . spacemacs/home)))
-
-;; Answer: https://stackoverflow.com/a/57075163
-;; User: https://stackoverflow.com/users/2708138/tobias
-(defun jr/eval-after-load-all (my-features form)
-    "Run FORM after all MY-FEATURES are loaded.
-    See `eval-after-load' for the possible formats of FORM."
-    (if (null my-features)
-        (if (fbatp form)
-        (funcall form)
-    (eval form))
-    (eval-after-load (car my-features)
-        `(lambda nil
-    (eval-after-load-all
-        (quote ,(cdr my-features))
-        (quote ,form))))))
-
-;; Adapted From:
-;; Answer: https://stackoverflow.com/a/57075163
-;; User: https://stackoverflow.com/users/2708138/tobias
-;; (defun jr/eval-after-load-some (my-features form)
-;;     "Run FORM after all MY-FEATURES are loaded.
-;;     See `eval-after-load' for the possible formats of FORM."
-;;     (if (any my-features)
-;;         (if (fbatp form)
-;;         (funcall form)
-;;     (eval form))
-;;     (eval-after-load (car my-features)
-;;         `(lambda nil
-;;     (eval-after-load-all
-;;         (quote ,(cdr my-features))
-;;         (quote ,form))))))
 
 ;; From: https://www.masteringemacs.org/article/speed-up-emacs-libjansson-native-elisp-compilation
 
@@ -1113,10 +733,10 @@ is already narrowed."
 (setq initial-scratch-message "")
 
 ;; Removes *scratch* from buffer after the mode has been set.
-(defun jr/remove-scratch-buffer nil
+(defun aiern/remove-scratch-buffer nil
   (if (get-buffer "*scratch*")
       (kill-buffer "*scratch*")))
-(add-hook 'after-change-major-mode-hook 'jr/remove-scratch-buffer)
+(add-hook 'after-change-major-mode-hook 'aiern/remove-scratch-buffer)
 
 ;; Removes *messages* from the buffer.
 (setq-default message-log-max nil)
@@ -1144,14 +764,7 @@ is already narrowed."
 (setq global-auto-revert-non-file-buffers t)
 (setq auto-revert-verbose nil)
 
-;; Answer: https://emacs.stackexchange.com/a/51829
-;; User: https://emacs.stackexchange.com/users/2370/tobias
-;; (defun jr/set-buffer-save-without-query nil
-;;     "Set `buffer-save-without-query' to t."
-;;     (unless (variable-binding-locus 'buffer-save-without-query)
-;;         (setq buffer-save-without-query t)))
-
-;; (add-hook #'find-file-hook #'jr/set-buffer-save-without-query)
+;; (add-hook #'find-file-hook #'aiern/set-buffer-save-without-query)
 
 ;; The following avoids being ask to allow the file local
 ;; setting of `buffer-save-without-query'.

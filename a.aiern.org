@@ -9,13 +9,13 @@ This is used to hold larger files for =./oreo.aiern.org=.
 **** overlays
 ***** _kataContainers.nix
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601220251522853900
 
 #+name: 20210601220251522853900
-#+begin_src nix :tangle (jr/tangle-path)
+#+begin_src nix :tangle (aiern/tangle-path)
 { stdenv, buildGoPackage, fetchFromGitHub, fetchurl, pkgconfig, libseccomp, go
 , qemu }:
 
@@ -216,13 +216,13 @@ in {
 **** patches
 ***** BACKPORT-Linux-5.8-compat-__vmalloc.patch
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601220256333844600
 
 #+name: 20210601220256333844600
-#+begin_src diff :tangle (jr/tangle-path)
+#+begin_src diff :tangle (aiern/tangle-path)
 From 6cc95288ccea12ad7b67b2b5b3997dfad8e5b5c9 Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?Michael=20Niew=C3=B6hner?=
  <c0d3z3r0@users.noreply.github.com>
@@ -380,13 +380,13 @@ index cee69ad43..ca1fc145f 100644
 
 ***** 0110-initialize-ata-before-graphics.patch
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601220259152365700
 
 #+name: 20210601220259152365700
-#+begin_src diff :tangle (jr/tangle-path)
+#+begin_src diff :tangle (aiern/tangle-path)
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Arjan van de Ven <arjan@linux.intel.com>
 Date: Thu, 2 Jun 2016 23:36:32 -0500
@@ -440,13 +440,13 @@ https://clearlinux.org
 
 ***** export_kernel_fpu_functions_5_3.patch
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601220310375924300
 
 #+name: 20210601220310375924300
-#+begin_src diff :tangle (jr/tangle-path)
+#+begin_src diff :tangle (aiern/tangle-path)
 From 1e010beda2896bdf3082fb37a3e49f8ce20e04d8 Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?J=C3=B6rg=20Thalheim?= <joerg@thalheim.io>
 Date: Thu, 2 May 2019 05:28:08 +0100
@@ -492,13 +492,13 @@ index 12c70840980e..352538b3bb5d 100644
 
 ***** fetchpypi.patch
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601220312384825300
 
 #+name: 20210601220312384825300
-#+begin_src diff :tangle (jr/tangle-path)
+#+begin_src diff :tangle (aiern/tangle-path)
 diff --git a/fetchpypi.nix b/fetchpypi.nix
 index e60c9df..df50c0d 100644
 --- a/fetchpypi.nix
@@ -514,13 +514,13 @@ index e60c9df..df50c0d 100644
 
 ***** fetchurl.patch
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601220314090550500
 
 #+name: 20210601220314090550500
-#+begin_src diff :tangle (jr/tangle-path)
+#+begin_src diff :tangle (aiern/tangle-path)
 --- a/pkgs/build-support/fetchurl/boot.nix
 +++ b/pkgs/build-support/fetchurl/boot.nix
 @@ -6,7 +6,8 @@ let mirrors = import ./mirrors.nix; in
@@ -565,13 +565,13 @@ index c61df8ceb00..d973837f0d3 100644
 
 ***** grub_zfs.patch
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601220315818369600
 
 #+name: 20210601220315818369600
-#+begin_src diff :tangle (jr/tangle-path)
+#+begin_src diff :tangle (aiern/tangle-path)
 --- a/grub-core/fs/zfs/zfs.c
 +++ b/grub-core/fs/zfs/zfs.c
 @@ -285,6 +285,7 @@ static const char *spa_feature_names[] = {
@@ -585,13 +585,13 @@ index c61df8ceb00..d973837f0d3 100644
 
 ***** set_power_mgmt.patch
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601220319524781000
 
 #+name: 20210601220319524781000
-#+begin_src diff :tangle (jr/tangle-path)
+#+begin_src diff :tangle (aiern/tangle-path)
 --- a/net/wireless/nl80211.c    2019-07-08 00:41:56.000000000 +0200
 +++ b/net/wireless/nl80211.c    2020-02-05 19:30:26.352718504 +0100
 @@ -10517,10 +10520,7 @@
@@ -612,13 +612,13 @@ index c61df8ceb00..d973837f0d3 100644
 ** .doom.d
 *** help+.el
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601220506810390700
 
 #+name: 20210601220506810390700
-#+begin_src emacs-lisp :tangle (jr/tangle-path)
+#+begin_src emacs-lisp :tangle (aiern/tangle-path)
 ;;; help+.el --- Extensions to `help.el'.
 ;;
 ;; Filename: help+.el
@@ -1313,13 +1313,13 @@ If you click elsewhere in a buffer other than the minibuffer, then
 
 *** help+20.el
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601220335612861100
 
 #+name: 20210601220335612861100
-#+begin_src emacs-lisp :tangle (jr/tangle-path)
+#+begin_src emacs-lisp :tangle (aiern/tangle-path)
 ;;; help+20.el --- Extensions to `help.el' for Emacs 20.
 ;;
 ;; Filename: help+20.el

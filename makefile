@@ -17,13 +17,14 @@ doom-set:
 |rsync -avvczz --delete ~/shadowrylander/home/.doom.d/ ~/.doom.d/
 |chmod +x ~/.doom.d/org-tangle
 |yes yes| ~/.doom.d/org-tangle ~/shadowrylander/doom.aiern.org
+|yes yes| ~/.doom.d/org-tangle ~/shadowrylander/home/.doom.d/aiern/README.org
 |rsync -avvczz --delete ~/shadowrylander/home/.doom.d/ ~/.doom.d/
 
 doom-sync:
 |~/.emacs.d/bin/doom sync
 
 doom-check:
-|-~/.emacs.d/bin/doom doctor
+|~/.emacs.d/bin/doom doctor
 
 doom-test:
 |emacs ~/shadowrylander/doom.aiern.org
@@ -46,8 +47,12 @@ tangle-all: doom-set
 # User: https://askubuntu.com/users/267867/peter-w-osel
 |yes yes | ~/.doom.d/org-tangle ~/shadowrylander/*.aiern.org
 |yes yes | ~/.doom.d/org-tangle ~/shadowrylander/README.org
+|yes yes | ~/.doom.d/org-tangle ~/shadowrylander/home/.doom.d/aiern/README.org
 
 push:
 |git -C ~/shadowrylander add .
 |git -C ~/shadowrylander commit --allow-empty-message -am ""
 |git -C ~/shadowrylander push
+|git -C ~/shadowrylander/home/.doom.d/aiern add .
+|git -C ~/shadowrylander/home/.doom.d/aiern commit --allow-empty-message -am ""
+|git -C ~/shadowrylander/home/.doom.d/aiern push

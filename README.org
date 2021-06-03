@@ -30,7 +30,7 @@ shadowrylander
 
 # !!! Local projects are in the `inca' directory !!!
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601181716264678600
@@ -42,7 +42,7 @@ shadowrylander
 
 * makefile
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601181725825830000
@@ -68,13 +68,14 @@ doom-set:
 |rsync -avvczz --delete ~/<<username>>/home/.doom.d/ ~/.doom.d/
 |chmod +x ~/.doom.d/org-tangle
 |yes yes| ~/.doom.d/org-tangle ~/<<username>>/doom.aiern.org
+|yes yes| ~/.doom.d/org-tangle ~/<<username>>/home/.doom.d/aiern/README.org
 |rsync -avvczz --delete ~/<<username>>/home/.doom.d/ ~/.doom.d/
 
 doom-sync:
 |~/.emacs.d/bin/doom sync
 
 doom-check:
-|-~/.emacs.d/bin/doom doctor
+|~/.emacs.d/bin/doom doctor
 
 doom-test:
 |emacs ~/<<username>>/doom.aiern.org
@@ -97,11 +98,15 @@ tangle-all: doom-set
 # User: https://askubuntu.com/users/267867/peter-w-osel
 |yes yes | ~/.doom.d/org-tangle ~/<<username>>/*.aiern.org
 |yes yes | ~/.doom.d/org-tangle ~/<<username>>/README.org
+|yes yes | ~/.doom.d/org-tangle ~/<<username>>/home/.doom.d/aiern/README.org
 
 push:
 |git -C ~/<<username>> add .
 |git -C ~/<<username>> commit --allow-empty-message -am ""
 |git -C ~/<<username>> push
+|git -C ~/<<username>>/home/.doom.d/aiern add .
+|git -C ~/<<username>>/home/.doom.d/aiern commit --allow-empty-message -am ""
+|git -C ~/<<username>>/home/.doom.d/aiern push
 #+end_src
 
 * previous projects
@@ -124,7 +129,7 @@ You might be thinking to yourself, "Cool!" And also, "...Wait what?"
 
 -----
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601181755824433500
@@ -145,7 +150,7 @@ one can simply use =git.help()= instead.
 
 -----
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601181800630609300
@@ -163,7 +168,7 @@ git.clone(
 
 -----
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210601181804730771100

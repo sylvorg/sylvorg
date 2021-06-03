@@ -4,7 +4,7 @@
 * home
 ** test
 
-#+call: hash()
+#+call: hash() :exports none
 
 #+RESULTS:
 : 20210602005228843257200
