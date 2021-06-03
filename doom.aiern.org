@@ -253,6 +253,7 @@ init:
 
 (load! "help+20")
 ;; (when (eq (find-font (font-spec :family "all-the-icons")) nil) (all-the-icons-install-fonts))
+(setq confirm-kill-emacs nil)
 
 ;; use-package
 <<20210601225235077502200>>
@@ -695,6 +696,7 @@ Taken from [[Org-Roam's GitHub README][https://github.com/org-roam/org-roam#inst
 (use-package! hercules
     :demand t
     :general (:keymaps 'override
+        (general-chord "::") 'aiern/which-key-cycle-height
         (general-chord "\\\\") 'aiern/toggle-which-key
         (general-chord "\\]") 'map-of-infinity/body)
     :hydra (map-of-infinity (:color blue :pre (progn
@@ -728,11 +730,7 @@ Taken from [[Org-Roam's GitHub README][https://github.com/org-roam/org-roam#inst
         (setq which-key-idle-delay 0.1)
         (setq which-key-idle-secondary-delay nil)
     :custom
-
-        ;; NOTE: When using the side window, this doesn't matter, apparently;
-        ;; only the hercules transient property does
-        (which-key-persistent-popup t)
-
+        (which-key-persistent-popup nil)
         (which-key-allow-evil-operators t)
 
         ;; NOTE: This will cause the which-key maps for the operator states to show up,
@@ -829,7 +827,7 @@ Taken from [[Org-Roam's GitHub README][https://github.com/org-roam/org-roam#inst
 (use-package! god-mode
     :general
         (:keymaps 'override
-            (general-chord "jj") 'aiern/toggle-god-hercules
+            (general-chord "jj") 'aiern/toggle-god
             (general-chord "';") 'god-execute-with-current-bindings)
     :hydra+
     <<20210601225304341247500(map="global-map", mode="god-local-mode", prefix="god", short="g")>>
@@ -897,7 +895,7 @@ Taken from [[Org-Roam's GitHub README][https://github.com/org-roam/org-roam#inst
 #+name: 20210601225319683820700
 #+begin_src emacs-lisp
 (use-package! modalka
-    ;; :general (:keymaps 'override (general-chord "::") 'aiern/toggle-modalka)
+    ;; :general (:keymaps 'override (general-chord "::") 'aiern/toggle-modalka-hercules)
     :hydra+
     <<20210601225304341247500(map="modalka-mode-map", mode="modalka-mode", prefix="modalka", short="m")>>)
 #+end_src
@@ -1422,7 +1420,9 @@ Adapted from [[Ergoemacs' Emacs Lisp Code for Setting PATH and exec-path section
 ;; -*- no-byte-compile: t; -*-
 ;;; $DOOMDIR/packages.el
 
-(setq straight-disable-byte-compilation t)
+;; (setq straight-disable-byte-compilation t)
+;; (unpin! t)
+;; (unpin! which-key)
 
 ;; From: https://github.com/clemera/helm-ido-like-guide
 (package! helm-swoop)

@@ -33,7 +33,7 @@ doom-pre: doom-set doom-sync doom-check
 
 doom: doom-pre doom-test
 
-doom-upgrade:
+doom-upgrade: doom-pre
 |printf "n\ny\n" | ~/.emacs.d/bin/doom upgrade
 
 doom-super: doom-set doom-sync doom-check doom-upgrade doom-sync doom-check doom-test

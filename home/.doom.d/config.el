@@ -2,6 +2,7 @@
 
 (load! "help+20")
 ;; (when (eq (find-font (font-spec :family "all-the-icons")) nil) (all-the-icons-install-fonts))
+(setq confirm-kill-emacs nil)
 
 ;; use-package
 ;; (setq use-package-always-defer t)
@@ -35,6 +36,7 @@
 (use-package! hercules
     :demand t
     :general (:keymaps 'override
+        (general-chord "::") 'aiern/which-key-cycle-height
         (general-chord "\\\\") 'aiern/toggle-which-key
         (general-chord "\\]") 'map-of-infinity/body)
     :hydra (map-of-infinity (:color blue :pre (progn
@@ -68,11 +70,7 @@
         (setq which-key-idle-delay 0.1)
         (setq which-key-idle-secondary-delay nil)
     :custom
-
-        ;; NOTE: When using the side window, this doesn't matter, apparently;
-        ;; only the hercules transient property does
-        (which-key-persistent-popup t)
-
+        (which-key-persistent-popup nil)
         (which-key-allow-evil-operators t)
 
         ;; NOTE: This will cause the which-key maps for the operator states to show up,
@@ -184,7 +182,7 @@
 (use-package! god-mode
     :general
         (:keymaps 'override
-            (general-chord "jj") 'aiern/toggle-god-hercules
+            (general-chord "jj") 'aiern/toggle-god
             (general-chord "';") 'god-execute-with-current-bindings)
     :hydra+
       (toggles (:color blue :pre (progn
@@ -300,7 +298,7 @@
 
 ;; modalka
 (use-package! modalka
-    ;; :general (:keymaps 'override (general-chord "::") 'aiern/toggle-modalka)
+    ;; :general (:keymaps 'override (general-chord "::") 'aiern/toggle-modalka-hercules)
     :hydra+
       (toggles (:color blue :pre (progn
                     (when (aiern/any-popup-showing-p) (aiern/which-key--hide-popup))) :post (progn (unless hydra-curr-map (aiern/which-key--show-popup)))) ("m" aiern/toggle-modalka "modalka"))

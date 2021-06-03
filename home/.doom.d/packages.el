@@ -1,7 +1,9 @@
 ;; -*- no-byte-compile: t; -*-
 ;;; $DOOMDIR/packages.el
 
-(setq straight-disable-byte-compilation t)
+;; (setq straight-disable-byte-compilation t)
+;; (unpin! t)
+;; (unpin! which-key)
 
 ;; From: https://github.com/clemera/helm-ido-like-guide
 (package! helm-swoop)
