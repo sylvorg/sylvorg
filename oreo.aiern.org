@@ -3080,6 +3080,8 @@ map (ver: let
         nixpkgs-20-03-small.url = "github:nixos/nixpkgs/nixos-20.03-small";
         nixpkgs-20-09.url = "github:nixos/nixpkgs/nixos-20.09";
         nixpkgs-20-09-small.url = "github:nixos/nixpkgs/nixos-20.09-small";
+        nixpkgs-21-05.url = "github:nixos/nixpkgs/nixos-21.05";
+        nixpkgs-21-05-small.url = "github:nixos/nixpkgs/nixos-21.05-small";
         nixpkgs-unstable.url = "github:nixos/nixpkgs/nixos-unstable";
         nixpkgs-unstable-small.url = "github:nixos/nixpkgs/nixos-unstable-small";
         nixpkgs-master.url = "github:nixos/nixpkgs/master";
@@ -4816,7 +4818,7 @@ if homeManager:
     command = lambda _hash: f"home-manager {args.command} {flake(_hash)}"
 elif args.install:
     # command = lambda _hash: f'nixos-install --impure --show-trace {flake(_hash)}'
-    command = lambda _hash: f'nix build --impure --show-trace {args.directory}#nixosConfigurations.{_hash}.config.system.build.toplevel && nixos-install --system ./result'
+    command = lambda _hash: f'nix build --option build-use-substitutes true --option substitute true --impure --show-trace {args.directory}#nixosConfigurations.{_hash}.config.system.build.toplevel && nixos-install --system ./result'
 else:
     command = lambda _hash: f'nixos-rebuild {args.command} --impure --show-trace {flake(_hash)}'
 

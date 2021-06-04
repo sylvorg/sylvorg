@@ -42,6 +42,8 @@
         nixpkgs-20-03-small.url = "github:nixos/nixpkgs/nixos-20.03-small";
         nixpkgs-20-09.url = "github:nixos/nixpkgs/nixos-20.09";
         nixpkgs-20-09-small.url = "github:nixos/nixpkgs/nixos-20.09-small";
+        nixpkgs-21-05.url = "github:nixos/nixpkgs/nixos-21.05";
+        nixpkgs-21-05-small.url = "github:nixos/nixpkgs/nixos-21.05-small";
         nixpkgs-unstable.url = "github:nixos/nixpkgs/nixos-unstable";
         nixpkgs-unstable-small.url = "github:nixos/nixpkgs/nixos-unstable-small";
         nixpkgs-master.url = "github:nixos/nixpkgs/master";

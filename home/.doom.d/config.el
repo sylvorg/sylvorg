@@ -36,7 +36,6 @@
 (use-package! hercules
     :demand t
     :general (:keymaps 'override
-        (general-chord "::") 'aiern/which-key-cycle-height
         (general-chord "\\\\") 'aiern/toggle-which-key
         (general-chord "\\]") 'map-of-infinity/body)
     :hydra (map-of-infinity (:color blue :pre (progn
