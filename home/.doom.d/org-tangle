@@ -98,6 +98,7 @@ trees with the :notangle: tag."
                      (push (cons src-lang (list block)) blocks))))))))
     ;; Ensure blocks are in the correct order.
     (mapcar (lambda (b) (cons (car b) (nreverse (cdr b)))) blocks)))
+(advice-add #'org-babel-tangle-collect-blocks :override #'*org-babel-tangle-collect-blocks)
 
 (defvar all-blocks nil)
 (defvar and-tags nil)

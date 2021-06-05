@@ -68,7 +68,7 @@ init:
        (ivy +fuzzy)               ; a search engine for love and life
 
        :ui
-       deft              ; notational velocity for Emacs
+       ;;deft              ; notational velocity for Emacs
        doom              ; what makes DOOM look the way it does
        doom-dashboard    ; a nifty splash screen for Emacs
        ;;doom-quit         ; DOOM quit-message prompts when you quit Emacs
@@ -245,6 +245,16 @@ init:
 #+call: hash() :exports none
 
 #+RESULTS:
+: 20210601225233511900800
+
+#+name: 20210601225233511900800
+#+begin_src emacs-lisp
+(when (aiern/any-popup-showing-p) (aiern/which-key--hide-popup))) :post (progn (unless hydra-curr-map (aiern/which-key--show-popup))
+#+end_src
+
+#+call: hash() :exports none
+
+#+RESULTS:
 : 20210601225229622416900
 
 #+name: 20210601225229622416900
@@ -262,6 +272,8 @@ init:
 <<20210603105149525867500>>
 
 ;; modal-modes
+(add-hook! doom-init-ui 'aiern/disable-all-modal-modes)
+
 ;; hercules
 <<20210601225307809867100>>
 
@@ -427,6 +439,29 @@ init:
 #+end_src
 
 **** use-package
+
+#+call: hash() :exports none
+
+#+RESULTS:
+: 20210601225235077502200
+
+#+name: 20210601225235077502200
+#+begin_src emacs-lisp
+;; <<20210601225231422834500>>
+
+;; From: https://github.com/hartzell/straight.el/commit/882649137f73998d60741c7c8c993c7ebbe0f77a#diff-b335630551682c19a781afebcf4d07bf978fb1f8ac04c6bf87428ed5106870f5R1649
+;; (setq straight-disable-byte-compilation t)
+
+;; Adapted From: https://github.com/jwiegley/use-package#use-package-chords
+;; Important: https://github.com/noctuid/general.el/issues/53#issuecomment-307262154
+(use-package! use-package-chords :demand t :hook (after-init . key-chord-mode))
+(use-package! use-package-hydra :demand t :custom (hydra-hint-display-type 'lv))
+(use-package! use-package-hydra+ :demand t)
+(use-package! use-package-hercules :demand t)
+
+(use-package! aiern :load-path "aiern")
+#+end_src
+
 ***** always defer package loading
 
 Quoted from [[Use-Package's Loading packages in sequence
@@ -516,38 +551,6 @@ And in my experience... Not a good idea; much too confusing. Use
 (setq use-package-always-defer t)
 #+end_src
 
-#+call: hash() :exports none
-
-#+RESULTS:
-: 20210601225233511900800
-
-#+name: 20210601225233511900800
-#+begin_src emacs-lisp
-(when (aiern/any-popup-showing-p) (aiern/which-key--hide-popup))) :post (progn (unless hydra-curr-map (aiern/which-key--show-popup))
-#+end_src
-
-#+call: hash() :exports none
-
-#+RESULTS:
-: 20210601225235077502200
-
-#+name: 20210601225235077502200
-#+begin_src emacs-lisp
-;; <<20210601225231422834500>>
-
-;; From: https://github.com/hartzell/straight.el/commit/882649137f73998d60741c7c8c993c7ebbe0f77a#diff-b335630551682c19a781afebcf4d07bf978fb1f8ac04c6bf87428ed5106870f5R1649
-;; (setq straight-disable-byte-compilation t)
-
-;; Adapted From: https://github.com/jwiegley/use-package#use-package-chords
-;; Important: https://github.com/noctuid/general.el/issues/53#issuecomment-307262154
-(use-package! use-package-chords :demand t)
-(use-package! use-package-hydra :demand t :custom (hydra-hint-display-type 'lv))
-(use-package! use-package-hydra+ :demand t)
-(use-package! use-package-hercules :demand t)
-
-(use-package! aiern :load-path "aiern")
-#+end_src
-
 **** keys
 
 #+call: hash() :exports none
@@ -603,7 +606,6 @@ And in my experience... Not a good idea; much too confusing. Use
 
             <<20210601225401786848500>>
         :general
-            <<20210601225241973690700>>
             (:keymaps 'override
                 (naked "backtab") 'aiern/evil-close-fold)
         :ryo ("o" :hydra
@@ -625,27 +627,6 @@ And in my experience... Not a good idea; much too confusing. Use
             (org-cycle-emulate-tab 'whitestart))
 
 (use-package! org-numbers-overlay :load-path "emacs-bankruptcy/site-lisp")
-#+end_src
-
-***** org-roam
-
-Taken from [[Org-Roam's GitHub README][https://github.com/org-roam/org-roam#installation]], adapted by yours truely:
-
-#+call: hash() :exports none
-
-#+RESULTS:
-: 20210601225241973690700
-
-#+name: 20210601225241973690700
-#+begin_src emacs-lisp
-(:keymaps 'org-roam-mode-map
-      "C-c n" '(:ignore t :which-key "Org-Roam")
-      "C-c n l" 'org-roam
-      "C-c n f" 'org-roam-find-file
-      "C-c n g" 'org-roam-graph)
-(:keymaps 'org-mode-map
-      "C-c n i" 'org-roam-insert
-      "C-c n I" 'org-roam-insert-immediate)
 #+end_src
 
 **** modal modes
@@ -729,7 +710,6 @@ Taken from [[Org-Roam's GitHub README][https://github.com/org-roam/org-roam#inst
         (setq which-key-idle-delay 0.1)
         (setq which-key-idle-secondary-delay nil)
     :custom
-        (which-key-persistent-popup nil)
         (which-key-allow-evil-operators t)
 
         ;; NOTE: This will cause the which-key maps for the operator states to show up,
@@ -934,6 +914,7 @@ Taken from [[Org-Roam's GitHub README][https://github.com/org-roam/org-roam#inst
 #+begin_src emacs-lisp
 ;; Adapted From: https://github.com/clemera/helm-ido-like-guide
 (use-package! helm-ido-like
+    :hook after-init
     :after
         (helm-swoop
         helm-flx
@@ -1006,13 +987,17 @@ Taken from [[Org-Roam's GitHub README][https://github.com/org-roam/org-roam#inst
 
 #+name: 20210601225332587709700
 #+begin_src emacs-lisp
+(remove-hook 'doom-first-buffer-hook #'global-hl-line-mode)
+
 (defun display-startup-echo-area-message nil (aiern/which-key-show-top-level))
 
 ;; (use-package! writeroom-mode
+;;     :hook after-init
 ;;     :general (:keymaps 'override (general-chord "zz") 'writeroom-mode)
 ;;     :custom (writeroom-fullscreen-effect t))
 
 (use-package! focus
+    ;; :hook (doom-init-ui . focus-mode)
     :custom
         (focus-mode-to-thing '(
             ;; (prog-mode . defun)
@@ -1042,6 +1027,8 @@ Taken from [[Org-Roam's GitHub README][https://github.com/org-roam/org-roam#inst
             :keymap 'yankpad-keymap
             ;; :transient t
         ))
+
+(use-package! vlf :demand t :custom (vlf-application 'always))
 
 ;; !!! THE ORDER HERE MATTERS! !!!
 ;; (add-hook! doom-init-ui
@@ -1076,6 +1063,7 @@ Taken from [[Org-Roam's GitHub README][https://github.com/org-roam/org-roam#inst
 ;;     (load! "oneonone")
 ;;     (use-package! oneonone
 ;;         :demand t
+;;         :hook (after-init . 1on1-emacs)
 ;;         :custom
 ;;             (1on1-minibuffer-frame-width 10000)
 ;;             (1on1-minibuffer-frame-height 10000)))
@@ -1179,6 +1167,7 @@ Mostly from [[Emux's After Installing Section][https://github.com/re5et/emux#aft
 #+name: 20210601225342116066300
 #+begin_src emacs-lisp
 (use-package! emux-session
+    ;; :hook (after-init . emux-mode)
     :config
         (emux-completing-read-command (quote ido-completing-read))
 
@@ -1230,6 +1219,8 @@ Mostly from [[Emux's After Installing Section][https://github.com/re5et/emux#aft
 #+name: 20210601225343633878500
 #+begin_src emacs-lisp
 (use-package! elscreen
+    ;; :hook (after-init . elscreen-start)
+    ;; :hook (emacs-startup . elscreen-start)
     :custom
         ;; NOTE: Remember to escape the backslash
         (elscreen-prefix-key "C-S-\\")
@@ -1253,6 +1244,7 @@ Mostly from [[Emux's After Installing Section][https://github.com/re5et/emux#aft
 #+begin_src emacs-lisp
 (load! "escreen")
 (use-package! escreen
+    ;; :hook (after-init . escreen-install)
     :general
         (:keymaps 'override
             (general-chord "||") 'aiern/escreen-hercules-toggle)
@@ -1481,6 +1473,8 @@ Adapted from [[Ergoemacs' Emacs Lisp Code for Setting PATH and exec-path section
     :recipe (:host github :repo "knu/elscreen" :branch "master"))
 (package! exec-path-from-shell
     :recipe (:host github :repo "purcell/exec-path-from-shell" :branch "master"))
+(package! vlfi
+    :recipe (:host github :repo "m00natic/vlfi" :branch "master"))
 #+end_src
 
 *** org-tangle
@@ -1582,6 +1576,7 @@ trees with the :notangle: tag."
                      (push (cons src-lang (list block)) blocks))))))))
     ;; Ensure blocks are in the correct order.
     (mapcar (lambda (b) (cons (car b) (nreverse (cdr b)))) blocks)))
+(advice-add #'org-babel-tangle-collect-blocks :override #'*org-babel-tangle-collect-blocks)
 
 (defvar all-blocks nil)
 (defvar and-tags nil)

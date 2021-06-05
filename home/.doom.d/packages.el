@@ -63,3 +63,5 @@
     :recipe (:host github :repo "knu/elscreen" :branch "master"))
 (package! exec-path-from-shell
     :recipe (:host github :repo "purcell/exec-path-from-shell" :branch "master"))
+(package! vlfi
+    :recipe (:host github :repo "m00natic/vlfi" :branch "master"))
