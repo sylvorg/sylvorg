@@ -23,4 +23,7 @@
 !makefile
 !**/makefile
 
+!org-tangle
+!**/org-tangle
+
 !LICENSE

@@ -674,7 +674,7 @@ def _la(args, stdin=None):
         exa -la @(args)
 
 def _evim(args, stdin=None):
-    emacsclient --socket-name=doom -t @(args)
+    emacsclient --socket-name=damascus -t @(args)
 
 def _git(args, stdin=None):
     $(which -s hub) @(args)
@@ -762,14 +762,14 @@ aliases["compile-link"] = _compile_link
 aliases["compile-only"] = _compile_only
 aliases["compile"] = _compile
 aliases["da"] = _direnv_allow
-aliases["emd"] = "emacs --bg-daemon=doom"
-aliases["kemd"] = "emacsclient --socket-name=doom -e '(kill-emacs)'"
+aliases["emd"] = "emacs --bg-daemon=damascus"
+aliases["kemd"] = "emacsclient --socket-name=damascus -e '(kill-emacs)'"
 aliases["la"] = _la
 aliases["md"] = lambda args, stdin=None: $(mkdir -p @(args))
 aliases["mdg"] = _mdg
 aliases["mosh"] = lambda args, stdin=None: $($(which -s mosh) --experimental-remote-ip=remote @(args))
 aliases["n"] = "exit"
-aliases["remd"] = "emacsclient --socket-name=doom -e '(kill-emacs)' && emacs --bg-daemon=doom"
+aliases["remd"] = "emacsclient --socket-name=damascus -e '(kill-emacs)' && emacs --bg-daemon=damascus"
 # aliases["ssh"] = _ssh
 aliases["ve"] = lambda args, stdin=None: $(vox enter @(args)) if args else $(vox exit)
 aliases["yadm"] = _yadm

@@ -4,7 +4,7 @@
 This is used to hold larger files for =./oreo.aiern.org=.
 
 * home
-** .doom.d
+** .emacs.d
 *** grep+.el
 
 #+call: hash() :exports none

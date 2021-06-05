@@ -14,19 +14,44 @@
   (load bootstrap-file nil 'nomessage))
 (straight-use-package 'use-package)
 
-(load-file "../.doom.d/help+20.el")
-(setq confirm-kill-emacs nil)
-
 (use-package rainbow-delimiters :straight t)
 
-(with-eval-after-load 'rainbow-delimiters (load-file "../.doom.d/aiern/aiern.el")
-    ;; From: https://www.masteringemacs.org/article/speed-up-emacs-libjansson-native-elisp-compilation
-    (if (and (fbatp 'native-comp-available-p) (native-comp-available-p))
-        (message "Native compilation is available")
-        (message "Native complation is *not* available"))
-    (if (fbatp 'json-serialize)
-        (message "Native JSON is available")
-        (message "Native JSON is *not* available")))
+(defun load-emacs-file (path) (interactive)
+    (load-file (concat user-emacs-directory path)))
+(with-eval-after-load 'rainbow-delimiters (load-emacs-file "aiern/aiern.el"))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; From:
+;; Answer: https://emacs.stackexchange.com/a/3883/31428
+;; User: https://emacs.stackexchange.com/users/2454/alexander-shukaev
+;; (use-global-map (make-sparse-keymap))
+
+;; (global-set-key [t] #'self-insert-command)
+;; (let ((c ?\s))
+;;   (while (< c ?\d)
+;;     (global-set-key (vector c) #'self-insert-command)
+;;     (setq c (1+ c)))
+;;   (when (eq system-type 'ms-dos)
+;;     (setq c 128)
+;;     (while (< c 160)
+;;       (global-set-key (vector c) #'self-insert-command)
+;;       (setq c (1+ c))))
+;;   (setq c 160)
+;;   (while (< c 256)
+;;     (global-set-key (vector c) #'self-insert-command)
+;;     (setq c (1+ c))))
+
+(load-emacs-file "help+20.el")
+(setq confirm-kill-emacs nil)
+
+;; From: https://www.masteringemacs.org/article/speed-up-emacs-libjansson-native-elisp-compilation
+(if (and (fbatp 'native-comp-available-p) (native-comp-available-p))
+    (message "Native compilation is available")
+    (message "Native complation is *not* available"))
+(if (fbatp 'json-serialize)
+    (message "Native JSON is available")
+    (message "Native JSON is *not* available"))
 
 ;; Adapted From:
 ;; From: https://emacs.stackexchange.com/a/19507
@@ -35,7 +60,7 @@
 ;; (setq byte-compile warnings (not obsolete))
 
 ;; From: https://emacsredux.com/blog/2014/07/25/configure-the-scratch-buffers-mode/
-;; (setq initial-major-mode 'org-mode)
+(setq initial-major-mode 'org-mode)
 
 ;; (add-to-list 'org-src-lang-modes '("nix-repl" . nix-mode))
 ;; (org-babel-do-load-languages 'org-babel-load-languages '((nix-mode . t)))
@@ -119,7 +144,7 @@
       user-mail-address "aiern@protonmail.com")
 
 (setq custom-safe-themes t)
-(load-theme 'exo-ui-red-dark)
+(load-theme 'dracula-purple-light)
 
 ;; use-package
 ;; (setq use-package-always-defer t)
@@ -148,7 +173,7 @@
     :straight (use-package-hercules :type git :host gitlab :repo "shadowrylander/use-package-hercules" :branch "master"))
 
 ;; keys
-(load-file "../.doom.d/naked.el")
+(load-emacs-file "naked.el")
 (use-package general
     :demand t
     :config
@@ -249,8 +274,12 @@
     
         (defun aiern/toggle-ryo nil (interactive)
             (funcall 'aiern/toggle-inner 'ryo-modal-mode "ryo" (fbatp ryo-modal-mode) 'ryo-modal-mode-map))
+        (defun aiern/toggle-ryo-force nil (interactive)
+            (funcall 'aiern/toggle-inner 'ryo-modal-mode "ryo" (fbatp ryo-modal-mode) 'ryo-modal-mode-map nil t))
         (defun aiern/toggle-ryo-hercules nil (interactive)
             (funcall 'aiern/toggle-inner 'ryo-modal-mode "ryo" (fbatp ryo-modal-mode) 'ryo-modal-mode-map t))
+        (defun aiern/toggle-ryo-hercules-force nil (interactive)
+            (funcall 'aiern/toggle-inner 'ryo-modal-mode "ryo" (fbatp ryo-modal-mode) 'ryo-modal-mode-map t t))
         ;; From: https://github.com/Kungsgeten/ryo-modal#which-key-integration
         (push '((nil . "ryo:.*:") . (nil . "")) which-key-replacement-alist))
 
@@ -262,6 +291,7 @@
     :init (setq-default evil-escape-key-sequence nil)
     :general (:keymaps 'override
         (general-chord "kk") 'aiern/toggle-evil
+        (general-chord "KK") 'aiern/toggle-evil-force
         (general-chord ",,") 'evil-ex)
     :hydra+
       (toggles (:color blue :pre (progn
@@ -284,8 +314,12 @@
     
         (defun aiern/toggle-evil nil (interactive)
             (funcall 'aiern/toggle-inner 'evil-mode "evil" (fbatp evil-mode) 'evil-normal-state-map))
+        (defun aiern/toggle-evil-force nil (interactive)
+            (funcall 'aiern/toggle-inner 'evil-mode "evil" (fbatp evil-mode) 'evil-normal-state-map nil t))
         (defun aiern/toggle-evil-hercules nil (interactive)
             (funcall 'aiern/toggle-inner 'evil-mode "evil" (fbatp evil-mode) 'evil-normal-state-map t))
+        (defun aiern/toggle-evil-hercules-force nil (interactive)
+            (funcall 'aiern/toggle-inner 'evil-mode "evil" (fbatp evil-mode) 'evil-normal-state-map t t))
         ;; From: https://www.reddit.com/r/emacs/comments/lp45zd/help_requested_in_configuring_ryomodal/gp3rfx9?utm_source=share&utm_medium=web2x&context=3
         ;; Kept for documentation porpoises
         ;; (eval
@@ -350,8 +384,12 @@
     
         (defun aiern/toggle-god nil (interactive)
             (funcall 'aiern/toggle-inner 'god-local-mode "god" (fbatp god-local-mode) 'global-map))
+        (defun aiern/toggle-god-force nil (interactive)
+            (funcall 'aiern/toggle-inner 'god-local-mode "god" (fbatp god-local-mode) 'global-map nil t))
         (defun aiern/toggle-god-hercules nil (interactive)
             (funcall 'aiern/toggle-inner 'god-local-mode "god" (fbatp god-local-mode) 'global-map t))
+        (defun aiern/toggle-god-hercules-force nil (interactive)
+            (funcall 'aiern/toggle-inner 'god-local-mode "god" (fbatp god-local-mode) 'global-map t t))
         (which-key-enable-god-mode-support))
 
 ;; xah-fly-keys
@@ -385,8 +423,12 @@
     
         (defun aiern/toggle-xah nil (interactive)
             (funcall 'aiern/toggle-inner 'xah-fly-keys "xah" (fbatp xah-fly-keys) 'xah-fly-command-map))
+        (defun aiern/toggle-xah-force nil (interactive)
+            (funcall 'aiern/toggle-inner 'xah-fly-keys "xah" (fbatp xah-fly-keys) 'xah-fly-command-map nil t))
         (defun aiern/toggle-xah-hercules nil (interactive)
-            (funcall 'aiern/toggle-inner 'xah-fly-keys "xah" (fbatp xah-fly-keys) 'xah-fly-command-map t)))
+            (funcall 'aiern/toggle-inner 'xah-fly-keys "xah" (fbatp xah-fly-keys) 'xah-fly-command-map t))
+        (defun aiern/toggle-xah-hercules-force nil (interactive)
+            (funcall 'aiern/toggle-inner 'xah-fly-keys "xah" (fbatp xah-fly-keys) 'xah-fly-command-map t t)))
 
 ;; objed
 (use-package objed
@@ -413,8 +455,12 @@
     
         (defun aiern/toggle-objed nil (interactive)
             (funcall 'aiern/toggle-inner 'objed-mode "objed" (fbatp objed-mode) 'objed-map))
+        (defun aiern/toggle-objed-force nil (interactive)
+            (funcall 'aiern/toggle-inner 'objed-mode "objed" (fbatp objed-mode) 'objed-map nil t))
         (defun aiern/toggle-objed-hercules nil (interactive)
-            (funcall 'aiern/toggle-inner 'objed-mode "objed" (fbatp objed-mode) 'objed-map t)))
+            (funcall 'aiern/toggle-inner 'objed-mode "objed" (fbatp objed-mode) 'objed-map t))
+        (defun aiern/toggle-objed-hercules-force nil (interactive)
+            (funcall 'aiern/toggle-inner 'objed-mode "objed" (fbatp objed-mode) 'objed-map t t)))
 
 ;; kakoune
 (use-package kakoune
@@ -441,8 +487,12 @@
     
         (defun aiern/toggle-kakoune nil (interactive)
             (funcall 'aiern/toggle-inner 'ryo-modal-mode "kakoune" (fbatp ryo-modal-mode) 'ryo-modal-mode-map))
+        (defun aiern/toggle-kakoune-force nil (interactive)
+            (funcall 'aiern/toggle-inner 'ryo-modal-mode "kakoune" (fbatp ryo-modal-mode) 'ryo-modal-mode-map nil t))
         (defun aiern/toggle-kakoune-hercules nil (interactive)
-            (funcall 'aiern/toggle-inner 'ryo-modal-mode "kakoune" (fbatp ryo-modal-mode) 'ryo-modal-mode-map t)))
+            (funcall 'aiern/toggle-inner 'ryo-modal-mode "kakoune" (fbatp ryo-modal-mode) 'ryo-modal-mode-map t))
+        (defun aiern/toggle-kakoune-hercules-force nil (interactive)
+            (funcall 'aiern/toggle-inner 'ryo-modal-mode "kakoune" (fbatp ryo-modal-mode) 'ryo-modal-mode-map t t)))
 
 ;; modalka
 (use-package modalka
@@ -469,8 +519,12 @@
     
         (defun aiern/toggle-modalka nil (interactive)
             (funcall 'aiern/toggle-inner 'modalka-mode "modalka" (fbatp modalka-mode) 'modalka-mode-map))
+        (defun aiern/toggle-modalka-force nil (interactive)
+            (funcall 'aiern/toggle-inner 'modalka-mode "modalka" (fbatp modalka-mode) 'modalka-mode-map nil t))
         (defun aiern/toggle-modalka-hercules nil (interactive)
-            (funcall 'aiern/toggle-inner 'modalka-mode "modalka" (fbatp modalka-mode) 'modalka-mode-map t)))
+            (funcall 'aiern/toggle-inner 'modalka-mode "modalka" (fbatp modalka-mode) 'modalka-mode-map t))
+        (defun aiern/toggle-modalka-hercules-force nil (interactive)
+            (funcall 'aiern/toggle-inner 'modalka-mode "modalka" (fbatp modalka-mode) 'modalka-mode-map t t)))
 
 ;; org-mode
 (use-package org
@@ -482,7 +536,18 @@
         (setq org-roam-directory org-directory)
     :config
         (org-babel-lob-ingest "./README.org")
-        
+        (defun aiern/get-header nil (interactive)
+            (nth 4 (org-heading-components)))
+        (defun aiern/tangle-path nil (interactive)
+            (org-babel-lob-ingest "./README.org")
+            (string-remove-prefix "/" (concat
+                (org-format-outline-path (org-get-outline-path)) "/"
+                    (aiern/get-header))))
+        (defun aiern/tangle-oreo nil (interactive)
+            (org-babel-lob-ingest "./strange.aiern.org")
+            (aiern/tangle-path))
+        (defun aiern/get-theme-from-header nil (interactive)
+            (string-remove-suffix "-theme.el" (aiern/get-header)))
     :general
         (:keymaps 'override
             (naked "backtab") 'aiern/evil-close-fold)
@@ -504,7 +569,7 @@
         ;; (org-src-window-setup 'current-window)
         (org-cycle-emulate-tab 'whitestart))
 
-(with-eval-after-load 'org (load-file "../.doom.d/emacs-bankruptcy/site-lisp/org-numbers-overlay.el"))
+(with-eval-after-load 'org (load-emacs-file "emacs-bankruptcy/site-lisp/org-numbers-overlay.el"))
 (use-package nix-mode
     :straight t
     :commands (org-babel-execute:nix)
@@ -570,8 +635,6 @@
 ;; (use-package! gitattributes-mode)
 
 ;; buffer
-;; (remove-hook 'doom-first-buffer-hook #'global-hl-line-mode)
-
 (defun display-startup-echo-area-message nil (aiern/which-key-show-top-level))
 
 (use-package writeroom-mode
@@ -626,42 +689,42 @@
     :custom (vlf-application 'always))
 
 ;; !!! THE ORDER HERE MATTERS! !!!
-;; (add-hook! doom-init-ui
-;;     (load-file "fit-frame.el")
-;;     (load-file "autofit-frame.el")
-;;     ;; (load-file "buff-menu+.el")
-;;     (load-file "compile-.el")
-;;     (load-file "compile+.el")
-;;     (load-file "grep+.el")
-;;     (load-file "dired+.el")
-;;     (load-file "dired-details.el")
-;;     (load-file "dired-details+.el")
-;;     (load-file "doremi.el")
-;;     (load-file "hexrgb.el")
-;;     (load-file "frame-fns.el")
-;;     (load-file "faces+.el")
-;;     (load-file "doremi-frm.el")
-;;     (load-file "eyedropper.el")
-;;     (load-file "facemenu+.el")
-;;     (load-file "frame+.el")
-;;     (load-file "help+.el")
-;;     (load-file "info+.el")
-;;     (load-file "menu-bar+.el")
-;;     (load-file "mouse+.el")
-;;     (load-file "setup-keys.el")
-;;     (load-file "strings.el")
-;;     ;; (load-file "simple+.el")
-;;     (load-file "frame-cmds.el")
-;;     (load-file "thumb-frm.el")
-;;     (load-file "window+.el")
-;;     (load-file "zoom-frm.el")
-;;     (load-file "oneonone.el")
+;; (add-hook 'emacs-startup '(lambda nil (interactive)
+;;     (load-emacs-file "fit-frame.el")
+;;     (load-emacs-file "autofit-frame.el")
+;;     ;; (load-emacs-file "buff-menu+.el")
+;;     (load-emacs-file "compile-.el")
+;;     (load-emacs-file "compile+.el")
+;;     (load-emacs-file "grep+.el")
+;;     (load-emacs-file "dired+.el")
+;;     (load-emacs-file "dired-details.el")
+;;     (load-emacs-file "dired-details+.el")
+;;     (load-emacs-file "doremi.el")
+;;     (load-emacs-file "hexrgb.el")
+;;     (load-emacs-file "frame-fns.el")
+;;     (load-emacs-file "faces+.el")
+;;     (load-emacs-file "doremi-frm.el")
+;;     (load-emacs-file "eyedropper.el")
+;;     (load-emacs-file "facemenu+.el")
+;;     (load-emacs-file "frame+.el")
+;;     (load-emacs-file "help+.el")
+;;     (load-emacs-file "info+.el")
+;;     (load-emacs-file "menu-bar+.el")
+;;     (load-emacs-file "mouse+.el")
+;;     (load-emacs-file "setup-keys.el")
+;;     (load-emacs-file "strings.el")
+;;     ;; (load-emacs-file "simple+.el")
+;;     (load-emacs-file "frame-cmds.el")
+;;     (load-emacs-file "thumb-frm.el")
+;;     (load-emacs-file "window+.el")
+;;     (load-emacs-file "zoom-frm.el")
+;;     (load-emacs-file "oneonone.el")
 ;;     (use-package! oneonone
 ;;         :demand t
 ;;         :hook (after-init . 1on1-emacs)
 ;;         :custom
 ;;             (1on1-minibuffer-frame-width 10000)
-;;             (1on1-minibuffer-frame-height 10000)))
+;;             (1on1-minibuffer-frame-height 10000))))
 
 ;; terminal
 
@@ -692,6 +755,3 @@
 
 ;; etc
 (setq-default indent-tabs-mode nil)
-;; (when (featurep! :private spacemacs) (use-package! spacemacs
-;;     :init (remove-hook 'org-load-hook #'+org-init-keybinds-h)
-;;     :hook (doom-init-ui . spacemacs/home)))

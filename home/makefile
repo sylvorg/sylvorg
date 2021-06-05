@@ -5,7 +5,6 @@ init:
 |-git clone --recurse-submodule https://github.com/xero/figlet-fonts ~/shadowrylander/resources/xeroFigletFonts
 |-git clone --recurse-submodule https://github.com/grml/grml-etc-core ~/shadowrylander/resources/grml
 |-git clone --recurse-submodule https://github.com/SpaceVim/SpaceVim ~/shadowrylander/home/.vim
-|-git clone --recurse-submodule https://github.com/hlissner/doom-emacs ~/shadowrylander/home/.emacs.d
 |-git clone --recurse-submodule https://github.com/dexpota/kitty-themes ~/shadowrylander/resources/kittyThemes
 |-git clone --recurse-submodule https://github.com/aleclearmind/nested-tmux ~/shadowrylander/resources/aleclearmind
 |-git clone --recurse-submodule https://github.com/gpakosz/.tmux ~/shadowrylander/resources/oh-my-tmux

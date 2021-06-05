@@ -805,7 +805,6 @@ nixpkgs.url = "github:NixOS/nixpkgs/master";
 
 #+name: 20210601184907763806400
 #+begin_src nix
-<<ff(name="doom-emacs", ur="hlissner/doom-emacs")>>
 <<ff(name="spacevim", ur="spacevim/spacevim")>>
 #+end_src
 
@@ -4446,7 +4445,6 @@ scop/bash-completion ~/<<username>>/resources/bashCompletions
 xero/figlet-fonts ~/<<username>>/resources/xeroFigletFonts
 grml/grml-etc-core ~/<<username>>/resources/grml
 SpaceVim/SpaceVim ~/<<username>>/home/.vim
-hlissner/doom-emacs ~/<<username>>/home/.emacs.d
 dexpota/kitty-themes ~/<<username>>/resources/kittyThemes
 aleclearmind/nested-tmux ~/<<username>>/resources/aleclearmind
 gpakosz/.tmux ~/<<username>>/resources/oh-my-tmux
@@ -4625,12 +4623,7 @@ emacs = {
 
 #+name: 20210601185931858588700
 #+begin_src nix
-# ".doom.d/system_init.el".text = ''
-#   (add-to-list 'exec-path "${pkgs."emacs${j.attrs.versions.emacs}Packages".emacsql-sqlite3}/bin")
-#   (add-to-list 'exec-path "${pkgs."emacs${j.attrs.versions.emacs}Packages".sqlite3}/bin")
-# '';
-".doom.d".source = "${homeDirectory}/${primary.user}/home/.doom.d";
-".emacs.d".source = sources.doom-emacs;
+".emacs.d".source = "${homeDirectory}/${primary.user}/home/.emacs.d";
 #+end_src
 
 ** starship

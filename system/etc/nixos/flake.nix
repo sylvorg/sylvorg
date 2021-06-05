@@ -49,10 +49,6 @@
             url = "github:tmux-plugins/tpm";
             flake = false;
         };
-        doom-emacs = {
-            url = "github:hlissner/doom-emacs";
-            flake = false;
-        };
         spacevim = {
             url = "github:spacevim/spacevim";
             flake = false;

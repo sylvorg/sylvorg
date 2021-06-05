@@ -609,7 +609,7 @@ index c61df8ceb00..d973837f0d3 100644
 #+end_src
 
 * home
-** .doom.d
+** .emacs.d
 *** help+.el
 
 #+call: hash() :exports none

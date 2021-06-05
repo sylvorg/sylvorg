@@ -692,7 +692,7 @@ with builtins; let
                                         exa -la @(args)
                                 
                                 def _evim(args, stdin=None):
-                                    emacsclient --socket-name=doom -t @(args)
+                                    emacsclient --socket-name=damascus -t @(args)
                                 
                                 def _git(args, stdin=None):
                                     $(which -s hub) @(args)
@@ -758,14 +758,14 @@ with builtins; let
                                 aliases["compile-only"] = _compile_only
                                 aliases["compile"] = _compile
                                 aliases["da"] = _direnv_allow
-                                aliases["emd"] = "emacs --bg-daemon=doom"
-                                aliases["kemd"] = "emacsclient --socket-name=doom -e '(kill-emacs)'"
+                                aliases["emd"] = "emacs --bg-daemon=damascus"
+                                aliases["kemd"] = "emacsclient --socket-name=damascus -e '(kill-emacs)'"
                                 aliases["la"] = _la
                                 aliases["md"] = lambda args, stdin=None: $(mkdir -p @(args))
                                 aliases["mdg"] = _mdg
                                 aliases["mosh"] = lambda args, stdin=None: $($(which -s mosh) --experimental-remote-ip=remote @(args))
                                 aliases["n"] = "exit"
-                                aliases["remd"] = "emacsclient --socket-name=doom -e '(kill-emacs)' && emacs --bg-daemon=doom"
+                                aliases["remd"] = "emacsclient --socket-name=damascus -e '(kill-emacs)' && emacs --bg-daemon=damascus"
                                 # aliases["ssh"] = _ssh
                                 aliases["ve"] = lambda args, stdin=None: $(vox enter @(args)) if args else $(vox exit)
                                 aliases["yadm"] = _yadm
@@ -827,12 +827,7 @@ with builtins; let
                                 ".SpaceVim.d/autoload/vimrc.vim".source = "${homeDirectory}/${primary.user}/home/.SpaceVim.d/autoload/vimrc.vim";
                             })
                             ({
-                                # ".doom.d/system_init.el".text = ''
-                                #   (add-to-list 'exec-path "${pkgs."emacs${j.attrs.versions.emacs}Packages".emacsql-sqlite3}/bin")
-                                #   (add-to-list 'exec-path "${pkgs."emacs${j.attrs.versions.emacs}Packages".sqlite3}/bin")
-                                # '';
-                                ".doom.d".source = "${homeDirectory}/${primary.user}/home/.doom.d";
-                                ".emacs.d".source = sources.doom-emacs;
+                                ".emacs.d".source = "${homeDirectory}/${primary.user}/home/.emacs.d";
                             })
                             ({
                                 ".tmuxp/default.yaml".text = "session_name: default";
