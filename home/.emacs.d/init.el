@@ -63,6 +63,11 @@
 (setq display-line-numbers-type 'relative)
 
 ;; Adapted From:
+;; Answer: https://stackoverflow.com/a/50716229/10827766
+;; User: https://stackoverflow.com/users/1482346/muro
+(global-display-line-numbers-mode t)
+
+;; Adapted From:
 ;; Answer: https://unix.stackexchange.com/a/152151
 ;; User: https://unix.stackexchange.com/users/72170/ole
 ;; No more typing the whole yes or no. Just y or n will do.
@@ -113,6 +118,7 @@
 (setq user-full-name "Jeet Ray"
       user-mail-address "aiern@protonmail.com")
 
+(setq custom-safe-themes t)
 (load-theme 'exo-ui-red-dark)
 
 ;; use-package
@@ -570,13 +576,16 @@
 
 (use-package writeroom-mode
     :straight t
-    :hook after-init
+    :hook emacs-startup
     :general (:keymaps 'override (general-chord "zz") 'writeroom-mode)
-    :custom (writeroom-fullscreen-effect t))
+    :custom
+        (writeroom-fullscreen-effect t)
+        (writeroom-fringes-outside-margins t)
+        (writeroom-width 0.75))
 
 (use-package focus
     :straight t
-    ;; :hook (doom-init-ui . focus-mode)
+    :hook (emacs-startup . focus-mode)
     :custom
         (focus-mode-to-thing '(
             ;; (prog-mode . defun)
