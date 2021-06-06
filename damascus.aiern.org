@@ -86,26 +86,6 @@ Adapted From: https://github.com/hlissner/doom-emacs/blob/develop/early-init.el
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;; From:
-;; Answer: https://emacs.stackexchange.com/a/3883/31428
-;; User: https://emacs.stackexchange.com/users/2454/alexander-shukaev
-;; (use-global-map (make-sparse-keymap))
-
-;; (global-set-key [t] #'self-insert-command)
-;; (let ((c ?\s))
-;;   (while (< c ?\d)
-;;     (global-set-key (vector c) #'self-insert-command)
-;;     (setq c (1+ c)))
-;;   (when (eq system-type 'ms-dos)
-;;     (setq c 128)
-;;     (while (< c 160)
-;;       (global-set-key (vector c) #'self-insert-command)
-;;       (setq c (1+ c))))
-;;   (setq c 160)
-;;   (while (< c 256)
-;;     (global-set-key (vector c) #'self-insert-command)
-;;     (setq c (1+ c))))
-
 (load-emacs-file "help+20.el")
 (setq confirm-kill-emacs nil)
 
@@ -208,7 +188,7 @@ Adapted From: https://github.com/hlissner/doom-emacs/blob/develop/early-init.el
       user-mail-address "aiern@protonmail.com")
 
 (setq custom-safe-themes t)
-(load-theme 'dracula-purple-light)
+(load-theme 'dracula-purple-dark)
 
 ;; use-package
 <<20210601225235077502200>>
@@ -217,8 +197,6 @@ Adapted From: https://github.com/hlissner/doom-emacs/blob/develop/early-init.el
 <<20210603105149525867500>>
 
 ;; modal-modes
-;; (add-hook! after-init 'aiern/disable-all-modal-modes)
-
 ;; hercules
 <<20210601225307809867100>>
 
@@ -401,6 +379,28 @@ And in my experience... Not a good idea; much too confusing. Use
 
 #+name: 20210603105149525867500
 #+begin_src emacs-lisp
+;; From:
+;; Answer: https://emacs.stackexchange.com/a/3883/31428
+;; User: https://emacs.stackexchange.com/users/2454/alexander-shukaev
+(use-global-map (make-sparse-keymap))
+
+(global-set-key [t] #'self-insert-command)
+(let ((c ?\s))
+  (while (< c ?\d)
+    (global-set-key (vector c) #'self-insert-command)
+    (setq c (1+ c)))
+  (when (eq system-type 'ms-dos)
+    (setq c 128)
+    (while (< c 160)
+      (global-set-key (vector c) #'self-insert-command)
+      (setq c (1+ c))))
+  (setq c 160)
+  (while (< c 256)
+    (global-set-key (vector c) #'self-insert-command)
+    (setq c (1+ c))))
+
+;; TODO: Add delete, backspace, etc.
+
 (load-emacs-file "naked.el")
 (use-package general
     :demand t
@@ -413,9 +413,6 @@ And in my experience... Not a good idea; much too confusing. Use
     :custom
         (general-implicit-kbd t)
     :straight t)
-
-;; (general-def :keymaps 'override
-;;     (general-chord "zz") '+zen/toggle-fullscreen)
 #+end_src
 
 **** modal modes
@@ -964,9 +961,255 @@ And in my experience... Not a good idea; much too confusing. Use
 ;;             (1on1-minibuffer-frame-height 10000))))
 #+end_src
 
+**** terminal
 
+#+call: hash() :exports none
 
+#+RESULTS:
+: 20210601225334126963400
 
+#+name: 20210601225334126963400
+#+begin_src emacs-lisp
+;; <<20210601225337340164800>>
+
+;; (ansi-term-color-vector [unspecified "white" "red" "green" "yellow" "royal blue" "magenta" "cyan" "white"] t)
+;; (ansi-color-names-vector [unspecified "white" "red" "green" "yellow" "royal blue" "magenta" "cyan" "white"] t)
+(load-emacs-file "fringe.el")
+;; (with-eval-after-load 'fringe-mode (fringe-mode (quote (1 . 1)) nil (fringe)))
+(with-eval-after-load 'fringe-mode (fringe-mode 'none))
+
+;; <<20210601225339037191900>>
+
+<<20210601225340625970700>>
+
+;; NOTE: Not working
+<<20210601225342116066300>>
+
+;; <<20210601225343633878500>>
+
+<<20210601225345097323100>>
+
+#+end_src
+
+***** term
+
+#+call: hash() :exports none
+
+#+RESULTS:
+: 20210601225337340164800
+
+#+name: 20210601225337340164800
+#+begin_src emacs-lisp
+(use-package term
+    :straight t
+    :general
+        (:keymaps 'term-mode-map
+            "C-c C-c" 'term-interrupt-subjob
+            "C-m"     'term-send-raw
+            "C-S-c"   'term-interrupt-subjob
+            "M-,"     'term-send-input
+            "M-b"     'term-send-backward-word
+            "M-d"     'term-send-forward-kill-word
+            "M-DEL"   'term-send-backward-kill-word
+            "M-f"     'term-send-forward-word
+            "M-o"     'term-send-backspace)
+    :custom
+        (term-unbind-key-list '("C-z" "C-x" "C-c" "C-h" "C-l" "<ESC>"))
+        (term-buffer-maximum-size 16384)
+        (term-default-bg-color "#000000") '(term-default-fg-color "#AAAAAA"))
+#+end_src
+
+***** vterm
+
+#+call: hash() :exports none
+
+#+RESULTS:
+: 20210601225339037191900
+
+#+name: 20210601225339037191900
+#+begin_src emacs-lisp
+(use-package vterm
+    :straight t
+    :custom
+        (vterm-shell "/usr/bin/env xonsh")
+        (vterm-always-compile-module t)
+        (vterm-kill-buffer-on-exit t))
+#+end_src
+
+***** multi-term
+
+#+call: hash() :exports none
+
+#+RESULTS:
+: 20210601225340625970700
+
+#+name: 20210601225340625970700
+#+begin_src emacs-lisp
+(use-package multi-term
+    :straight t
+    :custom
+        (multi-term-program "/usr/bin/env xonsh")
+        (multi-term-scroll-show-maximum-output t))
+#+end_src
+
+***** emux
+
+Mostly from [[Emux's After Installing Section][https://github.com/re5et/emux#after-installing]]:
+
+#+call: hash() :exports none
+
+#+RESULTS:
+: 20210601225342116066300
+
+#+name: 20210601225342116066300
+#+begin_src emacs-lisp
+(load-emacs-file "emux/emux-base.el")
+(load-emacs-file "emux/emux-term.el")
+(load-emacs-file "emux/emux-screen.el")
+(load-emacs-file "emux/emux-session.el")
+(use-package emux
+    ;; :straight (emux :type git :host github :repo "re5et/emux" :branch "master")
+    ;; :hook (emacs-startup . emux-mode)
+    :config
+        (emux-completing-read-command (quote ido-completing-read))
+
+        (defun aiern/make-frame nil (interactive) (modify-frame-parameters (make-frame) ((name . "emux"))))
+        (defun aiern/select-emux nil (interactive) (select-frame-by-name "emux"))
+    :general
+        (:keymaps 'override
+            ;; ""          'aiern/make-frame
+            ;; ""          'aiern/select-emux
+            "C-x c"     'emux-term-create
+            "C-x P"     'emux-session-load-template)
+        (:keymaps 'term-mode-map
+            "C-S-p"     'previous-line
+            "C-S-r"     'isearch-backward
+            "C-S-s"     'isearch-forward
+            "C-S-y"     'emux-term-yank
+            "C-x -"     'emux-term-vsplit
+            "C-x |"     'emux-term-hsplit
+            "C-x B"     'emux-jump-to-buffer
+            "C-x C-S-k" 'emux-session-destroy
+            "C-x C"     'emux-screen-create
+            "C-x c"     'emux-term-create
+            "C-x K"     'emux-term-destroy
+            "C-x M-s"   'emux-jump-to-screen
+            "C-x P"     'emux-session-load-template
+            "C-x R"     'emux-screen-rename
+            "C-x r"     'emux-term-rename
+            "C-x s"     'emux-screen-switch
+            "C-x S"     'emux-session-switch
+            "M-."       'comint-dynamic-complete)
+    :hercules
+        (:show-funs #'aiern/emux-hercules-show
+        :hide-funs #'aiern/emux-hercules-hide
+        :toggle-funs #'aiern/emux-hercules-toggle
+        :keymap 'term-mode-map
+        ;; :transient t
+        ))
+#+end_src
+
+***** elscreen
+
+#+call: hash() :exports none
+
+#+RESULTS:
+: 20210601225343633878500
+
+#+name: 20210601225343633878500
+#+begin_src emacs-lisp
+(use-package! elscreen
+    :straight (elscreen :type git :host github :repo "knu/elscreen" :branch "master")
+    ;; :hook (after-init . elscreen-start)
+    ;; :hook (emacs-startup . elscreen-start)
+    :custom
+        ;; NOTE: Remember to escape the backslash
+        (elscreen-prefix-key "C-S-\\")
+    :hercules
+        (:show-funs #'aiern/elscreen-hercules-show
+        :hide-funs #'aiern/elscreen-hercules-hide
+        :toggle-funs #'aiern/elscreen-hercules-toggle
+        :keymap 'elscreen-map
+        ;; :transient t
+        ))
+#+end_src
+
+***** escreen
+
+#+call: hash() :exports none
+
+#+RESULTS:
+: 20210601225345097323100
+
+#+name: 20210601225345097323100
+#+begin_src emacs-lisp
+(load-emacs-file "escreen.el")
+(use-package escreen
+    ;; :hook (after-init . escreen-install)
+    :general
+        (:keymaps 'override
+            (general-chord "||") 'aiern/escreen-hercules-toggle)
+    :config
+        (defun aiern/escreen-hercules-toggle nil(interactive))
+
+        ;; Adapted From: https://tapoueh.org/blog/2009/09/escreen-integration/
+
+        ;; add C-\ l to list screens with emphase for current one
+        (defun escreen-get-active-screen-numbers-with-emphasis nil
+        "what the name says"
+        (interactive)
+            (let ((escreens (escreen-get-active-screen-numbers))
+                (emphased ""))
+
+                (dolist (s escreens)
+                    (setq emphased
+                        (concat emphased (if (= escreen-current-screen-number s)
+                            (propertize (number-to-string s)
+                                ;;'face 'custom-variable-tag) " ")
+                                'face 'info-title-3)
+                                ;;'face 'font-lock-warning-face)
+                                ;;'face 'secondary-selection)
+                            (number-to-string s))
+                        " ")))
+                (message "escreen: active screens: %s" emphased)))
+
+        ;; (global-set-key (kbd "C-\\ l") 'escreen-get-active-screen-numbers-with-emphasis)
+
+        (defun dim:escreen-goto-last-screen nil (interactive)
+            (escreen-goto-last-screen)
+            (escreen-get-active-screen-numbers-with-emphasis))
+
+        (defun dim:escreen-goto-prev-screen (&optional n) (interactive "p")
+            (escreen-goto-prev-screen n)
+            (escreen-get-active-screen-numbers-with-emphasis))
+
+        (defun dim:escreen-goto-next-screen (&optional n) (interactive "p")
+            (escreen-goto-next-screen n)
+            (escreen-get-active-screen-numbers-with-emphasis))
+
+        ;; (define-key escreen-map escreen-prefix-char 'dim:escreen-goto-last-screen)
+
+        ;; (global-set-key (kbd "M-[") 'dim:escreen-goto-prev-screen)
+        ;; (global-set-key (kbd "M-]") 'dim:escreen-goto-next-screen)
+        ;; (global-set-key (kbd "C-\\ DEL") 'dim:escreen-goto-prev-screen)
+        ;; (global-set-key (kbd "C-\\ SPC") 'dim:escreen-goto-next-screen)
+
+        ;; (global-set-key '[s-mouse-4] 'dim:escreen-goto-prev-screen)
+        ;; (global-set-key '[s-mouse-5] 'dim:escreen-goto-next-screen)
+
+        ;; add support for C-\ from terms
+        ;; (require 'term)
+        ;; (define-key term-raw-map escreen-prefix-char escreen-map)
+        ;; (define-key term-raw-map (kbd "M-[") 'dim:escreen-goto-prev-screen)
+        ;; (define-key term-raw-map (kbd "M-]") 'dim:escreen-goto-next-screen)
+    :hercules
+        (:show-funs #'aiern/escreen-hercules-show
+        :hide-funs #'aiern/escreen-hercules-hide
+        :toggle-funs #'aiern/escreen-hercules-toggle
+        :keymap 'escreen-map
+        ;; :transient t
+        ))
+#+end_src
 
 **** window manager
 
@@ -989,6 +1232,7 @@ And in my experience... Not a good idea; much too confusing. Use
 
 #+name: 20210601225348036290600
 #+begin_src emacs-lisp
+(use-package exwm :straight t)
 #+end_src
 
 **** system

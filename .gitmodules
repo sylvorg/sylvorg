@@ -1,0 +1,6 @@
+[submodule "home/.emacs.d/aiern"]
+	path = home/.emacs.d/aiern
+	url = git@github.com:shadowrylander/aiern
+[submodule "home/.emacs.d/emacs-bankruptcy"]
+	path = home/.emacs.d/emacs-bankruptcy
+	url = git@github.com:shadowrylander/emacs-bankruptcy
