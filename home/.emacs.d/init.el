@@ -237,6 +237,13 @@
 
             (global-set-key (kbd "C-x C-c") 'evil-quit)
 
+            ;; Adapted From:
+            ;; Answer: https://superuser.com/a/331662/1154755
+            ;; User: https://superuser.com/users/656734/phimuemue
+            (defun aiern/end-of-line-and-indented-new-line nil (interactive)
+                (end-of-line)
+                (newline-and-indent))
+
             ;; TODO: Add delete, backspace, etc.
             (general-def :keymaps 'override
                 ;; NOTE: When I couldn't find this, I used `command-log-mode':
@@ -250,13 +257,22 @@
                 (naked "down") 'next-line
                 (naked "left") 'backward-char
                 (naked "right") 'forward-char
-                (general-chord "uu") 'aiern/toggle-novel-map)
+                (general-chord "uu") 'aiern/toggle-novel-map
+                (naked "RET") 'newline-and-indent
+                (general-chord "./") 'aiern/end-of-line-and-indented-new-line)
 
-            (setq novel-map-p t))
-            (general-def :keymaps 'override (general-chord "uu") 'aiern/toggle-novel-map)
+            (setq novel-map-p t)
+            (aiern/update-global-mode-string))
+
+        (general-def :keymaps 'override
+            (general-chord "uu") 'aiern/toggle-novel-map
+            (naked "RET") 'newline-and-indent
+            (general-chord "./") 'aiern/end-of-line-and-indented-new-line)
+
         (defun aiern/disable-novel-map nil (interactive)
             (use-global-map global-map)
-            (setq novel-map-p nil))
+            (setq novel-map-p nil)
+            (aiern/update-global-mode-string))
         (defun aiern/toggle-novel-map nil (interactive)
             (funcall (intern (concat "aiern/" (if novel-map-p "disable" "enable") "-novel-map"))))
     :custom
@@ -737,6 +753,80 @@
         (setq org-directory "/tmp")
         (setq org-roam-directory org-directory)
     :config
+        (use-package nix-mode
+            :demand t
+            :straight t
+            :commands (org-babel-execute:nix)
+            :mode ("\\.nix\\'")
+            :config
+                ;; Adapted From:
+                ;; Answer: https://emacs.stackexchange.com/a/61442
+                ;; User: https://emacs.stackexchange.com/users/20061/zeta
+                (defun org-babel-execute:nix (body params)
+                    "Execute a block of Nix code with org-babel."
+                    (message "executing Nix source code block")
+                    (let ((in-file (org-babel-temp-file "n" ".nix"))
+                        (json (or (cdr (assoc :json params)) nil))
+                        (opts (or (cdr (assoc :opts params)) nil))
+                        (args (or (cdr (assoc :args params)) nil))
+                        (read-write-mode (or (cdr (assoc :read-write-mode params)) nil))
+                        (eval (or (cdr (assoc :eval params)) nil))
+                        (show-trace (or (cdr (assoc :show-trace params)) nil)))
+                    (with-temp-file in-file
+                        (insert body))
+                    (org-babel-eval
+                        (format "nix-instantiate %s %s %s %s %s %s %s"
+                            (if (xor (eq json nil) (<= json 0)) "" "--json")
+                            (if (xor (eq show-trace nil) (<= show-trace 0)) "" "--show-trace")
+                            (if (xor (eq read-write-mode nil) (<= read-write-mode 0)) "" "--read-write-mode")
+                            (if (xor (eq eval nil) (<= eval 0)) "" "--eval")
+                            (if (eq opts nil) "" opts)
+                            (if (eq args nil) "" args)
+                            (org-babel-process-file-name in-file))
+                    ""))))
+
+        (use-package xonsh-mode
+            :demand t
+            :straight (xonsh-mode :type git :host github :repo "seanfarley/xonsh-mode" :branch "master")
+            :commands (org-babel-execute:xonsh org-babel-expand-body:xonsh)
+            :mode ("\\.xonshrc\\'" "\\.xsh\\'")
+            :config
+                ;; Adapted From:
+                ;; Answer: https://emacs.stackexchange.com/a/61442
+                ;; User: https://emacs.stackexchange.com/users/20061/zeta
+                (defun org-babel-execute:xonsh (body params)
+                    "Execute a block of Xonsh code with org-babel."
+                    (message "executing Xonsh source code block")
+                    (let ((in-file (org-babel-temp-file "x" ".xsh"))
+                        (opts (or (cdr (assoc :opts params)) nil))
+                        (args (or (cdr (assoc :args params)) nil)))
+                    (with-temp-file in-file
+                        (insert body))
+                    (org-babel-eval
+                        (format "xonsh %s %s %s"
+                            (if (eq opts nil) "" opts)
+                            (if (eq args nil) "" args)
+                            (org-babel-process-file-name in-file))
+                    ""))))
+
+        (use-package dockerfile-mode
+            :demand t
+            :straight t
+            :mode ("\\Dockerfile\\'"))
+
+        (use-package vimrc-mode
+            :demand t
+            :straight (vimrc-mode :type git :host github :repo "mcandre/vimrc-mode" :branch "master")
+            :commands
+                (org-babel-execute:vimrc
+                org-babel-expand-body:vimrc)
+            :mode "\\.vim\\(rc\\)?\\'")
+
+        (org-babel-do-load-languages 'org-babel-load-languages
+            (append org-babel-load-languages
+            '((python . t)
+            (shell . t))))
+
         (org-babel-lob-ingest "./README.org")
 
         ;; Adapted From: https://www.reddit.com/r/emacs/comments/6klewl/org_cyclingto_go_from_folded_to_children_skipping/djniygy?utm_source=share&utm_medium=web2x&context=3
@@ -899,76 +989,6 @@
         ;; (org-src-window-setup 'current-window)
         (org-cycle-emulate-tab 'whitestart))
 
-(use-package nix-mode
-    :straight t
-    :commands (org-babel-execute:nix)
-    :mode ("\\.nix\\'")
-    :config
-        ;; Adapted From:
-        ;; Answer: https://emacs.stackexchange.com/a/61442
-        ;; User: https://emacs.stackexchange.com/users/20061/zeta
-        (defun org-babel-execute:nix (body params)
-            "Execute a block of Nix code with org-babel."
-            (message "executing Nix source code block")
-            (let ((in-file (org-babel-temp-file "n" ".nix"))
-                (json (or (cdr (assoc :json params)) nil))
-                (opts (or (cdr (assoc :opts params)) nil))
-                (args (or (cdr (assoc :args params)) nil))
-                (read-write-mode (or (cdr (assoc :read-write-mode params)) nil))
-                (eval (or (cdr (assoc :eval params)) nil))
-                (show-trace (or (cdr (assoc :show-trace params)) nil)))
-            (with-temp-file in-file
-                (insert body))
-            (org-babel-eval
-                (format "nix-instantiate %s %s %s %s %s %s %s"
-                    (if (xor (eq json nil) (<= json 0)) "" "--json")
-                    (if (xor (eq show-trace nil) (<= show-trace 0)) "" "--show-trace")
-                    (if (xor (eq read-write-mode nil) (<= read-write-mode 0)) "" "--read-write-mode")
-                    (if (xor (eq eval nil) (<= eval 0)) "" "--eval")
-                    (if (eq opts nil) "" opts)
-                    (if (eq args nil) "" args)
-                    (org-babel-process-file-name in-file))
-            "")))
-    :after org)
-(use-package xonsh-mode
-    :straight (xonsh-mode :type git :host github :repo "seanfarley/xonsh-mode" :branch "master")
-    :commands (org-babel-execute:xonsh org-babel-expand-body:xonsh)
-    :mode ("\\.xonshrc\\'" "\\.xsh\\'")
-    :config
-        ;; Adapted From:
-        ;; Answer: https://emacs.stackexchange.com/a/61442
-        ;; User: https://emacs.stackexchange.com/users/20061/zeta
-        (defun org-babel-execute:xonsh (body params)
-            "Execute a block of Xonsh code with org-babel."
-            (message "executing Xonsh source code block")
-            (let ((in-file (org-babel-temp-file "x" ".xsh"))
-                (opts (or (cdr (assoc :opts params)) nil))
-                (args (or (cdr (assoc :args params)) nil)))
-            (with-temp-file in-file
-                (insert body))
-            (org-babel-eval
-                (format "xonsh %s %s %s"
-                    (if (eq opts nil) "" opts)
-                    (if (eq args nil) "" args)
-                    (org-babel-process-file-name in-file))
-            "")))
-    :after org)
-(use-package dockerfile-mode
-    :straight t
-    :config
-        (org-babel-do-load-languages 'org-babel-load-languages
-            (append org-babel-load-languages
-                '((Dockerfile . t))))
-    :mode ("\\Dockerfile\\'")
-    :after org)
-(use-package vimrc-mode
-    :straight (vimrc-mode :type git :host github :repo "mcandre/vimrc-mode" :branch "master")
-    :commands
-        (org-babel-execute:vimrc
-        org-babel-expand-body:vimrc)
-    :mode "\\.vim\\(rc\\)?\\'"
-    :after org)
-
 ;; minibuffer
 
 
@@ -1051,11 +1071,13 @@
     :straight t
     :hook (after-init . doom-modeline-mode)
     :init
-        (setq-default global-mode-string
-            (list
-            "%n "
-            "Novel Keymap: "
-            (if novel-map-p "True" "False")))
+        (defun aiern/update-global-mode-string nil (interactive)
+            (setq global-mode-string
+                (list
+                "%n "
+                "Novel Keymap: "
+                (if novel-map-p "True" "False"))))
+        (aiern/update-global-mode-string)
     :custom
         ;; How tall the mode-line should be. It's only respected in GUI.
         ;; If the actual char height is larger, it respects the actual height.
