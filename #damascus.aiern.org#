@@ -1,3 +1,67 @@
+#+setupfile: ./README.org
+#+include: ./README.org
+
+This can be used with =GNU Stow= as well! :D
+
+The tangle functions are adapted from [[https://emacs.stackexchange.com/a/29884/31428][this answer on the emacs Stack Exchange]],
+which was written by [[https://emacs.stackexchange.com/users/2710/andrew-swann][Andrew Swann]].
+
+* home
+** .emacs.d
+*** early-init.el
+
+Adapted From: https://github.com/hlissner/doom-emacs/blob/develop/early-init.el
+
+#+call: hash() :exports none
+
+#+RESULTS:
+: 20210604182053300746900
+
+#+name: 20210604182053300746900
+#+begin_src emacs-lisp :tangle (aiern/tangle-path)
+;;; early-init.el -*- lexical-binding: t; -*-
+
+;; Emacs 27.1 introduced early-init.el, which is run before init.el, before
+;; package and UI initialization happens, and before site files are loaded.
+
+;; A big contributor to startup times is garbage collection. We up the gc
+;; threshold to temporarily prevent it from running, then reset it later by
+;; enabling `gcmh-mode'. Not resetting it will cause stuttering/freezes.
+(setq gc-cons-threshold most-positive-fixnum)
+
+;; In noninteractive sessions, prioritize non-byte-compiled source files to
+;; prevent the use of stale byte-code. Otherwise, it saves us a little IO time
+;; to skip the mtime checks on every *.elc file.
+(setq load-prefer-newer noninteractive)
+
+;; In Emacs 27+, package initialization occurs before `user-init-file' is
+;; loaded, but after `early-init-file'. Doom handles package initialization, so
+;; we must prevent Emacs from doing it early!
+(setq package-enable-at-startup nil)
+
+;; Ensure Doom is running out of this file's directory
+(setq user-emacs-directory (file-name-directory load-file-name))
+#+end_src
+
+*** init.el
+
+#+call: hash() :exports none
+
+#+RESULTS:
+: 20210601225233511900800
+
+#+name: 20210601225233511900800
+#+begin_src emacs-lisp
+(when (aiern/any-popup-showing-p) (aiern/which-key--hide-popup))) :post (progn (unless hydra-curr-map (aiern/which-key--show-popup))
+#+end_src
+
+#+call: hash() :exports none
+
+#+RESULTS:
+: 20210601225227507463400
+
+#+name: 20210601225227507463400
+#+begin_src emacs-lisp :tangle (aiern/tangle-path)
 ;;; $EMACSDIR/config.el -*- lexical-binding: t; -*-
 (setq straight-use-package-by-default t)
 (defvar bootstrap-version)
@@ -166,7 +230,97 @@
 (load-theme 'dracula-purple-dark)
 
 ;; use-package
-;; (setq use-package-always-defer t)
+<<20210601225235077502200>>
+
+;; keys
+<<20210603105149525867500>>
+
+;; modal-modes
+
+;; Adapted From:
+;; Answer: https://emacs.stackexchange.com/a/42240
+;; User: user12563
+(defun aiern/disable-all-modal-modes (&optional keymap) (interactive)
+    (mapc
+        (lambda (mode-symbol)
+            ;; some symbols are functions which aren't normal mode functions
+            (when (fbatp mode-symbol)
+                (message (format "Disabling %s" (symbol-name mode-symbol)))
+                (ignore-errors
+                    (funcall mode-symbol -1))))
+            modal-modes)
+    (aiern/hercules-hide-all-modal-modes keymap))
+
+;; Adapted From: https://gitlab.com/jjzmajic/hercules.el/-/blob/master/hercules.el#L83
+(defun aiern/toggle-inner (mode prefix mode-on map &optional use-hercules force) (interactive)
+    (aiern/disable-all-modal-modes)
+    (if mode-on
+        (when force (aiern/which-key--hide-popup))
+        (when force (aiern/which-key--show-popup))
+        (funcall mode 1)
+        (if use-hercules (ignore-errors (funcall (intern (concat "aiern/" prefix "-hercules-show"))))
+            (aiern/which-key-show-top-level map))
+        (setq last-modal-mode prefix)))
+
+;; hercules
+<<20210601225307809867100>>
+
+;; ryo modal
+<<20210601225309546041800>>
+
+;; evil
+<<20210601225311301844400>>
+
+;; god mode
+<<20210601225312959948800>>
+
+;; xah-fly-keys
+<<20210601225314671168300>>
+
+;; objed
+<<20210601225316366565400>>
+
+;; kakoune
+<<20210601225318002941000>>
+
+;; modalka
+<<20210601225319683820700>>
+
+;; org-mode
+<<20210601225236550932600>>
+
+;; minibuffer
+<<20210601225321180742600>>
+
+;; git
+<<20210601225324176915500>>
+
+;; buffer
+<<20210601225332587709700>>
+
+;; terminal
+<<20210601225334126963400>>
+
+;; window manager
+<<20210601225346472879400>>
+
+;; system
+<<20210601225349590264700>>
+
+;; etc
+<<20210601225354262898500>>
+#+end_src
+
+**** use-package
+
+#+call: hash() :exports none
+
+#+RESULTS:
+: 20210601225235077502200
+
+#+name: 20210601225235077502200
+#+begin_src emacs-lisp
+;; <<20210601225231422834500>>
 
 ;; From: https://github.com/hartzell/straight.el/commit/882649137f73998d60741c7c8c993c7ebbe0f77a#diff-b335630551682c19a781afebcf4d07bf978fb1f8ac04c6bf87428ed5106870f5R1649
 ;; (setq straight-disable-byte-compilation t)
@@ -189,9 +343,107 @@
     :straight (use-package-hydra+ :type git :host gitlab :repo "picotech/use-package-hydra-plus" :branch "master"))
 (use-package use-package-hercules
     :demand t
-    :straight (use-package-hercules :type git :host gitlab :repo "shadowrylander/use-package-hercules" :branch "master"))
+    :straight (use-package-hercules :type git :host gitlab :repo "<<username>>/use-package-hercules" :branch "master"))
+#+end_src
 
-;; keys
+***** always defer package loading
+
+Quoted from [[Use-Package's Loading packages in sequence
+][https://github.com/jwiegley/use-package#loading-packages-in-sequence]]:
+
+#+begin_quote
+NOTE: pay attention if you set use-package-always-defer to t, and also use the :after keyword, as you will need to specify how the
+declared package is to be loaded: e.g., by some :bind. If you're not using one of the mechanisms that registers autoloads, such as
+:bind or :hook, and your package manager does not provide autoloads, it's possible that without adding :defer 2 to those declarations,
+your package will never be loaded.
+#+end_quote
+
+Quoted from [[Use-Package's Notes about lazy loading][https://github.com/jwiegley/use-package#notes-about-lazy-loading]]:
+
+#+begin_quote
+In almost all cases you don't need to manually specify :defer t. This is implied whenever :bind or :mode or :interpreter is used.
+Typically, you only need to specify :defer if you know for a fact that some other package will do something to cause your package to
+load at the appropriate time, and thus you would like to defer loading even though use-package isn't creating any autoloads for you.
+You can override package deferral with the :demand keyword. Thus, even if you use :bind, using :demand will force loading to occur
+immediately and not establish an autoload for the bound key.
+#+end_quote
+
+Quoted from [[Use-Package's Modes and interpreters][https://github.com/jwiegley/use-package#modes-and-interpreters]]:
+
+#+begin_quote
+Similar to :bind, you can use :mode and :interpreter to establish a deferred binding within the auto-mode-alist and interpreter-mode-alist variables.
+...
+If you aren't using :commands, :bind, :bind*, :bind-keymap, :bind-keymap*, :mode, :interpreter, or :hook
+(all of which imply :defer; see the docstring for use-package for a brief description of each), you can still defer loading with the :defer keyword...
+#+end_quote
+
+Quoted from [[Use-Package's Magic handlers][https://github.com/jwiegley/use-package#magic-handlers]]:
+
+#+begin_quote
+Similar to :mode and :interpreter, you can also use :magic and :magic-fallback to cause certain function to be run if the beginning of a file matches
+a given regular expression.
+...
+This registers an autoloaded command for pdf-view-mode, defers loading of pdf-tools, and runs pdf-view-mode if the beginning of a buffer matches the string "%PDF".
+#+end_quote
+
+Quoted from [[RYO-Modal's Use-package keyword][https://github.com/Kungsgeten/ryo-modal#use-package-keyword]]:
+
+#+begin_quote
+Ryo-modal also provides a use-package keyword: :ryo, which is similar to :bind in that it implies :defer t and create autoloads for the bound commands.
+The keyword is followed by one or more key-binding commands, using the same syntax as used by ryo-modal-keys...
+#+end_quote
+
+Quoted from [[General's Use-package Keywords][https://github.com/noctuid/general.el#use-package-keywords]]:
+
+#+begin_quote
+:general is similar to :bind in that it implies :defer t whenever there are bound commands that can be autoloaded
+(e.g. it will not imply :defer t if the only bound command is to a lambda, for example). Whenever autoloadable commands are bound,
+use-package will create autoloads for them (though this is usually not necessary).
+#+end_quote
+
+Quoted from [[General's :ghook Keyword][https://github.com/noctuid/general.el#ghook-keyword]]:
+
+#+begin_quote
+:ghook is intended to be used to add a package’s minor mode enabling function to a user-specified hook, so that when hook is run,
+the package will be loaded and the mode enabled. This means that :ghook will usually imply :defer t. While it does not always imply :defer t,
+it will add any non-lambda functions to :commands (this is the same behavior as :hook).
+Though this is usually unnecessary (the commands probably already have autoloads), it will in turn imply :defer t.
+#+end_quote
+
+Quoted from [[General's :gfhook Keyword][https://github.com/noctuid/general.el#gfhook-keyword]]:
+
+#+begin_quote
+Unlike :ghook, :gfhook never adds functions to :commands and therefore never implies :defer t.
+This is because the functions specified are ones that should be run when turning on (or toggling) the mode(s) the package provides.
+The specified functions are external to the package, could be called elsewhere, and therefore should not trigger the package to load.
+#+end_quote
+
+Also see [[this comment][https://github.com/jwiegley/use-package/issues/738#issuecomment-447631609]].
+
+Note that I assume that [[chords][https://github.com/jwiegley/use-package#use-package-chords]] also defer and create autoloads.
+
+And in my experience... Not a good idea; much too confusing. Use
+[[the arguments here][https://www.reddit.com/r/emacs/comments/j2xezg/usepackage_best_practices/]] to decide whether to use this or =:defer <n>= instead.
+
+#+call: hash() :exports none
+
+#+RESULTS:
+: 20210601225231422834500
+
+#+name: 20210601225231422834500
+#+begin_src emacs-lisp
+(setq use-package-always-defer t)
+#+end_src
+
+**** keys
+
+#+call: hash() :exports none
+
+#+RESULTS:
+: 20210603105149525867500
+
+#+name: 20210603105149525867500
+#+begin_src emacs-lisp
 (use-package command-log-mode :straight t)
 (load-emacs-file "naked.el")
 (use-package general
@@ -262,35 +514,57 @@
     :custom
         (general-implicit-kbd t)
     :straight t)
+#+end_src
 
-;; modal-modes
+**** modal modes
 
+#+call: hash() :exports none
+
+#+RESULTS:
+: 20210601225304341247500
+
+#+name: 20210601225304341247500
+#+begin_src emacs-lisp :var map="" :var mode="" :var prefix="" :var short=""
 ;; Adapted From:
-;; Answer: https://emacs.stackexchange.com/a/42240
-;; User: user12563
-(defun aiern/disable-all-modal-modes (&optional keymap) (interactive)
-    (mapc
-        (lambda (mode-symbol)
-            ;; some symbols are functions which aren't normal mode functions
-            (when (fbatp mode-symbol)
-                (message (format "Disabling %s" (symbol-name mode-symbol)))
-                (ignore-errors
-                    (funcall mode-symbol -1))))
-            modal-modes)
-    (aiern/hercules-hide-all-modal-modes keymap))
+;; Answer: https://emacs.stackexchange.com/a/7381/31428
+;; User: https://emacs.stackexchange.com/users/719/adobe
+(format-spec "  (toggles (:color blue :pre (progn
+                <<20210601225233511900800>>)) (\"%s\" aiern/toggle-%p \"%p\"))
+    (all-keymaps (:color blue :pre (progn
+                <<20210601225233511900800>>)) (\"%s\" (progn (setq all-keymaps-map '%n) (aiern/%p-show-top-level)) \"%p\"))
+:hercules
+    (:show-funs #'aiern/%p-hercules-show
+    :hide-funs #'aiern/%p-hercules-hide
+    :toggle-funs #'aiern/%p-hercules-toggle
+    :keymap '%m
+    ;; :transient t
+    )
+:config
+    (defun aiern/%p-hercules-toggle nil (interactive))
+    (defun aiern/%p-show-top-level nil (interactive)
+        (aiern/which-key-show-top-level '%m))
+    (add-to-list 'modal-modes '%n)
+    (add-to-list 'modal-prefixes \"%p\")
 
-;; Adapted From: https://gitlab.com/jjzmajic/hercules.el/-/blob/master/hercules.el#L83
-(defun aiern/toggle-inner (mode prefix mode-on map &optional use-hercules force) (interactive)
-    (aiern/disable-all-modal-modes)
-    (if mode-on
-        (when force (aiern/which-key--hide-popup))
-        (when force (aiern/which-key--show-popup))
-        (funcall mode 1)
-        (if use-hercules (ignore-errors (funcall (intern (concat "aiern/" prefix "-hercules-show"))))
-            (aiern/which-key-show-top-level map))
-        (setq last-modal-mode prefix)))
+    (defun aiern/toggle-%p nil (interactive)
+        (funcall 'aiern/toggle-inner '%n \"%p\" (fbatp %n) '%m))
+    (defun aiern/toggle-%p-force nil (interactive)
+        (funcall 'aiern/toggle-inner '%n \"%p\" (fbatp %n) '%m nil t))
+    (defun aiern/toggle-%p-hercules nil (interactive)
+        (funcall 'aiern/toggle-inner '%n \"%p\" (fbatp %n) '%m t))
+    (defun aiern/toggle-%p-hercules-force nil (interactive)
+        (funcall 'aiern/toggle-inner '%n \"%p\" (fbatp %n) '%m t t))" `((?m . ,map) (?n . ,mode) (?p . ,prefix) (?s . ,short)))
+#+end_src
 
-;; hercules
+***** hercules
+
+#+call: hash() :exports none
+
+#+RESULTS:
+: 20210601225307809867100
+
+#+name: 20210601225307809867100
+#+begin_src emacs-lisp
 (use-package hercules
     :straight (hercules :type git :host gitlab :repo "jjzmajic/hercules.el" :branch "master")
     :demand t
@@ -298,7 +572,7 @@
         (general-chord "\\\\") 'aiern/toggle-which-key
         (general-chord "\\]") 'map-of-infinity/body)
     :hydra (map-of-infinity (:color blue :pre (progn
-                (when (aiern/any-popup-showing-p) (aiern/which-key--hide-popup))) :post (progn (unless hydra-curr-map (aiern/which-key--show-popup))))
+                <<20210601225233511900800>>))
             ("`" nil "cancel")
             ("w" hydra/which-key/body "which-key")
             ("h" hydra/hercules/body "hercules")
@@ -306,7 +580,7 @@
             ("t" toggles/body "toggles")
             ("k" all-keymaps/body "all keymaps"))
         (hydra/which-key (:color blue :pre (progn
-                (when (aiern/any-popup-showing-p) (aiern/which-key--hide-popup))) :post (progn (unless hydra-curr-map (aiern/which-key--show-popup))))
+                <<20210601225233511900800>>))
             ("`" nil "cancel")
             ("a" aiern/any-popup-showing-p "any popup showing")
             ("h" aiern/which-key--hide-popup "hide-popup")
@@ -316,13 +590,13 @@
             ("l" aiern/which-key-show-top-level "aiern/toplevel")
             ("L" which-key-show-top-level "toplevel"))
         (hydra/hercules (:color blue :pre (progn
-                (when (aiern/any-popup-showing-p) (aiern/which-key--hide-popup))) :post (progn (unless hydra-curr-map (aiern/which-key--show-popup))))
+                <<20210601225233511900800>>))
             ("`" nil "cancel")
             ("h" aiern/hercules-hide-all-modal-modes "hide all modal modes"))
         (toggles (:color blue :pre (progn
-                (when (aiern/any-popup-showing-p) (aiern/which-key--hide-popup))) :post (progn (unless hydra-curr-map (aiern/which-key--show-popup)))) ("`" nil "cancel"))
+                <<20210601225233511900800>>)) ("`" nil "cancel"))
         (all-keymaps (:color blue :pre (progn
-                (when (aiern/any-popup-showing-p) (aiern/which-key--hide-popup))) :post (progn (unless hydra-curr-map (aiern/which-key--show-popup)))) ("`" nil "cancel"))
+                <<20210601225233511900800>>)) ("`" nil "cancel"))
     :init
         (setq which-key-enable-extended-define-key t)
         (setq which-key-idle-delay 0.1)
@@ -440,43 +714,36 @@
         (which-key-side-window-max-width 0.5)
         
         (which-key-side-window-max-height 0.25))
+#+end_src
 
-;; ryo modal
+***** ryo modal
+
+#+call: hash() :exports none
+
+#+RESULTS:
+: 20210601225309546041800
+
+#+name: 20210601225309546041800
+#+begin_src emacs-lisp
 (use-package ryo-modal
     :straight (ryo-modal :type git :host github :repo "kungsgeten/ryo-modal" :branch "master")
     :demand t
     :general (:keymaps 'override (general-chord "  ") 'aiern/toggle-ryo-hercules)
     :hydra+
-      (toggles (:color blue :pre (progn
-                    (when (aiern/any-popup-showing-p) (aiern/which-key--hide-popup))) :post (progn (unless hydra-curr-map (aiern/which-key--show-popup)))) ("r" aiern/toggle-ryo "ryo"))
-        (all-keymaps (:color blue :pre (progn
-                    (when (aiern/any-popup-showing-p) (aiern/which-key--hide-popup))) :post (progn (unless hydra-curr-map (aiern/which-key--show-popup)))) ("r" (progn (setq all-keymaps-map 'ryo-modal-mode) (aiern/ryo-show-top-level)) "ryo"))
-    :hercules
-        (:show-funs #'aiern/ryo-hercules-show
-        :hide-funs #'aiern/ryo-hercules-hide
-        :toggle-funs #'aiern/ryo-hercules-toggle
-        :keymap 'ryo-modal-mode-map
-        ;; :transient t
-        )
-    :config
-        (defun aiern/ryo-hercules-toggle nil (interactive))
-        (defun aiern/ryo-show-top-level nil (interactive)
-            (aiern/which-key-show-top-level 'ryo-modal-mode-map))
-        (add-to-list 'modal-modes 'ryo-modal-mode)
-        (add-to-list 'modal-prefixes "ryo")
-    
-        (defun aiern/toggle-ryo nil (interactive)
-            (funcall 'aiern/toggle-inner 'ryo-modal-mode "ryo" (fbatp ryo-modal-mode) 'ryo-modal-mode-map))
-        (defun aiern/toggle-ryo-force nil (interactive)
-            (funcall 'aiern/toggle-inner 'ryo-modal-mode "ryo" (fbatp ryo-modal-mode) 'ryo-modal-mode-map nil t))
-        (defun aiern/toggle-ryo-hercules nil (interactive)
-            (funcall 'aiern/toggle-inner 'ryo-modal-mode "ryo" (fbatp ryo-modal-mode) 'ryo-modal-mode-map t))
-        (defun aiern/toggle-ryo-hercules-force nil (interactive)
-            (funcall 'aiern/toggle-inner 'ryo-modal-mode "ryo" (fbatp ryo-modal-mode) 'ryo-modal-mode-map t t))
+    <<20210601225304341247500(map="ryo-modal-mode-map", mode="ryo-modal-mode", prefix="ryo", short="r")>>
         ;; From: https://github.com/Kungsgeten/ryo-modal#which-key-integration
         (push '((nil . "ryo:.*:") . (nil . "")) which-key-replacement-alist))
+#+end_src
 
-;; evil
+***** evil
+
+#+call: hash() :exports none
+
+#+RESULTS:
+: 20210601225311301844400
+
+#+name: 20210601225311301844400
+#+begin_src emacs-lisp
 (use-package bind-map :straight t)
 (use-package evil
     :demand t
@@ -487,32 +754,7 @@
         (general-chord "KK") 'aiern/toggle-evil-force
         (general-chord ",,") 'evil-ex)
     :hydra+
-      (toggles (:color blue :pre (progn
-                    (when (aiern/any-popup-showing-p) (aiern/which-key--hide-popup))) :post (progn (unless hydra-curr-map (aiern/which-key--show-popup)))) ("e" aiern/toggle-evil "evil"))
-        (all-keymaps (:color blue :pre (progn
-                    (when (aiern/any-popup-showing-p) (aiern/which-key--hide-popup))) :post (progn (unless hydra-curr-map (aiern/which-key--show-popup)))) ("e" (progn (setq all-keymaps-map 'evil-mode) (aiern/evil-show-top-level)) "evil"))
-    :hercules
-        (:show-funs #'aiern/evil-hercules-show
-        :hide-funs #'aiern/evil-hercules-hide
-        :toggle-funs #'aiern/evil-hercules-toggle
-        :keymap 'evil-normal-state-map
-        ;; :transient t
-        )
-    :config
-        (defun aiern/evil-hercules-toggle nil (interactive))
-        (defun aiern/evil-show-top-level nil (interactive)
-            (aiern/which-key-show-top-level 'evil-normal-state-map))
-        (add-to-list 'modal-modes 'evil-mode)
-        (add-to-list 'modal-prefixes "evil")
-    
-        (defun aiern/toggle-evil nil (interactive)
-            (funcall 'aiern/toggle-inner 'evil-mode "evil" (fbatp evil-mode) 'evil-normal-state-map))
-        (defun aiern/toggle-evil-force nil (interactive)
-            (funcall 'aiern/toggle-inner 'evil-mode "evil" (fbatp evil-mode) 'evil-normal-state-map nil t))
-        (defun aiern/toggle-evil-hercules nil (interactive)
-            (funcall 'aiern/toggle-inner 'evil-mode "evil" (fbatp evil-mode) 'evil-normal-state-map t))
-        (defun aiern/toggle-evil-hercules-force nil (interactive)
-            (funcall 'aiern/toggle-inner 'evil-mode "evil" (fbatp evil-mode) 'evil-normal-state-map t t))
+    <<20210601225304341247500(map="evil-normal-state-map", mode="evil-mode", prefix="evil", short="e")>>
         ;; From: https://www.reddit.com/r/emacs/comments/lp45zd/help_requested_in_configuring_ryomodal/gp3rfx9?utm_source=share&utm_medium=web2x&context=3
         ;; Kept for documentation porpoises
         ;; (eval
@@ -534,8 +776,8 @@
     :ryo
         ("l" :hydra
                 '(evil-exits (:color blue :pre (progn
-                (when (aiern/any-popup-showing-p) (aiern/which-key--hide-popup))) :post (progn (unless hydra-curr-map (aiern/which-key--show-popup))))
-                    ;; From: https://gist.github.com/shadowrylander/46b81297d1d3edfbf1e2d72d5e29171e
+                <<20210601225233511900800>>))
+                    ;; From: https://gist.github.com/<<username>>/46b81297d1d3edfbf1e2d72d5e29171e
                     "A hydra for getting the fuck outta' here!"
                     ("`" nil "cancel")
                     ("l" evil-save-and-quit ":wq")
@@ -552,10 +794,19 @@
     :straight (evil-evilified-state
         :type git
         :host github
-        :repo "shadowrylander/evil-evilified-state"
+        :repo "<<username>>/evil-evilified-state"
         :branch "master"))
+#+end_src
 
-;; god mode
+***** god mode
+
+#+call: hash() :exports none
+
+#+RESULTS:
+: 20210601225312959948800
+
+#+name: 20210601225312959948800
+#+begin_src emacs-lisp
 (use-package god-mode
     :straight t
     :general
@@ -563,169 +814,89 @@
             (general-chord "jj") 'aiern/toggle-god
             (general-chord "';") 'god-execute-with-current-bindings)
     :hydra+
-      (toggles (:color blue :pre (progn
-                    (when (aiern/any-popup-showing-p) (aiern/which-key--hide-popup))) :post (progn (unless hydra-curr-map (aiern/which-key--show-popup)))) ("g" aiern/toggle-god "god"))
-        (all-keymaps (:color blue :pre (progn
-                    (when (aiern/any-popup-showing-p) (aiern/which-key--hide-popup))) :post (progn (unless hydra-curr-map (aiern/which-key--show-popup)))) ("g" (progn (setq all-keymaps-map 'god-local-mode) (aiern/god-show-top-level)) "god"))
-    :hercules
-        (:show-funs #'aiern/god-hercules-show
-        :hide-funs #'aiern/god-hercules-hide
-        :toggle-funs #'aiern/god-hercules-toggle
-        :keymap 'global-map
-        ;; :transient t
-        )
-    :config
-        (defun aiern/god-hercules-toggle nil (interactive))
-        (defun aiern/god-show-top-level nil (interactive)
-            (aiern/which-key-show-top-level 'global-map))
-        (add-to-list 'modal-modes 'god-local-mode)
-        (add-to-list 'modal-prefixes "god")
-    
-        (defun aiern/toggle-god nil (interactive)
-            (funcall 'aiern/toggle-inner 'god-local-mode "god" (fbatp god-local-mode) 'global-map))
-        (defun aiern/toggle-god-force nil (interactive)
-            (funcall 'aiern/toggle-inner 'god-local-mode "god" (fbatp god-local-mode) 'global-map nil t))
-        (defun aiern/toggle-god-hercules nil (interactive)
-            (funcall 'aiern/toggle-inner 'god-local-mode "god" (fbatp god-local-mode) 'global-map t))
-        (defun aiern/toggle-god-hercules-force nil (interactive)
-            (funcall 'aiern/toggle-inner 'god-local-mode "god" (fbatp god-local-mode) 'global-map t t))
+    <<20210601225304341247500(map="global-map", mode="god-local-mode", prefix="god", short="g")>>
         (which-key-enable-god-mode-support))
+#+end_src
 
-;; xah-fly-keys
+***** xah-fly-keys
+
+#+call: hash() :exports none
+
+#+RESULTS:
+: 20210601225314671168300
+
+#+name: 20210601225314671168300
+#+begin_src emacs-lisp
 (use-package xah-fly-keys
     :straight t
     :ryo
         ("m" :hydra
             '(modal-modes (:color blue :pre (progn
-                (when (aiern/any-popup-showing-p) (aiern/which-key--hide-popup))) :post (progn (unless hydra-curr-map (aiern/which-key--show-popup))))
+                <<20210601225233511900800>>))
                 "A modal hydra!"
                 ("`" nil "cancel")
                 ("x" aiern/toggle-xah "xah-fly-keys")) :name "modal modes")
     :hydra+
-      (toggles (:color blue :pre (progn
-                    (when (aiern/any-popup-showing-p) (aiern/which-key--hide-popup))) :post (progn (unless hydra-curr-map (aiern/which-key--show-popup)))) ("x" aiern/toggle-xah "xah"))
-        (all-keymaps (:color blue :pre (progn
-                    (when (aiern/any-popup-showing-p) (aiern/which-key--hide-popup))) :post (progn (unless hydra-curr-map (aiern/which-key--show-popup)))) ("x" (progn (setq all-keymaps-map 'xah-fly-keys) (aiern/xah-show-top-level)) "xah"))
-    :hercules
-        (:show-funs #'aiern/xah-hercules-show
-        :hide-funs #'aiern/xah-hercules-hide
-        :toggle-funs #'aiern/xah-hercules-toggle
-        :keymap 'xah-fly-command-map
-        ;; :transient t
-        )
-    :config
-        (defun aiern/xah-hercules-toggle nil (interactive))
-        (defun aiern/xah-show-top-level nil (interactive)
-            (aiern/which-key-show-top-level 'xah-fly-command-map))
-        (add-to-list 'modal-modes 'xah-fly-keys)
-        (add-to-list 'modal-prefixes "xah")
-    
-        (defun aiern/toggle-xah nil (interactive)
-            (funcall 'aiern/toggle-inner 'xah-fly-keys "xah" (fbatp xah-fly-keys) 'xah-fly-command-map))
-        (defun aiern/toggle-xah-force nil (interactive)
-            (funcall 'aiern/toggle-inner 'xah-fly-keys "xah" (fbatp xah-fly-keys) 'xah-fly-command-map nil t))
-        (defun aiern/toggle-xah-hercules nil (interactive)
-            (funcall 'aiern/toggle-inner 'xah-fly-keys "xah" (fbatp xah-fly-keys) 'xah-fly-command-map t))
-        (defun aiern/toggle-xah-hercules-force nil (interactive)
-            (funcall 'aiern/toggle-inner 'xah-fly-keys "xah" (fbatp xah-fly-keys) 'xah-fly-command-map t t)))
+    <<20210601225304341247500(map="xah-fly-command-map", mode="xah-fly-keys", prefix="xah", short="x")>>)
+#+end_src
 
-;; objed
+***** objed
+
+#+call: hash() :exports none
+
+#+RESULTS:
+: 20210601225316366565400
+
+#+name: 20210601225316366565400
+#+begin_src emacs-lisp
 (use-package objed
     :straight t
     :general (:keymaps 'override (general-chord "ii") 'aiern/toggle-objed)
     :hydra+
-      (toggles (:color blue :pre (progn
-                    (when (aiern/any-popup-showing-p) (aiern/which-key--hide-popup))) :post (progn (unless hydra-curr-map (aiern/which-key--show-popup)))) ("o" aiern/toggle-objed "objed"))
-        (all-keymaps (:color blue :pre (progn
-                    (when (aiern/any-popup-showing-p) (aiern/which-key--hide-popup))) :post (progn (unless hydra-curr-map (aiern/which-key--show-popup)))) ("o" (progn (setq all-keymaps-map 'objed-mode) (aiern/objed-show-top-level)) "objed"))
-    :hercules
-        (:show-funs #'aiern/objed-hercules-show
-        :hide-funs #'aiern/objed-hercules-hide
-        :toggle-funs #'aiern/objed-hercules-toggle
-        :keymap 'objed-map
-        ;; :transient t
-        )
-    :config
-        (defun aiern/objed-hercules-toggle nil (interactive))
-        (defun aiern/objed-show-top-level nil (interactive)
-            (aiern/which-key-show-top-level 'objed-map))
-        (add-to-list 'modal-modes 'objed-mode)
-        (add-to-list 'modal-prefixes "objed")
-    
-        (defun aiern/toggle-objed nil (interactive)
-            (funcall 'aiern/toggle-inner 'objed-mode "objed" (fbatp objed-mode) 'objed-map))
-        (defun aiern/toggle-objed-force nil (interactive)
-            (funcall 'aiern/toggle-inner 'objed-mode "objed" (fbatp objed-mode) 'objed-map nil t))
-        (defun aiern/toggle-objed-hercules nil (interactive)
-            (funcall 'aiern/toggle-inner 'objed-mode "objed" (fbatp objed-mode) 'objed-map t))
-        (defun aiern/toggle-objed-hercules-force nil (interactive)
-            (funcall 'aiern/toggle-inner 'objed-mode "objed" (fbatp objed-mode) 'objed-map t t)))
+    <<20210601225304341247500(map="objed-map", mode="objed-mode", prefix="objed", short="o")>>)
+#+end_src
 
-;; kakoune
+***** kakoune
+
+#+call: hash() :exports none
+
+#+RESULTS:
+: 20210601225318002941000
+
+#+name: 20210601225318002941000
+#+begin_src emacs-lisp
 (use-package kakoune
     :straight t
     :hydra+
         (modal-modes (:color blue) ("k" aiern/toggle-kakoune-hercules "kakoune"))
-      (toggles (:color blue :pre (progn
-                    (when (aiern/any-popup-showing-p) (aiern/which-key--hide-popup))) :post (progn (unless hydra-curr-map (aiern/which-key--show-popup)))) ("k" aiern/toggle-kakoune "kakoune"))
-        (all-keymaps (:color blue :pre (progn
-                    (when (aiern/any-popup-showing-p) (aiern/which-key--hide-popup))) :post (progn (unless hydra-curr-map (aiern/which-key--show-popup)))) ("k" (progn (setq all-keymaps-map 'ryo-modal-mode) (aiern/kakoune-show-top-level)) "kakoune"))
-    :hercules
-        (:show-funs #'aiern/kakoune-hercules-show
-        :hide-funs #'aiern/kakoune-hercules-hide
-        :toggle-funs #'aiern/kakoune-hercules-toggle
-        :keymap 'ryo-modal-mode-map
-        ;; :transient t
-        )
-    :config
-        (defun aiern/kakoune-hercules-toggle nil (interactive))
-        (defun aiern/kakoune-show-top-level nil (interactive)
-            (aiern/which-key-show-top-level 'ryo-modal-mode-map))
-        (add-to-list 'modal-modes 'ryo-modal-mode)
-        (add-to-list 'modal-prefixes "kakoune")
-    
-        (defun aiern/toggle-kakoune nil (interactive)
-            (funcall 'aiern/toggle-inner 'ryo-modal-mode "kakoune" (fbatp ryo-modal-mode) 'ryo-modal-mode-map))
-        (defun aiern/toggle-kakoune-force nil (interactive)
-            (funcall 'aiern/toggle-inner 'ryo-modal-mode "kakoune" (fbatp ryo-modal-mode) 'ryo-modal-mode-map nil t))
-        (defun aiern/toggle-kakoune-hercules nil (interactive)
-            (funcall 'aiern/toggle-inner 'ryo-modal-mode "kakoune" (fbatp ryo-modal-mode) 'ryo-modal-mode-map t))
-        (defun aiern/toggle-kakoune-hercules-force nil (interactive)
-            (funcall 'aiern/toggle-inner 'ryo-modal-mode "kakoune" (fbatp ryo-modal-mode) 'ryo-modal-mode-map t t)))
+    <<20210601225304341247500(map="ryo-modal-mode-map", mode="ryo-modal-mode", prefix="kakoune", short="k")>>)
+#+end_src
 
-;; modalka
+***** modalka
+
+#+call: hash() :exports none
+
+#+RESULTS:
+: 20210601225319683820700
+
+#+name: 20210601225319683820700
+#+begin_src emacs-lisp
 (use-package modalka
     :straight t
     ;; :general (:keymaps 'override (general-chord "::") 'aiern/toggle-modalka-hercules)
     :hydra+
-      (toggles (:color blue :pre (progn
-                    (when (aiern/any-popup-showing-p) (aiern/which-key--hide-popup))) :post (progn (unless hydra-curr-map (aiern/which-key--show-popup)))) ("m" aiern/toggle-modalka "modalka"))
-        (all-keymaps (:color blue :pre (progn
-                    (when (aiern/any-popup-showing-p) (aiern/which-key--hide-popup))) :post (progn (unless hydra-curr-map (aiern/which-key--show-popup)))) ("m" (progn (setq all-keymaps-map 'modalka-mode) (aiern/modalka-show-top-level)) "modalka"))
-    :hercules
-        (:show-funs #'aiern/modalka-hercules-show
-        :hide-funs #'aiern/modalka-hercules-hide
-        :toggle-funs #'aiern/modalka-hercules-toggle
-        :keymap 'modalka-mode-map
-        ;; :transient t
-        )
-    :config
-        (defun aiern/modalka-hercules-toggle nil (interactive))
-        (defun aiern/modalka-show-top-level nil (interactive)
-            (aiern/which-key-show-top-level 'modalka-mode-map))
-        (add-to-list 'modal-modes 'modalka-mode)
-        (add-to-list 'modal-prefixes "modalka")
-    
-        (defun aiern/toggle-modalka nil (interactive)
-            (funcall 'aiern/toggle-inner 'modalka-mode "modalka" (fbatp modalka-mode) 'modalka-mode-map))
-        (defun aiern/toggle-modalka-force nil (interactive)
-            (funcall 'aiern/toggle-inner 'modalka-mode "modalka" (fbatp modalka-mode) 'modalka-mode-map nil t))
-        (defun aiern/toggle-modalka-hercules nil (interactive)
-            (funcall 'aiern/toggle-inner 'modalka-mode "modalka" (fbatp modalka-mode) 'modalka-mode-map t))
-        (defun aiern/toggle-modalka-hercules-force nil (interactive)
-            (funcall 'aiern/toggle-inner 'modalka-mode "modalka" (fbatp modalka-mode) 'modalka-mode-map t t)))
+    <<20210601225304341247500(map="modalka-mode-map", mode="modalka-mode", prefix="modalka", short="m")>>)
+#+end_src
 
-;; org-mode
+**** org-mode
+
+#+call: hash() :exports none
+
+#+RESULTS:
+: 20210601225236550932600
+
+#+name: 20210601225236550932600
+#+begin_src emacs-lisp
 (use-package org
     :straight t
     :hook (
@@ -866,24 +1037,13 @@
         (advice-add #'org-cycle :after #'(lambda (state) (interactive) (when (eq state 'children) (setq org-cycle-subtree-status 'subtree))))
         ;; (add-hook 'org-cycle-hook (lambda (state) (interactive) (when (eq state 'children) (setq org-cycle-subtree-status 'subtree))))
 
-        (defun aiern/get-header nil (interactive)
-            (nth 4 (org-heading-components)))
-        (defun aiern/tangle-path nil (interactive)
-            (org-babel-lob-ingest "./README.org")
-            (string-remove-prefix "/" (concat
-                (org-format-outline-path (org-get-outline-path)) "/"
-                    (aiern/get-header))))
-        (defun aiern/tangle-oreo nil (interactive)
-            (org-babel-lob-ingest "./strange.aiern.org")
-            (aiern/tangle-path))
-        (defun aiern/get-theme-from-header nil (interactive)
-            (string-remove-suffix "-theme.el" (aiern/get-header)))
+        <<20210601225401786848500>>
     ;; :general
         ;; (:keymaps 'override
         ;;     (naked "backtab") 'aiern/evil-close-fold)
     :ryo ("o" :hydra
         '(hydra-org (:color blue :pre (progn
-            (when (aiern/any-popup-showing-p) (aiern/which-key--hide-popup))) :post (progn (unless hydra-curr-map (aiern/which-key--show-popup))))
+            <<20210601225233511900800>>))
                 "A hydra for org-mode!"
                 ("o" org-babel-tangle "tangle")
                 ("a" aiern/org-babel-tangle-append "tangle append")
@@ -968,14 +1128,23 @@
         org-babel-expand-body:vimrc)
     :mode "\\.vim\\(rc\\)?\\'"
     :after org)
+#+end_src
 
-;; minibuffer
+**** minibuffer
 
+#+call: hash() :exports none
+
+#+RESULTS:
+: 20210601225321180742600
+
+#+name: 20210601225321180742600
+#+begin_src emacs-lisp
+<<b7ccdbd9b486c4c7b221f9a885c076dc>>
 
 ;; TODO: Split this into multiple `use-package!' instances using my new `hydra+' keyword
 (with-eval-after-load 'ryo-modal (ryo-modal-key "x" :hydra
       '(hydra-execute (:color blue :pre (progn
-                (when (aiern/any-popup-showing-p) (aiern/which-key--hide-popup))) :post (progn (unless hydra-curr-map (aiern/which-key--show-popup))))
+                <<20210601225233511900800>>))
             "A hydra for launching stuff!"
             ("c" counsel-M-x "counsel")
             ("h" helm-smex-major-mode-commands "helm smex major mode")
@@ -995,13 +1164,62 @@
 (advice-add #'keyboard-escape-quit :after #'aiern/which-key--show-popup)
 (advice-add #'keyboard-quit :after #'aiern/which-key--show-popup)
 (advice-add #'exit-minibuffer :after #'aiern/which-key--show-popup)
+#+end_src
 
-;; git
+***** helm
+
+#+call: hash() :exports none
+
+#+RESULTS:
+: 20210601225322706724000
+
+#+name: helm
+#+begin_src emacs-lisp
+;; Adapted From: https://github.com/clemera/helm-ido-like-guide
+(use-package helm-ido-like
+    :straight (helm-ido-like
+        :type git
+        :host github
+        :repo "<<username>>/helm-ido-like-guide"
+        :branch "master")
+    :hook after-init
+    :after
+        (helm-swoop
+        helm-flx
+        helm-fuzzier
+        helm-smex
+        smex
+        dash))
+#+end_src
+
+**** git
+
+#+call: hash() :exports none
+
+#+RESULTS:
+: 20210601225324176915500
+
+#+name: 20210601225324176915500
+#+begin_src emacs-lisp
+<<20210601225325712716200>>
+<<20210601225327334456900>>
+;; (use-package! gitattributes-mode)
+#+end_src
+
+***** git-gutter
+
+#+call: hash() :exports none
+
+#+RESULTS:
+: 20210601225325712716200
+
+#+name: 20210601225325712716200
+#+begin_src emacs-lisp
 (use-package git-gutter
     :straight t
     :ryo ("g" :hydra
         '(hydra-git (:pre (progn
-                (when (aiern/any-popup-showing-p) (aiern/which-key--hide-popup))) :post (progn (unless hydra-curr-map (aiern/which-key--show-popup))))
+                <<20210601225233511900800>>))
             "A hydra for git!"
             ("`" nil "cancel" :color blue)
             ("j" git-gutter:next-hunk "next")
@@ -1010,16 +1228,35 @@
             ("s" git-gutter:stage-hunk "stage")
             ("r" git-gutter:revert-hunk "revert")
             ("m" git-gutter:mark-hunk "mark"))))
+#+end_src
+
+***** magit
+
+#+call: hash() :exports none
+
+#+RESULTS:
+: 20210601225327334456900
+
+#+name: 20210601225327334456900
+#+begin_src emacs-lisp
 (use-package magit
     :straight t
     :ryo ("g" :hydra+
         '(hydra-git (:pre (progn
-                (when (aiern/any-popup-showing-p) (aiern/which-key--hide-popup))) :post (progn (unless hydra-curr-map (aiern/which-key--show-popup))))
+                <<20210601225233511900800>>))
             "A hydra for git!"
             ("g" magit-status "magit" :color blue))))
-;; (use-package! gitattributes-mode)
+#+end_src
 
-;; buffer
+**** buffer
+
+#+call: hash() :exports none
+
+#+RESULTS:
+: 20210601225332587709700
+
+#+name: 20210601225332587709700
+#+begin_src emacs-lisp
 (defun display-startup-echo-area-message nil (aiern/which-key-show-top-level))
 
 (use-package rainbow-delimiters
@@ -1050,12 +1287,6 @@
 (use-package doom-modeline
     :straight t
     :hook (after-init . doom-modeline-mode)
-    :init
-        (setq-default global-mode-string
-            (list
-            "%n "
-            "Novel Keymap: "
-            (if novel-map-p "True" "False")))
     :custom
         ;; How tall the mode-line should be. It's only respected in GUI.
         ;; If the actual char height is larger, it respects the actual height.
@@ -1129,11 +1360,7 @@
         ;; Also applies to any derived modes. Respects `doom-modeline-enable-word-count'.
         ;; If it brings the sluggish issue, disable `doom-modeline-enable-word-count' or
         ;; remove the modes from `doom-modeline-continuous-word-count-modes'.
-        (doom-modeline-continuous-word-count-modes '(
-            markdown-mode
-            gfm-mode
-            org-mode
-            outline-mode))
+        (doom-modeline-continuous-word-count-modes '(markdown-mode gfm-mode org-mode))
 
         ;; Whether display the buffer encoding.
         (doom-modeline-buffer-encoding t)
@@ -1217,6 +1444,19 @@
         ;; Hooks that run before/after the modeline version string is updated
         (doom-modeline-before-update-env-hook nil)
         (doom-modeline-after-update-env-hook nil))
+
+(setq-default mode-line-format
+    (list
+    "%n | "
+    "Current Modes: %m | "
+    "Buffer Name: %b | "
+    "Current Line: %l | "
+    "Current File: "
+    ((split-string buffer-file-truename "/"))
+    " | Novel Keymap: "
+    (if novel-map-p "True" "False")
+    " | Version Controlled: "
+    (or vc-mode "False")))
 
 (use-package writeroom-mode
     :straight t
@@ -1307,25 +1547,18 @@
 ;;         :custom
 ;;             (1on1-minibuffer-frame-width 10000)
 ;;             (1on1-minibuffer-frame-height 10000))))
+#+end_src
 
-;; terminal
-;; (use-package term
-;;     :straight t
-;;     :general
-;;         (:keymaps 'term-mode-map
-;;             "C-c C-c" 'term-interrupt-subjob
-;;             "C-m"     'term-send-raw
-;;             "C-S-c"   'term-interrupt-subjob
-;;             "M-,"     'term-send-input
-;;             "M-b"     'term-send-backward-word
-;;             "M-d"     'term-send-forward-kill-word
-;;             "M-DEL"   'term-send-backward-kill-word
-;;             "M-f"     'term-send-forward-word
-;;             "M-o"     'term-send-backspace)
-;;     :custom
-;;         (term-unbind-key-list '("C-z" "C-x" "C-c" "C-h" "C-l" "<ESC>"))
-;;         (term-buffer-maximum-size 16384)
-;;         (term-default-bg-color "#000000") '(term-default-fg-color "#AAAAAA"))
+**** terminal
+
+#+call: hash() :exports none
+
+#+RESULTS:
+: 20210601225334126963400
+
+#+name: 20210601225334126963400
+#+begin_src emacs-lisp
+;; <<20210601225337340164800>>
 
 ;; (ansi-term-color-vector [unspecified "white" "red" "green" "yellow" "royal blue" "magenta" "cyan" "white"] t)
 ;; (ansi-color-names-vector [unspecified "white" "red" "green" "yellow" "royal blue" "magenta" "cyan" "white"] t)
@@ -1333,20 +1566,91 @@
 ;; (with-eval-after-load 'fringe-mode (fringe-mode (quote (1 . 1)) nil (fringe)))
 (with-eval-after-load 'fringe-mode (fringe-mode 'none))
 
-;; (use-package vterm
-;;     :straight t
-;;     :custom
-;;         (vterm-shell "/usr/bin/env xonsh")
-;;         (vterm-always-compile-module t)
-;;         (vterm-kill-buffer-on-exit t))
+;; <<20210601225339037191900>>
 
+<<20210601225340625970700>>
+
+;; NOTE: Not working
+<<20210601225342116066300>>
+
+;; <<20210601225343633878500>>
+
+<<20210601225345097323100>>
+
+#+end_src
+
+***** term
+
+#+call: hash() :exports none
+
+#+RESULTS:
+: 20210601225337340164800
+
+#+name: 20210601225337340164800
+#+begin_src emacs-lisp
+(use-package term
+    :straight t
+    :general
+        (:keymaps 'term-mode-map
+            "C-c C-c" 'term-interrupt-subjob
+            "C-m"     'term-send-raw
+            "C-S-c"   'term-interrupt-subjob
+            "M-,"     'term-send-input
+            "M-b"     'term-send-backward-word
+            "M-d"     'term-send-forward-kill-word
+            "M-DEL"   'term-send-backward-kill-word
+            "M-f"     'term-send-forward-word
+            "M-o"     'term-send-backspace)
+    :custom
+        (term-unbind-key-list '("C-z" "C-x" "C-c" "C-h" "C-l" "<ESC>"))
+        (term-buffer-maximum-size 16384)
+        (term-default-bg-color "#000000") '(term-default-fg-color "#AAAAAA"))
+#+end_src
+
+***** vterm
+
+#+call: hash() :exports none
+
+#+RESULTS:
+: 20210601225339037191900
+
+#+name: 20210601225339037191900
+#+begin_src emacs-lisp
+(use-package vterm
+    :straight t
+    :custom
+        (vterm-shell "/usr/bin/env xonsh")
+        (vterm-always-compile-module t)
+        (vterm-kill-buffer-on-exit t))
+#+end_src
+
+***** multi-term
+
+#+call: hash() :exports none
+
+#+RESULTS:
+: 20210601225340625970700
+
+#+name: 20210601225340625970700
+#+begin_src emacs-lisp
 (use-package multi-term
     :straight t
     :custom
         (multi-term-program "/usr/bin/env xonsh")
         (multi-term-scroll-show-maximum-output t))
+#+end_src
 
-;; NOTE: Not working
+***** emux
+
+Mostly from [[Emux's After Installing Section][https://github.com/re5et/emux#after-installing]]:
+
+#+call: hash() :exports none
+
+#+RESULTS:
+: 20210601225342116066300
+
+#+name: 20210601225342116066300
+#+begin_src emacs-lisp
 (load-emacs-file "emux/emux-base.el")
 (load-emacs-file "emux/emux-term.el")
 (load-emacs-file "emux/emux-screen.el")
@@ -1391,22 +1695,42 @@
         :keymap 'term-mode-map
         ;; :transient t
         ))
+#+end_src
 
-;; (use-package! elscreen
-;;     :straight (elscreen :type git :host github :repo "knu/elscreen" :branch "master")
-;;     ;; :hook (after-init . elscreen-start)
-;;     ;; :hook (emacs-startup . elscreen-start)
-;;     :custom
-;;         ;; NOTE: Remember to escape the backslash
-;;         (elscreen-prefix-key "C-S-\\")
-;;     :hercules
-;;         (:show-funs #'aiern/elscreen-hercules-show
-;;         :hide-funs #'aiern/elscreen-hercules-hide
-;;         :toggle-funs #'aiern/elscreen-hercules-toggle
-;;         :keymap 'elscreen-map
-;;         ;; :transient t
-;;         ))
+***** elscreen
 
+#+call: hash() :exports none
+
+#+RESULTS:
+: 20210601225343633878500
+
+#+name: 20210601225343633878500
+#+begin_src emacs-lisp
+(use-package! elscreen
+    :straight (elscreen :type git :host github :repo "knu/elscreen" :branch "master")
+    ;; :hook (after-init . elscreen-start)
+    ;; :hook (emacs-startup . elscreen-start)
+    :custom
+        ;; NOTE: Remember to escape the backslash
+        (elscreen-prefix-key "C-S-\\")
+    :hercules
+        (:show-funs #'aiern/elscreen-hercules-show
+        :hide-funs #'aiern/elscreen-hercules-hide
+        :toggle-funs #'aiern/elscreen-hercules-toggle
+        :keymap 'elscreen-map
+        ;; :transient t
+        ))
+#+end_src
+
+***** escreen
+
+#+call: hash() :exports none
+
+#+RESULTS:
+: 20210601225345097323100
+
+#+name: 20210601225345097323100
+#+begin_src emacs-lisp
 (load-emacs-file "escreen.el")
 (use-package escreen
     ;; :hook (after-init . escreen-install)
@@ -1473,12 +1797,58 @@
         :keymap 'escreen-map
         ;; :transient t
         ))
+#+end_src
 
+**** window manager
 
-;; window manager
+#+call: hash() :exports none
+
+#+RESULTS:
+: 20210601225346472879400
+
+#+name: 20210601225346472879400
+#+begin_src emacs-lisp
+<<20210601225348036290600>>
+#+end_src
+
+***** exwm
+
+#+call: hash() :exports none
+
+#+RESULTS:
+: 20210601225348036290600
+
+#+name: 20210601225348036290600
+#+begin_src emacs-lisp
 (use-package exwm :straight t)
+#+end_src
 
-;; system
+**** system
+
+#+call: hash() :exports none
+
+#+RESULTS:
+: 20210601225349590264700
+
+#+name: 20210601225349590264700
+#+begin_src emacs-lisp
+<<20210601225351155331200>>
+<<20210601225352808354500>>
+#+end_src
+
+***** paths
+
+Adapted from [[Ergoemacs' Emacs Lisp Code for Setting PATH and exec-path section][http://ergoemacs.org/emacs/emacs_env_var_paths.html]]:
+
+# TODO: Combine the current `$PATH' with `exec-path'
+
+#+call: hash() :exports none
+
+#+RESULTS:
+: 20210601225351155331200
+
+#+name: 20210601225351155331200
+#+begin_src emacs-lisp
 ;; (eval `(let ((mypaths
 ;;     '(
 ;;         ,(concat "/home/" (getenv "USER") "/.nix-profile/bin")
@@ -1497,7 +1867,200 @@
         :host github
         :repo "purcell/exec-path-from-shell"
         :branch "master"))
+#+end_src
 
+***** etc
 
-;; etc
+#+call: hash() :exports none
+
+#+RESULTS:
+: 20210601225352808354500
+
+#+name: 20210601225352808354500
+#+begin_src emacs-lisp
+#+end_src
+
+**** etc
+
+#+call: hash() :exports none
+
+#+RESULTS:
+: 20210601225354262898500
+
+#+name: 20210601225354262898500
+#+begin_src emacs-lisp
 (setq-default indent-tabs-mode nil)
+#+end_src
+
+*** org-tangle
+
+Adapted from: https://github.com/hlissner/doom-emacs/blob/develop/bin/org-tangle
+
+#+call: hash() :exports none
+
+#+RESULTS:
+: 20210601225359807196100
+
+#+name: 20210601225359807196100
+#+begin_src emacs-lisp :tangle (aiern/tangle-path) :shebang "#!/usr/bin/env sh"
+":"; exec emacs --quick --script "$0" -- "$@" # -*- mode: emacs-lisp; lexical-binding: t; -*-
+
+(setq org-confirm-babel-evaluate nil)
+
+(require 'cl-lib)
+(require 'ox)
+(require 'ob-tangle)
+
+<<20210601225401786848500>>
+
+(defun usage ()
+  (with-temp-buffer
+    (insert (format "%s %s [OPTIONS] [TARGETS...]\n"
+                    "[1mUsage:[0m"
+                    (file-name-nondirectory load-file-name))
+            "\n"
+            "A command line interface for tangling org-mode files. TARGETS can be\n"
+            "files or folders (which are searched for org files recursively).\n"
+            "\n"
+            "This is useful for literate configs that rely on command line\n"
+            "workflows to build it.\n"
+            "\n"
+            "[1mExample:[0m\n"
+            "  org-tangle some-file.org\n"
+            "  org-tangle literate/config/\n"
+            "  org-tangle -p -l sh scripts.org > do_something.sh\n"
+            "  org-tangle -p -l python -t tagA -t tagB file.org | python\n"
+            "\n"
+            "[1mOptions:[0m\n"
+            "  -a --all\t\tTangle all blocks by default\n"
+            "  -l --lang LANG\tOnly tangle blocks written in LANG\n"
+            "  -p --print\t\tPrint tangled output to stdout than to files\n"
+            "  -t --tag TAG\n"
+            "     --and TAG\n"
+            "     --or TAG\n"
+            "    Lets you tangle org blocks by tag. You may have more than one\n"
+            "    of these options.\n")
+    (princ (buffer-string))))
+
+(defun *org-babel-tangle (orig-fn &rest args)
+  "Don't write tangled blocks to files, print them to stdout."
+  (cl-letf (((symbol-function 'write-region)
+             (lambda (start end filename &optional append visit lockname mustbenew)
+               (princ (buffer-string)))))
+    (apply orig-fn args)))
+
+(defun *org-babel-tangle-collect-blocks (&optional language tangle-file)
+  "Like `org-babel-tangle-collect-blocks', but will ignore blocks that are in
+trees with the :notangle: tag."
+  (let ((counter 0) last-heading-pos blocks)
+    (org-babel-map-src-blocks (buffer-file-name)
+      (let ((current-heading-pos
+             (org-with-wide-buffer
+              (org-with-limited-levels (outline-previous-heading)))))
+        (if (eq last-heading-pos current-heading-pos) (cl-incf counter)
+          (setq counter 1)
+          (setq last-heading-pos current-heading-pos)))
+      (unless (org-in-commented-heading-p)
+        (require 'org)
+        (let* ((tags (org-get-tags-at))
+               (info (org-babel-get-src-block-info 'light))
+               (src-lang (nth 0 info))
+               (src-tfile (cdr (assq :tangle (nth 2 info)))))
+          (cond ((member "notangle" tags))
+
+                ((and (or or-tags and-tags)
+                      (or (not and-tags)
+                          (let ((a (cl-intersection and-tags tags :test #'string=))
+                                (b and-tags))
+                            (not (or (cl-set-difference a b :test #'equal)
+                                     (cl-set-difference b a :test #'equal)))))
+                      (or (not or-tags)
+                          (cl-intersection or-tags tags :test #'string=))
+                      t))
+
+                ((or (not (or all-blocks src-tfile))
+                     (string= src-tfile "no")  ; tangle blocks by default
+                     (and tangle-file (not (equal tangle-file src-tfile)))
+                     (and language (not (string= language src-lang)))))
+
+                ;; Add the spec for this block to blocks under its language.
+                ((let ((by-lang (assoc src-lang blocks))
+                       (block (org-babel-tangle-single-block counter)))
+                   (if by-lang
+                       (setcdr by-lang (cons block (cdr by-lang)))
+                     (push (cons src-lang (list block)) blocks))))))))
+    ;; Ensure blocks are in the correct order.
+    (mapcar (lambda (b) (cons (car b) (nreverse (cdr b)))) blocks)))
+(advice-add #'org-babel-tangle-collect-blocks :override #'*org-babel-tangle-collect-blocks)
+
+(defvar all-blocks nil)
+(defvar and-tags nil)
+(defvar or-tags nil)
+(let (lang srcs and-tags or-tags)
+  (pop argv)
+  (while argv
+    (let ((arg (pop argv)))
+      (pcase arg
+        ((or "-h" "--help")
+         (usage)
+         (error ""))
+        ((or "-a" "--all")
+         (setq all-blocks t))
+        ((or "-l" "--lang")
+         (setq lang (pop argv)))
+        ((or "-p" "--print")
+         (advice-add #'org-babel-tangle :around #'*org-babel-tangle))
+        ((or "-t" "--tag" "--and")
+         (push (pop argv) and-tags))
+        ("--or"
+         (push (pop argv) or-tags))
+        ((guard (string-match-p "^--lang=" arg))
+         (setq lang (cadr (split-string arg "=" t t))))
+        ((guard (file-directory-p arg))
+         (setq srcs
+               (append (directory-files-recursively arg "\\.org$")
+                       srcs)))
+        ((guard (file-exists-p arg))
+         (push arg srcs))
+        (_ (error "Unknown option or file: %s" arg)))))
+
+  (dolist (file srcs)
+    (let ((backup (make-temp-file (file-name-base file) nil ".backup.org")))
+      (unwind-protect
+          ;; Prevent slow hooks from interfering
+          (let (org-mode-hook)
+            ;; We do the ol' switcheroo because `org-babel-tangle' writes
+            ;; changes to the current file, which would be imposing on the user.
+            (copy-file file backup t)
+            (with-current-buffer (find-file-noselect file)
+              ;; Tangling doesn't expand #+INCLUDE directives, so we do it
+              ;; ourselves, since includes are so useful for literate configs!
+              ;; (org-export-expand-include-keyword)
+              (org-babel-tangle nil nil lang)))
+        (ignore-errors (copy-file backup file t))
+        (ignore-errors (delete-file backup)))))
+  (kill-emacs 0))
+#+end_src
+
+*** org-tangle-functions.el
+
+#+call: hash() :exports none
+
+#+RESULTS:
+: 20210601225401786848500
+
+#+name: 20210601225401786848500
+#+begin_src emacs-lisp :tangle (aiern/tangle-path)
+(defun aiern/get-header nil (interactive)
+    (nth 4 (org-heading-components)))
+(defun aiern/tangle-path nil (interactive)
+    (org-babel-lob-ingest "./README.org")
+    (string-remove-prefix "/" (concat
+        (org-format-outline-path (org-get-outline-path)) "/"
+            (aiern/get-header))))
+(defun aiern/tangle-oreo nil (interactive)
+    (org-babel-lob-ingest "./strange.aiern.org")
+    (aiern/tangle-path))
+(defun aiern/get-theme-from-header nil (interactive)
+    (string-remove-suffix "-theme.el" (aiern/get-header)))
+#+end_src

@@ -46,15 +46,6 @@ tangle-setup: emacs-copy
 |yes yes| ~/.emacs.d/org-tangle ~/shadowrylander/damascus.aiern.org
 |rsync -avvczz ~/shadowrylander/home/.emacs.d/ ~/.emacs.d/
 
-tangle-aiern: tangle-setup
-# Adapted From:
-# Answer: https://askubuntu.com/a/338860/1058868
-# User: https://askubuntu.com/users/1366/lesmana
-# From:
-# Answer: https://askubuntu.com/a/446480/1058868
-# User: https://askubuntu.com/users/267867/peter-w-osel
-|yes yes | ~/.emacs.d/org-tangle ~/shadowrylander/home/.emacs.d/aiern/README.org
-
 tangle-damascus: tangle-setup
 # Adapted From:
 # Answer: https://askubuntu.com/a/338860/1058868
@@ -74,21 +65,16 @@ tangle: tangle-setup
 |yes yes | ~/.emacs.d/org-tangle ~/shadowrylander/*.aiern.org
 |yes yes | ~/.emacs.d/org-tangle ~/shadowrylander/README.org
 
-tangle-all: tangle-aiern tangle
+tangle-all: tangle
 
 emacs-setup: tangle-damascus emacs-copy
 
 emacs: emacs-setup
 |emacs ~/shadowrylander/damascus.aiern.org
 
-push-aiern:
-|git -C ~/shadowrylander/home/.emacs.d/aiern add .
-|-git -C ~/shadowrylander/home/.emacs.d/aiern commit --allow-empty-message -am ""
-|-git -C ~/shadowrylander/home/.emacs.d/aiern push
-
 push:
 |git -C ~/shadowrylander add .
 |-git -C ~/shadowrylander commit --allow-empty-message -am ""
 |-git -C ~/shadowrylander push
 
-push-all: push-aiern push
+push-all: push
