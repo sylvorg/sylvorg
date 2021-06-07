@@ -3190,7 +3190,7 @@ in with pkgs; [
     starship
     sysstat
     thefuck
-    thermald
+    # thermald
     tmux
     tmuxp
     tree

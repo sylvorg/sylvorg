@@ -1,29 +1,30 @@
 *
 *.*
 **/*
+**/**/*
 
 !*.org
 !**/*.org
 
 !README.*
-!**/README.*
+!**/**/README.*
 
 !*.dep
-!**/*.dep
+!**/**/*.dep
 
 !*.lock
-!**/*.lock
+!**/**/*.lock
 
 !*.git*
-!**/*.git*
+!**/**/*.git*
 
 !bootstrap
-!**/bootstrap
+!**/**/bootstrap
 
 !makefile
-!**/makefile
+!**/**/makefile
 
 !org-tangle
-!**/org-tangle
+!**/**/org-tangle
 
 !LICENSE

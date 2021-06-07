@@ -344,6 +344,7 @@ Adapted From: https://github.com/hlissner/doom-emacs/blob/develop/early-init.el
 (use-package use-package-hercules
     :demand t
     :straight (use-package-hercules :type git :host gitlab :repo "<<username>>/use-package-hercules" :branch "master"))
+(use-package leaf :demand t :straight t)
 #+end_src
 
 ***** always defer package loading
@@ -446,14 +447,46 @@ And in my experience... Not a good idea; much too confusing. Use
 #+begin_src emacs-lisp
 (use-package command-log-mode :straight t)
 (load-emacs-file "naked.el")
+
+(progn (setq novel-map (make-sparse-keymap))
+    (define-key novel-map (naked "C-x C-c") #'save-buffers-kill-terminal)
+
+    ;; NOTE: When I couldn't find this, I used `command-log-mode':
+    ;; http://ergoemacs.org/emacs/emacs_show_key_and_command.html
+    (define-key novel-map (naked "deletechar") #'delete-char)
+
+    ;; NOTE: This is actually backspace...
+    (define-key novel-map (naked "DEL") #'delete-backward-char)
+
+    (define-key novel-map (naked "up") #'previous-line)
+    (define-key novel-map (naked "down") #'next-line)
+    (define-key novel-map (naked "left") #'backward-char)
+    (define-key novel-map (naked "right") #'forward-char)
+
+    (define-key novel-map [t] #'self-insert-command)
+    (let ((c ?\s))
+        (while (< c ?\d)
+            (define-key novel-map (vector c) #'self-insert-command)
+            (setq c (1+ c)))
+        (when (eq system-type 'ms-dos)
+            (setq c 128)
+            (while (< c 160)
+            (define-key novel-map (vector c) #'self-insert-command)
+            (setq c (1+ c))))
+        (setq c 160)
+        (while (< c 256)
+            (define-key novel-map (vector c) #'self-insert-command)
+            (setq c (1+ c)))))
+
 (use-package general
     :demand t
     :config
         (general-auto-unbind-keys)
         (general-def :keymaps '(
-            minibuffer-local-keymap
-            counsel-describe-map
-            helm-buffer-map) "M-x" 'exit-minibuffer)
+                minibuffer-local-map
+                counsel-describe-map
+                helm-buffer-map)
+            "M-x" 'exit-minibuffer)
 
         ;; Answer: https://stackoverflow.com/a/14490054/10827766
         ;; User: https://stackoverflow.com/users/1600898/user4815162342
@@ -467,60 +500,33 @@ And in my experience... Not a good idea; much too confusing. Use
                         (throw 'gotit sym))))))
 
         ;; Adapted From:
-        ;; Answer: https://emacs.stackexchange.com/a/3883/31428
-        ;; User: https://emacs.stackexchange.com/users/2454/alexander-shukaev
-        (defun aiern/enable-novel-map nil (interactive)
-            (use-global-map (make-sparse-keymap))
+        ;; Answer: https://emacs.stackexchange.com/a/14956/31428
+        ;; User: https://emacs.stackexchange.com/users/25/gilles-so-stop-being-evil
+        (defun aiern/newline-and-indent-advice (func &rest arguments)
+            (if (window-minibuffer-p)
+                (progn (minibuffer-complete-and-exit)
+                (minibuffer-complete-and-exit)) (apply func arguments)))
+        (advice-add #'newline-and-indent :around #'aiern/newline-and-indent-advice)
 
-            (global-set-key [t] #'self-insert-command)
-            (let ((c ?\s))
-            (while (< c ?\d)
-                (global-set-key (vector c) #'self-insert-command)
-                (setq c (1+ c)))
-            (when (eq system-type 'ms-dos)
-                (setq c 128)
-                (while (< c 160)
-                (global-set-key (vector c) #'self-insert-command)
-                (setq c (1+ c))))
-            (setq c 160)
-            (while (< c 256)
-                (global-set-key (vector c) #'self-insert-command)
-                (setq c (1+ c))))
+        ;; Adapted From:
+        ;; Answer: https://superuser.com/a/331662/1154755
+        ;; User: https://superuser.com/users/656734/phimuemue
+        (defun aiern/end-of-line-and-indented-new-line nil (interactive)
+            (end-of-line)
+            (newline-and-indent))
 
-            (global-set-key (kbd "C-x C-c") 'evil-quit)
-
-            ;; Adapted From:
-            ;; Answer: https://superuser.com/a/331662/1154755
-            ;; User: https://superuser.com/users/656734/phimuemue
-            (defun aiern/end-of-line-and-indented-new-line nil (interactive)
-                (end-of-line)
-                (newline-and-indent))
-
-            ;; TODO: Add delete, backspace, etc.
-            (general-def :keymaps 'override
-                ;; NOTE: When I couldn't find this, I used `command-log-mode':
-                ;; http://ergoemacs.org/emacs/emacs_show_key_and_command.html
-                (naked "deletechar") 'delete-char
-
-                ;; NOTE: This is actually backspace...
-                (naked "DEL") 'delete-backward-char
-
-                (naked "up") 'previous-line
-                (naked "down") 'next-line
-                (naked "left") 'backward-char
-                (naked "right") 'forward-char
-                (general-chord "uu") 'aiern/toggle-novel-map
-                (naked "RET") 'newline-and-indent
-                (general-chord "./") 'aiern/end-of-line-and-indented-new-line)
-
-            (setq novel-map-p t)
-            (aiern/update-global-mode-string))
-
-        (general-def :keymaps 'override
+        (general-def :keymaps '(override novel-map)
             (general-chord "uu") 'aiern/toggle-novel-map
             (naked "RET") 'newline-and-indent
             (general-chord "./") 'aiern/end-of-line-and-indented-new-line)
 
+        ;; Adapted From:
+        ;; Answer: https://emacs.stackexchange.com/a/3883/31428
+        ;; User: https://emacs.stackexchange.com/users/2454/alexander-shukaev
+        (defun aiern/enable-novel-map nil (interactive)
+            (use-global-map novel-map)
+            (setq novel-map-p t)
+            (aiern/update-global-mode-string))
         (defun aiern/disable-novel-map nil (interactive)
             (use-global-map global-map)
             (setq novel-map-p nil)
@@ -584,7 +590,7 @@ And in my experience... Not a good idea; much too confusing. Use
 (use-package hercules
     :straight (hercules :type git :host gitlab :repo "jjzmajic/hercules.el" :branch "master")
     :demand t
-    :general (:keymaps 'override
+    :general (:keymaps '(override novel-map)
         (general-chord "\\\\") 'aiern/toggle-which-key
         (general-chord "\\]") 'map-of-infinity/body)
     :hydra (map-of-infinity (:color blue :pre (progn
@@ -744,7 +750,7 @@ And in my experience... Not a good idea; much too confusing. Use
 (use-package ryo-modal
     :straight (ryo-modal :type git :host github :repo "kungsgeten/ryo-modal" :branch "master")
     :demand t
-    :general (:keymaps 'override (general-chord "  ") 'aiern/toggle-ryo-hercules)
+    :general (:keymaps '(override novel-map) (general-chord "  ") 'aiern/toggle-ryo-hercules)
     :hydra+
     <<20210601225304341247500(map="ryo-modal-mode-map", mode="ryo-modal-mode", prefix="ryo", short="r")>>
         ;; From: https://github.com/Kungsgeten/ryo-modal#which-key-integration
@@ -765,7 +771,7 @@ And in my experience... Not a good idea; much too confusing. Use
     :demand t
     :straight t
     :init (setq-default evil-escape-key-sequence nil)
-    :general (:keymaps 'override
+    :general (:keymaps '(override novel-map)
         (general-chord "kk") 'aiern/toggle-evil
         (general-chord "KK") 'aiern/toggle-evil-force
         (general-chord ",,") 'evil-ex)
@@ -826,7 +832,7 @@ And in my experience... Not a good idea; much too confusing. Use
 (use-package god-mode
     :straight t
     :general
-        (:keymaps 'override
+        (:keymaps '(override novel-map)
             (general-chord "jj") 'aiern/toggle-god
             (general-chord "';") 'god-execute-with-current-bindings)
     :hydra+
@@ -867,7 +873,7 @@ And in my experience... Not a good idea; much too confusing. Use
 #+begin_src emacs-lisp
 (use-package objed
     :straight t
-    :general (:keymaps 'override (general-chord "ii") 'aiern/toggle-objed)
+    :general (:keymaps '(override novel-map) (general-chord "ii") 'aiern/toggle-objed)
     :hydra+
     <<20210601225304341247500(map="objed-map", mode="objed-mode", prefix="objed", short="o")>>)
 #+end_src
@@ -899,7 +905,7 @@ And in my experience... Not a good idea; much too confusing. Use
 #+begin_src emacs-lisp
 (use-package modalka
     :straight t
-    ;; :general (:keymaps 'override (general-chord "::") 'aiern/toggle-modalka-hercules)
+    ;; :general (:keymaps '(override novel-map) (general-chord "::") 'aiern/toggle-modalka-hercules)
     :hydra+
     <<20210601225304341247500(map="modalka-mode-map", mode="modalka-mode", prefix="modalka", short="m")>>)
 #+end_src
@@ -980,10 +986,7 @@ And in my experience... Not a good idea; much too confusing. Use
                             (org-babel-process-file-name in-file))
                     ""))))
 
-        (use-package dockerfile-mode
-            :demand t
-            :straight t
-            :mode ("\\Dockerfile\\'"))
+        (use-package dockerfile-mode :demand t :straight t :mode ("\\Dockerfile\\'"))
 
         (use-package vimrc-mode
             :demand t
@@ -992,6 +995,8 @@ And in my experience... Not a good idea; much too confusing. Use
                 (org-babel-execute:vimrc
                 org-babel-expand-body:vimrc)
             :mode "\\.vim\\(rc\\)?\\'")
+
+        (use-package ox-pandoc :demand t :straight t)
 
         (org-babel-do-load-languages 'org-babel-load-languages
             (append org-babel-load-languages
@@ -1020,7 +1025,7 @@ And in my experience... Not a good idea; much too confusing. Use
         ;; User: https://emacs.stackexchange.com/users/2370/tobias
         (defun aiern/org-babel-tangle-append-setup nil
             "Add key-binding C-c C-v C-t for `aiern/org-babel-tangle-append'."
-            (org-defkey org-mode-map (kbd "C-c C-v +") 'aiern/org-babel-tangle-append))
+            (org-defkey org-mode-map (naked "C-c C-v +") 'aiern/org-babel-tangle-append))
 
         
         ;; Adapted From:
@@ -1129,7 +1134,7 @@ And in my experience... Not a good idea; much too confusing. Use
 
         <<20210601225401786848500>>
     ;; :general
-        ;; (:keymaps 'override
+        ;; (:keymaps '(override novel-map)
         ;;     (naked "backtab") 'aiern/evil-close-fold)
     :ryo ("o" :hydra
         '(hydra-org (:color blue :pre (progn
@@ -1480,7 +1485,7 @@ And in my experience... Not a good idea; much too confusing. Use
 (use-package writeroom-mode
     :straight t
     :hook emacs-startup
-    :general (:keymaps 'override (general-chord "zz") 'writeroom-mode)
+    :general (:keymaps '(override novel-map) (general-chord "zz") 'writeroom-mode)
     :custom
         (writeroom-fullscreen-effect t)
         (writeroom-fringes-outside-margins t)
@@ -1512,7 +1517,7 @@ And in my experience... Not a good idea; much too confusing. Use
     :init
         (setq yankpad-file "./yankpad.org")
         (defun aiern/yankpad-hercules-toggle nil (interactive))
-    :general (:keymap 'override
+    :general (:keymap '(override novel-map)
         (general-chord "[[") 'aiern/yankpad-hercules-toggle
         (general-chord "]]") 'yankpad-expand)
     :config (yankpad-map)
@@ -1683,7 +1688,7 @@ Mostly from [[Emux's After Installing Section][https://github.com/re5et/emux#aft
         (defun aiern/make-frame nil (interactive) (modify-frame-parameters (make-frame) ((name . "emux"))))
         (defun aiern/select-emux nil (interactive) (select-frame-by-name "emux"))
     :general
-        (:keymaps 'override
+        (:keymaps '(override novel-map)
             ;; ""          'aiern/make-frame
             ;; ""          'aiern/select-emux
             "C-x c"     'emux-term-create
@@ -1754,7 +1759,7 @@ Mostly from [[Emux's After Installing Section][https://github.com/re5et/emux#aft
 (use-package escreen
     ;; :hook (after-init . escreen-install)
     :general
-        (:keymaps 'override
+        (:keymaps '(override novel-map)
             (general-chord "||") 'aiern/escreen-hercules-toggle)
     :config
         (defun aiern/escreen-hercules-toggle nil(interactive))
@@ -1780,7 +1785,7 @@ Mostly from [[Emux's After Installing Section][https://github.com/re5et/emux#aft
                         " ")))
                 (message "escreen: active screens: %s" emphased)))
 
-        ;; (global-set-key (kbd "C-\\ l") 'escreen-get-active-screen-numbers-with-emphasis)
+        ;; (global-set-key (naked "C-\\ l") 'escreen-get-active-screen-numbers-with-emphasis)
 
         (defun dim:escreen-goto-last-screen nil (interactive)
             (escreen-goto-last-screen)
@@ -1796,10 +1801,10 @@ Mostly from [[Emux's After Installing Section][https://github.com/re5et/emux#aft
 
         ;; (define-key escreen-map escreen-prefix-char 'dim:escreen-goto-last-screen)
 
-        ;; (global-set-key (kbd "M-[") 'dim:escreen-goto-prev-screen)
-        ;; (global-set-key (kbd "M-]") 'dim:escreen-goto-next-screen)
-        ;; (global-set-key (kbd "C-\\ DEL") 'dim:escreen-goto-prev-screen)
-        ;; (global-set-key (kbd "C-\\ SPC") 'dim:escreen-goto-next-screen)
+        ;; (global-set-key (naked "M-[") 'dim:escreen-goto-prev-screen)
+        ;; (global-set-key (naked "M-]") 'dim:escreen-goto-next-screen)
+        ;; (global-set-key (naked "C-\\ DEL") 'dim:escreen-goto-prev-screen)
+        ;; (global-set-key (naked "C-\\ SPC") 'dim:escreen-goto-next-screen)
 
         ;; (global-set-key '[s-mouse-4] 'dim:escreen-goto-prev-screen)
         ;; (global-set-key '[s-mouse-5] 'dim:escreen-goto-next-screen)
@@ -1807,8 +1812,8 @@ Mostly from [[Emux's After Installing Section][https://github.com/re5et/emux#aft
         ;; add support for C-\ from terms
         ;; (require 'term)
         ;; (define-key term-raw-map escreen-prefix-char escreen-map)
-        ;; (define-key term-raw-map (kbd "M-[") 'dim:escreen-goto-prev-screen)
-        ;; (define-key term-raw-map (kbd "M-]") 'dim:escreen-goto-next-screen)
+        ;; (define-key term-raw-map (naked "M-[") 'dim:escreen-goto-prev-screen)
+        ;; (define-key term-raw-map (naked "M-]") 'dim:escreen-goto-next-screen)
     :hercules
         (:show-funs #'aiern/escreen-hercules-show
         :hide-funs #'aiern/escreen-hercules-hide
