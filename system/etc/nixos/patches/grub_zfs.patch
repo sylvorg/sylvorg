@@ -1,9 +1,0 @@
---- a/grub-core/fs/zfs/zfs.c
-+++ b/grub-core/fs/zfs/zfs.c
-@@ -285,6 +285,7 @@ static const char *spa_feature_names[] = {
-   "com.delphix:embedded_data",
-   "com.delphix:extensible_dataset",
-   "org.open-zfs:large_blocks",
-+  "org.zfsonlinux:large_dnode",
-   NULL
- };

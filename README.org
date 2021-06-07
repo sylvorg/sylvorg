@@ -1,207 +1,1731 @@
-#!/usr/bin/env mdsh
+#+setupfile: /README.org
+#+include: /README.org
+#+startup: show2levels
+* Deprecated
 
-# TODO: Implement saku as well
+** Default
 
-#+property: header-args -n -r -l "[{(<%s>)}]" :tangle-mode (identity 0444) :noweb yes :mkdirp yes
+#+begin_src nix :tangle default.nix
+inputs@{ config, pkgs, lib, channel, stdenv, dossier, host, type, legacyPackages, ... } : with builtins; with lib; with j; let
+    inherit (stdenv) system;
+    efiBoot = "/boot/efi";
+in {
+    # Help is available in the configuration.nix(5) man page
+    # and in the NixOS manual (accessible by running ‘nixos-help’).
+    imports = flatten [
+        (r.list { dir = ./.; })
+        (map (dir': r.list { dir = ./. + "/${dir'}"; }) [ "_platforms" "_devices" ])
+    ];
+    config = mkMerge [{
+            services.logind.lidSwitch = "hybrid-sleep";
+            boot.loader = {
+                systemd-boot.enable = mkForce config.vars.bootPart;
+                grub = {
+                    enable = mkForce false;
+		            # efiSupport = true;
+                    devices = [
+                        "nodev"
+                        # config.vars.boot
+                    ];
+		            version = 2;
+                };
+                efi = {
+                    canTouchEfiVariables = mkForce true;
+                    efiSysMountPoint = "/boot/efi";
+                };
+            };
+            fileSystems = let
+                inherit (attrs.fileSystems) base;
+                system = "${host}/system";
+            in {
+                "/" = mkForce (base // { device = "${system}/root"; });
+                "/nix" = mkForce (base // { device = "${system}/nix"; });
+                # "${bootMount}" = mkForce { device = config.vars.boot; fsType = "vfat"; };
+            };
+            networking = {
+                # hostId = j.shell.execString { script = ''head -c4 /dev/urandom | od -A none -t x4''; };
+                # hostId = j.shell.getHostID;
+                # hostId = substring 0 8 (readFile "/etc/machine-id");
+                hostId = "1a2b3c4d";
+            };
+            nixpkgs = { inherit system; inherit (legacyPackages) overlays config; };
+            console = {
+                # Select internationalisation properties.
+                # font = lib.mkDefault "${terminus_font}/share/consolefonts/ter-u28n.psf.gz";
+                font = "Cartograph CF Light Italic";
+                keyMap = "us";
+            };
+            # For Yubikey SSH-GPG Authentication
+            environment.shellInit = ''
+                export GPG_TTY="$(tty)"
+                gpg-connect-agent /bye
+                export SSH_AUTH_SOCK="/run/user/$UID/gnupg/S.gpg-agent.ssh"
+                echo UPDATESTARTUPTTY | gpg-connect-agent
+            '';
+            hardware = {
+                enableRedistributableFirmware = lib.mkDefault true;
+                # Enable sound
+                pulseaudio.enable = true;
+            };
+            i18n = {
+                # Select internationalisation properties.
+                defaultLocale = "en_US.UTF-8";
+            };
+            powerManagement = {
+                enable = true;
+                cpuFreqGovernor = mkForce "powersave";
+            };
+            programs = {
+                # Some programs need SUID wrappers, can be configured further or are
+                # started in user sessions.
+                # mtr.enable = true;
+                gnupg.agent = {
+                    enable = true;
+                    enableSSHSupport = false;
+                    pinentryFlavor = "curses";
+                };
 
-# Adapted From:
-# Answer: https://stackoverflow.com/a/65232183/10827766
-# User: https://stackoverflow.com/users/776405/whil
-#+startup: show3levels
+                # For use with Yubikey SSH-GPG Authentication, set to false
+                ssh.startAgent = true;
 
-#+name: username
-#+begin_src text :exports none
-shadowrylander
+                xonsh.enable = true;
+                fish.enable = true;
+                zsh.enable = true;
+            };
+            security.pam = {
+                yubico = {                                                                                                                                                                                                                                                
+                    enable = true;
+                    debug = true;
+                    mode = "challenge-response";
+                };
+                enableSSHAgentAuth = true;
+            };
+            sound.enable = true;
+            system = {
+                # This value determines the NixOS release from which the default
+                # settings for stateful data, like file locations and database versions
+                # on your system were taken. It‘s perfectly fine and recommended to leave
+                # this value at the release version of the first install of this system.
+                # Before changing this value read the documentation for this option
+                # (e.g. man configuration.nix or on https://nixos.org/nixos/options.html).
+                # stateVersion = "20.09"; # Did you read the comment?
+                autoUpgrade = {
+                    enable = true;
+                    allowReboot = false;
+                    flake = https://github.com/nixos/nixpkgs/archive/master.tar.gz;
+                };
+            };
+            time.timeZone = "America/Toronto";
+            zramSwap = {
+                enable = true;
+                algorithm = "zstd";
+            };
+            virtualisation = {
+                xen.enable = false;
+                lxd = { zfsSupport = true; };
+                podman.enable = true;
+                docker = {
+                    storageDriver = "zfs";
+                    package = pkgs.docker;
+                    enableOnBoot = true;
+                };
+            };
+        }
+
+        # (mkIf (config.vars.minimal -> config.vars.noSwap) {
+        #     swapDevices = [{ device = "/dev/zvol/${host}/swap"; }];
+        # })
+    ];
+}
 #+end_src
 
-#+name: hash-deprecated
-#+begin_src emacs-lisp :var name="" :exports none
-(md5 (concat (replace-regexp-in-string "/" "" (
-    org-format-outline-path (org-get-outline-path))) (
-        nth 4 (org-heading-components)) name))
+** Flake
+
+#+begin_src nix :tangle flake.nix
+{
+    description = "default";
+
+    inputs = rec {
+
+        home-manager = {
+            url = "github:nix-community/home-manager/master";
+            # https://github.com/nix-community/home-manager/blob/master/flake.nix#L4
+            # HM takes 'nixpkgs' as input
+            inputs.nixpkgs.follows = "nixpkgs";
+        };
+        doomSnippets = {
+            url = "github:hlissner/doom-snippets/master";
+            flake = false;
+        };
+        evilOrgMode = {
+            url = "github:hlissner/evil-org-mode/master";
+            flake = false;
+        };
+        orgMode = {
+            url = "github:emacs-straight/org-mode/master";
+            flake = false;
+        };
+        doomEmacsOverlay = {
+            url = "github:nix-community/emacs-overlay/master";
+            flake = false;
+        };
+        nixDoomEmacs = {
+            url = "github:vlaci/nix-doom-emacs";
+            inputs = {
+                nixpkgs.follows = "nixpkgs";
+                doom-snippets.follows = "doomSnippets";
+                evil-org-mode.follows = "evilOrgMode";
+                org-mode.follows = "orgMode";
+                emacs-overlay.follows = "doomEmacsOverlay";
+            };
+        };
+
+        mach-nix = {
+            url = "github:davhau/mach-nix/master";
+            inputs.nixpkgs.follows = "nixpkgs";
+        };
+        niv = {
+            url = "github:nmattia/niv/master";
+            flake = false;
+        };
+        flake-utils = {
+            url = "github:numtide/flake-utils/master";
+            inputs.nixpkgs.follows = "nixpkgs";
+        };
+        nur = {
+            url = "github:nix-community/nur/master";
+            inputs.nixpkgs.follows = "nixpkgs";
+        };
+
+        nixpkgs-20-03.url = "github:NixOS/nixpkgs/nixos-20.03";
+        nixpkgs-20-03-small.url = "github:NixOS/nixpkgs/nixos-20.03-small";
+        nixpkgs-20-09.url = "github:NixOS/nixpkgs/nixos-20.09";
+        nixpkgs-20-09-small.url = "github:NixOS/nixpkgs/nixos-20.09-small";
+        # nixpkgs-21-03.url = "github:NixOS/nixpkgs/nixos-21.03";
+        # nixpkgs-21-03-small.url = "github:NixOS/nixpkgs/nixos-21.03-small";
+        # nixpkgs-21-09.url = "github:NixOS/nixpkgs/nixos-21.09";
+        # nixpkgs-21-09-small.url = "github:NixOS/nixpkgs/nixos-21.09-small";
+        nixpkgs-unstable.url = "github:NixOS/nixpkgs/nixos-unstable";
+        nixpkgs-small.url = "github:NixOS/nixpkgs/nixos-unstable-small";
+        nixpkgs-master.url = "github:NixOS/nixpkgs/master";
+
+        nixpkgs.follows = "nixpkgs-master";
+
+        nix = {
+            url = "github:NixOS/nix/master";
+
+            # !!! Don't change this to follow anything other than the default! !!!
+            # inputs.nixpkgs.follows = "nixpkgs";
+        };
+
+    };
+
+    outputs = inputs@{ self, nix, nixpkgs, flake-utils, ... }: with builtins; with nixpkgs.lib; with flake-utils.lib; let
+
+        dossier = let
+            nl = nixpkgs.lib;
+            r = import ./lib/_r.nix nl;
+            _lib' = import ./lib/_lib.nix nl;
+            dir = ./bits/_flakes;
+        in _lib'.foldToSet (
+            [
+                inputs
+                (getFlake (toString dir)).inputs
+            ] ++ (
+                map (
+                    dir': (
+                        getFlake (
+                            toString (
+                                # ./. + "/bits/_flakes/${unsafeDiscardStringContext (trace dir' dir')}"
+                                dir'
+                            )
+                        )
+                    ).inputs
+                ) (
+                    r.list { inherit dir; ignores = [ "flake" ]; }
+                )
+            )
+        );
+
+        # systems = allSystems;
+        systems = defaultSystems;
+        # systems = [ "x86_64-linux" ];
+
+        base' = { inherit sets base branchOverlay lib' lib dossier nix nixpkgs make forAllSystems prefix nameChannel; };
+
+        base = {
+            pkgs = import nixpkgs {};
+            lib = mkLib base.pkgs;
+            stdenv = import ./lib/_stdenv.nix { inherit (base) pkgs lib; };
+            config = import ./lib/_config.nix base.stdenv;
+            overlays = import ./lib/_overlays.nix base.pkgs base.lib dossier "pkgs" currentSystem "def";
+        };
+
+        mkLib = pkgs: nixpkgs.lib.extend (final: prev: {
+            j = import ./lib {
+                inherit dossier pkgs;
+                lib = final;
+            };
+            f = true;
+            h = dossier.hlissner.lib;
+        });
+
+        pkgs = import nixpkgs { inherit (base) config overlays; system = currentSystem; };
+        lib' = mkLib pkgs;
+        lib = lib'.extend (final: prev: { inherit sets; });
+        inherit (lib) genAttrs;
+
+        make = import ./bits/make.nix ({ inherit base' pkgs; } // base');
+
+        branchOverlay = cpni@{ channel, progs ? [], nvs, ignores ? [] }: import ./bits/bo.nix (cpni // base');
+
+        sets = import ./bits/sets.nix base';
+
+        forAllSystems = func: genAttrs systems (system: genAttrs sets.types (type:
+            mapAttrs (name: value: func { inherit name value system type; }) sets.nixpkgs'
+        ));
+
+        prefix = "nixpkgs";
+        nameChannel = { name, ... }: let
+            channel = removePrefix prefix name;
+        in if (channel == "") then "pkgs" else (removePrefix "-" channel);
+
+    in with lib; with j; dossier // {
+
+        inherit lib dossier inputs;
+        inherit (sets) nixpkgs' hosts channels types legacyPackages;
+
+        # TODO: Why is there infinite recursion here?
+        nixosConfigurations = foldToSet
+            (flatten (map (host: map (system: map (type: map (channel: let
+                hostName = sets.hostNames.${system}.${type}.${channel}.${host};
+            in {
+                "${hostName}" = sets.nixosConfigurations'.${system}.${type}.${channel}.${host};
+            }) sets.channels) sets.types) systems) sets.hosts));
+
+    } // (eachSystem systems (system: {
+        defaultPackage = nixpkgs;
+    }));
+
+}
 #+end_src
 
-#+name: hash
-#+begin_src emacs-lisp :exports none
-(format-time-string "%Y%m%d%H%M%S%N")
-#+end_src
+** CraZFS
 
-* current projects
+*** CraZFS
 
-# !!! Local projects are in the `inca' directory !!!
+#+begin_src python :tangle ./crazfs/crazfs.py
+#!/usr/bin/env python3.9
 
-#+call: hash() :exports none
+# Imports
+import click
+import pout
 
-#+RESULTS:
-: 20210601181716264678600
-
-#+name: 20210601181716264678600
-#+begin_src text
-<<username>>/<<username>> ~/<<username>>/home/<<username>>
-#+end_src
-
-* makefile
-
-#+call: hash() :exports none
-
-#+RESULTS:
-: 20210601181725825830000
-
-#+name: 20210601181725825830000
-#+begin_src makefile :tangle makefile
-.RECIPEPREFIX := |
-
-init:
-|-git clone --recurse-submodule https://github.com/<<20210601181716264678600>>
-.DEFAULT_GOAL := init
-
-rebuild:
-|chmod +x ./wheee
-|./wheee --use-hash ${HASH} -H make
-
-switch:
-|chmod +x ./wheee
-|./wheee --use-hash ${HMASH} -H make --home-manager
-|./wheee --use-hash ${RMASH} -H make --home-manager
-
-# doom-set:
-# |rsync -avvczz --delete ~/<<username>>/home/.doom.d/ ~/.doom.d/
-# |chmod +x ~/.doom.d/org-tangle
-# |yes yes| ~/.doom.d/org-tangle ~/<<username>>/doom.aiern.org
-# |yes yes| ~/.doom.d/org-tangle ~/<<username>>/home/.doom.d/aiern/README.org
-# |rsync -avvczz --delete ~/<<username>>/home/.doom.d/ ~/.doom.d/
-
-# doom-sync:
-# |~/.emacs.d/bin/doom sync
-
-# doom-check:
-# |~/.emacs.d/bin/doom doctor
-
-# doom-test:
-# |emacs ~/<<username>>/doom.aiern.org
-
-# doom-pre: doom-set doom-sync doom-check
-
-# doom: doom-pre doom-test
-
-# doom-upgrade: doom-pre
-# |printf "n\ny\n" | ~/.emacs.d/bin/doom upgrade
-
-# doom-super: doom-set doom-sync doom-check doom-upgrade doom-sync doom-check doom-test
-
-emacs-copy:
-|rsync -avvczz ~/<<username>>/home/.emacs.d/ ~/.emacs.d/
-
-tangle-setup: emacs-copy
-|chmod +x ~/.emacs.d/org-tangle
-|yes yes| ~/.emacs.d/org-tangle ~/<<username>>/damascus.aiern.org
-|rsync -avvczz ~/<<username>>/home/.emacs.d/ ~/.emacs.d/
-
-tangle-damascus: tangle-setup
-# Adapted From:
-# Answer: https://askubuntu.com/a/338860/1058868
-# User: https://askubuntu.com/users/1366/lesmana
-# From:
-# Answer: https://askubuntu.com/a/446480/1058868
-# User: https://askubuntu.com/users/267867/peter-w-osel
-|yes yes | ~/.emacs.d/org-tangle ~/<<username>>/damascus.aiern.org
-
-tangle: tangle-setup
-# Adapted From:
-# Answer: https://askubuntu.com/a/338860/1058868
-# User: https://askubuntu.com/users/1366/lesmana
-# From:
-# Answer: https://askubuntu.com/a/446480/1058868
-# User: https://askubuntu.com/users/267867/peter-w-osel
-|yes yes | ~/.emacs.d/org-tangle ~/<<username>>/*.aiern.org
-|yes yes | ~/.emacs.d/org-tangle ~/<<username>>/README.org
-
-tangle-all: tangle
-
-emacs-setup: tangle-damascus emacs-copy
-
-emacs: emacs-setup
-|emacs ~/<<username>>/damascus.aiern.org
-
-push:
-|git -C ~/<<username>> add .
-|-git -C ~/<<username>> commit --allow-empty-message -am ""
-|-git -C ~/<<username>> push
-
-push-all: push
-#+end_src
-
-* previous projects
-** bakery
-
-My pride and joy; based off of [[https://github.com/amoffat][Andrew Moffat's]] [[https://amoffat.github.io/sh/][sh]],
-this python module allows you to import shell commands as modules as well. For example:
-
-# How does the code below work exactly, again? Revise it!
-
-#+begin_src python
-<<20210601181755824433500>>
-<<20210601181800630609300>>
-<<20210601181804730771100>>
-#+end_src
-
-You might be thinking to yourself, "Cool!" And also, "...Wait what?"
-
-*** breaking it down
-
------
-
-#+call: hash() :exports none
-
-#+RESULTS:
-: 20210601181755824433500
-
-#+name: 20210601181755824433500
-#+begin_src python
-from baker.y import git
-#+end_src
-
-This will import the =git= utility from your path as a =bakery= object;
-note, however, that while the statement is importing =git= from =baker.y=,
-there are actually two submodules in play here: =baker= with a =y=,
-and =baker= with an =i=.
-
-To facilitate the use of =git(C = [path]).status()=, the latter submodule must be used.
-This also prevents the use of something like =git()=, but, since that just shows the help text,
-one can simply use =git.help()= instead.
-
------
-
-#+call: hash() :exports none
-
-#+RESULTS:
-: 20210601181800630609300
-
-#+name: 20210601181800630609300
-#+begin_src python
-git.clone(
-    b = "master",
-    recurse_submodule = True,
-    "https://github.com/<<username>>/<<username>>",
-    "~/<<username>>",
-    _run = True,
+# From Imports
+from addict import Dict as D
+from baker.y import (
+    ls,
+    mkdir,
+    mkfs,
+    mount,
+    rm,
+    umount,
+    zfs,
+    zpool,
 )
+from collections import namedtuple
+from functools import partial
+from nanite import Command
+from os import path as osPath
+from subprocess import DEVNULL
+
+ls.bake_(l=True, a=True, _type=str)
+mkdir.bake_(p=True)
+rm.bake_(r=True, _popen=dict(stderr=DEVNULL))
+umount.bake_(R=True, _popen=dict(stderr=DEVNULL))
+zfs.bake_(_sc="list", r=True, H=True, _type=tuple)
+zfs.bake_(_sc="snapshot", r=True)
+zpool.bake_(_sc="export", _popen=dict(stderr=DEVNULL))
+
+crazfs_mnt = "/crazfs_mnt"
+
+
+@click.group(
+    "", invoke_without_command=True, no_args_is_help=True
+)
+def main():
+    pass
+
+
+@main.command(
+    name="create", cls=Command, no_args_is_help=True,
+)
+@click.option("-p", "--pool-name")
+@click.option("-d", "--zfs-device")
+@click.option("-e", "--encrypted", is_flag=True)
+@click.option("-D", "--dedup", is_flag=True)
+@click.option("-S", "--swap", is_flag=True)
+@click.option("-n", "--dry-run", is_flag=True)
+def create(pool_name, zfs_device, encrypted, dry_run, dedup, swap):
+    try:
+        if (
+            click.prompt(
+                'THIS WILL DELETE ALL DATA ON THE SELECTED DEVICE / PARTITION! TO CONTINUE, TYPE IN "ZFS CREATE"!',
+                type=str,
+            )
+            == "ZFS CREATE"
+        ):
+
+            zfs.bake_all_(
+                _print=True if dry_run else False,
+                _capture="run" if dry_run else "stdout",
+            )
+
+            options = {
+                "xattr": "sa",
+                "acltype": "posixacl",
+                "mountpoint": "none",
+                "compression": "zstd-19",
+                "checksum": "edonr",
+                "atime": "off",
+                "relatime": "off",
+            }
+            if encrypted:
+                options["encryption"] = "aes-256-gcm"
+                options["keyformat"] = "passphrase"
+            if dedup:
+                options["dedup"] = "edonr,verify"
+
+            for dataset in zfs.list():
+                if pool_name in dataset:
+                    zpool.export(pool_name)
+                    break
+
+            zpool.create(
+                pool_name,
+                zfs_device,
+                f=True,
+                O={
+                    "repeat_with_values": [
+                        f"{key}={value}"
+                        for key, value in options.items()
+                    ]
+                },
+                o={
+                    "repeat_with_values": [
+                        "autotrim=on",
+                        "altroot=/mnt",
+                    ]
+                },
+                _run=True,
+            )
+
+            current_datasets = [pool_name]
+
+            def recursive_create(
+                root,
+                datasets,
+                snaproot="base",
+                snapshot="blank",
+                **kwargs,
+            ):
+                for dataset in datasets:
+                    reconstruction = ""
+                    full_dataset_split = f"{root}/{dataset}".split(
+                        "/"
+                    )
+                    for index, part in enumerate(
+                        full_dataset_split
+                    ):
+                        if index == 0:
+                            reconstruction += f"{part}"
+                        else:
+                            reconstruction += f"/{part}"
+                        if (
+                            reconstruction
+                            not in current_datasets
+                        ):
+
+                            partial_cc = partial(
+                                getattr(
+                                    zfs,
+                                    "clone"
+                                    if (encrypted and dedup)
+                                    else "create",
+                                ),
+                                f"{pool_name}/{snaproot}@{snapshot}"
+                                if (encrypted and dedup)
+                                else "",
+                                reconstruction,
+                            )
+
+                            partial_cc(
+                                o=dict(
+                                    repeat_with_values=(
+                                        f"{key}={value}"
+                                        for key, value in kwargs.items()
+                                    )
+                                )
+                            ) if kwargs else partial_cc()
+
+                            current_datasets.append(
+                                reconstruction
+                            )
+
+            base_datasets = [
+                "reserved",
+                "system",
+                "virt",
+                "omniverse",
+                "hold",
+            ]
+            if (encrypted and dedup):
+                zfs.create(f"{pool_name}/base", o="mountpoint=legacy")
+                zfs.snapshot(f"{pool_name}/base@blank")
+            else:
+                base_datasets.append("base")
+
+            recursive_create(
+                pool_name,
+                base_datasets,
+            )
+
+            virt_datasets = (
+                "docker",
+                "podman",
+                "qemu",
+                "vagrant",
+            )
+            recursive_create(
+                f"{pool_name}/virt",
+                virt_datasets,
+                mountpoint="legacy",
+            )
+
+            system_datasets = [
+                "nix",
+                "persist",
+                "root",
+                "tmp",
+            ]
+
+            recursive_create(
+                f"{pool_name}/system",
+                system_datasets,
+                mountpoint="legacy",
+            )
+
+            zfs.set("mountpoint=legacy", f"{pool_name}/hold")
+            zfs.set("sync=disabled", f"{pool_name}/system/tmp")
+
+            home_datasets = (
+                "curtis",
+                "frost",
+                "shadowrylander",
+            )
+            recursive_double = partial(
+                recursive_create,
+                datasets=home_datasets,
+                mountpoint="legacy",
+            )
+            for root in (
+                f"{pool_name}/system/home",
+                f"{pool_name}/virt/podman",
+                f"{pool_name}/system/persist/home",
+                f"{pool_name}/system/persist/cache",
+            ):
+                recursive_double(root=root)
+    
+            zfs.set("sync=disabled", f"{pool_name}/system/persist/cache")
+
+            backup_datasets = (
+                "dreadnought",
+                "redstone",
+                "sinnoh",
+            )
+            pool_party_datasets = (
+                [
+                    f"las/{backup}/zpax"
+                    for backup in backup_datasets
+                ]
+                + [
+                    f"las/{backup}/zsyncs"
+                    for backup in backup_datasets
+                ]
+                + [
+                    "borg/cache",
+                    "jails/base",
+                    "b/a",
+                    "b/cl",
+                    "y",
+                    "z",
+                ]
+            )
+            recursive_create(
+                f"{pool_name}/{pool_name}",
+                pool_party_datasets,
+                mountpoint="legacy",
+            )
+
+            extra_copy_datasets = (
+                f"{pool_name}/b/cj/cc",
+                f"{pool_name}/b/eb",
+            )
+            recursive_create(
+                pool_name,
+                extra_copy_datasets,
+                copies=2 if encrypted else 3,
+                snapdir="visible",
+                mountpoint="legacy",
+            )
+
+            snapdir_datasets = (
+                f"{pool_name}/b/oreo",
+                f"{pool_name}/b/cj/m",
+                f"{pool_name}/b/cc",
+                f"{pool_name}/b/p",
+            )
+            recursive_create(
+                pool_name,
+                snapdir_datasets,
+                snapdir="visible",
+                mountpoint="legacy",
+            )
+
+            pool_size_plus_metric = zpool.get(
+                "size",
+                pool_name,
+                H=True,
+                _type=str,
+                _print=False,
+            ).split()[2]
+
+            pool_size = round(
+                float(pool_size_plus_metric[:-1]), 2
+            )
+            pool_metric = pool_size_plus_metric[-1]
+
+            def pool_percentage_value(percentage):
+                return (
+                    str(
+                        round(
+                            (
+                                (float(percentage) / 100)
+                                * pool_size
+                            ),
+                            2,
+                        )
+                    )
+                    + pool_metric
+                )
+
+            zfs.set(
+                f"refreservation={pool_percentage_value(15)}",
+                f"{pool_name}/reserved",
+            )
+            zfs.set(
+                f"refreservation=none",
+                f"{pool_name}/virt/qemu",
+            )
+
+            if swap:
+                from baker.y import getconf, mkswap
+                zfs.create(
+                    f"{pool_name}/swap",
+                    V = "8G",
+                    b = getconf("PAGESIZE", _type = str),
+                    o = dict(
+                        repeat_with_values = (
+                            "compression=zle",
+                            "sync=standard",
+                            "com.sun:auto-snapshot=false",
+                            "logbias=throughput",
+                            "primarycache=metadata",
+                            "secondarycache=none",
+                        )
+                    ),
+                )
+                mkswap(f"/dev/zvol/{pool_name}/swap", f = True)
+
+            for base in base_datasets:
+                zfs.snapshot(f"{pool_name}/{base}@blank", r = True)
+
+        else:
+            from sys import exit
+
+            click.echo("Sorry! Not continuing.")
+            exit(0)
+    finally:
+        if not dry_run:
+            zpool.export(pool_name)
+
+
+@main.command(
+    name="mount",
+    context_settings=dict(ignore_unknown_options=True,),
+    cls=Command,
+    no_args_is_help=True,
+)
+@click.option("-p", "--pool-name")
+@click.option("-b", "--boot-device")
+@click.option("-e", "--encrypted", is_flag=True)
+@click.option("-S", "--swap", is_flag=True)
+@click.option("-n", "--dry-run", is_flag=True)
+def zmount(
+    pool_name, boot_device, encrypted, dry_run, swap
+):
+
+    zfs.bake_all_(
+        _print=True if dry_run else False,
+        _capture="run" if dry_run else "stdout",
+    )
+
+    for dataset in zfs.list():
+        if pool_name in dataset:
+            break
+    else:
+        zpool(pool_name, f=True, _subcommand="import")
+
+    if encrypted:
+        zfs.load_key(pool_name, _capture="run")
+
+    if osPath.isdir("/mnt"):
+        umount("/mnt")
+    else:
+        mkdir("/mnt")
+
+    mount(f"{pool_name}/system/root", "/mnt", t="zfs")
+
+    for _mount in [ "nix", "persist", "tmp" ]:
+        if not osPath.isdir(_ := f"/mnt/{_mount}"):
+            mkdir(_)
+        mount(f"{pool_name}/system/{_mount}", _, t="zfs")
+
+    if not osPath.isdir(boot := "/mnt/boot"):
+        mkdir(boot)
+    # if not osPath.isdir(boot := "/mnt/boot/efi"):
+    #     mkdir(boot)
+    mount(boot_device, boot)
+
+    if swap:
+        from baker.y import swapon
+        swapon(f"/dev/zvol/{pool_name}/swap")
+
+
+if __name__ == "__main__":
+    main()
 #+end_src
 
------
+*** Create
 
-#+call: hash() :exports none
+#+begin_src python :tangle ./crazfs/create.py
+#!/usr/bin/env xonsh
 
-#+RESULTS:
-: 20210601181804730771100
+# Imports
+import argparse
+import json
 
-#+name: 20210601181804730771100
-#+begin_src python
-print(git(C = "~/<<username>>").status())
+parser = argparse.ArgumentParser()
+parser.add_argument("-p", "--pool-name")
+parser.add_argument("-d", "--zfs-device")
+parser.add_argument("-e", "--encrypted", action="store_true")
+parser.add_argument("-D", "--dedup", action="store_true")
+parser.add_argument("-s", "--swap", action="count")
+parser.add_argument("-u", "--update", action="store_true")
+parser.add_argument("-f", "--files", action="store_true")
+args = parser.parse_args()
+
+def xrun(command):
+    @(command.split())
+
+try:
+    if args.update or args.files or (
+        input(
+            'THIS WILL DELETE ALL DATA ON THE SELECTED DEVICE / PARTITION! TO CONTINUE, TYPE IN "ZFS CREATE"!\t',
+        ) == "ZFS CREATE"
+    ):
+
+        resources = "../../etc/nixos/resources"
+
+        if not (args.update or args.files):
+            options = {
+                "xattr": "sa",
+                "acltype": "posixacl",
+                "mountpoint": "none",
+                "compression": "zstd-19",
+                "checksum": "edonr",
+                "atime": "off",
+                "relatime": "off",
+            }
+            if args.encrypted:
+                options["encryption"] = "aes-256-gcm"
+                options["keyformat"] = "passphrase"
+            if args.dedup:
+                options["dedup"] = "edonr,verify"
+
+            for dataset in $(zfs list -rH).split("\n"):
+                if args.pool_name in dataset:
+                    xrun(f"zpool export {args.pool_name}")
+                    break
+
+            command = f"zpool create -fo autotrim=on -o altroot=/mnt"
+
+            for key, value in options.items():
+                command += f" -O {key}={value}"
+
+            xrun(f"{command} {args.pool_name} {args.zfs_device}")
+
+        snapDir = [ "snapdir=visible" ]
+        extraCopies = snapDir + [ f"copies={2 if args.encrypted else 3}" ]
+        cache = [ "sync=disabled" ]
+        ml = "mountpoint=legacy"
+        dd = {  }
+        ddd = { "datasets": {  }}
+        d = "datasets"
+        s = "system"
+
+        with open(f"{resources}/datasets.json") as _datasets:
+            datasets = json.load(_datasets)
+            dsd = datasets[s][d]
+
+            datasets[args.pool_name] = {
+                "datasets": {
+                    "b": {
+                        "datasets": {
+                            "a": dd,
+                            "cc": { "options": snapDir },
+                            "cl": dd,
+                            "cj": { "datasets": {
+                                "cc": { "options": extraCopies },
+                                "m": { "options": snapDir }
+                            }},
+                            "eb": { "options": extraCopies },
+                            "oreo": { "option": snapDir },
+                            "p": { "options": snapDir }
+                        },
+                    },
+                    "borg": { "datasets": { "cache": { "options": cache }}},
+                    "jails": { "datasets": { "base": dd}},
+                    "las": {
+                        "datasets": {
+                            "dreadnought": ddd,
+                            "redstone": ddd,
+                            "sinnoh": ddd
+                        }
+                    },
+                    "y": dd,
+                    "z": dd
+                },
+                "options": [ ml ]
+            }
+
+            with open(f"{resources}/users.json") as ujson:
+                users = json.dump(ujson)
+                for user in users.values():
+                    dsd["home"][d][user] = dd
+                    datasets["virt"][d]["podman"][d][user] = dd
+                    for dataset in (persist := dsd["persist"][d]).keys():
+                        persist[dataset][d][user] = dd
+
+            for backup in (las := datasets[args.pool_name][d]["las"][d]).keys():
+                for zz in [ "zpax", "zsyncs" ]:
+                    las[backup][d][zz] = dd
+
+            with open(f"{resources}/datasets.nix", "w+") as dnix:
+
+                dnix.write("host: {\n")
+
+                def recurse(ddict, dname, droot, mountpoint = ""):
+
+                    _dataset = f"{droot}/{dname}"
+
+                    # cc: clone or create
+                    # son: snapshot or none
+                    if (dname != "base") and (args.encrypted and args.dedup):
+                        cc = "clone"
+                        son = f"{args.pool_name}/base@root"
+                    else:
+                        cc = "create"
+                        son = ""
+
+                    _doptions = ddict.get("options", [])
+                    if _dataset not in ( f"{args.pool_name}/{dataset}" for dataset in (
+                        "system",
+                        "system/root",
+                        "swap",
+                        "base",
+                        "hold",
+                        "omniverse",
+                        "reserved",
+                    )):
+                        pn1 = args.pool_name
+                        pn2 = f"{pn1}/{pn1}"
+
+                        # TODO: Make this such that the current dataset directory
+                        #       is placed under the parent directory's mountpoint
+                        if (mountpoint := (_mountpoint := ddict.get("mountpoint", ""))) == "":
+                            if mountpoint = "":
+                                _mountpoint = _dataset.replace(
+                                    pn2 if pn2 in _dataset else pn1
+                                    "${host}",
+                                    1
+                                )
+                            else:
+                                mountpoint = _mountpoint = f"{mountpoint}/{dname}"
+
+                        dnix.write(f'\t"{_dataset}" = "{_mountpoint}";\n')
+                    doptions = " -o ".join(_doptions)
+
+                    if not args.files:
+                        xrun(f"zfs {cc} {'-o ' if _doptions else ''} {doptions} {son} {_dataset}")
+                        xrun(f"zfs snapshot -r {_dataset}@root")
+
+                    for dataset in (ddictd := ddict.get(
+                        d,
+                        dd
+                    )):
+                        recurse(ddictd[dataset], dataset, _dataset, mountpoint)
+
+                for dataset in datasets:
+                    recurse(datasets[dataset], dataset, args.pool_name)
+
+                dnix.write("}")
+
+        if not args.files:
+            pool_size_plus_metric = $(zpool get -H size @(args.pool_name)).split()[2]
+            pool_size = round(float(pool_size_plus_metric[:-1]), 2)
+            pool_metric = pool_size_plus_metric[-1]
+
+            def pool_percentage_value(percentage):
+                return (
+                    str(
+                        round(
+                            (
+                                (float(percentage) / 100)
+                                * pool_size
+                            ),
+                            2,
+                        )
+                    )
+                    + pool_metric
+                )
+
+            # Apparently, if python internal keywords exist in the argument, such as "set", etc.
+            # the command errors out; perhaps something to raise an issue of.
+            # This seems to work as an alternative.
+            xrun(f"zfs set refreservation={pool_percentage_value(15)} {args.pool_name}/reserved")
+
+        if args.swap and (not args.files):
+            _swoptions = [
+                "com.sun:auto-snapshot=false",
+                "compression=zle",
+                "logbias=throughput",
+                "primarycache=metadata",
+                "secondarycache=none"
+                "sync=standard",
+            ]
+            swoptions = " -o ".join(_swoptions)
+
+            ps = $(getconf PAGESIZE)
+            xrun(f"zfs create -V {2**args.swap}G -b {ps} -o {swoptions} {args.pool_name}/swap")
+
+            xrun(f"mkswap -f /dev/zvol/{args.pool_name}/swap")
+
+    else:
+        from sys import exit
+
+        print("Sorry! Not continuing.")
+        exit(0)
+
+finally:
+    if not args.files:
+        xrun(f"zpool export {args.pool_name}")
 #+end_src
 
-*** want more information?
+*** Mount
 
-Get it here! https://gitlab.com/picotech/bakery
+#+begin_src python ./crazfs/mount.py
+#!/usr/bin/env xonsh
 
-Also: eh heh heh... yeah... I like =gitlab's= grouping system... */sheepish grin/*
+# Imports
+import argparse
+import json
+
+# From Imports
+from collections import namedtuple
+from functools import partial
+from os import path as osPath
+from subprocess import DEVNULL
+
+parser = argparse.ArgumentParser()
+parser.add_argument("-p", "--pool-name")
+parser.add_argument("-d", "--boot-device")
+parser.add_argument("-e", "--encrypted", action="store_true")
+parser.add_argument("-s", "--swap", action="count")
+args = parser.parse_args()
+
+def xrun(command):
+    @(command.split())
+
+resources = "../../etc/nixos/resources"
+
+for dataset in $(zfs list).split("\n"):
+    if args.pool_name in dataset:
+        break
+else:
+    xrun(f"zpool import -f {args.pool_name}")
+
+if args.encrypted:
+    xrun(f"zfs load-key {args.pool_name}")
+
+if osPath.isdir("/mnt"):
+    xrun("umount -R /mnt")
+else:
+    xrun("mkdir /mnt")
+
+xrun(f"mount -t zfs {args.pool_name}/system/root /mnt")
+
+with open(f"{resources}/datasets.nix") as datasets:
+    for dataset in datasets.readlines()[1:-1]:
+        dataset = dataset.strip().strip('"')
+
+        r = f"{args.pool_name}/"
+        sr = r + "system/"
+        _mount = dataset.replace(
+            sr if sr in dataset else r,
+            '',
+            1
+        )
+
+        if not osPath.isdir(mount := f"/mnt/{_mount}"):
+            xrun(f"mkdir -p {mount}")
+        xrun(f"mount -t zfs {dataset} {mount}")
+
+if not osPath.isdir(boot := "/mnt/boot/efi"):
+    xrun(f"mkdir -p {boot}")
+xrun(f"mount {args.boot_device} {boot}")
+
+if args.swap:
+    xrun(f"swapon /dev/zvol/{args.pool_name}/swap")
+#+end_src
+
+*** Org-Tangle
+
+#+name: tangle
+#+begin_src emacs-lisp
+
+#+end_src
+
+#+begin_src shell :tangle ./crazfs/org-tangle.py
+
+
+{{{tangle}}}
+#+end_src
+
+** Home-Manager
+
+#+begin_src nix :tangle ~/.config/nixpkgs/home.nix
+inputs@{
+    channel,
+    dossier,
+    host,
+    hostName,
+    legacyPackages,
+    lib,
+    nixpkgs,
+    payload,
+    pkgs,
+    stdenv,
+    type,
+    ...
+}:
+
+with builtins; with lib; with j; with payload; let
+    exists = source: target: myIf.knull (pathExists source) target;
+    pSource = source: "${pHomeDirectory}/${source}";
+    pUser = attrs.users.primary;
+    redFile = file': let file = "/${dotfiles}/${file'}"; in if (pathExists file) then (readFile (/. + file)) else "";
+    emacsConfigs = ".emacs-configs";
+    emacsDistros = ".emacs-distros";
+
+    base = user: with payload.${user}; let
+        pExists = source: target: myIf.knull (
+            (user == pUser) && (pathExists "${pHomeDirectory}/${source}")
+        ) target;
+
+        links' = rec {
+            cookiejar = {
+                source = "/${host}/b/cj";
+                target = "cj";
+            };
+            picotech = {
+                source = "${cookiejar.source}/cc/.pico";
+                target = ".pico";
+            };
+            byobu = {
+                source = "${homeDirectory}/.tmux.conf";
+                target = ".byobu/.tmux.conf";
+            };
+        };
+        links = mapAttrs (link: st: {
+            inherit (st) target;
+            source = /. + st.source;
+        }) (filterAttrs (link: st: pathExists (/. + st.source)) links');
+
+        baseOptions = {
+            # force = true;
+        };
+ 
+        imports = inputs // {
+            inherit
+                baseOptions
+                homeDirectory
+                dotfiles
+                redFile
+                exists
+                pExists
+                links
+                pSource
+                pUser
+                emacsConfigs
+                emacsDistros;
+        };
+    in {
+        activation = ''
+            peru \
+                --file=${homeDirectory}/peru.yaml \
+                --sync-dir=${homeDirectory} \
+                --state-dir=${homeDirectory}/.peru \
+                --cache-dir=${homeDirectory}/.peru/cache \
+            sync
+        '';
+        inherit lib;
+
+	    nixpkgs = { inherit (stdenv) system; inherit (legacyPackages) overlays config; };
+
+        imports = with dossier; [
+            nixDoomEmacs.hmModule
+            "${dossier.impermanence}/home-manager.nix"
+        ];
+        fonts.fontconfig.enable = mkForce true;
+        programs = let
+            ignores = [
+                "_gsdata_"
+                ".boar"
+                ".git"
+                "**/__pycache__"
+                "**/_build"
+                "**/.vscode"
+                "**/*.!sync"
+                "**/*.bts"
+                "**/*.envrc"
+                "**/*.swp"
+                "**/*.sync"
+                "**/*.test.*"
+                "**/*.tmp"
+                "**/deprecated"
+                "**/dist"
+                "**/result"
+                "**/tests"
+                "**/unfinished"
+                "temp"
+            ];
+            userName  = "shadowrylander";
+            userEmail = "aiern@protonmail.com";
+            shellAliases = {
+                n = "exit";
+                c = "clear";
+            };
+            vim = import ./vim.nix imports;
+        in {
+            git = baseOptions // {
+                # File at ~/.config/git/config
+                enable = true;
+                package = pkgs.git;
+                attributes = [
+                    "*.sec filter=git-crypt diff=git-crypt"
+                    "id_* filter=git-crypt diff=git-crypt"
+                    ".gnupg/** filter=git-crypt diff=git-crypt"
+                ];
+                extraConfig = {
+                    annex.largefiles = ''
+                        include=**/__pycache__/* or \
+                        include=**/dist/* or \
+                        include=**/tests/* or \
+                        include=**/deprecated/* or \
+                        include=**/unfinished/* or \
+                        include=**/.vscode/* or \
+                        include=**/*.test.* or \
+                        include=**/*.envrc
+                    '';
+                };
+                inherit ignores userEmail userName;
+            };
+            direnv = baseOptions // {
+                # File at ~/.config/direnv/direnvrc
+                enable = true;
+                enableBashIntegration = true;
+                enableFishIntegration = true;
+                enableNixDirenvIntegration = true;
+                enableZshIntegration = true;
+                stdlib = ''
+                    use_flake() {
+                        watch_file flake.nix
+                        watch_file flake.lock
+                        eval "$(nix print-dev-env --profile "$(direnv_layout_dir)/flake-profile")"
+                    }
+                '';
+            };
+            inherit vim;
+            neovim = baseOptions // {
+                enable = true;
+                # package = pkgs.neovim;
+                inherit (vim) extraConfig plugins;
+            };
+            vscode = baseOptions // {
+                enable = true;
+                package = pkgs.vscode;
+                # keybindings = {  };
+                userSettings = {  };
+                extensions = with pkgs.vscode-extensions; [
+                    bbenoist.Nix
+                    dhall.dhall-lang
+                    dhall.vscode-dhall-lsp-server
+                    formulahendry.auto-close-tag
+                    james-yu.latex-workshop
+                    ms-azuretools.vscode-docker
+                    ms-kubernetes-tools.vscode-kubernetes-tools
+                    # ms-python.python
+                    ms-python.vscode-pylance
+                    ms-vscode-remote.remote-ssh
+                    ms-vscode.cpptools
+                    ms-vsliveshare.vsliveshare
+                    pkief.material-icon-theme
+                    redhat.vscode-yaml
+                    skyapps.fish-vscode
+                    tamasfe.even-better-toml
+                    # vadimcn.vscode-lldb
+                    vscodevim.vim
+                    vscodevim.vimacs
+                ];
+            };
+            mercurial = baseOptions // {
+                enable = true;
+                package = pkgs.mercurial;
+                inherit ignores userEmail userName;
+                ignoresRegexp = [];
+                extraConfig = redFile ".hgrc";
+            };
+            zsh = import ./zshrc.nix (imports // { inherit shellAliases; });
+            fish = baseOptions // {
+                enable = false;
+                package = pkgs.fish;
+                functions = shellAliases // {
+                    sf= "source ~/.config/fish/config.fish";
+                    djn = ''
+                        docker run -p 8888:8888 -v "$PWD":/home/jovyan/work --rm jupyter/datascience-notebook
+                    '';
+                    elvis = "rm -rf /tmp/elvish-1000/sock && elvish";
+                };
+                interactiveShellInit = '' starship init fish | source '';
+                plugins = [  ];
+            };
+            bash = baseOptions // {
+                enable = true;
+                enableVteIntegration = true;
+                initExtra = '' eval "$(starship init bash)" '';
+                inherit shellAliases;
+                shellOptions = [  ];
+            };
+            tmux = import ./tmux.nix imports;
+            doom-emacs = baseOptions // {
+                enable = true;
+                emacsPackage = pkgs.emacsGit-nox;
+                extraConfig = '' '';
+                doomPrivateDir = "${dotfiles}/.doom.d";
+                emacsPackagesOverlay = final: prev: {
+                    magit-delta = super.magit-delta.overrideAttrs (eprev: {
+                        buildInputs = eprev.buildInputs ++ [ pkgs.git ];
+                    });
+                };
+                # extraPackages = with pkgs."emacs${j.attrs.versions.emacs}Packages"; [ sqlite3 emacsql-sqlite3 ];
+            };
+            kitty = baseOptions // {
+                enable = true;
+                extraConfig = '' include ./theme.conf '';
+                settings.font_family = "Cartograph CF Light Italic";
+            };
+            home-manager.enable = true;
+        };
+        services = {
+            gpg-agent = {
+                enable = true;
+                enableSshSupport = false;
+                pinentryFlavor = "curses";
+            };
+            emacs = {
+                enable = true;
+                package = dossier.nixDoomEmacs;
+            };
+        };
+        home = {
+            file = with links; with dossier; with (import ./funcs.nix imports); mapAttrs (n: v: { force = true; } // v) (foldToSet (flatten [
+                (map redFile' [ ".config/qtile/config.py" ])
+                (map withLink (attrValues links))
+                (map imported [ ".xonshrc" ])
+                (map baseOf [  ])
+                (map (set: withTarget set.source set.target) [])
+                # (map (source: homeLink homeDirectory source 0) [
+                #     ".atom"
+                #     ".byobu"
+                #     ".config"
+                #     ".emacs-profile"
+                #     # ".git-crypt"
+                #     # ".gnupg"
+                #     ".linuxbrew"
+                #     ".local"
+                #     ".mozilla"
+                #     ".pki"
+                #     # ".ssh"
+                #     ".vim-runtime"
+                #     ".virtualenvs"
+                #     ".vscode-oss"
+                #     ".vscode"
+                #     "Documents"
+                #     "Downloads"
+                #     "keybase"
+                #     "Music"
+                #     "nix-plugins"
+                #     "Pictures"
+                #     "Public"
+                #     "Videos"
+                #     ".yubico"
+                #     "Templates"
+                #     ".nix-channels"
+                #     ".python-history"
+                #     ".viminfo"
+		        #     ".zsh-history"
+                #     ".bash-history"
+                #     ".peru"
+                # ])
+                # (map (source: homeLink homeDirectory source 1) (map (dir: ".cache/${dir}") [
+                #     "flatpak"
+                #     "gnome-software"
+                #     "google-chrome-beta"
+                #     "google-chrome-dev"
+                #     "google-chrome"
+                #     "Homebrew"
+                #     "keybase"
+                #     "mozilla"
+                #     "nix"
+                #     "pip"
+                #     "pypoetry"
+                #     "qtile"
+                #     "starship"
+                #     "vivaldi"
+                #     # "Yubico"
+                # ]))
+
+                [{
+                    "${homeDirectory}" = {
+                        source = "/persist/${homeDirectory}";
+                        recursive = true;
+                    };
+                    "cache" = {
+                        source = "/persist/cache/${user}";
+                        target = "${homeDirectory}/.cache";
+                        recursive = true;
+                    };
+                    "keybase" = {
+                        source = "${pHomeDirectory}/.key";
+                        target = homeDirectory;
+                        recursive = true;
+                    };
+                    "largefiles" = {
+                        source = "/persist/largefiles";
+                        target = homeDirectory;
+                        recursive = true;
+                    };
+                    # ".doom.d/system_init.el".text = ''
+                    #   (add-to-list 'exec-path "${pkgs."emacs${j.attrs.versions.emacs}Packages".emacsql-sqlite3}/bin")
+                    #   (add-to-list 'exec-path "${pkgs."emacs${j.attrs.versions.emacs}Packages".sqlite3}/bin")
+                    # '';
+
+                    ".direnvrc".text = (redFile ".direnvrc") + ''
+                        source $HOME/.nix-direnv/direnvrc
+                        source $HOME/.config/direnv/direnvrc
+
+                        if [ -f /run/current-system/sw/share/nix-direnv/direnvrc ]; then
+                            source /run/current-system/sw/share/nix-direnv/direnvrc
+                        fi
+                    '';
+
+                    "rc.elv".text = let gondolin = "github.com/tylerreckart/gondolin"; in ''
+                        use epm
+                        epm:install ${gondolin}
+                        use ${gondolin}/gondolin
+                    '';
+
+                    ".config/kitty/theme.conf".source = "${kittyThemes}/themes/Monokai_Soda.conf";
+
+                    ".config/powershell/Microsoft.PowerShell_profile.ps1".text = '' Invoke-Expression (&starship init powershell) '';
+
+                    ".config/ion/initrc".text = '' eval $(starship init ion) '';
+
+                    ".config/nixpkgs/overlays.nix".text = ''
+                        (builtins.getFlake "${lib.j.paths.nixos}").legacyPackages.${stdenv.system}.${type}."${channel}".overlays
+                    '';
+		            ".config/nixpkgs/config.nix".text = ''
+			            (builtins.getFlake "${lib.j.paths.nixos}").legacyPackages.${stdenv.system}.${type}."${channel}".config
+		            '';
+
+		            ".config/nix/nix.conf".text = j.attrs.configs.nix;
+                }]
+            ]));
+        };
+    };
+in genAttrs j.attrs.allUsers base
+#+end_src
+
+** Tmux
+
+*** Byobu
+
+#+begin_src conf :tangle ~/byobu/.tmux.conf
+# Mouse support - set to on if you want to use the mouse
+# setw -g mode-mouse on
+# set -g mouse-select-pane on
+# set -g mouse-resize-pane on
+# set -g mouse-select-window on
+
+# enable activity alerts
+setw -g monitor-activity on
+set -g visual-activity on
+
+# Center the window list
+set -g status-justify centre
+
+bind r source-file ${HOME}/.tmux.conf \; display-message "Source-file Reloaded"
+
+# utf8 is on
+set -g utf8 on
+set -g status-utf8 on
+
+# address vim mode switching delay (http://superuser.com/a/252717/65504)
+set -s escape-time 0
+
+# increase scrollback buffer size
+set -g history-limit 50000
+
+# tmux messages are displayed for 1.25 seconds
+set -g display-time 1250
+
+# refresh 'status-left' and 'status-right' more often
+# set -g status-interval 1
+
+# focus events enabled for terminals that support them
+set -g focus-events on
+
+# super useful when using "grouped sessions" and multi-monitor setup
+setw -g aggressive-resize on
+
+# ========== TMUX Plugin Manager ==========
+
+if "test ! -d ~/.byobu/tmux_plugins/tpm" \
+      "run 'git clone https://github.com/tmux-plugins/tpm ~/.byobu/tmux_plugins/tpm && ~/.byobu/tmux_plugins/tpm/bin/install_plugins'"
+
+set-environment -g TMUX_PLUGIN_MANAGER_PATH '~/.byobu/tmux_plugins'
+
+# List of plugins - https://github.com/tmux-plugins/tpm/blob/master/docs/tpm_not_working.md
+# set -g @plugin 'tmux-plugins/tpm'
+# set -g @plugin 'tmux-plugins/tmux-sensible'
+# set -g @plugin 'tmux-plugins/tmux-resurrect'
+# set -g @plugin 'tmux-plugins/tmux-continuum'
+
+# Other examples:
+# set -g @plugin 'github_username/plugin_name'
+# set -g @plugin 'git@github.com/user/plugin'
+# set -g @plugin 'git@bitbucket.com/user/plugin'
+
+set -g @tpm_plugins 'tmux-plugins/tpm   \
+        tmux-plugins/tmux-sensible                      \
+        tmux-plugins/tmux-resurrect                     \
+        tmux-plugins/tmux-continuum                     \
+'
+set -g @resurrect-dir '~/.byobu/tmux_resurrect'
+set -g @resurrect-save-bash-history 'on'
+set -g @continuum-save-interval '10'
+set -g @continuum-boot 'on'
+
+# Initialize TMUX plugin manager (keep this line at the very bottom of tmux.conf)
+run '~/.byobu/tmux_plugins/tpm/tpm'
+#+end_src
+
+*** Tmuxinator
+
+**** Client
+
+#+begin_src yaml :tangle ~/.config/tmuxinator/client.yml
+# /home/shadowrylander/.config/tmuxinator/master.yml
+
+name: master
+root: ~/
+
+# Optional tmux socket
+# socket_name: master
+
+# Note that the pre and post options have been deprecated and will be replaced by
+# project hooks.
+
+# Project hooks
+# Runs on project start, always
+# on_project_start: command
+# Run on project start, the first time
+# on_project_first_start: command
+# Run on project start, after the first time
+# on_project_restart: command
+# Run on project exit ( detaching from tmux session )
+# on_project_exit: command
+# Run on project stop
+# on_project_stop: command
+
+# Runs in each window and pane before window/pane specific commands. Useful for setting up interpreter versions.
+# pre_window: rbenv shell 2.0.0-p247
+
+# Pass command line options to tmux. Useful for specifying a different tmux.conf.
+# tmux_options: -f ~/.tmux.mac.conf
+
+# Change the command to call tmux.  This can be used by derivatives/wrappers like byobu.
+tmux_command: byobu
+
+# Specifies (by name or index) which window will be selected on project startup. If not set, the first window is used.
+# startup_window: editor
+
+# Specifies (by index) which pane of the specified window will be selected on project startup. If not set, the first pane is used.
+# startup_pane: 1
+
+# Controls whether the tmux session should be attached to automatically. Defaults to true.
+# attach: false
+
+windows:
+  - master:
+      layout: 72ed,180x58,0,0{90x58,0,0,1,89x58,91,0[89x29,91,0,16,89x28,91,30,17]}
+      # Synchronize all panes of this window, can be enabled before or after the pane commands run.
+      # 'before' represents legacy functionality and will be deprecated in a future release, in favour of 'after'
+      # synchronize: after
+      panes:
+        - clear
+        - clear
+        - clear
+  - full: clear
+  # - argus: mosh argus
+  - gotop: gotop
+  - glances: glances
+#+end_src
+
+**** Default
+
+#+begin_src yaml :tangle ~/.config/tmuxinator/default.yml
+name: full
+root: ~/
+
+# Optional tmux socket
+
+# socket_name: full
+
+# Note that the pre and post options have been deprecated and will be replaced by
+# project hooks.
+
+# Project hooks
+# Runs on project start, always
+# on_project_start: command
+# Run on project start, the first time
+# on_project_first_start: command
+# Run on project start, after the first time
+# on_project_restart: command
+# Run on project exit ( detaching from tmux session )
+# on_project_exit: command
+# Run on project stop
+# on_project_stop: command
+
+# Runs in each window and pane before window/pane specific commands. Useful for setting up interpreter versions.
+# pre_window: rbenv shell 2.0.0-p247
+
+# Pass command line options to tmux. Useful for specifying a different tmux.conf.
+# tmux_options: -f ~/.tmux.mac.conf
+
+# Change the command to call tmux.  This can be used by derivatives/wrappers like byobu.
+tmux_command: byobu
+
+# Specifies (by name or index) which window will be selected on project startup. If not set, the first window is used.
+# startup_window: editor
+
+# Specifies (by index) which pane of the specified window will be selected on project startup. If not set, the first pane is used.
+# startup_pane: 1
+
+# Controls whether the tmux session should be attached to automatically. Defaults to true.
+# attach: false
+
+windows:
+  - default:
+      layout: 72ed,180x58,0,0{90x58,0,0,1,89x58,91,0[89x29,91,0,16,89x28,91,30,17]}
+      # Synchronize all panes of this window, can be enabled before or after the pane commands run.
+      # 'before' represents legacy functionality and will be deprecated in a future release, in favour of 'after'
+      # synchronize: after
+      panes:
+        - clear
+        - clear
+        - clear
+  - full: clear
+  - argus: mosh argus
+  - gotop: gotop
+  - glances: glances
+  - wtf: wtf
+#+end_src
+
+**** Server
+
+#+begin_src yaml :tangle ~/.config/tmuxinator/server.yml
+# /home/shadowrylander/.config/tmuxinator/apprentice.yml
+
+name: apprentice
+root: ~/
+
+# Optional tmux socket
+# socket_name: apprentice
+
+# Note that the pre and post options have been deprecated and will be replaced by
+# project hooks.
+
+# Project hooks
+# Runs on project start, always
+# on_project_start: command
+# Run on project start, the first time
+# on_project_first_start: command
+# Run on project start, after the first time
+# on_project_restart: command
+# Run on project exit ( detaching from tmux session )
+# on_project_exit: command
+# Run on project stop
+# on_project_stop: command
+
+# Runs in each window and pane before window/pane specific commands. Useful for setting up interpreter versions.
+# pre_window: rbenv shell 2.0.0-p247
+
+# Pass command line options to tmux. Useful for specifying a different tmux.conf.
+# tmux_options: -f ~/.tmux.mac.conf
+
+# Change the command to call tmux.  This can be used by derivatives/wrappers like byobu.
+tmux_command: byobu
+
+# Specifies (by name or index) which window will be selected on project startup. If not set, the first window is used.
+# startup_window: editor
+
+# Specifies (by index) which pane of the specified window will be selected on project startup. If not set, the first pane is used.
+# startup_pane: 1
+
+# Controls whether the tmux session should be attached to automatically. Defaults to true.
+# attach: false
+
+windows:
+  - default:
+      layout: b53d,180x57,0,0{90x57,0,0,0,89x57,91,0[89x28,91,0,8,89x28,91,29,9]}
+      # Synchronize all panes of this window, can be enabled before or after the pane commands run.
+      # 'before' represents legacy functionality and will be deprecated in a future release, in favour of 'after'
+      # synchronize: after
+      panes:
+        - clear
+        - clear
+        - clear
+  - full: clear
+  - gotop: gotop
+  - glances: glances
+#+end_src
+
+# From: https://www.draketo.de/light/english/minimal-example-for-literate-programming-noweb-emacs-org-mode
+# Local Variables:
+# org-babel-noweb-wrap-start: "{{{"
+# org-babel-noweb-wrap-end: "}}}"
+# org-confirm-babel-evaluate: nil
+# org-export-allow-bind-keywords: t
+# End:
+
+** makefile
+
+#+begin_src makefile
+copy:
+	rsync -avvczz --delete /mnt/c/Users/titan/persist/.doom.d/ ~/.doom.d/
+tangle:
+	chmod +x ~/.doom.d/org-tangle
+	~/.doom.d/org-tangle ~/.doom.d/README.org
+sync:
+	~/.emacs.d/bin/doom sync
+check:
+	~/.emacs.d/bin/doom doctor
+test:
+	emacs -nw ~/.doom.d/README.org
+doom-me:
+	sudo chown -R shadowrylander:shadowrylander ~/.doom.d
+doom-root:
+	chown -R root:root ~/.doom.d
+
+firstall: doom-me copy tangle sync check
+.DEFAULT_GOAL=firstall
+
+all: firstall test
+dockerall: doom-root tangle sync check test
+copyback:
+	cp ~/.doom.d/config.el /mnt/c/Users/titan/persist/.doom.d/
+	cp ~/.doom.d/init.el /mnt/c/Users/titan/persist/.doom.d/
+	cp ~/.doom.d/packages.el /mnt/c/Users/titan/persist/.doom.d/
+	cp ~/.doom.d/org-tangle /mnt/c/Users/titan/persist/.doom.d/
+	cp ~/.doom.d/org-tangle-functions.el /mnt/c/Users/titan/persist/.doom.d/
+
+restore:
+	cp ~/.doom.d/config.el{.bak,}
+view:
+	cat ~/.doom.d/config.el | less
+clone:
+	git clone --depth 1 https://github.com/hlissner/doom-emacs ~/.emacs.d
+install:
+	~/.emacs.d/bin/doom install
+delete:
+	rm -rf ~/.emacs.d ~/.doom.d
+reset: doom-me delete clone install copy tangle sync check test
+
+build: copy
+	cp /mnt/c/Users/titan/persist/README.org ./
+	sudo docker build --no-cache -t test .
+run:
+	docker run --rm -ti --network host \
+		-v ~/.gccemacs.d:/root/.emacs.d \
+		-v ~/.doom.d:/root/.doom.d \
+	test
+
+docker: build run
+
+hm:
+	export NIX_PATH=nixpkgs=https://github.com/nixos/nixpkgs/archive/master.tar.gz
+	chmod +x ~/.doom.d/org-tangle
+	~/.doom.d/org-tangle /mnt/c/Users/titan/persist/etc/nixos/b.org
+	rsync -avvczz --exclude .doom.d /mnt/c/Users/titan/persist/ ~/
+	# home-manager switch -A 3ee73a --show-trace
+	# home-manager switch --show-trace
+	# nix-shell '<home-manager>' -A install
+	# /nix/store/c6j3a93wmdh3bljiyq6k9bdkgbrlfj5n-home-manager/bin/home-manager switch --substitute -A 65df34884a79b143a95182a493213ce18bf33fef8c6395f41128eb2e5bda48f8c492f528bd175759c4c0ddfaac9344236a931efd1c2031a6f38084e64e4298d0 --show-trace --keep-going
+	/nix/store/c6j3a93wmdh3bljiyq6k9bdkgbrlfj5n-home-manager/bin/home-manager switch --substitute -A 3ee73a --show-trace --keep-going
+	# /nix/store/c6j3a93wmdh3bljiyq6k9bdkgbrlfj5n-home-manager/bin/home-manager switch --substitute -A 65df34884a79b143a95182a493213ce18bf33fef8c6395f41128eb2e5bda48f8c492f528bd175759c4c0ddfaac9344236a931efd1c2031a6f38084e64e4298d0 --show-trace
+	# /nix/store/c6j3a93wmdh3bljiyq6k9bdkgbrlfj5n-home-manager/bin/home-manager switch --substitute -A 3ee73a --show-trace
+#+end_src
+
+** Dockerfile
+
+#+begin_src Dockerfile
+FROM andreacorallo/emacs-nativecomp
+ENTRYPOINT make dockerall
+RUN apt update && \
+    apt install -y make ripgrep sqlite3 python git vim && \
+    mkdir -p ~/org/roam
+COPY ./README.org /README.org
+COPY ./makefile /root/makefile
+#+end_src
