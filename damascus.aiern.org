@@ -30,7 +30,7 @@ Adapted From: https://github.com/hlissner/doom-emacs/blob/develop/early-init.el
 (setq gc-cons-threshold most-positive-fixnum)
 
 ;; In noninteractive sessions, prioritize non-byte-compiled source files to
-;; prevent the use of stale byte-code. Otherwise, it saves us a little IO time
+   ;; prevent the use of stale byte-code. Otherwise, it saves us a little IO time
 ;; to skip the mtime checks on every *.elc file.
 (setq load-prefer-newer noninteractive)
 
@@ -63,6 +63,44 @@ Adapted From: https://github.com/hlissner/doom-emacs/blob/develop/early-init.el
 #+name: 20210601225227507463400
 #+begin_src emacs-lisp :tangle (aiern/tangle-path)
 ;;; $EMACSDIR/config.el -*- lexical-binding: t; -*-
+(setq use-package-keywords '(:disabled
+    :load-path
+    :requires
+    :defines
+    :functions
+    :preface
+    :if :when :unless
+    :no-require
+    :catch
+    :after
+    :custom
+    :custom-face
+    :bind
+    :bind*
+    :bind-keymap
+    :bind-keymap*
+    :interpreter
+    :mode
+    :magic
+    :magic-fallback
+    :hook
+    ;; Any other keyword that also declares commands to be autoloaded (such as
+    ;; :bind) must appear before this keyword.
+    :commands
+    :init/defun
+    :init/defun*
+    :init
+    :defer
+    :demand
+    :load
+    ;; This must occur almost last; the only forms which should appear after
+    ;; are those that must happen directly after the config forms.
+    :use-package-preconfig
+    :config/defun
+    :config/defun*
+    :use-package-postconfig
+    :config))
+
 (setq straight-use-package-by-default t)
 (defvar bootstrap-version)
 (let ((bootstrap-file
@@ -77,6 +115,8 @@ Adapted From: https://github.com/hlissner/doom-emacs/blob/develop/early-init.el
       (eval-print-last-sexp)))
   (load bootstrap-file nil 'nomessage))
 (straight-use-package 'use-package)
+(straight-use-package 'leaf)
+(straight-use-package 'leaf-keywords)
 
 (defun load-emacs-file (path) (interactive)
     (load-file (concat user-emacs-directory path)))
@@ -316,6 +356,24 @@ Adapted From: https://github.com/hlissner/doom-emacs/blob/develop/early-init.el
 #+call: hash() :exports none
 
 #+RESULTS:
+: 20210607194122528175700
+
+#+name: 20210607194122528175700
+#+begin_src emacs-lisp :var name="" :var func=""
+;; Adapted From:
+;; Answer: https://emacs.stackexchange.com/a/7381/31428
+;; User: https://emacs.stackexchange.com/users/719/adobe
+(format-spec "(defun use-package-normalize/:%n (name-symbol keyword args) args)
+
+;; Adapted From: https://gitlab.com/to1ne/use-package-hydra/-/blob/master/use-package-hydra.el#L79
+(defun use-package-handler/:%n (name keyword args rest state)
+    (use-package-concat (mapcar #'(lambda (def) `(%f ,@def)) args)
+    (use-package-process-keywords name rest state)))" `((?n . ,name) (?f . ,func)))
+#+end_src
+
+#+call: hash() :exports none
+
+#+RESULTS:
 : 20210601225235077502200
 
 #+name: 20210601225235077502200
@@ -324,6 +382,22 @@ Adapted From: https://github.com/hlissner/doom-emacs/blob/develop/early-init.el
 
 ;; From: https://github.com/hartzell/straight.el/commit/882649137f73998d60741c7c8c993c7ebbe0f77a#diff-b335630551682c19a781afebcf4d07bf978fb1f8ac04c6bf87428ed5106870f5R1649
 ;; (setq straight-disable-byte-compilation t)
+(with-eval-after-load 'use-package-core
+    <<20210607194122528175700(name="leaf", func="leaf")>>
+
+    (add-to-list 'use-package-keywords :leaf t)
+
+    <<20210607194122528175700(name="init/defun", func="defun")>>
+
+    <<20210607194122528175700(name="init/defun*", func="defun*")>>
+
+    <<20210607194122528175700(name="config/defun", func="defun")>>
+
+    <<20210607194122528175700(name="config/defun*", func="defun*")>>
+
+    <<20210607194122528175700(name="use-package-preconfig", func="use-package")>>
+
+    <<20210607194122528175700(name="use-package-postconfig", func="use-package")>>)
 
 ;; Adapted From: https://github.com/jwiegley/use-package#use-package-chords
 ;; Important: https://github.com/noctuid/general.el/issues/53#issuecomment-307262154
@@ -344,7 +418,6 @@ Adapted From: https://github.com/hlissner/doom-emacs/blob/develop/early-init.el
 (use-package use-package-hercules
     :demand t
     :straight (use-package-hercules :type git :host gitlab :repo "<<username>>/use-package-hercules" :branch "master"))
-(use-package leaf :demand t :straight t)
 #+end_src
 
 ***** always defer package loading
@@ -480,62 +553,58 @@ And in my experience... Not a good idea; much too confusing. Use
 
 (use-package general
     :demand t
-    :config
-        (general-auto-unbind-keys)
-        (general-def :keymaps '(
-                minibuffer-local-map
-                counsel-describe-map
-                helm-buffer-map)
-            "M-x" 'exit-minibuffer)
-
+    :init/defun*
+        ;; Adapted From:
+        ;; Answer: https://emacs.stackexchange.com/a/14956/31428
+        ;; User: https://emacs.stackexchange.com/users/25/gilles-so-stop-being-evil
+        (aiern/newline-and-indent-advice (func &rest arguments)
+            (if (window-minibuffer-p)
+                (progn (minibuffer-complete-and-exit)
+                (minibuffer-complete-and-exit)) (apply func arguments)))
         ;; Answer: https://stackoverflow.com/a/14490054/10827766
         ;; User: https://stackoverflow.com/users/1600898/user4815162342
-        (defun aiern/keymap-symbol (keymap)
+        (aiern/keymap-symbol (keymap)
             "Return the symbol to which KEYMAP is bound, or nil if no such symbol exists."
+            (interactive)
             (catch 'gotit
                 (mapatoms (lambda (sym)
                     (and (boundp sym)
                         (eq (symbol-value sym) keymap)
                         (not (eq sym 'keymap))
                         (throw 'gotit sym))))))
-
-        ;; Adapted From:
-        ;; Answer: https://emacs.stackexchange.com/a/14956/31428
-        ;; User: https://emacs.stackexchange.com/users/25/gilles-so-stop-being-evil
-        (defun aiern/newline-and-indent-advice (func &rest arguments)
-            (if (window-minibuffer-p)
-                (progn (minibuffer-complete-and-exit)
-                (minibuffer-complete-and-exit)) (apply func arguments)))
-        (advice-add #'newline-and-indent :around #'aiern/newline-and-indent-advice)
-
         ;; Adapted From:
         ;; Answer: https://superuser.com/a/331662/1154755
         ;; User: https://superuser.com/users/656734/phimuemue
-        (defun aiern/end-of-line-and-indented-new-line nil (interactive)
+        (aiern/end-of-line-and-indented-new-line nil (interactive)
             (end-of-line)
             (newline-and-indent))
-
+        ;; Adapted From:
+        ;; Answer: https://emacs.stackexchange.com/a/3883/31428
+        ;; User: https://emacs.stackexchange.com/users/2454/alexander-shukaev
+        (aiern/enable-novel-map nil (interactive)
+            (use-global-map novel-map)
+            (setq novel-map-p t)
+            (aiern/update-global-mode-string))
+        (aiern/disable-novel-map nil (interactive)
+            (use-global-map global-map)
+            (setq novel-map-p nil)
+            (aiern/update-global-mode-string))
+        (aiern/toggle-novel-map nil (interactive)
+            (funcall (intern (concat "aiern/" (if novel-map-p "disable" "enable") "-novel-map"))))
+    :config
+        (general-auto-unbind-keys)
         (general-def :keymaps '(override novel-map)
             (general-chord "uu") 'aiern/toggle-novel-map
             (naked "RET") 'newline-and-indent
             (general-chord "./") 'aiern/end-of-line-and-indented-new-line)
-
-        ;; Adapted From:
-        ;; Answer: https://emacs.stackexchange.com/a/3883/31428
-        ;; User: https://emacs.stackexchange.com/users/2454/alexander-shukaev
-        (defun aiern/enable-novel-map nil (interactive)
-            (use-global-map novel-map)
-            (setq novel-map-p t)
-            (aiern/update-global-mode-string))
-        (defun aiern/disable-novel-map nil (interactive)
-            (use-global-map global-map)
-            (setq novel-map-p nil)
-            (aiern/update-global-mode-string))
-        (defun aiern/toggle-novel-map nil (interactive)
-            (funcall (intern (concat "aiern/" (if novel-map-p "disable" "enable") "-novel-map"))))
-    :custom
-        (general-implicit-kbd t)
-    :straight t)
+        (general-def :keymaps '(
+                minibuffer-local-map
+                counsel-describe-map
+                helm-buffer-map)
+            "M-x" 'exit-minibuffer)
+    :custom (general-implicit-kbd t)
+    :straight t
+    :leaf (general :advice (:around newline-and-indent aiern/newline-and-indent-advice)))
 #+end_src
 
 **** modal modes
@@ -561,21 +630,21 @@ And in my experience... Not a good idea; much too confusing. Use
     :keymap '%m
     ;; :transient t
     )
-:config
-    (defun aiern/%p-hercules-toggle nil (interactive))
-    (defun aiern/%p-show-top-level nil (interactive)
+:config/defun
+    (aiern/%p-hercules-toggle nil (interactive))
+    (aiern/%p-show-top-level nil (interactive)
         (aiern/which-key-show-top-level '%m))
-    (add-to-list 'modal-modes '%n)
-    (add-to-list 'modal-prefixes \"%p\")
-
-    (defun aiern/toggle-%p nil (interactive)
+    (aiern/toggle-%p nil (interactive)
         (funcall 'aiern/toggle-inner '%n \"%p\" (fbatp %n) '%m))
-    (defun aiern/toggle-%p-force nil (interactive)
+    (aiern/toggle-%p-force nil (interactive)
         (funcall 'aiern/toggle-inner '%n \"%p\" (fbatp %n) '%m nil t))
-    (defun aiern/toggle-%p-hercules nil (interactive)
+    (aiern/toggle-%p-hercules nil (interactive)
         (funcall 'aiern/toggle-inner '%n \"%p\" (fbatp %n) '%m t))
-    (defun aiern/toggle-%p-hercules-force nil (interactive)
-        (funcall 'aiern/toggle-inner '%n \"%p\" (fbatp %n) '%m t t))" `((?m . ,map) (?n . ,mode) (?p . ,prefix) (?s . ,short)))
+    (aiern/toggle-%p-hercules-force nil (interactive)
+        (funcall 'aiern/toggle-inner '%n \"%p\" (fbatp %n) '%m t t))
+:config
+    (add-to-list 'modal-modes '%n)
+    (add-to-list 'modal-prefixes \"%p\")" `((?m . ,map) (?n . ,mode) (?p . ,prefix) (?s . ,short)))
 #+end_src
 
 ***** hercules
@@ -623,28 +692,28 @@ And in my experience... Not a good idea; much too confusing. Use
         (setq which-key-enable-extended-define-key t)
         (setq which-key-idle-delay 0.1)
         (setq which-key-idle-secondary-delay nil)
-    :config
-        (defun aiern/any-popup-showing-p nil (interactive) (or hercules--popup-showing-p (which-key--popup-showing-p)))
+    :config/defun*
+        (aiern/any-popup-showing-p nil (interactive) (or hercules--popup-showing-p (which-key--popup-showing-p)))
         
         ;; Adapted From:
         ;; Answer: https://emacs.stackexchange.com/questions/12997/how-do-i-use-nadvice/14827#14827
         ;; User: https://emacs.stackexchange.com/users/2308/kdb
-        (defun aiern/which-key--hide-popup nil (interactive)
+        (aiern/which-key--hide-popup nil (interactive)
             (aiern/disable-all-modal-modes)
             (setq which-key-persistent-popup nil) (which-key--hide-popup)
             (which-key-mode -1))
 
-        (defun aiern/which-key--show-popup (&optional keymap force) (interactive)
+        (aiern/which-key--show-popup (&optional keymap force) (interactive)
             (when (or (not which-key-persistent-popup) force)
                 (aiern/disable-all-modal-modes keymap)
                 (which-key-mode 1)
                 (setq which-key-persistent-popup t)))
 
-        (defun aiern/which-key--refresh-popup (&optional keymap) (interactive)
+        (aiern/which-key--refresh-popup (&optional keymap) (interactive)
             (aiern/which-key--hide-popup)
             (aiern/which-key--show-popup keymap t))
 
-        (defun aiern/toggle-which-key (&optional keymap) (interactive)
+        (aiern/toggle-which-key (&optional keymap) (interactive)
 
             ;; TODO: How does this bit work again...?
             (setq which-key-persistent-popup (not (aiern/any-popup-showing-p)))
@@ -653,43 +722,40 @@ And in my experience... Not a good idea; much too confusing. Use
                 (aiern/which-key--hide-popup)
                 (aiern/which-key--show-popup keymap t)))
 
-        (defun aiern/hercules--hide-advice (&optional keymap flatten &rest _)
+        (aiern/hercules--hide-advice (&optional keymap flatten &rest _)
                 "Dismiss hercules.el.
             Pop KEYMAP from `overriding-terminal-local-map' when it is not
             nil.  If FLATTEN is t, `hercules--show' was called with the same
             argument.  Restore `which-key--update' after such a call."
+                (interactive)
                 (setq hercules--popup-showing-p nil)
                 (setq overriding-terminal-local-map nil)
                 (when flatten (advice-remove #'which-key--update #'ignore))
                 (aiern/which-key-show-top-level))
-        (advice-add #'hercules--hide :override #'aiern/hercules--hide-advice)
-
-        
-        (defun aiern/hercules--show-advice (&optional keymap flatten transient &rest _)
-        "Summon hercules.el showing KEYMAP.
-        Push KEYMAP onto `overriding-terminal-local-map' when TRANSIENT
-        is nil.  Otherwise use `set-transient-map'.  If FLATTEN is t,
-        show full keymap \(including sub-maps\), and prevent redrawing on
-        prefix-key press by overriding `which-key--update'."
-        (when which-key-persistent-popup
-            (setq hercules--popup-showing-p t)
-            (when keymap
-                (let ((which-key-show-prefix hercules-show-prefix))
-                (if flatten
-                    (progn
+        (aiern/hercules--show-advice (&optional keymap flatten transient &rest _)
+            "Summon hercules.el showing KEYMAP.
+            Push KEYMAP onto `overriding-terminal-local-map' when TRANSIENT
+            is nil.  Otherwise use `set-transient-map'.  If FLATTEN is t,
+            show full keymap \(including sub-maps\), and prevent redrawing on
+            prefix-key press by overriding `which-key--update'."
+            (interactive)
+            (when which-key-persistent-popup
+                (setq hercules--popup-showing-p t)
+                (when keymap
+                    (let ((which-key-show-prefix hercules-show-prefix))
+                    (if flatten
+                        (progn
+                            (which-key--show-keymap
+                            (symbol-name keymap) (symbol-value keymap) nil t t)
+                            (advice-add #'which-key--update :override #'ignore))
                         (which-key--show-keymap
-                        (symbol-name keymap) (symbol-value keymap) nil t t)
-                        (advice-add #'which-key--update :override #'ignore))
-                    (which-key--show-keymap
-                    (symbol-name keymap) (symbol-value keymap) nil nil t)))
-                (if transient
-                    (set-transient-map (symbol-value keymap)
-                                    t #'hercules--hide)
-                (internal-push-keymap (symbol-value keymap)
-                                        'overriding-terminal-local-map)))))
-        (advice-add #'hercules--show :override #'aiern/hercules--show-advice)
-
-        (defun aiern/which-key-show-top-level (&optional keymap) (interactive)
+                        (symbol-name keymap) (symbol-value keymap) nil nil t)))
+                    (if transient
+                        (set-transient-map (symbol-value keymap)
+                                        t #'hercules--hide)
+                    (internal-push-keymap (symbol-value keymap)
+                                            'overriding-terminal-local-map)))))
+        (aiern/which-key-show-top-level (&optional keymap) (interactive)
             (let* ((current-map (or (symbol-value keymap) (or overriding-terminal-local-map global-map)))
                 (which-key-function
                     ;; #'which-key-show-top-level
@@ -710,7 +776,7 @@ And in my experience... Not a good idea; much too confusing. Use
         ;; Adapted From:
         ;; Answer: https://emacs.stackexchange.com/a/42240
         ;; User: user12563
-        (defun aiern/hercules-hide-all-modal-modes (&optional keymap) (interactive)
+        (aiern/hercules-hide-all-modal-modes (&optional keymap) (interactive)
             (when overriding-terminal-local-map (mapc #'(lambda (prefix) (interactive)
                 (message (format "Hiding %s" prefix))
                 (ignore-errors (funcall (intern (concat "aiern/" prefix "-hercules-hide"))))
@@ -718,6 +784,9 @@ And in my experience... Not a good idea; much too confusing. Use
                 ;; (internal-push-keymap nil 'overriding-terminal-local-map)
                 (setq overriding-terminal-local-map nil)) modal-prefixes))
             (aiern/which-key-show-top-level keymap))
+    :leaf (hercules :advice (
+        (:override hercules--hide aiern/hercules--hide-advice)
+        (:override hercules--show aiern/hercules--show-advice)))
     :custom
         (which-key-allow-evil-operators t)
 
@@ -775,6 +844,12 @@ And in my experience... Not a good idea; much too confusing. Use
         (general-chord "kk") 'aiern/toggle-evil
         (general-chord "KK") 'aiern/toggle-evil-force
         (general-chord ",,") 'evil-ex)
+    :config/defun*
+        (aiern/evil-ex-advice (func &rest arguments) (aiern/which-key--hide-popup) (apply func arguments) (aiern/which-key--show-popup))
+    :leaf (evil :advice (
+        (:before evil-close-fold aiern/go-to-parent)
+        (:override evil-insert-state aiern/disable-all-modal-modes)
+        (:around evil-ex aiern/evil-ex-advice)))
     :hydra+
     <<20210601225304341247500(map="evil-normal-state-map", mode="evil-mode", prefix="evil", short="e")>>
         ;; From: https://www.reddit.com/r/emacs/comments/lp45zd/help_requested_in_configuring_ryomodal/gp3rfx9?utm_source=share&utm_medium=web2x&context=3
@@ -789,12 +864,6 @@ And in my experience... Not a good idea; much too confusing. Use
         ;; Use to get command name:
         ;; Eg: (cdr (assoc "q" evil-ex-commands))
         ;; Then "C-x C-e" (eval-last-sexp)
-
-        (advice-add #'evil-close-fold :before #'aiern/go-to-parent)
-        (advice-add #'evil-insert-state :override #'aiern/disable-all-modal-modes)
-
-        (defun aiern/evil-ex-advice (func &rest arguments) (aiern/which-key--hide-popup) (apply func arguments) (aiern/which-key--show-popup))
-        (advice-add #'evil-ex :around #'aiern/evil-ex-advice)
     :ryo
         ("l" :hydra
                 '(evil-exits (:color blue :pre (progn
@@ -922,24 +991,24 @@ And in my experience... Not a good idea; much too confusing. Use
 (use-package org
     :straight t
     :hook (
-        (kill-emacs-hook . org-babel-tangle)
-        (org-mode-hook . aiern/org-babel-tangle-append-setup))
+        (org-mode . aiern/org-babel-tangle-append-setup)
+        (org-cycle . (lambda (state) (interactive) (when (eq state 'children) (setq org-cycle-subtree-status 'subtree)))))
     :init
         ;; I'm using ox-pandoc
         ;; (setq org-export-backends '(md gfm latex odt org))
         (setq org-directory "/tmp")
         (setq org-roam-directory org-directory)
-    :config
-        (use-package nix-mode
+    :use-package-postconfig
+        (nix-mode
             :demand t
             :straight t
             :commands (org-babel-execute:nix)
             :mode ("\\.nix\\'")
-            :config
+            :init/defun*
                 ;; Adapted From:
                 ;; Answer: https://emacs.stackexchange.com/a/61442
                 ;; User: https://emacs.stackexchange.com/users/20061/zeta
-                (defun org-babel-execute:nix (body params)
+                (org-babel-execute:nix (body params)
                     "Execute a block of Nix code with org-babel."
                     (message "executing Nix source code block")
                     (let ((in-file (org-babel-temp-file "n" ".nix"))
@@ -961,17 +1030,16 @@ And in my experience... Not a good idea; much too confusing. Use
                             (if (eq args nil) "" args)
                             (org-babel-process-file-name in-file))
                     ""))))
-
-        (use-package xonsh-mode
+        (xonsh-mode
             :demand t
             :straight (xonsh-mode :type git :host github :repo "seanfarley/xonsh-mode" :branch "master")
             :commands (org-babel-execute:xonsh org-babel-expand-body:xonsh)
             :mode ("\\.xonshrc\\'" "\\.xsh\\'")
-            :config
+            :init/defun*
                 ;; Adapted From:
                 ;; Answer: https://emacs.stackexchange.com/a/61442
                 ;; User: https://emacs.stackexchange.com/users/20061/zeta
-                (defun org-babel-execute:xonsh (body params)
+                (org-babel-execute:xonsh (body params)
                     "Execute a block of Xonsh code with org-babel."
                     (message "executing Xonsh source code block")
                     (let ((in-file (org-babel-temp-file "x" ".xsh"))
@@ -985,34 +1053,24 @@ And in my experience... Not a good idea; much too confusing. Use
                             (if (eq args nil) "" args)
                             (org-babel-process-file-name in-file))
                     ""))))
-
-        (use-package dockerfile-mode :demand t :straight t :mode ("\\Dockerfile\\'"))
-
-        (use-package vimrc-mode
+        (dockerfile-mode :demand t :straight t :mode ("\\Dockerfile\\'"))
+        (vimrc-mode
             :demand t
             :straight (vimrc-mode :type git :host github :repo "mcandre/vimrc-mode" :branch "master")
             :commands
                 (org-babel-execute:vimrc
                 org-babel-expand-body:vimrc)
             :mode "\\.vim\\(rc\\)?\\'")
-
-        (use-package ox-pandoc :demand t :straight t)
-
-        (org-babel-do-load-languages 'org-babel-load-languages
-            (append org-babel-load-languages
-            '((python . t)
-            (shell . t))))
-
-        (org-babel-lob-ingest "./README.org")
-
+        (ox-pandoc :demand t :straight t)
+    :config/defun*
         ;; Adapted From: https://www.reddit.com/r/emacs/comments/6klewl/org_cyclingto_go_from_folded_to_children_skipping/djniygy?utm_source=share&utm_medium=web2x&context=3
-        (defun aiern/org-cycle nil (interactive)
+        (aiern/org-cycle nil (interactive)
             (if (aiern/outline-folded-p) (org-cycle) (evil-close-fold)))
 
         ;; Adapted From:
         ;; Answer: https://emacs.stackexchange.com/questions/28098/how-to-change-org-mode-babel-tangle-write-to-file-way-as-append-instead-of-overr/38898#38898
         ;; User: https://emacs.stackexchange.com/users/2370/tobias
-        (defun aiern/org-babel-tangle-append nil
+        (aiern/org-babel-tangle-append nil
             "Append source code block at point to its tangle file.
             The command works like `org-babel-tangle' with prefix arg
             but `delete-file' is ignored."
@@ -1023,15 +1081,14 @@ And in my experience... Not a good idea; much too confusing. Use
         ;; Adapted From:
         ;; Answer: https://emacs.stackexchange.com/questions/28098/how-to-change-org-mode-babel-tangle-write-to-file-way-as-append-instead-of-overr/38898#38898
         ;; User: https://emacs.stackexchange.com/users/2370/tobias
-        (defun aiern/org-babel-tangle-append-setup nil
+        (aiern/org-babel-tangle-append-setup nil
             "Add key-binding C-c C-v C-t for `aiern/org-babel-tangle-append'."
             (org-defkey org-mode-map (naked "C-c C-v +") 'aiern/org-babel-tangle-append))
-
         
         ;; Adapted From:
         ;; Answer: https://emacs.stackexchange.com/questions/39032/tangle-the-same-src-block-to-different-files/39039#39039
         ;; User: https://emacs.stackexchange.com/users/2370/tobias
-        (defun aiern/org-babel-tangle-collect-blocks-handle-tangle-list (&optional language tangle-file)
+        (aiern/org-babel-tangle-collect-blocks-handle-tangle-list (&optional language tangle-file)
             "Can be used as :override advice for `org-babel-tangle-collect-blocks'.
             Handles lists of :tangle files."
             (let ((counter 0) last-heading-pos blocks)
@@ -1065,7 +1122,7 @@ And in my experience... Not a good idea; much too confusing. Use
         ;; Adapted From:
         ;; Answer: https://emacs.stackexchange.com/questions/39032/tangle-the-same-src-block-to-different-files/39039#39039
         ;; User: https://emacs.stackexchange.com/users/2370/tobias
-        (defun aiern/org-babel-tangle-single-block-handle-tangle-list (oldfun block-counter &optional only-this-block)
+        (aiern/org-babel-tangle-single-block-handle-tangle-list (oldfun block-counter &optional only-this-block)
             "Can be used as :around advice for `org-babel-tangle-single-block'.
             If the :tangle header arg is a list of files. Handle all files"
             (let* ((info (org-babel-get-src-block-info))
@@ -1092,50 +1149,55 @@ And in my experience... Not a good idea; much too confusing. Use
                     (list (cons (cl-caaar ret) (mapcar #'cadar ret)))
                 ret)))))
         
-        (defun aiern/src-mode-settings nil (interactive) (aiern/disable-all-modal-modes) (focus-mode 1))
-        (defun aiern/src-mode-exit nil (interactive) (winner-undo) (aiern/disable-all-modal-modes))
+        (aiern/src-mode-settings nil (interactive) (aiern/disable-all-modal-modes) (focus-mode 1))
+        (aiern/src-mode-exit nil (interactive) (winner-undo) (aiern/disable-all-modal-modes))
 
         ;; Adapted From: http://endlessparentheses.com/emacs-narrow-or-widen-dwim.html
-        (defun aiern/narrow-or-widen-dwim (p)
-        "Widen if buffer is narrowed, narrow-dwim otherwise.
-        Dwim means: region, org-src-block, org-subtree, or
-        defun, whichever applies first. Narrowing to
-        org-src-block actually calls `org-edit-src-code'.
+        (aiern/narrow-or-widen-dwim (p)
+            "Widen if buffer is narrowed, narrow-dwim otherwise.
+            Dwim means: region, org-src-block, org-subtree, or
+            defun, whichever applies first. Narrowing to
+            org-src-block actually calls `org-edit-src-code'.
 
-        With prefix P, don't widen, just narrow even if buffer
-        is already narrowed."
-        (interactive "P")
-        (declare (interactive-only))
-        (cond ((and (buffer-narrowed-p) (not p)) (widen))
-                ((region-active-p)
-                (narrow-to-region (region-beginning)
-                                (region-end)))
-                ((derived-mode-p 'org-mode)
-                ;; `org-edit-src-code' is not a real narrowing
-                ;; command. Remove this first conditional if
-                ;; you don't want it.
-                (cond ((ignore-errors (org-edit-src-code) t)
-                        (delete-other-windows))
-                    ((ignore-errors (org-narrow-to-block) t))
-                    (t (org-narrow-to-subtree))))
-                ((derived-mode-p 'latex-mode)
-                (LaTeX-narrow-to-environment))
-                (t (narrow-to-defun)))
-            (aiern/src-mode-settings))
-
+            With prefix P, don't widen, just narrow even if buffer
+            is already narrowed."
+            (interactive "P")
+            (declare (interactive-only))
+            (cond ((and (buffer-narrowed-p) (not p)) (widen))
+                    ((region-active-p)
+                    (narrow-to-region (region-beginning)
+                                    (region-end)))
+                    ((derived-mode-p 'org-mode)
+                    ;; `org-edit-src-code' is not a real narrowing
+                    ;; command. Remove this first conditional if
+                    ;; you don't want it.
+                    (cond ((ignore-errors (org-edit-src-code) t)
+                            (delete-other-windows))
+                        ((ignore-errors (org-narrow-to-block) t))
+                        (t (org-narrow-to-subtree))))
+                    ((derived-mode-p 'latex-mode)
+                    (LaTeX-narrow-to-environment))
+                    (t (narrow-to-defun)))
+                (aiern/src-mode-settings))
+    :leaf (org :advice (
         ;; Adapted From: https://github.com/syl20bnr/spacemacs/issues/13058#issuecomment-565741009
-        (advice-add #'org-edit-src-exit :after #'aiern/src-mode-exit)
-        (advice-add #'org-edit-src-abort :after #'aiern/src-mode-exit)
-        (advice-add #'org-edit-special :after #'aiern/src-mode-settings)
-        (advice-add #'org-babel-tangle-collect-blocks :override #'aiern/org-babel-tangle-collect-blocks-handle-tangle-list)
-        (advice-add #'org-babel-tangle-single-block :around #'aiern/org-babel-tangle-single-block-handle-tangle-list)
-        (advice-add #'org-cycle :after #'(lambda (state) (interactive) (when (eq state 'children) (setq org-cycle-subtree-status 'subtree))))
-        ;; (add-hook 'org-cycle-hook (lambda (state) (interactive) (when (eq state 'children) (setq org-cycle-subtree-status 'subtree))))
+        (:after org-edit-src-exit aiern/src-mode-exit)
+        (:after org-edit-src-abort aiern/src-mode-exit)
+        (:after org-edit-special aiern/src-mode-settings)
+        (:override org-babel-tangle-collect-blocks aiern/org-babel-tangle-collect-blocks-handle-tangle-list)
+        (:around org-babel-tangle-single-block aiern/org-babel-tangle-single-block-handle-tangle-list)
+        ))
+    :config
+        (org-babel-do-load-languages 'org-babel-load-languages
+            (append org-babel-load-languages
+            '((python . t)
+            (shell . t))))
+        (org-babel-lob-ingest "./README.org")
 
         <<20210601225401786848500>>
-    ;; :general
-        ;; (:keymaps '(override novel-map)
-        ;;     (naked "backtab") 'aiern/evil-close-fold)
+    :general
+        (:keymaps '(override novel-map)
+            (naked "backtab") 'aiern/evil-close-fold)
     :ryo ("o" :hydra
         '(hydra-org (:color blue :pre (progn
             <<20210601225233511900800>>))
@@ -1185,7 +1247,6 @@ And in my experience... Not a good idea; much too confusing. Use
 ;; TODO
 ;; (advice-add #'execute-extended-command :before #'aiern/which-key--hide-popup)
 
-(advice-add #'doom-escape :after #'aiern/which-key--show-popup)
 (advice-add #'keyboard-escape-quit :after #'aiern/which-key--show-popup)
 (advice-add #'keyboard-quit :after #'aiern/which-key--show-popup)
 (advice-add #'exit-minibuffer :after #'aiern/which-key--show-popup)
@@ -1312,14 +1373,14 @@ And in my experience... Not a good idea; much too confusing. Use
 (use-package doom-modeline
     :straight t
     :hook (after-init . doom-modeline-mode)
-    :init
-        (defun aiern/update-global-mode-string nil (interactive)
+    :init/defun*
+        (aiern/update-global-mode-string nil (interactive)
             (setq global-mode-string
                 (list
                 "%n "
                 "Novel Keymap: "
                 (if novel-map-p "True" "False"))))
-        (aiern/update-global-mode-string)
+    :init (aiern/update-global-mode-string)
     :custom
         ;; How tall the mode-line should be. It's only respected in GUI.
         ;; If the actual char height is larger, it respects the actual height.
@@ -1514,9 +1575,8 @@ And in my experience... Not a good idea; much too confusing. Use
 (use-package yankpad
     :straight t
     :after (projectile company yasnippet)
-    :init
-        (setq yankpad-file "./yankpad.org")
-        (defun aiern/yankpad-hercules-toggle nil (interactive))
+    :init/defun* (aiern/yankpad-hercules-toggle nil (interactive))
+    :init (setq yankpad-file "./yankpad.org")
     :general (:keymap '(override novel-map)
         (general-chord "[[") 'aiern/yankpad-hercules-toggle
         (general-chord "]]") 'yankpad-expand)
@@ -1614,6 +1674,7 @@ And in my experience... Not a good idea; much too confusing. Use
 #+begin_src emacs-lisp
 (use-package term
     :straight t
+    :config/defun* (aiern/term-hercules-toggle nil (interactive))
     :general
         (:keymaps 'term-mode-map
             "C-c C-c" 'term-interrupt-subjob
@@ -1628,7 +1689,14 @@ And in my experience... Not a good idea; much too confusing. Use
     :custom
         (term-unbind-key-list '("C-z" "C-x" "C-c" "C-h" "C-l" "<ESC>"))
         (term-buffer-maximum-size 16384)
-        (term-default-bg-color "#000000") '(term-default-fg-color "#AAAAAA"))
+        (term-default-bg-color "#000000") '(term-default-fg-color "#AAAAAA")
+    :hercules
+        (:show-funs #'aiern/term-hercules-show
+        :hide-funs #'aiern/term-hercules-hide
+        :toggle-funs #'aiern/term-hercules-toggle
+        :keymap 'term-raw-map
+        ;; :transient t
+        ))
 #+end_src
 
 ***** vterm
@@ -1682,11 +1750,10 @@ Mostly from [[Emux's After Installing Section][https://github.com/re5et/emux#aft
 (use-package emux
     ;; :straight (emux :type git :host github :repo "re5et/emux" :branch "master")
     ;; :hook (emacs-startup . emux-mode)
-    :config
-        (emux-completing-read-command (quote ido-completing-read))
-
-        (defun aiern/make-frame nil (interactive) (modify-frame-parameters (make-frame) ((name . "emux"))))
-        (defun aiern/select-emux nil (interactive) (select-frame-by-name "emux"))
+    :config/defun*
+        (aiern/make-frame nil (interactive) (modify-frame-parameters (make-frame) ((name . "emux"))))
+        (aiern/select-emux nil (interactive) (select-frame-by-name "emux"))
+    :config (emux-completing-read-command (quote ido-completing-read))
     :general
         (:keymaps '(override novel-map)
             ;; ""          'aiern/make-frame
@@ -1737,6 +1804,7 @@ Mostly from [[Emux's After Installing Section][https://github.com/re5et/emux#aft
     :custom
         ;; NOTE: Remember to escape the backslash
         (elscreen-prefix-key "C-S-\\")
+    :config/defun* (aiern/elscreen-hercules-toggle nil (interactive))
     :hercules
         (:show-funs #'aiern/elscreen-hercules-show
         :hide-funs #'aiern/elscreen-hercules-hide
@@ -1748,72 +1816,72 @@ Mostly from [[Emux's After Installing Section][https://github.com/re5et/emux#aft
 
 ***** escreen
 
+Adapted From: https://tapoueh.org/blog/2009/09/escreen-integration/
+
 #+call: hash() :exports none
 
 #+RESULTS:
 : 20210601225345097323100
 
 #+name: 20210601225345097323100
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :comments org
 (load-emacs-file "escreen.el")
 (use-package escreen
     ;; :hook (after-init . escreen-install)
     :general
         (:keymaps '(override novel-map)
-            (general-chord "||") 'aiern/escreen-hercules-toggle)
-    :config
-        (defun aiern/escreen-hercules-toggle nil(interactive))
+            ;; (naked "C-\\ l") 'escreen-get-active-screen-numbers-with-emphasis
+            ;; (naked "M-[") 'dim:escreen-goto-prev-screen
+            ;; (naked "M-]") 'dim:escreen-goto-next-screen
+            ;; (naked "C-\\ DEL") 'dim:escreen-goto-prev-screen
+            ;; (naked "C-\\ SPC") 'dim:escreen-goto-next-screen
 
-        ;; Adapted From: https://tapoueh.org/blog/2009/09/escreen-integration/
+            ;; [s-mouse-4] 'dim:escreen-goto-prev-screen
+            ;; [s-mouse-5] 'dim:escreen-goto-next-screen
+            (general-chord "||") 'aiern/escreen-hercules-toggle)
+        ;; (:keymaps 'escreen-map
+            ;; escreen-prefix-char 'dim:escreen-goto-last-screen)
+        ;; (:keymaps 'term-raw-map
+            ;; add support for C-\ from terms
+            ;; escreen-prefix-char escreen-map
+
+            ;; (naked "M-[") 'dim:escreen-goto-prev-screen
+            ;; (naked "M-]") 'dim:escreen-goto-next-screen)
+    :config/defun*
+        (aiern/escreen-hercules-toggle nil (interactive))
 
         ;; add C-\ l to list screens with emphase for current one
-        (defun escreen-get-active-screen-numbers-with-emphasis nil
-        "what the name says"
-        (interactive)
-            (let ((escreens (escreen-get-active-screen-numbers))
-                (emphased ""))
+        (escreen-get-active-screen-numbers-with-emphasis nil
+            "what the name says"
+            (interactive)
+                (let ((escreens (escreen-get-active-screen-numbers))
+                    (emphased ""))
 
-                (dolist (s escreens)
-                    (setq emphased
-                        (concat emphased (if (= escreen-current-screen-number s)
-                            (propertize (number-to-string s)
-                                ;;'face 'custom-variable-tag) " ")
-                                'face 'info-title-3)
-                                ;;'face 'font-lock-warning-face)
-                                ;;'face 'secondary-selection)
-                            (number-to-string s))
-                        " ")))
-                (message "escreen: active screens: %s" emphased)))
+                    (dolist (s escreens)
+                        (setq emphased
+                            (concat emphased (if (= escreen-current-screen-number s)
+                                (propertize (number-to-string s)
+                                    ;;'face 'custom-variable-tag) " ")
+                                    'face 'info-title-3)
+                                    ;;'face 'font-lock-warning-face)
+                                    ;;'face 'secondary-selection)
+                                (number-to-string s))
+                            " ")))
+                    (message "escreen: active screens: %s" emphased)))
 
-        ;; (global-set-key (naked "C-\\ l") 'escreen-get-active-screen-numbers-with-emphasis)
-
-        (defun dim:escreen-goto-last-screen nil (interactive)
+        (dim:escreen-goto-last-screen nil (interactive)
             (escreen-goto-last-screen)
             (escreen-get-active-screen-numbers-with-emphasis))
 
-        (defun dim:escreen-goto-prev-screen (&optional n) (interactive "p")
+        (dim:escreen-goto-prev-screen (&optional n) (interactive "p")
             (escreen-goto-prev-screen n)
             (escreen-get-active-screen-numbers-with-emphasis))
 
-        (defun dim:escreen-goto-next-screen (&optional n) (interactive "p")
+        (dim:escreen-goto-next-screen (&optional n) (interactive "p")
             (escreen-goto-next-screen n)
             (escreen-get-active-screen-numbers-with-emphasis))
-
-        ;; (define-key escreen-map escreen-prefix-char 'dim:escreen-goto-last-screen)
-
-        ;; (global-set-key (naked "M-[") 'dim:escreen-goto-prev-screen)
-        ;; (global-set-key (naked "M-]") 'dim:escreen-goto-next-screen)
-        ;; (global-set-key (naked "C-\\ DEL") 'dim:escreen-goto-prev-screen)
-        ;; (global-set-key (naked "C-\\ SPC") 'dim:escreen-goto-next-screen)
-
-        ;; (global-set-key '[s-mouse-4] 'dim:escreen-goto-prev-screen)
-        ;; (global-set-key '[s-mouse-5] 'dim:escreen-goto-next-screen)
-
-        ;; add support for C-\ from terms
-        ;; (require 'term)
-        ;; (define-key term-raw-map escreen-prefix-char escreen-map)
-        ;; (define-key term-raw-map (naked "M-[") 'dim:escreen-goto-prev-screen)
-        ;; (define-key term-raw-map (naked "M-]") 'dim:escreen-goto-next-screen)
+    :config
+        (require 'term)
     :hercules
         (:show-funs #'aiern/escreen-hercules-show
         :hide-funs #'aiern/escreen-hercules-hide

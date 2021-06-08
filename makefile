@@ -69,8 +69,10 @@ tangle-all: tangle
 
 emacs-setup: tangle-damascus emacs-copy
 
-emacs: emacs-setup
+emacs-test:
 |emacs ~/shadowrylander/damascus.aiern.org
+
+emacs: emacs-setup emacs-test
 
 push:
 |git -C ~/shadowrylander add .

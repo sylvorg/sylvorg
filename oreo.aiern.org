@@ -2199,9 +2199,9 @@ in {
         openssh = {
             enable = true;
             extraConfig = mkOrder 0 ''
-            TCPKeepAlive yes
-            ClientAliveCountMax 480
-            ClientAliveInterval 3m
+                TCPKeepAlive yes
+                ClientAliveCountMax 480
+                ClientAliveInterval 3m
             '';
             permitRootLogin = "yes";
         };
@@ -3199,7 +3199,7 @@ in with pkgs; [
     vagrant
     vim
     wget
-    (myIf.drv (!elem system [ "aarch64-linux" ]) pkgs.hello win-qemu)
+    win-qemu
     wtf
     xclip
     (myIf.drv (!elem system [ "aarch64-linux" ]) pkgs.hello xenPackages.xen_4_10-light)
@@ -3290,7 +3290,7 @@ in [
     (myIf.drv (pkgs ? nixos-shell) pkgs.hello (getAttr "nixos-shell" pkgs))
     (myIf.drv (pkgs ? obsidian && !neither) pkgs.hello (getAttr "obsidian" pkgs))
     (myIf.drv (pkgs ? yubikey-agent) pkgs.hello (getAttr "yubikey-agent" pkgs))
-    (myIf.drv (pkgs ? zenith) pkgs.hello (getAttr "zenith" pkgs))
+    (myIf.drv ((!elem system [ "aarch64-linux" ]) && (pkgs ? zenith)) pkgs.hello (getAttr "zenith" pkgs))
     (myIf.drv (pkgs."${p}" ? pipx) pkgs.hello (getAttr "pipx" pkgs."${p}"))
 ])
 #+end_src
