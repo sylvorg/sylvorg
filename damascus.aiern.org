@@ -397,7 +397,11 @@ Adapted From: https://github.com/hlissner/doom-emacs/blob/develop/early-init.el
 
     <<20210607194122528175700(name="use-package-preconfig", func="use-package")>>
 
-    <<20210607194122528175700(name="use-package-postconfig", func="use-package")>>)
+    <<20210607194122528175700(name="use-package-postconfig", func="use-package")>>
+
+    <<20210607194122528175700(name="evil-ex", func="evil-ex-define-cmd")>>
+
+    (add-to-list 'use-package-keywords :evil-ex t))
 
 ;; Adapted From: https://github.com/jwiegley/use-package#use-package-chords
 ;; Important: https://github.com/noctuid/general.el/issues/53#issuecomment-307262154
@@ -558,9 +562,11 @@ And in my experience... Not a good idea; much too confusing. Use
         ;; Answer: https://emacs.stackexchange.com/a/14956/31428
         ;; User: https://emacs.stackexchange.com/users/25/gilles-so-stop-being-evil
         (aiern/newline-and-indent-advice (func &rest arguments)
-            (if (window-minibuffer-p)
-                (progn (minibuffer-complete-and-exit)
-                (minibuffer-complete-and-exit)) (apply func arguments)))
+            (cond ((window-minibuffer-p)
+                    (if (evil-ex-p) (evil-ex-execute (minibuffer-contents))
+                        (progn (minibuffer-complete-and-exit) (minibuffer-complete-and-exit)))
+                (t (apply func arguments)))))
+
         ;; Answer: https://stackoverflow.com/a/14490054/10827766
         ;; User: https://stackoverflow.com/users/1600898/user4815162342
         (aiern/keymap-symbol (keymap)
@@ -572,12 +578,14 @@ And in my experience... Not a good idea; much too confusing. Use
                         (eq (symbol-value sym) keymap)
                         (not (eq sym 'keymap))
                         (throw 'gotit sym))))))
+
         ;; Adapted From:
         ;; Answer: https://superuser.com/a/331662/1154755
         ;; User: https://superuser.com/users/656734/phimuemue
         (aiern/end-of-line-and-indented-new-line nil (interactive)
             (end-of-line)
             (newline-and-indent))
+
         ;; Adapted From:
         ;; Answer: https://emacs.stackexchange.com/a/3883/31428
         ;; User: https://emacs.stackexchange.com/users/2454/alexander-shukaev
@@ -839,7 +847,8 @@ And in my experience... Not a good idea; much too confusing. Use
 (use-package evil
     :demand t
     :straight t
-    :init (setq-default evil-escape-key-sequence nil)
+    :init
+        (setq-default evil-escape-key-sequence nil)
     :general (:keymaps '(override novel-map)
         (general-chord "kk") 'aiern/toggle-evil
         (general-chord "KK") 'aiern/toggle-evil-force

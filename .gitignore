@@ -1,8 +1,10 @@
 *
+
+# From: https://jasonstitt.com/gitignore-whitelisting-patterns
 !*/
 
 !*.org
-!**/*.org
+!**/**/*.org
 
 !README.*
 !**/**/README.*
