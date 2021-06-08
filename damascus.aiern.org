@@ -562,10 +562,11 @@ And in my experience... Not a good idea; much too confusing. Use
         ;; Answer: https://emacs.stackexchange.com/a/14956/31428
         ;; User: https://emacs.stackexchange.com/users/25/gilles-so-stop-being-evil
         (aiern/newline-and-indent-advice (func &rest arguments)
-            (cond ((window-minibuffer-p)
-                    (if (evil-ex-p) (evil-ex-execute (minibuffer-contents))
-                        (progn (minibuffer-complete-and-exit) (minibuffer-complete-and-exit)))
-                (t (apply func arguments)))))
+            (if (window-minibuffer-p)
+                (cond
+                    ((evil-ex-p) (evil-ex-execute (minibuffer-contents)))
+                    (t (progn (minibuffer-complete-and-exit) (minibuffer-complete-and-exit))))
+                (apply func arguments)))
 
         ;; Answer: https://stackoverflow.com/a/14490054/10827766
         ;; User: https://stackoverflow.com/users/1600898/user4815162342
@@ -696,10 +697,6 @@ And in my experience... Not a good idea; much too confusing. Use
                 <<20210601225233511900800>>)) ("`" nil "cancel"))
         (all-keymaps (:color blue :pre (progn
                 <<20210601225233511900800>>)) ("`" nil "cancel"))
-    :init
-        (setq which-key-enable-extended-define-key t)
-        (setq which-key-idle-delay 0.1)
-        (setq which-key-idle-secondary-delay nil)
     :config/defun*
         (aiern/any-popup-showing-p nil (interactive) (or hercules--popup-showing-p (which-key--popup-showing-p)))
         
@@ -796,6 +793,9 @@ And in my experience... Not a good idea; much too confusing. Use
         (:override hercules--hide aiern/hercules--hide-advice)
         (:override hercules--show aiern/hercules--show-advice)))
     :custom
+        (which-key-enable-extended-define-key t)
+        (which-key-idle-delay 0.1)
+        (which-key-idle-secondary-delay nil)
         (which-key-allow-evil-operators t)
 
         ;; NOTE: This will cause the which-key maps for the operator states to show up,
@@ -847,8 +847,7 @@ And in my experience... Not a good idea; much too confusing. Use
 (use-package evil
     :demand t
     :straight t
-    :init
-        (setq-default evil-escape-key-sequence nil)
+    :init (setq-default evil-escape-key-sequence nil)
     :general (:keymaps '(override novel-map)
         (general-chord "kk") 'aiern/toggle-evil
         (general-chord "KK") 'aiern/toggle-evil-force
@@ -1002,11 +1001,6 @@ And in my experience... Not a good idea; much too confusing. Use
     :hook (
         (org-mode . aiern/org-babel-tangle-append-setup)
         (org-cycle . (lambda (state) (interactive) (when (eq state 'children) (setq org-cycle-subtree-status 'subtree)))))
-    :init
-        ;; I'm using ox-pandoc
-        ;; (setq org-export-backends '(md gfm latex odt org))
-        (setq org-directory "/tmp")
-        (setq org-roam-directory org-directory)
     :use-package-postconfig
         (nix-mode
             :demand t
@@ -1218,6 +1212,10 @@ And in my experience... Not a good idea; much too confusing. Use
                 ("s" org-edit-special "org edit special")
                 ("q" nil "cancel")))
     :custom
+        ;; I'm using ox-pandoc
+        ;; (org-export-backends '(md gfm latex odt org))
+        (org-directory "/tmp")
+        (org-roam-directory org-directory)
         (org-descriptive-links t)
         (org-confirm-babel-evaluate nil)
         (org-startup-folded t)
@@ -1573,11 +1571,6 @@ And in my experience... Not a good idea; much too confusing. Use
             (text-mode . line)
             (outline-mode . line))))
 
-;; (when (featurep! :editor parinfer) (use-package! parinfer-rust-mode
-;;     :hook emacs-lisp-mode
-;;     :init (setq parinfer-rust-auto-download t)
-;;     :custom (parinfer-rust-check-before-enable nil)))
-
 (use-package projectile :straight t)
 (use-package yasnippet :straight t)
 (use-package company :straight t)
@@ -1585,7 +1578,7 @@ And in my experience... Not a good idea; much too confusing. Use
     :straight t
     :after (projectile company yasnippet)
     :init/defun* (aiern/yankpad-hercules-toggle nil (interactive))
-    :init (setq yankpad-file "./yankpad.org")
+    :custom (yankpad-file "./yankpad.org")
     :general (:keymap '(override novel-map)
         (general-chord "[[") 'aiern/yankpad-hercules-toggle
         (general-chord "]]") 'yankpad-expand)
