@@ -20,6 +20,7 @@ for subparser in [ create, mount, update ]:
 
 create.add_argument("-z", "--zfs-device", required=True)
 create.add_argument("-s", "--swap", type=int)
+mount.add_argument("-r", "--root-device")
 mount.add_argument("-b", "--boot-device", required=True)
 mount.add_argument("-s", "--swap", action="store_true")
 update.add_argument("-p", "--pool", action="store_true")
@@ -106,7 +107,12 @@ try:
                                 }
                             },
                             "root": {  },
-                            "tmp": { "options": [ "sync=disabled" ] }
+                            "tmp": { "options": [ "sync=disabled" ] },
+                            "etc": {  },
+                            "var": {  },
+                            "usr": {  },
+                            "srv": {  },
+                            "opt": {  }
                         },
                         "options": [ "mountpoint=legacy" ]
                     },
@@ -313,7 +319,12 @@ try:
                                 }
                             },
                             "root": {  },
-                            "tmp": { "options": [ "sync=disabled" ] }
+                            "tmp": { "options": [ "sync=disabled" ] },
+                            "etc": {  },
+                            "var": {  },
+                            "usr": {  },
+                            "srv": {  },
+                            "opt": {  }
                         },
                         "options": [ "mountpoint=legacy" ]
                     },
@@ -463,7 +474,12 @@ try:
                                 }
                             },
                             "root": {  },
-                            "tmp": { "options": [ "sync=disabled" ] }
+                            "tmp": { "options": [ "sync=disabled" ] },
+                            "etc": {  },
+                            "var": {  },
+                            "usr": {  },
+                            "srv": {  },
+                            "opt": {  }
                         },
                         "options": [ "mountpoint=legacy" ]
                     },
@@ -665,7 +681,12 @@ try:
                                 }
                             },
                             "root": {  },
-                            "tmp": { "options": [ "sync=disabled" ] }
+                            "tmp": { "options": [ "sync=disabled" ] },
+                            "etc": {  },
+                            "var": {  },
+                            "usr": {  },
+                            "srv": {  },
+                            "opt": {  }
                         },
                         "options": [ "mountpoint=legacy" ]
                     },
@@ -810,7 +831,10 @@ if args.subcommand == "mount":
     else:
         run("mkdir /mnt", shell = True, stdout=DEVNULL, stderr=STDOUT)
     
-    run(f"mount -t zfs {args.Pool}/system/root /mnt", shell = True)
+    if args.root_device:
+        run(f"mount {args.root_device} /mnt", shell = True)
+    else:
+        run(f"mount -t zfs {args.Pool}/system/root /mnt", shell = True)
     
     with open(f"{resources}/_datasets.nix") as datasets:
         for __dataset in datasets.readlines()[1:-1]:

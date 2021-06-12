@@ -245,7 +245,7 @@ Taken from [[https://github.com/NixOS/nixos-hardware/tree/master/microsoft/hyper
 
 #+name: 20210601184806549418800
 #+begin_src nix :tangle (aiern/tangle-path)
-{ config, lib, pkgs, device, ... }: with builtins; with lib; with j; mkIf (device == "3b") {
+{ config, lib, pkgs, device, ... }: with builtins; with lib; with j; myIf.set (device == "3b") {
     vars.terminal = true;
     boot = {
         kernelParams = ["cma=256M"];
@@ -271,7 +271,7 @@ Taken from [[https://github.com/NixOS/nixos-hardware/tree/master/microsoft/hyper
 
 #+name: 20210601184808685869700
 #+begin_src nix :tangle (aiern/tangle-path)
-{ config, lib, pkgs, device, ... }: with builtins; with lib; with j; mkIf (device == "4b") {
+{ config, lib, pkgs, device, ... }: with builtins; with lib; with j; myIf.set (device == "4b") {
     imports = [ sources.nixos-hardware.nixosModules.raspberry-pi-4 ];
     config.vars.terminal = true;
 }
@@ -406,7 +406,7 @@ Taken from [[https://github.com/NixOS/nixos-hardware/tree/master/microsoft/hyper
 
 #+name: 20210601184839546821900
 #+begin_src nix :tangle (aiern/tangle-path)
-{ config, lib, device, ... }: with builtins; with lib; with j; mkIf (device == "b2") {
+{ config, lib, device, ... }: with builtins; with lib; with j; myIf.set (device == "b2") {
     boot.extraModprobeConfig = mkAfter '' options ipts singletouch=y '';
     powerManagement.resumeCommands = mkAfter '' modprobe ipts_surface singletouch=y '';
     services.surface-dtx-daemon.detach = mkForce ''
@@ -445,7 +445,7 @@ Taken from [[https://github.com/NixOS/nixos-hardware/tree/master/microsoft/hyper
 #+end_src
 
 ***** pinebook
-****** import.nix
+****** pro.nix
 
 #+call: hash() :exports none
 
@@ -454,7 +454,7 @@ Taken from [[https://github.com/NixOS/nixos-hardware/tree/master/microsoft/hyper
 
 #+name: 20210601184843916803200
 #+begin_src nix :tangle (aiern/tangle-path)
-{ sources, ... }: { imports = [ "${sources.wip-pinebook-pro}/pinebook_pro.nix" ]; }
+{ sources, device, ... }: myIf.set (device == "pro") { imports = [ "${sources.wip-pinebook-pro}/pinebook_pro.nix" ]; }
 #+end_src
 
 ****** default.nix
@@ -1636,6 +1636,7 @@ loader = {
             initrd = {
                 inherit (config.boot) supportedFilesystems;
                 compressor = "${lib.getBin pkgs.zstd}/bin/zstd";
+                network.ssh.enable = true;
             };
             postBootCommands = let
                 chowned = concatStringsSep "\n" (
@@ -3297,13 +3298,15 @@ in [
 
 #+name: 20210601185351622602000
 #+begin_src nix :tangle (aiern/tangle-path)
-inputs@{ config, lib, ... }: with builtins; with lib; with j; {
-    imports = map (file: import file inputs) (imprelib.list { dir = ./.; });
+{ config, lib, ... }: with builtins; with lib; with j; {
+    imports = imprelib.list { dir = ./.; };
     config = {
         # NixOS wants to enable GRUB by default
         boot.loader.grub.enable = false;
         # Enables the generation of /boot/extlinux/extlinux.conf
         boot.loader.generic-extlinux-compatible.enable = true;
+
+        boot.loader.systemd-boot.enable = mkOrder 49 false;
     };
 }
 #+end_src
@@ -3319,10 +3322,10 @@ inputs@{ config, lib, ... }: with builtins; with lib; with j; {
 #+name: 20210601185353321602000
 #+begin_src nix :tangle (aiern/tangle-path)
 inputs@{ config, lib, ... }: with builtins; with lib; with j; {
-    imports = map (fd: import fd inputs) (flatten [
+    imports = flatten [
         [ ../arm ../shared/armv67l.nix ]
         (imprelib.list { dir = ./.; })
-    ]);
+    ];
 }
 #+end_src
 
@@ -3337,10 +3340,10 @@ inputs@{ config, lib, ... }: with builtins; with lib; with j; {
 #+name: 20210601185354863625500
 #+begin_src nix :tangle (aiern/tangle-path)
 inputs@{ config, lib, ... }: with builtins; with lib; with j; {
-    imports = map (fd: import fd inputs) (flatten [
+    imports = flatten [
         [ ../arm ../shared/armv67l.nix ]
         (imprelib.list { dir = ./.; })
-    ]);
+    ];
 }
 #+end_src
 
@@ -3355,10 +3358,10 @@ inputs@{ config, lib, ... }: with builtins; with lib; with j; {
 #+name: 20210601185356455654500
 #+begin_src nix :tangle (aiern/tangle-path)
 inputs@{ config, lib, ... }: with builtins; with lib; with j; {
-    imports = map (fd: import fd inputs) (flatten [
+    imports = flatten [
         [ ../arm ]
         (imprelib.list { dir = ./.; })
-    ]);
+    ];
 }
 #+end_src
 
@@ -4811,8 +4814,6 @@ if not args.dry_run:
 
 * bootstrap
 
-# Rewrite this for python 3.9
-
 #+call: hash() :exports none
 
 #+RESULTS:
@@ -4900,6 +4901,7 @@ for subparser in [ create, mount, update ]:
 
 create.add_argument("-z", "--zfs-device", required=True)
 create.add_argument("-s", "--swap", type=int)
+mount.add_argument("-r", "--root-device")
 mount.add_argument("-b", "--boot-device", required=True)
 mount.add_argument("-s", "--swap", action="store_true")
 update.add_argument("-p", "--pool", action="store_true")
@@ -5085,7 +5087,12 @@ dnix.write("}")
                 }
             },
             "root": {  },
-            "tmp": { "options": [ "sync=disabled" ] }
+            "tmp": { "options": [ "sync=disabled" ] },
+            "etc": {  },
+            "var": {  },
+            "usr": {  },
+            "srv": {  },
+            "opt": {  }
         },
         "options": [ "mountpoint=legacy" ]
     },
@@ -5185,7 +5192,10 @@ if os.path.isdir("/mnt"):
 else:
     run("mkdir /mnt", shell = True, stdout=DEVNULL, stderr=STDOUT)
 
-run(f"mount -t zfs {args.Pool}/system/root /mnt", shell = True)
+if args.root_device:
+    run(f"mount {args.root_device} /mnt", shell = True)
+else:
+    run(f"mount -t zfs {args.Pool}/system/root /mnt", shell = True)
 
 with open(f"{resources}/_datasets.nix") as datasets:
     for __dataset in datasets.readlines()[1:-1]:

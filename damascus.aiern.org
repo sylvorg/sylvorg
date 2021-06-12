@@ -63,44 +63,6 @@ Adapted From: https://github.com/hlissner/doom-emacs/blob/develop/early-init.el
 #+name: 20210601225227507463400
 #+begin_src emacs-lisp :tangle (aiern/tangle-path)
 ;;; $EMACSDIR/config.el -*- lexical-binding: t; -*-
-(setq use-package-keywords '(:disabled
-    :load-path
-    :requires
-    :defines
-    :functions
-    :preface
-    :if :when :unless
-    :no-require
-    :catch
-    :after
-    :custom
-    :custom-face
-    :bind
-    :bind*
-    :bind-keymap
-    :bind-keymap*
-    :interpreter
-    :mode
-    :magic
-    :magic-fallback
-    :hook
-    ;; Any other keyword that also declares commands to be autoloaded (such as
-    ;; :bind) must appear before this keyword.
-    :commands
-    :init/defun
-    :init/defun*
-    :init
-    :defer
-    :demand
-    :load
-    ;; This must occur almost last; the only forms which should appear after
-    ;; are those that must happen directly after the config forms.
-    :use-package-preconfig
-    :config/defun
-    :config/defun*
-    :use-package-postconfig
-    :config))
-
 (setq straight-use-package-by-default t)
 (defvar bootstrap-version)
 (let ((bootstrap-file
@@ -363,7 +325,8 @@ Adapted From: https://github.com/hlissner/doom-emacs/blob/develop/early-init.el
 ;; Adapted From:
 ;; Answer: https://emacs.stackexchange.com/a/7381/31428
 ;; User: https://emacs.stackexchange.com/users/719/adobe
-(format-spec "(defun use-package-normalize/:%n (name-symbol keyword args) args)
+(format-spec ";; Adapted From: https://github.com/jwiegley/use-package/blob/master/use-package-core.el#L1153
+(defalias 'use-package-normalize/:%n 'use-package-normalize-forms)
 
 ;; Adapted From: https://gitlab.com/to1ne/use-package-hydra/-/blob/master/use-package-hydra.el#L79
 (defun use-package-handler/:%n (name keyword args rest state)
@@ -385,23 +348,95 @@ Adapted From: https://github.com/hlissner/doom-emacs/blob/develop/early-init.el
 (with-eval-after-load 'use-package-core
     <<20210607194122528175700(name="leaf", func="leaf")>>
 
-    (add-to-list 'use-package-keywords :leaf t)
+    ;; TODO: Convert these to an elisp or noweb function
+
+    ;; Adapted From: https://github.com/noctuid/general.el/blob/master/general.el#L2553
+    (setq use-package-keywords
+        (cl-loop for item in use-package-keywords
+            if (eq item :load)
+            collect :load and collect :leaf
+            else
+            unless (eq item :leaf)
+            collect item))
 
     <<20210607194122528175700(name="init/defun", func="defun")>>
 
     <<20210607194122528175700(name="init/defun*", func="defun*")>>
 
+    ;; Adapted From: https://github.com/noctuid/general.el/blob/master/general.el#L2620
+    (setq use-package-keywords
+        (cl-loop for item in use-package-keywords
+            if (eq item :commands)
+            collect :commands and collect :init/defun and collect :init/defun*
+            else
+            unless (memq item '(:init/defun :init/defun*))
+            collect item))
+
     <<20210607194122528175700(name="config/defun", func="defun")>>
 
     <<20210607194122528175700(name="config/defun*", func="defun*")>>
 
+    (setq use-package-keywords
+        (cl-loop for item in use-package-keywords
+            if (eq item :load)
+            collect :load and collect :config/defun and collect :config/defun*
+            else
+            unless (memq item '(:config/defun :config/defun*))
+            collect item))
+
     <<20210607194122528175700(name="use-package-preconfig", func="use-package")>>
+
+    (setq use-package-keywords
+        (cl-loop for item in use-package-keywords
+            if (eq item :load)
+            collect :load and collect :use-package-preconfig
+            else
+            unless (eq item :use-package-preconfig)
+            collect item))
 
     <<20210607194122528175700(name="use-package-postconfig", func="use-package")>>
 
+    (setq use-package-keywords
+        (cl-loop for item in use-package-keywords
+            if (eq item :config/defun*)
+            collect :config/defun* and collect :use-package-postconfig
+            else
+            unless (eq item :use-package-postconfig)
+            collect item))
+
+    <<20210607194122528175700(name="postmaster", func="general-def")>>
+
+    (setq use-package-keywords
+        (cl-loop for item in use-package-keywords
+            if (eq item :config)
+            collect :config and collect :postmaster
+            else
+            unless (eq item :postmaster)
+            collect item))
+
     <<20210607194122528175700(name="evil-ex", func="evil-ex-define-cmd")>>
 
-    (add-to-list 'use-package-keywords :evil-ex t))
+    (add-to-list 'use-package-keywords :evil-ex t)
+
+    <<20210607194122528175700(name="gone", func="general-def :keymaps '(override novel-map)")>>
+
+    (setq use-package-keywords
+        (cl-loop for item in use-package-keywords
+            if (eq item :bind-keymap*)
+            collect :bind-keymap* and collect :gone
+            else
+            unless (eq item :gone)
+            collect item))
+
+    <<20210607194122528175700(name="modalka", func="general-def :keymaps 'modalka-mode-map")>>
+
+    (setq use-package-keywords
+        (cl-loop for item in use-package-keywords
+            if (eq item :gone)
+            collect :gone and collect :modalka
+            else
+            unless (eq item :modalka)
+            collect item)))
 
 ;; Adapted From: https://github.com/jwiegley/use-package#use-package-chords
 ;; Important: https://github.com/noctuid/general.el/issues/53#issuecomment-307262154
@@ -600,13 +635,13 @@ And in my experience... Not a good idea; much too confusing. Use
             (aiern/update-global-mode-string))
         (aiern/toggle-novel-map nil (interactive)
             (funcall (intern (concat "aiern/" (if novel-map-p "disable" "enable") "-novel-map"))))
-    :config
-        (general-auto-unbind-keys)
-        (general-def :keymaps '(override novel-map)
+    :config (general-auto-unbind-keys)
+    :postmaster
+        (:keymaps '(override novel-map)
             (general-chord "uu") 'aiern/toggle-novel-map
             (naked "RET") 'newline-and-indent
             (general-chord "./") 'aiern/end-of-line-and-indented-new-line)
-        (general-def :keymaps '(
+        (:keymaps '(
                 minibuffer-local-map
                 counsel-describe-map
                 helm-buffer-map)
@@ -668,9 +703,9 @@ And in my experience... Not a good idea; much too confusing. Use
 (use-package hercules
     :straight (hercules :type git :host gitlab :repo "jjzmajic/hercules.el" :branch "master")
     :demand t
-    :general (:keymaps '(override novel-map)
-        (general-chord "\\\\") 'aiern/toggle-which-key
-        (general-chord "\\]") 'map-of-infinity/body)
+    :gone
+        ((general-chord "\\\\") 'aiern/toggle-which-key)
+        ((general-chord "\\]") 'map-of-infinity/body)
     :hydra (map-of-infinity (:color blue :pre (progn
                 <<20210601225233511900800>>))
             ("`" nil "cancel")
@@ -827,7 +862,7 @@ And in my experience... Not a good idea; much too confusing. Use
 (use-package ryo-modal
     :straight (ryo-modal :type git :host github :repo "kungsgeten/ryo-modal" :branch "master")
     :demand t
-    :general (:keymaps '(override novel-map) (general-chord "  ") 'aiern/toggle-ryo-hercules)
+    :gone ((general-chord "  ") 'aiern/toggle-ryo-hercules)
     :hydra+
     <<20210601225304341247500(map="ryo-modal-mode-map", mode="ryo-modal-mode", prefix="ryo", short="r")>>
         ;; From: https://github.com/Kungsgeten/ryo-modal#which-key-integration
@@ -848,16 +883,21 @@ And in my experience... Not a good idea; much too confusing. Use
     :demand t
     :straight t
     :init (setq-default evil-escape-key-sequence nil)
-    :general (:keymaps '(override novel-map)
-        (general-chord "kk") 'aiern/toggle-evil
-        (general-chord "KK") 'aiern/toggle-evil-force
-        (general-chord ",,") 'evil-ex)
+    :gone
+        ((general-chord "kk") 'aiern/toggle-evil)
+        ((general-chord "KK") 'aiern/toggle-evil-force)
+        
+        ;; TODO
+        ;; ((general-chord "") 'aiern/toggle-evil-ex-hercules)
+        ;; ((general-chord "") 'aiern/toggle-evil-ex-hercules-force)
+        
+        ((general-chord ",,") 'evil-ex)
     :config/defun*
         (aiern/evil-ex-advice (func &rest arguments) (aiern/which-key--hide-popup) (apply func arguments) (aiern/which-key--show-popup))
     :leaf (evil :advice (
-        (:before evil-close-fold aiern/go-to-parent)
-        (:override evil-insert-state aiern/disable-all-modal-modes)
-        (:around evil-ex aiern/evil-ex-advice)))
+            (:before evil-close-fold aiern/go-to-parent)
+            (:override evil-insert-state aiern/disable-all-modal-modes)
+            (:around evil-ex aiern/evil-ex-advice)))
     :hydra+
     <<20210601225304341247500(map="evil-normal-state-map", mode="evil-mode", prefix="evil", short="e")>>
         ;; From: https://www.reddit.com/r/emacs/comments/lp45zd/help_requested_in_configuring_ryomodal/gp3rfx9?utm_source=share&utm_medium=web2x&context=3
@@ -872,11 +912,33 @@ And in my experience... Not a good idea; much too confusing. Use
         ;; Use to get command name:
         ;; Eg: (cdr (assoc "q" evil-ex-commands))
         ;; Then "C-x C-e" (eval-last-sexp)
+
+        ;; TODO: How do I create a keymap `evil-ex-keymap' out of the `evil-ex-commands' alist?
+
+        ;; (hercules-def :show-funs #'aiern/evil-ex-hercules-show
+        ;;     :hide-funs #'aiern/evil-ex-hercules-hide
+        ;;     :toggle-funs #'aiern/evil-ex-hercules-toggle
+        ;;     :keymap 'evil-ex-keymap
+        ;;     ;; :transient t
+        ;; )
+
+        ;; (defun aiern/evil-ex-hercules-toggle nil (interactive))
+        ;; (defun aiern/evil-ex-show-top-level nil (interactive)
+        ;;     (aiern/which-key-show-top-level 'evil-ex-keymap))
+
+        ;; (defun aiern/toggle-evil-ex nil (interactive)
+        ;;     (funcall 'aiern/toggle-inner 'evil-mode "evil-ex" (fbatp evil-mode) 'evil-ex-keymap))
+        ;; (defun aiern/toggle-evil-ex-force nil (interactive)
+        ;;     (funcall 'aiern/toggle-inner 'evil-mode "evil-ex" (fbatp evil-mode) 'evil-ex-keymap nil t))
+        ;; (defun aiern/toggle-evil-ex-hercules nil (interactive)
+        ;;     (funcall 'aiern/toggle-inner 'evil-mode "evil-ex" (fbatp evil-mode) 'evil-ex-keymap t))
+        ;; (defun aiern/toggle-evil-ex-hercules-force nil (interactive)
+        ;;     (funcall 'aiern/toggle-inner 'evil-mode "evil-ex" (fbatp evil-mode) 'evil-ex-keymap t t))
     :ryo
         ("l" :hydra
                 '(evil-exits (:color blue :pre (progn
                 <<20210601225233511900800>>))
-                    ;; From: https://gist.github.com/<<username>>/46b81297d1d3edfbf1e2d72d5e29171e
+                    ;; From: https://github.com/emacs-evil/evil/blob/master/evil-maps.el#L449
                     "A hydra for getting the fuck outta' here!"
                     ("`" nil "cancel")
                     ("l" evil-save-and-quit ":wq")
@@ -908,10 +970,9 @@ And in my experience... Not a good idea; much too confusing. Use
 #+begin_src emacs-lisp
 (use-package god-mode
     :straight t
-    :general
-        (:keymaps '(override novel-map)
-            (general-chord "jj") 'aiern/toggle-god
-            (general-chord "';") 'god-execute-with-current-bindings)
+    :gone
+        ((general-chord "jj") 'aiern/toggle-god)
+        ((general-chord ";'") 'god-execute-with-current-bindings)
     :hydra+
     <<20210601225304341247500(map="global-map", mode="god-local-mode", prefix="god", short="g")>>
         (which-key-enable-god-mode-support))
@@ -950,7 +1011,7 @@ And in my experience... Not a good idea; much too confusing. Use
 #+begin_src emacs-lisp
 (use-package objed
     :straight t
-    :general (:keymaps '(override novel-map) (general-chord "ii") 'aiern/toggle-objed)
+    :gone ((general-chord "ii") 'aiern/toggle-objed)
     :hydra+
     <<20210601225304341247500(map="objed-map", mode="objed-mode", prefix="objed", short="o")>>)
 #+end_src
@@ -982,7 +1043,7 @@ And in my experience... Not a good idea; much too confusing. Use
 #+begin_src emacs-lisp
 (use-package modalka
     :straight t
-    ;; :general (:keymaps '(override novel-map) (general-chord "::") 'aiern/toggle-modalka-hercules)
+    :gone ((general-chord "::") 'aiern/toggle-modalka-hercules)
     :hydra+
     <<20210601225304341247500(map="modalka-mode-map", mode="modalka-mode", prefix="modalka", short="m")>>)
 #+end_src
@@ -1198,9 +1259,7 @@ And in my experience... Not a good idea; much too confusing. Use
         (org-babel-lob-ingest "./README.org")
 
         <<20210601225401786848500>>
-    :general
-        (:keymaps '(override novel-map)
-            (naked "backtab") 'aiern/evil-close-fold)
+    :gone ((naked "backtab") 'aiern/evil-close-fold)
     :ryo ("o" :hydra
         '(hydra-org (:color blue :pre (progn
             <<20210601225233511900800>>))
@@ -1553,7 +1612,7 @@ And in my experience... Not a good idea; much too confusing. Use
 (use-package writeroom-mode
     :straight t
     :hook emacs-startup
-    :general (:keymaps '(override novel-map) (general-chord "zz") 'writeroom-mode)
+    :gone ((general-chord "zz") 'writeroom-mode)
     :custom
         (writeroom-fullscreen-effect t)
         (writeroom-fringes-outside-margins t)
@@ -1579,9 +1638,9 @@ And in my experience... Not a good idea; much too confusing. Use
     :after (projectile company yasnippet)
     :init/defun* (aiern/yankpad-hercules-toggle nil (interactive))
     :custom (yankpad-file "./yankpad.org")
-    :general (:keymap '(override novel-map)
-        (general-chord "[[") 'aiern/yankpad-hercules-toggle
-        (general-chord "]]") 'yankpad-expand)
+    :gone
+        ((general-chord "[[") 'aiern/yankpad-hercules-toggle)
+        ((general-chord "]]") 'yankpad-expand)
     :config (yankpad-map)
     :hercules
         (:show-funs #'aiern/yankpad-hercules-show
@@ -1756,12 +1815,12 @@ Mostly from [[Emux's After Installing Section][https://github.com/re5et/emux#aft
         (aiern/make-frame nil (interactive) (modify-frame-parameters (make-frame) ((name . "emux"))))
         (aiern/select-emux nil (interactive) (select-frame-by-name "emux"))
     :config (emux-completing-read-command (quote ido-completing-read))
+    :gone
+        ;; (""          'aiern/make-frame)
+        ;; (""          'aiern/select-emux)
+        ("C-x c"     'emux-term-create)
+        ("C-x P"     'emux-session-load-template)
     :general
-        (:keymaps '(override novel-map)
-            ;; ""          'aiern/make-frame
-            ;; ""          'aiern/select-emux
-            "C-x c"     'emux-term-create
-            "C-x P"     'emux-session-load-template)
         (:keymaps 'term-mode-map
             "C-S-p"     'previous-line
             "C-S-r"     'isearch-backward
@@ -1830,17 +1889,18 @@ Adapted From: https://tapoueh.org/blog/2009/09/escreen-integration/
 (load-emacs-file "escreen.el")
 (use-package escreen
     ;; :hook (after-init . escreen-install)
-    :general
-        (:keymaps '(override novel-map)
-            ;; (naked "C-\\ l") 'escreen-get-active-screen-numbers-with-emphasis
-            ;; (naked "M-[") 'dim:escreen-goto-prev-screen
-            ;; (naked "M-]") 'dim:escreen-goto-next-screen
-            ;; (naked "C-\\ DEL") 'dim:escreen-goto-prev-screen
-            ;; (naked "C-\\ SPC") 'dim:escreen-goto-next-screen
+    :init/defun* (aiern/escreen-hercules-toggle nil (interactive))
+    :gone
+        ;; ((naked "C-\\ l") 'escreen-get-active-screen-numbers-with-emphasis)
+        ;; ((naked "M-[") 'dim:escreen-goto-prev-screen)
+        ;; ((naked "M-]") 'dim:escreen-goto-next-screen)
+        ;; ((naked "C-\\ DEL") 'dim:escreen-goto-prev-screen)
+        ;; ((naked "C-\\ SPC") 'dim:escreen-goto-next-screen)
 
-            ;; [s-mouse-4] 'dim:escreen-goto-prev-screen
-            ;; [s-mouse-5] 'dim:escreen-goto-next-screen
-            (general-chord "||") 'aiern/escreen-hercules-toggle)
+        ;; ([s-mouse-4] 'dim:escreen-goto-prev-screen)
+        ;; ([s-mouse-5] 'dim:escreen-goto-next-screen)
+        ((general-chord "||") 'aiern/escreen-hercules-toggle)
+    ;; :general
         ;; (:keymaps 'escreen-map
             ;; escreen-prefix-char 'dim:escreen-goto-last-screen)
         ;; (:keymaps 'term-raw-map
@@ -1850,8 +1910,6 @@ Adapted From: https://tapoueh.org/blog/2009/09/escreen-integration/
             ;; (naked "M-[") 'dim:escreen-goto-prev-screen
             ;; (naked "M-]") 'dim:escreen-goto-next-screen)
     :config/defun*
-        (aiern/escreen-hercules-toggle nil (interactive))
-
         ;; add C-\ l to list screens with emphase for current one
         (escreen-get-active-screen-numbers-with-emphasis nil
             "what the name says"
