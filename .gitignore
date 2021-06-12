@@ -15,6 +15,9 @@
 !*.lock
 !**/**/*.lock
 
+!flake.nix
+!**/**/flake.nix
+
 !*.git*
 !**/**/*.git*
 
