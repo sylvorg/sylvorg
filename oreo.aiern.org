@@ -193,20 +193,17 @@ Taken from [[https://github.com/NixOS/nixos-hardware/tree/master/microsoft/hyper
 #+name: 20210601184801744311100
 #+begin_src nix :tangle (aiern/tangle-path)
 { config, lib, ... }: with builtins; with lib; with j; {
-    imports = imprelib.list { dir = ./.; };
-    config = {
-        vars.noSwap = true;
-        networking = {
-            wireless.enable = false;
-            interfaces.eth0.useDHCP = true;
-        };
-        virtualisation.hypervGuest.enable = true;
+    vars.noSwap = true;
+    networking = {
+        wireless.enable = false;
+        interfaces.eth0.useDHCP = true;
     };
+    virtualisation.hypervGuest.enable = true;
 }
 #+end_src
 
 ***** linode
-****** default.nix
+****** shared.nix
 
 #+call: hash() :exports none
 
@@ -216,7 +213,6 @@ Taken from [[https://github.com/NixOS/nixos-hardware/tree/master/microsoft/hyper
 #+name: 20210601184803930214900
 #+begin_src nix :tangle (aiern/tangle-path)
 { config, lib, ... }: with builtins; with lib; with j; {
-    imports = imprelib.list { dir = ./.; };
     config = {
         vars.terminal = true;
         boot = {
@@ -245,20 +241,23 @@ Taken from [[https://github.com/NixOS/nixos-hardware/tree/master/microsoft/hyper
 
 #+name: 20210601184806549418800
 #+begin_src nix :tangle (aiern/tangle-path)
-{ config, lib, pkgs, device, ... }: with builtins; with lib; with j; myIf.set (device == "3b") {
-    vars.terminal = true;
-    boot = {
-        kernelParams = ["cma=256M"];
-        loader = {
-            raspberryPi = {
-                enable = true;
-                version = 3;
-                uboot.enable = mkForce true;
-                firmwareConfig = '' gpu_mem=256 '';
+{ config, lib, pkgs, device, ... }: with builtins; with lib; with j; {
+    imports = [ ./shared.nix ];
+    config = {
+        vars.terminal = true;
+        boot = {
+            kernelParams = ["cma=256M"];
+            loader = {
+                raspberryPi = {
+                    enable = true;
+                    version = 3;
+                    uboot.enable = mkForce true;
+                    firmwareConfig = '' gpu_mem=256 '';
+                };
             };
         };
+        environment.systemPackages = with pkgs; [ libraspberrypi ];
     };
-    environment.systemPackages = with pkgs; [ libraspberrypi ];
 }
 #+end_src
 
@@ -271,13 +270,16 @@ Taken from [[https://github.com/NixOS/nixos-hardware/tree/master/microsoft/hyper
 
 #+name: 20210601184808685869700
 #+begin_src nix :tangle (aiern/tangle-path)
-{ config, lib, pkgs, device, ... }: with builtins; with lib; with j; myIf.set (device == "4b") {
-    imports = [ sources.nixos-hardware.nixosModules.raspberry-pi-4 ];
+{ config, lib, pkgs, device, ... }: with builtins; with lib; with j; {
+    imports = [
+        ./shared.nix
+        sources.nixos-hardware.nixosModules.raspberry-pi-4
+    ];
     config.vars.terminal = true;
 }
 #+end_src
 
-****** default.nix
+****** shared.nix
 
 #+call: hash() :exports none
 
@@ -286,9 +288,7 @@ Taken from [[https://github.com/NixOS/nixos-hardware/tree/master/microsoft/hyper
 
 #+name: 20210601184810839651300
 #+begin_src nix :tangle (aiern/tangle-path)
-{ config, lib, ... }: with builtins; with lib; with j; {
-    imports = imprelib.list { dir = ./.; };
-}
+{ config, lib, ... }: with builtins; with lib; with j; {  }
 #+end_src
 
 ***** surface
@@ -406,21 +406,24 @@ Taken from [[https://github.com/NixOS/nixos-hardware/tree/master/microsoft/hyper
 
 #+name: 20210601184839546821900
 #+begin_src nix :tangle (aiern/tangle-path)
-{ config, lib, device, ... }: with builtins; with lib; with j; myIf.set (device == "b2") {
-    boot.extraModprobeConfig = mkAfter '' options ipts singletouch=y '';
-    powerManagement.resumeCommands = mkAfter '' modprobe ipts_surface singletouch=y '';
-    services.surface-dtx-daemon.detach = mkForce ''
-        #!/usr/bin/env xonsh
-        for usb in $(ls /dev/disk/by-id).split("\n"):
-            if usb and usb[:4] == "usb-":
-                for mnt in $(mount).split("\n"):
-                    if mnt and usb in mnt:
-                        umount @(mnt.split()[2])
-    '';
+{ config, lib, device, ... }: with builtins; with lib; with j; {
+    imports = { ./shared.nix };
+    config = {
+        boot.extraModprobeConfig = mkAfter '' options ipts singletouch=y '';
+        powerManagement.resumeCommands = mkAfter '' modprobe ipts_surface singletouch=y '';
+        services.surface-dtx-daemon.detach = mkForce ''
+            #!/usr/bin/env xonsh
+            for usb in $(ls /dev/disk/by-id).split("\n"):
+                if usb and usb[:4] == "usb-":
+                    for mnt in $(mount).split("\n"):
+                        if mnt and usb in mnt:
+                            umount @(mnt.split()[2])
+        '';
+    };
 }
 #+end_src
 
-****** default.nix
+****** shared.nix
 
 #+call: hash() :exports none
 
@@ -430,17 +433,14 @@ Taken from [[https://github.com/NixOS/nixos-hardware/tree/master/microsoft/hyper
 #+name: 20210601184841857888100
 #+begin_src nix :tangle (aiern/tangle-path)
 { config, lib, ... }: with builtins; with lib; with j; {
-    imports = imprelib.list { dir = ./.; };
-    config = {
-        boot.kernelPackages = pkgs.surface_kernel_latest;
-        networking.networkmanager.extraConfig = ''
-            [connection]
-            wifi.powersave = 2
+    boot.kernelPackages = pkgs.surface_kernel_latest;
+    networking.networkmanager.extraConfig = ''
+        [connection]
+        wifi.powersave = 2
 
-            [device]
-            wifi.scan-rand-mac-address=false
-        '';
-    };
+        [device]
+        wifi.scan-rand-mac-address=false
+    '';
 }
 #+end_src
 
@@ -454,10 +454,13 @@ Taken from [[https://github.com/NixOS/nixos-hardware/tree/master/microsoft/hyper
 
 #+name: 20210601184843916803200
 #+begin_src nix :tangle (aiern/tangle-path)
-{ sources, device, ... }: myIf.set (device == "pro") { imports = [ "${sources.wip-pinebook-pro}/pinebook_pro.nix" ]; }
+{ sources, device, ... }: { imports = [
+    ./shared.nix
+    "${sources.wip-pinebook-pro}/pinebook_pro.nix"
+]; }
 #+end_src
 
-****** default.nix
+****** shared.nix
 
 #+call: hash() :exports none
 
@@ -466,13 +469,11 @@ Taken from [[https://github.com/NixOS/nixos-hardware/tree/master/microsoft/hyper
 
 #+name: 20210601184849683569900
 #+begin_src nix :tangle (aiern/tangle-path)
-{ config, lib, ... }: with builtins; with lib; with j; {
-    imports = imprelib.list { dir = ./.; };
-}
+{ config, lib, ... }: with builtins; with lib; with j; {  }
 #+end_src
 
 ***** android
-****** default.nix
+****** shared.nix
 
 #+call: hash() :exports none
 
@@ -482,8 +483,7 @@ Taken from [[https://github.com/NixOS/nixos-hardware/tree/master/microsoft/hyper
 #+name: 20210601184853359396100
 #+begin_src nix :tangle (aiern/tangle-path)
 { config, lib, ... }: with builtins; with lib; with j; {
-    imports = imprelib.list { dir = ./.; };
-    config.vars = { terminal = true; minimal = true; };
+    vars = { terminal = true; minimal = true; };
 }
 #+end_src
 
@@ -564,7 +564,9 @@ pkgs = let configBase = { inherit stc; ignoredAttrs = [ "host" ];}; in j.get (co
             modules = { stc, ... }: [
                 (with stc; [
                     (./. + "/configs/${host}")
-                    (if (type == "def") then {} else (./. + "/devices/${type}"))
+                    (if (type == "def") then {} else (./. + "/devices/${type}/${
+                        if (device == "def") then "shared.nix" else "${device}.nix"
+                    }"))
                     (let path = ./. + "/platforms/${system}"; in
                         if (pathExists path) then path else {})
                 ])

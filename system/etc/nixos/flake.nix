@@ -147,7 +147,9 @@
             modules = { stc, ... }: [
                 (with stc; [
                     (./. + "/configs/${host}")
-                    (if (type == "def") then {} else (./. + "/devices/${type}"))
+                    (if (type == "def") then {} else (./. + "/devices/${type}/${
+                        if (device == "def") then "shared.nix" else "${device}.nix"
+                    }"))
                     (let path = ./. + "/platforms/${system}"; in
                         if (pathExists path) then path else {})
                 ])
