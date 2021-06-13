@@ -90,6 +90,7 @@ Adapted From: https://github.com/hlissner/doom-emacs/blob/develop/early-init.el
 (defvar last-modal-mode nil)
 (defvar all-keymaps-map nil)
 (defvar novel-map-p nil)
+(defvar previous-ex-commands nil)
 
 ;; Adapted From:
 ;; Answer: https://stackoverflow.com/a/10088995/10827766
@@ -418,6 +419,14 @@ Adapted From: https://github.com/hlissner/doom-emacs/blob/develop/early-init.el
 
     (add-to-list 'use-package-keywords :evil-ex t)
 
+    <<20210607194122528175700(name="novel-ex", func="novel-ex-define-cmd")>>
+
+    (add-to-list 'use-package-keywords :novel-ex t)
+
+    <<20210607194122528175700(name="both-ex", func="both-ex-define-cmd")>>
+
+    (add-to-list 'use-package-keywords :both-ex t)
+
     <<20210607194122528175700(name="gone", func="general-def :keymaps '(override novel-map)")>>
 
     (setq use-package-keywords
@@ -635,7 +644,8 @@ And in my experience... Not a good idea; much too confusing. Use
             (aiern/update-global-mode-string))
         (aiern/toggle-novel-map nil (interactive)
             (funcall (intern (concat "aiern/" (if novel-map-p "disable" "enable") "-novel-map"))))
-    :config (general-auto-unbind-keys)
+    :config
+        (general-auto-unbind-keys)
     :postmaster
         (:keymaps '(override novel-map)
             (general-chord "uu") 'aiern/toggle-novel-map
@@ -882,7 +892,8 @@ And in my experience... Not a good idea; much too confusing. Use
 (use-package evil
     :demand t
     :straight t
-    :init (setq-default evil-escape-key-sequence nil)
+    :init
+        (setq-default evil-escape-key-sequence nil)
     :gone
         ((general-chord "kk") 'aiern/toggle-evil)
         ((general-chord "KK") 'aiern/toggle-evil-force)

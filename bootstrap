@@ -21,7 +21,7 @@ for subparser in [ create, mount, update ]:
 create.add_argument("-z", "--zfs-device", required=True)
 create.add_argument("-s", "--swap", type=int)
 mount.add_argument("-r", "--root-device")
-mount.add_argument("-b", "--boot-device", required=True)
+mount.add_argument("-b", "--boot-device")
 mount.add_argument("-s", "--swap", action="store_true")
 update.add_argument("-p", "--pool", action="store_true")
 update.add_argument("-f", "--files", action="store_true")
@@ -851,10 +851,10 @@ if args.subcommand == "mount":
             # print(mount_command)
             run(mount_command, shell = True)
     
-    if not os.path.isdir(boot := "/mnt/boot/efi"):
-        run(f"mkdir -p {boot}", shell = True)
-    
-    run(f"mount {args.boot_device} {boot}", shell = True)
+    if args.boot_device:
+        if not os.path.isdir(boot := "/mnt/boot/efi"):
+            run(f"mkdir -p {boot}", shell = True)
+        run(f"mount {args.boot_device} {boot}", shell = True)
     
     if args.swap:
         run(f"swapon /dev/zvol/{args.Pool}/swap", shell = True)
