@@ -71,7 +71,7 @@ try:
             
             run(f"zpool export -f {args.Pool}", shell = True, stdout=DEVNULL, stderr=STDOUT)
             
-            command = f"zpool create -fo autotrim=on -o altroot=/mnt"
+            command = f"zpool create -fo autotrim=on -o altroot=/mnt -o autoexpand=on"
             
             for key, value in options.items():
                 command += f" -O {key}={value}"

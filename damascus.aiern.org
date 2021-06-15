@@ -85,41 +85,24 @@ Adapted From: https://github.com/hlissner/doom-emacs/blob/develop/early-init.el
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defvar modal-modes '())
-(defvar modal-prefixes (mapcar (lambda (mode) (interactive) (car (split-string (symbol-name mode) "-"))) modal-modes))
-(defvar last-modal-mode nil)
-(defvar all-keymaps-map nil)
-(defvar novel-map-p nil)
-(defvar previous-ex-commands nil)
+;; (defun fbatp (mode) (interactive)
+;;     (let* ((is-it-bound (boundp mode)))
+;;         (when is-it-bound (and (or (boundp (symbol-value mode))) (or (fboundp mode) (functionp mode))) mode)))
 
-;; Adapted From:
-;; Answer: https://stackoverflow.com/a/10088995/10827766
-;; User: https://stackoverflow.com/users/324105/phils
-(defun fbatp (mode) (interactive)
-    (let* ((is-it-bound (boundp mode)))
-        (when is-it-bound (and (or (boundp (symbol-value mode))) (or (fboundp mode) (functionp mode))) mode)))
+;; use-package
+<<20210601225235077502200>>
 
-;; Adapted From:
-;; Answer: https://emacs.stackexchange.com/a/26840/31428
-;; User: https://emacs.stackexchange.com/users/253/dan
-;; Adapted From: https://emacsredux.com/blog/2020/06/14/checking-the-major-mode-in-emacs-lisp/
-(defun aiern/outline-folded-p nil
-    "Returns non-nil if point is on a folded headline or plain list
-    item."
-    (interactive)
-    (and (if (eq major-mode 'org-mode)
-            (or (org-at-heading-p)
-                (org-at-item-p))
-            outline-on-heading-p)
-        (invisible-p (point-at-eol))))
+;; keys
+<<20210603105149525867500>>
 
-;; Adapted From:
-;; Answer: https://emacs.stackexchange.com/a/37791/31428
-;; User: https://emacs.stackexchange.com/users/12497/toothrot
-(defun aiern/go-to-parent nil (interactive)
-    (outline-up-heading (if (and (or (org-at-heading-p) (invisible-p (point))) (invisible-p (point-at-eol))
-            (>= (org-current-level) 2))
-        1 0)))
+;; hercules
+<<20210601225307809867100>>
+
+;; aiern
+<<20210613162401887306100>>
+
+;; ryo modal
+<<20210601225309546041800>>
 
 (load-emacs-file "help+20.el")
 (setq confirm-kill-emacs nil)
@@ -232,47 +215,14 @@ Adapted From: https://github.com/hlissner/doom-emacs/blob/develop/early-init.el
 (setq custom-safe-themes t)
 (load-theme 'dracula-purple-dark)
 
-;; use-package
-<<20210601225235077502200>>
-
-;; keys
-<<20210603105149525867500>>
-
 ;; modal-modes
-
-;; Adapted From:
-;; Answer: https://emacs.stackexchange.com/a/42240
-;; User: user12563
-(defun aiern/disable-all-modal-modes (&optional keymap) (interactive)
-    (mapc
-        (lambda (mode-symbol)
-            ;; some symbols are functions which aren't normal mode functions
-            (when (fbatp mode-symbol)
-                (message (format "Disabling %s" (symbol-name mode-symbol)))
-                (ignore-errors
-                    (funcall mode-symbol -1))))
-            modal-modes)
-    (aiern/hercules-hide-all-modal-modes keymap))
-
-;; Adapted From: https://gitlab.com/jjzmajic/hercules.el/-/blob/master/hercules.el#L83
-(defun aiern/toggle-inner (mode prefix mode-on map &optional use-hercules force) (interactive)
-    (aiern/disable-all-modal-modes)
-    (if mode-on
-        (when force (aiern/which-key--hide-popup))
-        (when force (aiern/which-key--show-popup))
-        (funcall mode 1)
-        (if use-hercules (ignore-errors (funcall (intern (concat "aiern/" prefix "-hercules-show"))))
-            (aiern/which-key-show-top-level map))
-        (setq last-modal-mode prefix)))
-
-;; hercules
-<<20210601225307809867100>>
-
-;; ryo modal
-<<20210601225309546041800>>
 
 ;; evil
 <<20210601225311301844400>>
+
+(defun both-ex-define-command (cmd function) (interactive)
+    (evil-ex-define-cmd cmd function)
+    (aiern-ex-define-cmd cmd function))
 
 ;; god mode
 <<20210601225312959948800>>
@@ -419,15 +369,15 @@ Adapted From: https://github.com/hlissner/doom-emacs/blob/develop/early-init.el
 
     (add-to-list 'use-package-keywords :evil-ex t)
 
-    <<20210607194122528175700(name="novel-ex", func="novel-ex-define-cmd")>>
+    <<20210607194122528175700(name="aiern-ex", func="aiern-ex-define-cmd")>>
 
-    (add-to-list 'use-package-keywords :novel-ex t)
+    (add-to-list 'use-package-keywords :aiern-ex t)
 
     <<20210607194122528175700(name="both-ex", func="both-ex-define-cmd")>>
 
     (add-to-list 'use-package-keywords :both-ex t)
 
-    <<20210607194122528175700(name="gone", func="general-def :keymaps '(override novel-map)")>>
+    <<20210607194122528175700(name="gone", func="general-def :keymaps '(override aiern-insert-state-map)")>>
 
     (setq use-package-keywords
         (cl-loop for item in use-package-keywords
@@ -451,10 +401,8 @@ Adapted From: https://github.com/hlissner/doom-emacs/blob/develop/early-init.el
 ;; Important: https://github.com/noctuid/general.el/issues/53#issuecomment-307262154
 (use-package use-package-chords
     :demand t
-    :hook (after-init . key-chord-mode)
-    :straight t)
+    :hook (after-init . key-chord-mode))
 (use-package hydra
-    :straight t
     :demand t
     :custom (hydra-hint-display-type 'lv))
 (use-package use-package-hydra
@@ -569,95 +517,31 @@ And in my experience... Not a good idea; much too confusing. Use
 (use-package command-log-mode :straight t)
 (load-emacs-file "naked.el")
 
-(progn (setq novel-map (make-sparse-keymap))
-    (define-key novel-map (naked "C-x C-c") #'save-buffers-kill-terminal)
-
-    ;; NOTE: When I couldn't find this, I used `command-log-mode':
-    ;; http://ergoemacs.org/emacs/emacs_show_key_and_command.html
-    (define-key novel-map (naked "deletechar") #'delete-char)
-
-    ;; NOTE: This is actually backspace...
-    (define-key novel-map (naked "DEL") #'delete-backward-char)
-
-    (define-key novel-map (naked "up") #'previous-line)
-    (define-key novel-map (naked "down") #'next-line)
-    (define-key novel-map (naked "left") #'backward-char)
-    (define-key novel-map (naked "right") #'forward-char)
-
-    (define-key novel-map [t] #'self-insert-command)
-    (let ((c ?\s))
-        (while (< c ?\d)
-            (define-key novel-map (vector c) #'self-insert-command)
-            (setq c (1+ c)))
-        (when (eq system-type 'ms-dos)
-            (setq c 128)
-            (while (< c 160)
-            (define-key novel-map (vector c) #'self-insert-command)
-            (setq c (1+ c))))
-        (setq c 160)
-        (while (< c 256)
-            (define-key novel-map (vector c) #'self-insert-command)
-            (setq c (1+ c)))))
-
 (use-package general
     :demand t
-    :init/defun*
-        ;; Adapted From:
-        ;; Answer: https://emacs.stackexchange.com/a/14956/31428
-        ;; User: https://emacs.stackexchange.com/users/25/gilles-so-stop-being-evil
-        (aiern/newline-and-indent-advice (func &rest arguments)
-            (if (window-minibuffer-p)
-                (cond
-                    ((evil-ex-p) (evil-ex-execute (minibuffer-contents)))
-                    (t (progn (minibuffer-complete-and-exit) (minibuffer-complete-and-exit))))
-                (apply func arguments)))
-
-        ;; Answer: https://stackoverflow.com/a/14490054/10827766
-        ;; User: https://stackoverflow.com/users/1600898/user4815162342
-        (aiern/keymap-symbol (keymap)
-            "Return the symbol to which KEYMAP is bound, or nil if no such symbol exists."
-            (interactive)
-            (catch 'gotit
-                (mapatoms (lambda (sym)
-                    (and (boundp sym)
-                        (eq (symbol-value sym) keymap)
-                        (not (eq sym 'keymap))
-                        (throw 'gotit sym))))))
-
-        ;; Adapted From:
-        ;; Answer: https://superuser.com/a/331662/1154755
-        ;; User: https://superuser.com/users/656734/phimuemue
-        (aiern/end-of-line-and-indented-new-line nil (interactive)
-            (end-of-line)
-            (newline-and-indent))
-
-        ;; Adapted From:
-        ;; Answer: https://emacs.stackexchange.com/a/3883/31428
-        ;; User: https://emacs.stackexchange.com/users/2454/alexander-shukaev
-        (aiern/enable-novel-map nil (interactive)
-            (use-global-map novel-map)
-            (setq novel-map-p t)
-            (aiern/update-global-mode-string))
-        (aiern/disable-novel-map nil (interactive)
-            (use-global-map global-map)
-            (setq novel-map-p nil)
-            (aiern/update-global-mode-string))
-        (aiern/toggle-novel-map nil (interactive)
-            (funcall (intern (concat "aiern/" (if novel-map-p "disable" "enable") "-novel-map"))))
-    :config
-        (general-auto-unbind-keys)
+    :config (general-auto-unbind-keys)
     :postmaster
-        (:keymaps '(override novel-map)
-            (general-chord "uu") 'aiern/toggle-novel-map
+        (:keymaps '(override aiern-insert-state-map)
             (naked "RET") 'newline-and-indent
-            (general-chord "./") 'aiern/end-of-line-and-indented-new-line)
+            (general-chord "./") 'aiern/end-of-line-and-indented-new-line
+
+            ;; Adapted From:
+            ;; Answer: https://stackoverflow.com/a/4557027/10827766
+            ;; User: https://stackoverflow.com/users/387076/gilles-so-stop-being-evil
+            "\eOA" [up]
+            "\e[A" [up]
+            "\eOB" [down]
+            "\e[B" [down]
+            "\eOD" [left]
+            "\e[D" [left]
+            "\eOC" [right]
+            "\e[C" [right])
         (:keymaps '(
                 minibuffer-local-map
                 counsel-describe-map
                 helm-buffer-map)
             "M-x" 'exit-minibuffer)
     :custom (general-implicit-kbd t)
-    :straight t
     :leaf (general :advice (:around newline-and-indent aiern/newline-and-indent-advice)))
 #+end_src
 
@@ -742,98 +626,6 @@ And in my experience... Not a good idea; much too confusing. Use
                 <<20210601225233511900800>>)) ("`" nil "cancel"))
         (all-keymaps (:color blue :pre (progn
                 <<20210601225233511900800>>)) ("`" nil "cancel"))
-    :config/defun*
-        (aiern/any-popup-showing-p nil (interactive) (or hercules--popup-showing-p (which-key--popup-showing-p)))
-        
-        ;; Adapted From:
-        ;; Answer: https://emacs.stackexchange.com/questions/12997/how-do-i-use-nadvice/14827#14827
-        ;; User: https://emacs.stackexchange.com/users/2308/kdb
-        (aiern/which-key--hide-popup nil (interactive)
-            (aiern/disable-all-modal-modes)
-            (setq which-key-persistent-popup nil) (which-key--hide-popup)
-            (which-key-mode -1))
-
-        (aiern/which-key--show-popup (&optional keymap force) (interactive)
-            (when (or (not which-key-persistent-popup) force)
-                (aiern/disable-all-modal-modes keymap)
-                (which-key-mode 1)
-                (setq which-key-persistent-popup t)))
-
-        (aiern/which-key--refresh-popup (&optional keymap) (interactive)
-            (aiern/which-key--hide-popup)
-            (aiern/which-key--show-popup keymap t))
-
-        (aiern/toggle-which-key (&optional keymap) (interactive)
-
-            ;; TODO: How does this bit work again...?
-            (setq which-key-persistent-popup (not (aiern/any-popup-showing-p)))
-
-            (if (aiern/any-popup-showing-p)
-                (aiern/which-key--hide-popup)
-                (aiern/which-key--show-popup keymap t)))
-
-        (aiern/hercules--hide-advice (&optional keymap flatten &rest _)
-                "Dismiss hercules.el.
-            Pop KEYMAP from `overriding-terminal-local-map' when it is not
-            nil.  If FLATTEN is t, `hercules--show' was called with the same
-            argument.  Restore `which-key--update' after such a call."
-                (interactive)
-                (setq hercules--popup-showing-p nil)
-                (setq overriding-terminal-local-map nil)
-                (when flatten (advice-remove #'which-key--update #'ignore))
-                (aiern/which-key-show-top-level))
-        (aiern/hercules--show-advice (&optional keymap flatten transient &rest _)
-            "Summon hercules.el showing KEYMAP.
-            Push KEYMAP onto `overriding-terminal-local-map' when TRANSIENT
-            is nil.  Otherwise use `set-transient-map'.  If FLATTEN is t,
-            show full keymap \(including sub-maps\), and prevent redrawing on
-            prefix-key press by overriding `which-key--update'."
-            (interactive)
-            (when which-key-persistent-popup
-                (setq hercules--popup-showing-p t)
-                (when keymap
-                    (let ((which-key-show-prefix hercules-show-prefix))
-                    (if flatten
-                        (progn
-                            (which-key--show-keymap
-                            (symbol-name keymap) (symbol-value keymap) nil t t)
-                            (advice-add #'which-key--update :override #'ignore))
-                        (which-key--show-keymap
-                        (symbol-name keymap) (symbol-value keymap) nil nil t)))
-                    (if transient
-                        (set-transient-map (symbol-value keymap)
-                                        t #'hercules--hide)
-                    (internal-push-keymap (symbol-value keymap)
-                                            'overriding-terminal-local-map)))))
-        (aiern/which-key-show-top-level (&optional keymap) (interactive)
-            (let* ((current-map (or (symbol-value keymap) (or overriding-terminal-local-map global-map)))
-                (which-key-function
-                    ;; #'which-key-show-top-level
-                    ;; #'(lambda nil (interactive) (which-key-show-full-keymap 'global-map))
-                    ;; #'which-key-show-full-major-mode
-                    ;; #'which-key-show-major-mode
-
-                    ;; Adapted From:
-                    ;; https://github.com/justbur/emacs-which-key/blob/master/which-key.el#L2359
-                    ;; https://github.com/justbur/emacs-which-key/blob/master/which-key.el#L2666
-                    #'(lambda nil (interactive)
-                        (when which-key-persistent-popup (which-key--create-buffer-and-show nil current-map nil "Current bindings")))))
-                (if (which-key--popup-showing-p)
-                    (when (or (member last-modal-mode modal-prefixes) keymap)
-                        (funcall which-key-function) (setq last-modal-mode nil))
-                    (funcall which-key-function))))
-
-        ;; Adapted From:
-        ;; Answer: https://emacs.stackexchange.com/a/42240
-        ;; User: user12563
-        (aiern/hercules-hide-all-modal-modes (&optional keymap) (interactive)
-            (when overriding-terminal-local-map (mapc #'(lambda (prefix) (interactive)
-                (message (format "Hiding %s" prefix))
-                (ignore-errors (funcall (intern (concat "aiern/" prefix "-hercules-hide"))))
-                ;; (internal-push-keymap 'global-map 'overriding-terminal-local-map)
-                ;; (internal-push-keymap nil 'overriding-terminal-local-map)
-                (setq overriding-terminal-local-map nil)) modal-prefixes))
-            (aiern/which-key-show-top-level keymap))
     :leaf (hercules :advice (
         (:override hercules--hide aiern/hercules--hide-advice)
         (:override hercules--show aiern/hercules--show-advice)))
@@ -891,7 +683,6 @@ And in my experience... Not a good idea; much too confusing. Use
 (use-package bind-map :straight t)
 (use-package evil
     :demand t
-    :straight t
     :init
         (setq-default evil-escape-key-sequence nil)
     :gone
@@ -903,8 +694,6 @@ And in my experience... Not a good idea; much too confusing. Use
         ;; ((general-chord "") 'aiern/toggle-evil-ex-hercules-force)
         
         ((general-chord ",,") 'evil-ex)
-    :config/defun*
-        (aiern/evil-ex-advice (func &rest arguments) (aiern/which-key--hide-popup) (apply func arguments) (aiern/which-key--show-popup))
     :leaf (evil :advice (
             (:before evil-close-fold aiern/go-to-parent)
             (:override evil-insert-state aiern/disable-all-modal-modes)
@@ -970,6 +759,57 @@ And in my experience... Not a good idea; much too confusing. Use
         :branch "master"))
 #+end_src
 
+***** aiern
+
+#+call: hash() :exports none
+
+#+RESULTS:
+: 20210613162401887306100
+
+#+name: 20210613162401887306100
+#+begin_src emacs-lisp
+(use-package aiern
+    :demand t
+    :straight nil
+    :load-path "aiern"
+    :gone
+        ((general-chord "uu") 'aiern/toggle-aiern)
+        ((general-chord "UU") 'aiern/toggle-aiern-force)
+
+        ;; TODO
+        ;; ((general-chord "") 'aiern/toggle-aiern-ex-hercules)
+        ;; ((general-chord "") 'aiern/toggle-aiern-ex-hercules-force)
+
+        ((general-chord ",.") 'aiern-ex)
+    :leaf (aiern :advice (
+            (:before aiern-close-fold aiern/go-to-parent)
+            (:around aiern-ex aiern/evil-ex-advice)))
+    :hydra+
+    <<20210601225304341247500(map="aiern-normal-state-map", mode="aiern-mode", prefix="aiern", short="a")>>
+        ;; TODO: How do I create a keymap `aiern-ex-keymap' out of the `aiern-ex-commands' alist?
+
+        ;; (hercules-def :show-funs #'aiern/aiern-ex-hercules-show
+        ;;     :hide-funs #'aiern/aiern-ex-hercules-hide
+        ;;     :toggle-funs #'aiern/aiern-ex-hercules-toggle
+        ;;     :keymap 'aiern-ex-keymap
+        ;;     ;; :transient t
+        ;; )
+
+        ;; (defun aiern/aiern-ex-hercules-toggle nil (interactive))
+        ;; (defun aiern/aiern-ex-show-top-level nil (interactive)
+        ;;     (aiern/which-key-show-top-level 'aiern-ex-keymap))
+
+        ;; (defun aiern/toggle-aiern-ex nil (interactive)
+        ;;     (funcall 'aiern/toggle-inner 'aiern-mode "aiern-ex" (fbatp aiern-mode) 'aiern-ex-keymap))
+        ;; (defun aiern/toggle-aiern-ex-force nil (interactive)
+        ;;     (funcall 'aiern/toggle-inner 'aiern-mode "aiern-ex" (fbatp aiern-mode) 'aiern-ex-keymap nil t))
+        ;; (defun aiern/toggle-aiern-ex-hercules nil (interactive)
+        ;;     (funcall 'aiern/toggle-inner 'aiern-mode "aiern-ex" (fbatp aiern-mode) 'aiern-ex-keymap t))
+        ;; (defun aiern/toggle-aiern-ex-hercules-force nil (interactive)
+        ;;     (funcall 'aiern/toggle-inner 'aiern-mode "aiern-ex" (fbatp aiern-mode) 'aiern-ex-keymap t t))
+        )
+#+end_src
+
 ***** god mode
 
 #+call: hash() :exports none
@@ -980,7 +820,6 @@ And in my experience... Not a good idea; much too confusing. Use
 #+name: 20210601225312959948800
 #+begin_src emacs-lisp
 (use-package god-mode
-    :straight t
     :gone
         ((general-chord "jj") 'aiern/toggle-god)
         ((general-chord ";'") 'god-execute-with-current-bindings)
@@ -999,7 +838,6 @@ And in my experience... Not a good idea; much too confusing. Use
 #+name: 20210601225314671168300
 #+begin_src emacs-lisp
 (use-package xah-fly-keys
-    :straight t
     :ryo
         ("m" :hydra
             '(modal-modes (:color blue :pre (progn
@@ -1021,7 +859,6 @@ And in my experience... Not a good idea; much too confusing. Use
 #+name: 20210601225316366565400
 #+begin_src emacs-lisp
 (use-package objed
-    :straight t
     :gone ((general-chord "ii") 'aiern/toggle-objed)
     :hydra+
     <<20210601225304341247500(map="objed-map", mode="objed-mode", prefix="objed", short="o")>>)
@@ -1037,7 +874,6 @@ And in my experience... Not a good idea; much too confusing. Use
 #+name: 20210601225318002941000
 #+begin_src emacs-lisp
 (use-package kakoune
-    :straight t
     :hydra+
         (modal-modes (:color blue) ("k" aiern/toggle-kakoune-hercules "kakoune"))
     <<20210601225304341247500(map="ryo-modal-mode-map", mode="ryo-modal-mode", prefix="kakoune", short="k")>>)
@@ -1053,7 +889,6 @@ And in my experience... Not a good idea; much too confusing. Use
 #+name: 20210601225319683820700
 #+begin_src emacs-lisp
 (use-package modalka
-    :straight t
     :gone ((general-chord "::") 'aiern/toggle-modalka-hercules)
     :hydra+
     <<20210601225304341247500(map="modalka-mode-map", mode="modalka-mode", prefix="modalka", short="m")>>)
@@ -1069,7 +904,6 @@ And in my experience... Not a good idea; much too confusing. Use
 #+name: 20210601225236550932600
 #+begin_src emacs-lisp
 (use-package org
-    :straight t
     :hook (
         (org-mode . aiern/org-babel-tangle-append-setup)
         (org-cycle . (lambda (state) (interactive) (when (eq state 'children) (setq org-cycle-subtree-status 'subtree)))))
@@ -1137,123 +971,6 @@ And in my experience... Not a good idea; much too confusing. Use
                 org-babel-expand-body:vimrc)
             :mode "\\.vim\\(rc\\)?\\'")
         (ox-pandoc :demand t :straight t)
-    :config/defun*
-        ;; Adapted From: https://www.reddit.com/r/emacs/comments/6klewl/org_cyclingto_go_from_folded_to_children_skipping/djniygy?utm_source=share&utm_medium=web2x&context=3
-        (aiern/org-cycle nil (interactive)
-            (if (aiern/outline-folded-p) (org-cycle) (evil-close-fold)))
-
-        ;; Adapted From:
-        ;; Answer: https://emacs.stackexchange.com/questions/28098/how-to-change-org-mode-babel-tangle-write-to-file-way-as-append-instead-of-overr/38898#38898
-        ;; User: https://emacs.stackexchange.com/users/2370/tobias
-        (aiern/org-babel-tangle-append nil
-            "Append source code block at point to its tangle file.
-            The command works like `org-babel-tangle' with prefix arg
-            but `delete-file' is ignored."
-            (interactive)
-            (cl-letf (((symbol-function 'delete-file) #'ignore))
-                (org-babel-tangle '(4))))
-
-        ;; Adapted From:
-        ;; Answer: https://emacs.stackexchange.com/questions/28098/how-to-change-org-mode-babel-tangle-write-to-file-way-as-append-instead-of-overr/38898#38898
-        ;; User: https://emacs.stackexchange.com/users/2370/tobias
-        (aiern/org-babel-tangle-append-setup nil
-            "Add key-binding C-c C-v C-t for `aiern/org-babel-tangle-append'."
-            (org-defkey org-mode-map (naked "C-c C-v +") 'aiern/org-babel-tangle-append))
-        
-        ;; Adapted From:
-        ;; Answer: https://emacs.stackexchange.com/questions/39032/tangle-the-same-src-block-to-different-files/39039#39039
-        ;; User: https://emacs.stackexchange.com/users/2370/tobias
-        (aiern/org-babel-tangle-collect-blocks-handle-tangle-list (&optional language tangle-file)
-            "Can be used as :override advice for `org-babel-tangle-collect-blocks'.
-            Handles lists of :tangle files."
-            (let ((counter 0) last-heading-pos blocks)
-                (org-babel-map-src-blocks (buffer-file-name)
-                (let ((current-heading-pos
-                    (org-with-wide-buffer
-                    (org-with-limited-levels (outline-previous-heading)))))
-                (if (eq last-heading-pos current-heading-pos) (cl-incf counter)
-                (setq counter 1)
-                (setq last-heading-pos current-heading-pos)))
-                (unless (org-in-commented-heading-p)
-                (let* ((info (org-babel-get-src-block-info 'light))
-                    (src-lang (nth 0 info))
-                    (src-tfiles (cdr (assq :tangle (nth 2 info))))) ; Tobias: accept list for :tangle
-                (unless (consp src-tfiles) ; Tobias: unify handling of strings and lists for :tangle
-                    (setq src-tfiles (list src-tfiles))) ; Tobias: unify handling
-                (dolist (src-tfile src-tfiles) ; Tobias: iterate over list
-                    (unless (or (string= src-tfile "no")
-                        (and tangle-file (not (equal tangle-file src-tfile)))
-                        (and language (not (string= language src-lang))))
-                    ;; Add the spec for this block to blocks under its
-                    ;; language.
-                    (let ((by-lang (assoc src-lang blocks))
-                        (block (org-babel-tangle-single-block counter)))
-                    (setcdr (assoc :tangle (nth 4 block)) src-tfile) ; Tobias: 
-                    (if by-lang (setcdr by-lang (cons block (cdr by-lang)))
-                    (push (cons src-lang (list block)) blocks)))))))) ; Tobias: just ()
-                ;; Ensure blocks are in the correct order.
-                (mapcar (lambda (b) (cons (car b) (nreverse (cdr b)))) blocks)))
-
-        ;; Adapted From:
-        ;; Answer: https://emacs.stackexchange.com/questions/39032/tangle-the-same-src-block-to-different-files/39039#39039
-        ;; User: https://emacs.stackexchange.com/users/2370/tobias
-        (aiern/org-babel-tangle-single-block-handle-tangle-list (oldfun block-counter &optional only-this-block)
-            "Can be used as :around advice for `org-babel-tangle-single-block'.
-            If the :tangle header arg is a list of files. Handle all files"
-            (let* ((info (org-babel-get-src-block-info))
-                (params (nth 2 info))
-                (tfiles (cdr (assoc :tangle params))))
-                (if (null (and only-this-block (consp tfiles)))
-                (funcall oldfun block-counter only-this-block)
-                (cl-assert (listp tfiles) nil
-                    ":tangle only allows a tangle file name or a list of tangle file names")
-                (let ((ret (mapcar
-                    (lambda (tfile)
-                        (let (old-get-info)
-                        (cl-letf* (((symbol-function 'old-get-info) (symbol-function 'org-babel-get-src-block-info))
-                            ((symbol-function 'org-babel-get-src-block-info)
-                            `(lambda (&rest get-info-args)
-                                (let* ((info (apply 'old-get-info get-info-args))
-                                    (params (nth 2 info))
-                                    (tfile-cons (assoc :tangle params)))
-                                (setcdr tfile-cons ,tfile)
-                                info))))
-                        (funcall oldfun block-counter only-this-block))))
-                    tfiles)))
-                (if only-this-block
-                    (list (cons (cl-caaar ret) (mapcar #'cadar ret)))
-                ret)))))
-        
-        (aiern/src-mode-settings nil (interactive) (aiern/disable-all-modal-modes) (focus-mode 1))
-        (aiern/src-mode-exit nil (interactive) (winner-undo) (aiern/disable-all-modal-modes))
-
-        ;; Adapted From: http://endlessparentheses.com/emacs-narrow-or-widen-dwim.html
-        (aiern/narrow-or-widen-dwim (p)
-            "Widen if buffer is narrowed, narrow-dwim otherwise.
-            Dwim means: region, org-src-block, org-subtree, or
-            defun, whichever applies first. Narrowing to
-            org-src-block actually calls `org-edit-src-code'.
-
-            With prefix P, don't widen, just narrow even if buffer
-            is already narrowed."
-            (interactive "P")
-            (declare (interactive-only))
-            (cond ((and (buffer-narrowed-p) (not p)) (widen))
-                    ((region-active-p)
-                    (narrow-to-region (region-beginning)
-                                    (region-end)))
-                    ((derived-mode-p 'org-mode)
-                    ;; `org-edit-src-code' is not a real narrowing
-                    ;; command. Remove this first conditional if
-                    ;; you don't want it.
-                    (cond ((ignore-errors (org-edit-src-code) t)
-                            (delete-other-windows))
-                        ((ignore-errors (org-narrow-to-block) t))
-                        (t (org-narrow-to-subtree))))
-                    ((derived-mode-p 'latex-mode)
-                    (LaTeX-narrow-to-environment))
-                    (t (narrow-to-defun)))
-                (aiern/src-mode-settings))
     :leaf (org :advice (
         ;; Adapted From: https://github.com/syl20bnr/spacemacs/issues/13058#issuecomment-565741009
         (:after org-edit-src-exit aiern/src-mode-exit)
@@ -1270,7 +987,7 @@ And in my experience... Not a good idea; much too confusing. Use
         (org-babel-lob-ingest "./README.org")
 
         <<20210601225401786848500>>
-    :gone ((naked "backtab") 'aiern/evil-close-fold)
+    ;; :gone ((naked "backtab") 'evil-close-fold)
     :ryo ("o" :hydra
         '(hydra-org (:color blue :pre (progn
             <<20210601225233511900800>>))
@@ -1379,7 +1096,6 @@ And in my experience... Not a good idea; much too confusing. Use
 #+name: 20210601225325712716200
 #+begin_src emacs-lisp
 (use-package git-gutter
-    :straight t
     :ryo ("g" :hydra
         '(hydra-git (:pre (progn
                 <<20210601225233511900800>>))
@@ -1403,7 +1119,6 @@ And in my experience... Not a good idea; much too confusing. Use
 #+name: 20210601225327334456900
 #+begin_src emacs-lisp
 (use-package magit
-    :straight t
     :ryo ("g" :hydra+
         '(hydra-git (:pre (progn
                 <<20210601225233511900800>>))
@@ -1423,205 +1138,178 @@ And in my experience... Not a good idea; much too confusing. Use
 (defun display-startup-echo-area-message nil (aiern/which-key-show-top-level))
 
 (use-package rainbow-delimiters
-    :straight t
     :hook (prog-mode-hook . rainbow-delimiters-mode))
-
-;; From:
-;; Answer: https://stackoverflow.com/questions/24832699/emacs-24-untabify-on-save-for-everything-except-makefiles
-;; User: https://stackoverflow.com/users/2677392/ryan-m
-(defun aiern/untabify-everything nil (untabify (point-min) (point-max)))
-
-;; From:
-;; Answer: https://stackoverflow.com/questions/24832699/emacs-24-untabify-on-save-for-everything-except-makefiles
-;; User: https://stackoverflow.com/users/2677392/ryan-m
-(defun aiern/untabify-everything-on-save nil (add-hook 'before-save-hook 'untabify-everything) nil)
-
-;; Adapted From:
-;; Answer: https://stackoverflow.com/a/24857101/10827766
-;; User: https://stackoverflow.com/users/936762/dan
-(defun aiern/untabify-except-makefiles nil
-  "Replace tabs with spaces except in makefiles."
-  (unless (derived-mode-p 'makefile-mode)
-    (aiern/untabify-everything)))
 
 (add-hook 'before-save-hook 'aiern/untabify-except-makefiles)
 
-;; Adapted From: https://github.com/seagle0128/doom-modeline#customize
-(use-package doom-modeline
-    :straight t
-    :hook (after-init . doom-modeline-mode)
-    :init/defun*
-        (aiern/update-global-mode-string nil (interactive)
-            (setq global-mode-string
-                (list
-                "%n "
-                "Novel Keymap: "
-                (if novel-map-p "True" "False"))))
-    :init (aiern/update-global-mode-string)
-    :custom
-        ;; How tall the mode-line should be. It's only respected in GUI.
-        ;; If the actual char height is larger, it respects the actual height.
-        (doom-modeline-height 25)
+;; Adapted From: https://github.com/seagle0128/doom-aiern-modeline#customize
+;; (use-package doom-aiern-modeline
+;;     :straight nil
+;;     :load-path "doom-aiern-modeline"
+;;     :hook (after-init . doom-aiern-modeline-mode)
+;;     :custom
+;;         ;; How tall the mode-line should be. It's only respected in GUI.
+;;         ;; If the actual char height is larger, it respects the actual height.
+;;         (doom-aiern-modeline-height 25)
 
-        ;; How wide the mode-line bar should be. It's only respected in GUI.
-        (doom-modeline-bar-width 3)
+;;         ;; How wide the mode-line bar should be. It's only respected in GUI.
+;;         (doom-aiern-modeline-bar-width 3)
 
-        ;; The limit of the window width.
-        ;; If `window-width' is smaller than the limit, some information won't be displayed.
-        (doom-modeline-window-width-limit fill-column)
+;;         ;; The limit of the window width.
+;;         ;; If `window-width' is smaller than the limit, some information won't be displayed.
+;;         (doom-aiern-modeline-window-width-limit fill-column)
 
-        ;; How to detect the project root.
-        ;; The default priority of detection is `ffip' > `projectile' > `project'.
-        ;; nil means to use `default-directory'.
-        ;; The project management packages have some issues on detecting project root.
-        ;; e.g. `projectile' doesn't handle symlink folders well, while `project' is unable
-        ;; to hanle sub-projects.
-        ;; You can specify one if you encounter the issue.
-        (doom-modeline-project-detection 'project)
+;;         ;; How to detect the project root.
+;;         ;; The default priority of detection is `ffip' > `projectile' > `project'.
+;;         ;; nil means to use `default-directory'.
+;;         ;; The project management packages have some issues on detecting project root.
+;;         ;; e.g. `projectile' doesn't handle symlink folders well, while `project' is unable
+;;         ;; to hanle sub-projects.
+;;         ;; You can specify one if you encounter the issue.
+;;         (doom-aiern-modeline-project-detection 'project)
 
-        ;; Determines the style used by `doom-modeline-buffer-file-name'.
-        ;;
-        ;; Given ~/Projects/FOSS/emacs/lisp/comint.el
-        ;;   auto => emacs/lisp/comint.el (in a project) or comint.el
-        ;;   truncate-upto-project => ~/P/F/emacs/lisp/comint.el
-        ;;   truncate-from-project => ~/Projects/FOSS/emacs/l/comint.el
-        ;;   truncate-with-project => emacs/l/comint.el
-        ;;   truncate-except-project => ~/P/F/emacs/l/comint.el
-        ;;   truncate-upto-root => ~/P/F/e/lisp/comint.el
-        ;;   truncate-all => ~/P/F/e/l/comint.el
-        ;;   truncate-nil => ~/Projects/FOSS/emacs/lisp/comint.el
-        ;;   relative-from-project => emacs/lisp/comint.el
-        ;;   relative-to-project => lisp/comint.el
-        ;;   file-name => comint.el
-        ;;   buffer-name => comint.el<2> (uniquify buffer name)
-        ;;
-        ;; If you are experiencing the laggy issue, especially while editing remote files
-        ;; with tramp, please try `file-name' style.
-        ;; Please refer to https://github.com/bbatsov/projectile/issues/657.
-        (doom-modeline-buffer-file-name-style 'auto)
+;;         ;; Determines the style used by `doom-aiern-modeline-buffer-file-name'.
+;;         ;;
+;;         ;; Given ~/Projects/FOSS/emacs/lisp/comint.el
+;;         ;;   auto => emacs/lisp/comint.el (in a project) or comint.el
+;;         ;;   truncate-upto-project => ~/P/F/emacs/lisp/comint.el
+;;         ;;   truncate-from-project => ~/Projects/FOSS/emacs/l/comint.el
+;;         ;;   truncate-with-project => emacs/l/comint.el
+;;         ;;   truncate-except-project => ~/P/F/emacs/l/comint.el
+;;         ;;   truncate-upto-root => ~/P/F/e/lisp/comint.el
+;;         ;;   truncate-all => ~/P/F/e/l/comint.el
+;;         ;;   truncate-nil => ~/Projects/FOSS/emacs/lisp/comint.el
+;;         ;;   relative-from-project => emacs/lisp/comint.el
+;;         ;;   relative-to-project => lisp/comint.el
+;;         ;;   file-name => comint.el
+;;         ;;   buffer-name => comint.el<2> (uniquify buffer name)
+;;         ;;
+;;         ;; If you are experiencing the laggy issue, especially while editing remote files
+;;         ;; with tramp, please try `file-name' style.
+;;         ;; Please refer to https://github.com/bbatsov/projectile/issues/657.
+;;         (doom-aiern-modeline-buffer-file-name-style 'auto)
 
-        ;; Whether display icons in the mode-line.
-        ;; While using the server mode in GUI, should set the value explicitly.
-        (doom-modeline-icon (display-graphic-p))
+;;         ;; Whether display icons in the mode-line.
+;;         ;; While using the server mode in GUI, should set the value explicitly.
+;;         (doom-aiern-modeline-icon (display-graphic-p))
 
-        ;; Whether display the icon for `major-mode'. It respects `doom-modeline-icon'.
-        (doom-modeline-major-mode-icon t)
+;;         ;; Whether display the icon for `major-mode'. It respects `doom-aiern-modeline-icon'.
+;;         (doom-aiern-modeline-major-mode-icon t)
 
-        ;; Whether display the colorful icon for `major-mode'.
-        ;; It respects `all-the-icons-color-icons'.
-        (doom-modeline-major-mode-color-icon t)
+;;         ;; Whether display the colorful icon for `major-mode'.
+;;         ;; It respects `all-the-icons-color-icons'.
+;;         (doom-aiern-modeline-major-mode-color-icon t)
 
-        ;; Whether display the icon for the buffer state. It respects `doom-modeline-icon'.
-        (doom-modeline-buffer-state-icon t)
+;;         ;; Whether display the icon for the buffer state. It respects `doom-aiern-modeline-icon'.
+;;         (doom-aiern-modeline-buffer-state-icon t)
 
-        ;; Whether display the modification icon for the buffer.
-        ;; It respects `doom-modeline-icon' and `doom-modeline-buffer-state-icon'.
-        (doom-modeline-buffer-modification-icon t)
+;;         ;; Whether display the modification icon for the buffer.
+;;         ;; It respects `doom-aiern-modeline-icon' and `doom-aiern-modeline-buffer-state-icon'.
+;;         (doom-aiern-modeline-buffer-modification-icon t)
 
-        ;; Whether to use unicode as a fallback (instead of ASCII) when not using icons.
-        (doom-modeline-unicode-fallback nil)
+;;         ;; Whether to use unicode as a fallback (instead of ASCII) when not using icons.
+;;         (doom-aiern-modeline-unicode-fallback nil)
 
-        ;; Whether display the minor modes in the mode-line.
-        (doom-modeline-minor-modes nil)
+;;         ;; Whether display the minor modes in the mode-line.
+;;         (doom-aiern-modeline-minor-modes nil)
 
-        ;; If non-nil, a word count will be added to the selection-info modeline segment.
-        (doom-modeline-enable-word-count nil)
+;;         ;; If non-nil, a word count will be added to the selection-info modeline segment.
+;;         (doom-aiern-modeline-enable-word-count nil)
 
-        ;; Major modes in which to display word count continuously.
-        ;; Also applies to any derived modes. Respects `doom-modeline-enable-word-count'.
-        ;; If it brings the sluggish issue, disable `doom-modeline-enable-word-count' or
-        ;; remove the modes from `doom-modeline-continuous-word-count-modes'.
-        (doom-modeline-continuous-word-count-modes '(
-            markdown-mode
-            gfm-mode
-            org-mode
-            outline-mode))
+;;         ;; Major modes in which to display word count continuously.
+;;         ;; Also applies to any derived modes. Respects `doom-aiern-modeline-enable-word-count'.
+;;         ;; If it brings the sluggish issue, disable `doom-aiern-modeline-enable-word-count' or
+;;         ;; remove the modes from `doom-aiern-modeline-continuous-word-count-modes'.
+;;         (doom-aiern-modeline-continuous-word-count-modes '(
+;;             markdown-mode
+;;             gfm-mode
+;;             org-mode
+;;             outline-mode))
 
-        ;; Whether display the buffer encoding.
-        (doom-modeline-buffer-encoding t)
+;;         ;; Whether display the buffer encoding.
+;;         (doom-aiern-modeline-buffer-encoding t)
 
-        ;; Whether display the indentation information.
-        (doom-modeline-indent-info nil)
+;;         ;; Whether display the indentation information.
+;;         (doom-aiern-modeline-indent-info nil)
 
-        ;; If non-nil, only display one number for checker information if applicable.
-        (doom-modeline-checker-simple-format t)
+;;         ;; If non-nil, only display one number for checker information if applicable.
+;;         (doom-aiern-modeline-checker-simple-format t)
 
-        ;; The maximum number displayed for notifications.
-        (doom-modeline-number-limit 99)
+;;         ;; The maximum number displayed for notifications.
+;;         (doom-aiern-modeline-number-limit 99)
 
-        ;; The maximum displayed length of the branch name of version control.
-        (doom-modeline-vcs-max-length 12)
+;;         ;; The maximum displayed length of the branch name of version control.
+;;         (doom-aiern-modeline-vcs-max-length 12)
 
-        ;; Whether display the workspace name. Non-nil to display in the mode-line.
-        (doom-modeline-workspace-name t)
+;;         ;; Whether display the workspace name. Non-nil to display in the mode-line.
+;;         (doom-aiern-modeline-workspace-name t)
 
-        ;; Whether display the perspective name. Non-nil to display in the mode-line.
-        (doom-modeline-persp-name t)
+;;         ;; Whether display the perspective name. Non-nil to display in the mode-line.
+;;         (doom-aiern-modeline-persp-name t)
 
-        ;; If non nil the default perspective name is displayed in the mode-line.
-        (doom-modeline-display-default-persp-name nil)
+;;         ;; If non nil the default perspective name is displayed in the mode-line.
+;;         (doom-aiern-modeline-display-default-persp-name nil)
 
-        ;; If non nil the perspective name is displayed alongside a folder icon.
-        (doom-modeline-persp-icon t)
+;;         ;; If non nil the perspective name is displayed alongside a folder icon.
+;;         (doom-aiern-modeline-persp-icon t)
 
-        ;; Whether display the `lsp' state. Non-nil to display in the mode-line.
-        (doom-modeline-lsp t)
+;;         ;; Whether display the `lsp' state. Non-nil to display in the mode-line.
+;;         (doom-aiern-modeline-lsp t)
 
-        ;; Whether display the GitHub notifications. It requires `ghub' package.
-        (doom-modeline-github nil)
+;;         ;; Whether display the GitHub notifications. It requires `ghub' package.
+;;         (doom-aiern-modeline-github nil)
 
-        ;; The interval of checking GitHub.
-        (doom-modeline-github-interval (* 30 60))
+;;         ;; The interval of checking GitHub.
+;;         (doom-aiern-modeline-github-interval (* 30 60))
 
-        ;; Whether display the modal state icon.
-        ;; Including `evil', `overwrite', `god', `ryo' and `xah-fly-keys', etc.
-        (doom-modeline-modal-icon t)
+;;         ;; Whether display the modal state icon.
+;;         ;; Including `evil', `overwrite', `god', `ryo' and `xah-fly-keys', etc.
+;;         (doom-aiern-modeline-modal-icon t)
 
-        ;; Whether display the mu4e notifications. It requires `mu4e-alert' package.
-        (doom-modeline-mu4e nil)
+;;         ;; Whether display the mu4e notifications. It requires `mu4e-alert' package.
+;;         (doom-aiern-modeline-mu4e nil)
 
-        ;; Whether display the gnus notifications.
-        (doom-modeline-gnus t)
+;;         ;; Whether display the gnus notifications.
+;;         (doom-aiern-modeline-gnus t)
 
-        ;; Wheter gnus should automatically be updated and how often (set to 0 or smaller than 0 to disable)
-        (doom-modeline-gnus-timer 2)
+;;         ;; Wheter gnus should automatically be updated and how often (set to 0 or smaller than 0 to disable)
+;;         (doom-aiern-modeline-gnus-timer 2)
 
-        ;; Wheter groups should be excludede when gnus automatically being updated.
-        (doom-modeline-gnus-excluded-groups '("dummy.group"))
+;;         ;; Wheter groups should be excludede when gnus automatically being updated.
+;;         (doom-aiern-modeline-gnus-excluded-groups '("dummy.group"))
 
-        ;; Whether display the IRC notifications. It requires `circe' or `erc' package.
-        (doom-modeline-irc t)
+;;         ;; Whether display the IRC notifications. It requires `circe' or `erc' package.
+;;         (doom-aiern-modeline-irc t)
 
-        ;; Function to stylize the irc buffer names.
-        (doom-modeline-irc-stylize 'identity)
+;;         ;; Function to stylize the irc buffer names.
+;;         (doom-aiern-modeline-irc-stylize 'identity)
 
-        ;; Whether display the environment version.
-        (doom-modeline-env-version t)
-        ;; Or for individual languages
-        (doom-modeline-env-enable-python t)
-        (doom-modeline-env-enable-ruby t)
-        (doom-modeline-env-enable-perl t)
-        (doom-modeline-env-enable-go t)
-        (doom-modeline-env-enable-elixir t)
-        (doom-modeline-env-enable-rust t)
+;;         ;; Whether display the environment version.
+;;         (doom-aiern-modeline-env-version t)
+;;         ;; Or for individual languages
+;;         (doom-aiern-modeline-env-enable-python t)
+;;         (doom-aiern-modeline-env-enable-ruby t)
+;;         (doom-aiern-modeline-env-enable-perl t)
+;;         (doom-aiern-modeline-env-enable-go t)
+;;         (doom-aiern-modeline-env-enable-elixir t)
+;;         (doom-aiern-modeline-env-enable-rust t)
 
-        ;; Change the executables to use for the language version string
-        (doom-modeline-env-python-executable "python") ; or `python-shell-interpreter'
-        (doom-modeline-env-ruby-executable "ruby")
-        (doom-modeline-env-perl-executable "perl")
-        (doom-modeline-env-go-executable "go")
-        (doom-modeline-env-elixir-executable "iex")
-        (doom-modeline-env-rust-executable "rustc")
+;;         ;; Change the executables to use for the language version string
+;;         (doom-aiern-modeline-env-python-executable "python") ; or `python-shell-interpreter'
+;;         (doom-aiern-modeline-env-ruby-executable "ruby")
+;;         (doom-aiern-modeline-env-perl-executable "perl")
+;;         (doom-aiern-modeline-env-go-executable "go")
+;;         (doom-aiern-modeline-env-elixir-executable "iex")
+;;         (doom-aiern-modeline-env-rust-executable "rustc")
 
-        ;; What to dispaly as the version while a new one is being loaded
-        (doom-modeline-env-load-string "...")
+;;         ;; What to dispaly as the version while a new one is being loaded
+;;         (doom-aiern-modeline-env-load-string "...")
 
-        ;; Hooks that run before/after the modeline version string is updated
-        (doom-modeline-before-update-env-hook nil)
-        (doom-modeline-after-update-env-hook nil))
+;;         ;; Hooks that run before/after the modeline version string is updated
+;;         (doom-aiern-modeline-before-update-env-hook nil)
+;;         (doom-aiern-modeline-after-update-env-hook nil))
 
 (use-package writeroom-mode
-    :straight t
     :hook emacs-startup
     :gone ((general-chord "zz") 'writeroom-mode)
     :custom
@@ -1631,7 +1319,6 @@ And in my experience... Not a good idea; much too confusing. Use
         (writeroom-mode-line t))
 
 (use-package focus
-    :straight t
     :hook (emacs-startup . focus-mode)
     :custom
         (focus-mode-to-thing '(
@@ -1645,7 +1332,6 @@ And in my experience... Not a good idea; much too confusing. Use
 (use-package yasnippet :straight t)
 (use-package company :straight t)
 (use-package yankpad
-    :straight t
     :after (projectile company yasnippet)
     :init/defun* (aiern/yankpad-hercules-toggle nil (interactive))
     :custom (yankpad-file "./yankpad.org")
@@ -1745,7 +1431,6 @@ And in my experience... Not a good idea; much too confusing. Use
 #+name: 20210601225337340164800
 #+begin_src emacs-lisp
 (use-package term
-    :straight t
     :config/defun* (aiern/term-hercules-toggle nil (interactive))
     :general
         (:keymaps 'term-mode-map
@@ -1781,7 +1466,6 @@ And in my experience... Not a good idea; much too confusing. Use
 #+name: 20210601225339037191900
 #+begin_src emacs-lisp
 (use-package vterm
-    :straight t
     :custom
         (vterm-shell "/usr/bin/env xonsh")
         (vterm-always-compile-module t)
@@ -1798,7 +1482,6 @@ And in my experience... Not a good idea; much too confusing. Use
 #+name: 20210601225340625970700
 #+begin_src emacs-lisp
 (use-package multi-term
-    :straight t
     :custom
         (multi-term-program "/usr/bin/env xonsh")
         (multi-term-scroll-show-maximum-output t))
