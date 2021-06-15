@@ -79,4 +79,14 @@ push:
 |-git -C ~/shadowrylander commit --allow-empty-message -am ""
 |-git -C ~/shadowrylander push
 
-push-all: push
+push-aiern:
+|git -C ~/shadowrylander/home/.emacs.d/aiern add .
+|-git -C ~/shadowrylander/home/.emacs.d/aiern commit --allow-empty-message -am ""
+|-git -C ~/shadowrylander/home/.emacs.d/aiern push
+
+push-doom-aiern-modeline:
+|git -C ~/shadowrylander/home/.emacs.d/doom-aiern-modeline add .
+|-git -C ~/shadowrylander/home/.emacs.d/doom-aiern-modeline commit --allow-empty-message -am ""
+|-git -C ~/shadowrylander/home/.emacs.d/doom-aiern-modeline push
+
+push-all: push push-aiern push-doom-aiern-modeline

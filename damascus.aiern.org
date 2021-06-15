@@ -314,45 +314,33 @@ Adapted From: https://github.com/hlissner/doom-emacs/blob/develop/early-init.el
 
     <<20210607194122528175700(name="init/defun*", func="defun*")>>
 
+    <<20210607194122528175700(name="load-emacs-file-preconfig", func="load-emacs-file")>>
+
+    <<20210607194122528175700(name="use-package-preconfig", func="use-package")>>
+
     ;; Adapted From: https://github.com/noctuid/general.el/blob/master/general.el#L2620
     (setq use-package-keywords
         (cl-loop for item in use-package-keywords
             if (eq item :commands)
-            collect :commands and collect :init/defun and collect :init/defun*
+            collect :commands and collect :init/defun and collect :init/defun* and collect :load-emacs-file-preconfig and collect :use-package-preconfig
             else
-            unless (memq item '(:init/defun :init/defun*))
+            unless (memq item '(:init/defun :init/defun* :load-emacs-file-preconfig :use-package-preconfig))
             collect item))
 
     <<20210607194122528175700(name="config/defun", func="defun")>>
 
     <<20210607194122528175700(name="config/defun*", func="defun*")>>
 
-    (setq use-package-keywords
-        (cl-loop for item in use-package-keywords
-            if (eq item :load)
-            collect :load and collect :config/defun and collect :config/defun*
-            else
-            unless (memq item '(:config/defun :config/defun*))
-            collect item))
-
-    <<20210607194122528175700(name="use-package-preconfig", func="use-package")>>
-
-    (setq use-package-keywords
-        (cl-loop for item in use-package-keywords
-            if (eq item :load)
-            collect :load and collect :use-package-preconfig
-            else
-            unless (eq item :use-package-preconfig)
-            collect item))
+    <<20210607194122528175700(name="load-emacs-file-postconfig", func="load-emacs-file")>>
 
     <<20210607194122528175700(name="use-package-postconfig", func="use-package")>>
 
     (setq use-package-keywords
         (cl-loop for item in use-package-keywords
-            if (eq item :config/defun*)
-            collect :config/defun* and collect :use-package-postconfig
+            if (eq item :load)
+            collect :load and collect :config/defun and collect :config/defun* and collect :load-emacs-file-postconfig and collect :use-package-postconfig
             else
-            unless (eq item :use-package-postconfig)
+            unless (memq item '(:config/defun :config/defun* :load-emacs-file-postconfig :use-package-postconfig))
             collect item))
 
     <<20210607194122528175700(name="postmaster", func="general-def")>>
@@ -399,21 +387,25 @@ Adapted From: https://github.com/hlissner/doom-emacs/blob/develop/early-init.el
 
 ;; Adapted From: https://github.com/jwiegley/use-package#use-package-chords
 ;; Important: https://github.com/noctuid/general.el/issues/53#issuecomment-307262154
-(use-package use-package-chords
-    :demand t
-    :hook (after-init . key-chord-mode))
-(use-package hydra
-    :demand t
-    :custom (hydra-hint-display-type 'lv))
+(use-package use-package-chords :demand t :hook (after-init . key-chord-mode))
 (use-package use-package-hydra
     :demand t
+    :use-package-preconfig (hydra :demand t :custom (hydra-hint-display-type 'lv))
+    :use-package-postconfig
+        (use-package-hydra+
+            :straight (use-package-hydra+
+                :type git
+                :host gitlab
+                :repo "picotech/use-package-hydra-plus"
+                :branch "master"))
     :straight (use-package-hydra :type git :host gitlab :repo "picotech/use-package-hydra" :branch "master"))
-(use-package use-package-hydra+
-    :demand t
-    :straight (use-package-hydra+ :type git :host gitlab :repo "picotech/use-package-hydra-plus" :branch "master"))
 (use-package use-package-hercules
     :demand t
-    :straight (use-package-hercules :type git :host gitlab :repo "<<username>>/use-package-hercules" :branch "master"))
+    :straight (use-package-hercules
+        :type git
+        :host gitlab
+        :repo "<<username>>/use-package-hercules"
+        :branch "master"))
 #+end_src
 
 ***** always defer package loading
@@ -514,11 +506,12 @@ And in my experience... Not a good idea; much too confusing. Use
 
 #+name: 20210603105149525867500
 #+begin_src emacs-lisp
-(use-package command-log-mode :straight t)
-(load-emacs-file "naked.el")
-
 (use-package general
     :demand t
+    :use-package-preconfig
+        (command-log-mode)
+    :load-emacs-file-preconfig
+        ("naked.el")
     :config (general-auto-unbind-keys)
     :postmaster
         (:keymaps '(override aiern-insert-state-map)
@@ -680,9 +673,19 @@ And in my experience... Not a good idea; much too confusing. Use
 
 #+name: 20210601225311301844400
 #+begin_src emacs-lisp
-(use-package bind-map :straight t)
 (use-package evil
     :demand t
+    :use-package-preconfig (bind-map)
+    :use-package-postconfig
+        ;; Adapted From: https://github.com/mohsenil85/evil-evilified-state and
+        ;; https://github.com/syl20bnr/spacemacs
+        (evil-evilified-state
+            :after evil
+            :straight (evil-evilified-state
+                :type git
+                :host github
+                :repo "<<username>>/evil-evilified-state"
+                :branch "master"))
     :init
         (setq-default evil-escape-key-sequence nil)
     :gone
@@ -748,15 +751,6 @@ And in my experience... Not a good idea; much too confusing. Use
                     ;; ("q" (funcall (general-simulate-key ":q! <RET>")) ":q!"))
                     ("q" (funcall (evil-quit t)) ":q!"))
                 :name "evil exits"))
-
-;; Adapted From: https://github.com/mohsenil85/evil-evilified-state and https://github.com/syl20bnr/spacemacs
-(use-package evil-evilified-state
-    :after evil
-    :straight (evil-evilified-state
-        :type git
-        :host github
-        :repo "<<username>>/evil-evilified-state"
-        :branch "master"))
 #+end_src
 
 ***** aiern
@@ -770,6 +764,7 @@ And in my experience... Not a good idea; much too confusing. Use
 #+begin_src emacs-lisp
 (use-package aiern
     :demand t
+    :use-package-preconfig (bind-map)
     :straight nil
     :load-path "aiern"
     :gone
@@ -910,7 +905,7 @@ And in my experience... Not a good idea; much too confusing. Use
     :use-package-postconfig
         (nix-mode
             :demand t
-            :straight t
+           
             :commands (org-babel-execute:nix)
             :mode ("\\.nix\\'")
             :init/defun*
@@ -962,7 +957,7 @@ And in my experience... Not a good idea; much too confusing. Use
                             (if (eq args nil) "" args)
                             (org-babel-process-file-name in-file))
                     ""))))
-        (dockerfile-mode :demand t :straight t :mode ("\\Dockerfile\\'"))
+        (dockerfile-mode :demand t :mode ("\\Dockerfile\\'"))
         (vimrc-mode
             :demand t
             :straight (vimrc-mode :type git :host github :repo "mcandre/vimrc-mode" :branch "master")
@@ -970,7 +965,7 @@ And in my experience... Not a good idea; much too confusing. Use
                 (org-babel-execute:vimrc
                 org-babel-expand-body:vimrc)
             :mode "\\.vim\\(rc\\)?\\'")
-        (ox-pandoc :demand t :straight t)
+        (ox-pandoc :demand t)
     :leaf (org :advice (
         ;; Adapted From: https://github.com/syl20bnr/spacemacs/issues/13058#issuecomment-565741009
         (:after org-edit-src-exit aiern/src-mode-exit)
@@ -1137,177 +1132,179 @@ And in my experience... Not a good idea; much too confusing. Use
 #+begin_src emacs-lisp
 (defun display-startup-echo-area-message nil (aiern/which-key-show-top-level))
 
-(use-package rainbow-delimiters
-    :hook (prog-mode-hook . rainbow-delimiters-mode))
+(use-package rainbow-delimiters :hook (prog-mode-hook . rainbow-delimiters-mode))
 
 (add-hook 'before-save-hook 'aiern/untabify-except-makefiles)
 
 ;; Adapted From: https://github.com/seagle0128/doom-aiern-modeline#customize
-;; (use-package doom-aiern-modeline
-;;     :straight nil
-;;     :load-path "doom-aiern-modeline"
-;;     :hook (after-init . doom-aiern-modeline-mode)
-;;     :custom
-;;         ;; How tall the mode-line should be. It's only respected in GUI.
-;;         ;; If the actual char height is larger, it respects the actual height.
-;;         (doom-aiern-modeline-height 25)
+(use-package doom-aiern-modeline
+    :straight nil
+    :load-path "doom-aiern-modeline"
+    :hook (after-init . doom-aiern-modeline-mode)
+    :use-package-preconfig
+        (all-the-icons)
+        (shrink-path)
+    :custom
+        ;; How tall the mode-line should be. It's only respected in GUI.
+        ;; If the actual char height is larger, it respects the actual height.
+        (doom-aiern-modeline-height 25)
 
-;;         ;; How wide the mode-line bar should be. It's only respected in GUI.
-;;         (doom-aiern-modeline-bar-width 3)
+        ;; How wide the mode-line bar should be. It's only respected in GUI.
+        (doom-aiern-modeline-bar-width 3)
 
-;;         ;; The limit of the window width.
-;;         ;; If `window-width' is smaller than the limit, some information won't be displayed.
-;;         (doom-aiern-modeline-window-width-limit fill-column)
+        ;; The limit of the window width.
+        ;; If `window-width' is smaller than the limit, some information won't be displayed.
+        (doom-aiern-modeline-window-width-limit fill-column)
 
-;;         ;; How to detect the project root.
-;;         ;; The default priority of detection is `ffip' > `projectile' > `project'.
-;;         ;; nil means to use `default-directory'.
-;;         ;; The project management packages have some issues on detecting project root.
-;;         ;; e.g. `projectile' doesn't handle symlink folders well, while `project' is unable
-;;         ;; to hanle sub-projects.
-;;         ;; You can specify one if you encounter the issue.
-;;         (doom-aiern-modeline-project-detection 'project)
+        ;; How to detect the project root.
+        ;; The default priority of detection is `ffip' > `projectile' > `project'.
+        ;; nil means to use `default-directory'.
+        ;; The project management packages have some issues on detecting project root.
+        ;; e.g. `projectile' doesn't handle symlink folders well, while `project' is unable
+        ;; to hanle sub-projects.
+        ;; You can specify one if you encounter the issue.
+        (doom-aiern-modeline-project-detection 'project)
 
-;;         ;; Determines the style used by `doom-aiern-modeline-buffer-file-name'.
-;;         ;;
-;;         ;; Given ~/Projects/FOSS/emacs/lisp/comint.el
-;;         ;;   auto => emacs/lisp/comint.el (in a project) or comint.el
-;;         ;;   truncate-upto-project => ~/P/F/emacs/lisp/comint.el
-;;         ;;   truncate-from-project => ~/Projects/FOSS/emacs/l/comint.el
-;;         ;;   truncate-with-project => emacs/l/comint.el
-;;         ;;   truncate-except-project => ~/P/F/emacs/l/comint.el
-;;         ;;   truncate-upto-root => ~/P/F/e/lisp/comint.el
-;;         ;;   truncate-all => ~/P/F/e/l/comint.el
-;;         ;;   truncate-nil => ~/Projects/FOSS/emacs/lisp/comint.el
-;;         ;;   relative-from-project => emacs/lisp/comint.el
-;;         ;;   relative-to-project => lisp/comint.el
-;;         ;;   file-name => comint.el
-;;         ;;   buffer-name => comint.el<2> (uniquify buffer name)
-;;         ;;
-;;         ;; If you are experiencing the laggy issue, especially while editing remote files
-;;         ;; with tramp, please try `file-name' style.
-;;         ;; Please refer to https://github.com/bbatsov/projectile/issues/657.
-;;         (doom-aiern-modeline-buffer-file-name-style 'auto)
+        ;; Determines the style used by `doom-aiern-modeline-buffer-file-name'.
+        ;;
+        ;; Given ~/Projects/FOSS/emacs/lisp/comint.el
+        ;;   auto => emacs/lisp/comint.el (in a project) or comint.el
+        ;;   truncate-upto-project => ~/P/F/emacs/lisp/comint.el
+        ;;   truncate-from-project => ~/Projects/FOSS/emacs/l/comint.el
+        ;;   truncate-with-project => emacs/l/comint.el
+        ;;   truncate-except-project => ~/P/F/emacs/l/comint.el
+        ;;   truncate-upto-root => ~/P/F/e/lisp/comint.el
+        ;;   truncate-all => ~/P/F/e/l/comint.el
+        ;;   truncate-nil => ~/Projects/FOSS/emacs/lisp/comint.el
+        ;;   relative-from-project => emacs/lisp/comint.el
+        ;;   relative-to-project => lisp/comint.el
+        ;;   file-name => comint.el
+        ;;   buffer-name => comint.el<2> (uniquify buffer name)
+        ;;
+        ;; If you are experiencing the laggy issue, especially while editing remote files
+        ;; with tramp, please try `file-name' style.
+        ;; Please refer to https://github.com/bbatsov/projectile/issues/657.
+        (doom-aiern-modeline-buffer-file-name-style 'auto)
 
-;;         ;; Whether display icons in the mode-line.
-;;         ;; While using the server mode in GUI, should set the value explicitly.
-;;         (doom-aiern-modeline-icon (display-graphic-p))
+        ;; Whether display icons in the mode-line.
+        ;; While using the server mode in GUI, should set the value explicitly.
+        (doom-aiern-modeline-icon (display-graphic-p))
 
-;;         ;; Whether display the icon for `major-mode'. It respects `doom-aiern-modeline-icon'.
-;;         (doom-aiern-modeline-major-mode-icon t)
+        ;; Whether display the icon for `major-mode'. It respects `doom-aiern-modeline-icon'.
+        (doom-aiern-modeline-major-mode-icon t)
 
-;;         ;; Whether display the colorful icon for `major-mode'.
-;;         ;; It respects `all-the-icons-color-icons'.
-;;         (doom-aiern-modeline-major-mode-color-icon t)
+        ;; Whether display the colorful icon for `major-mode'.
+        ;; It respects `all-the-icons-color-icons'.
+        (doom-aiern-modeline-major-mode-color-icon t)
 
-;;         ;; Whether display the icon for the buffer state. It respects `doom-aiern-modeline-icon'.
-;;         (doom-aiern-modeline-buffer-state-icon t)
+        ;; Whether display the icon for the buffer state. It respects `doom-aiern-modeline-icon'.
+        (doom-aiern-modeline-buffer-state-icon t)
 
-;;         ;; Whether display the modification icon for the buffer.
-;;         ;; It respects `doom-aiern-modeline-icon' and `doom-aiern-modeline-buffer-state-icon'.
-;;         (doom-aiern-modeline-buffer-modification-icon t)
+        ;; Whether display the modification icon for the buffer.
+        ;; It respects `doom-aiern-modeline-icon' and `doom-aiern-modeline-buffer-state-icon'.
+        (doom-aiern-modeline-buffer-modification-icon t)
 
-;;         ;; Whether to use unicode as a fallback (instead of ASCII) when not using icons.
-;;         (doom-aiern-modeline-unicode-fallback nil)
+        ;; Whether to use unicode as a fallback (instead of ASCII) when not using icons.
+        (doom-aiern-modeline-unicode-fallback nil)
 
-;;         ;; Whether display the minor modes in the mode-line.
-;;         (doom-aiern-modeline-minor-modes nil)
+        ;; Whether display the minor modes in the mode-line.
+        (doom-aiern-modeline-minor-modes nil)
 
-;;         ;; If non-nil, a word count will be added to the selection-info modeline segment.
-;;         (doom-aiern-modeline-enable-word-count nil)
+        ;; If non-nil, a word count will be added to the selection-info modeline segment.
+        (doom-aiern-modeline-enable-word-count nil)
 
-;;         ;; Major modes in which to display word count continuously.
-;;         ;; Also applies to any derived modes. Respects `doom-aiern-modeline-enable-word-count'.
-;;         ;; If it brings the sluggish issue, disable `doom-aiern-modeline-enable-word-count' or
-;;         ;; remove the modes from `doom-aiern-modeline-continuous-word-count-modes'.
-;;         (doom-aiern-modeline-continuous-word-count-modes '(
-;;             markdown-mode
-;;             gfm-mode
-;;             org-mode
-;;             outline-mode))
+        ;; Major modes in which to display word count continuously.
+        ;; Also applies to any derived modes. Respects `doom-aiern-modeline-enable-word-count'.
+        ;; If it brings the sluggish issue, disable `doom-aiern-modeline-enable-word-count' or
+        ;; remove the modes from `doom-aiern-modeline-continuous-word-count-modes'.
+        (doom-aiern-modeline-continuous-word-count-modes '(
+            markdown-mode
+            gfm-mode
+            org-mode
+            outline-mode))
 
-;;         ;; Whether display the buffer encoding.
-;;         (doom-aiern-modeline-buffer-encoding t)
+        ;; Whether display the buffer encoding.
+        (doom-aiern-modeline-buffer-encoding t)
 
-;;         ;; Whether display the indentation information.
-;;         (doom-aiern-modeline-indent-info nil)
+        ;; Whether display the indentation information.
+        (doom-aiern-modeline-indent-info nil)
 
-;;         ;; If non-nil, only display one number for checker information if applicable.
-;;         (doom-aiern-modeline-checker-simple-format t)
+        ;; If non-nil, only display one number for checker information if applicable.
+        (doom-aiern-modeline-checker-simple-format t)
 
-;;         ;; The maximum number displayed for notifications.
-;;         (doom-aiern-modeline-number-limit 99)
+        ;; The maximum number displayed for notifications.
+        (doom-aiern-modeline-number-limit 99)
 
-;;         ;; The maximum displayed length of the branch name of version control.
-;;         (doom-aiern-modeline-vcs-max-length 12)
+        ;; The maximum displayed length of the branch name of version control.
+        (doom-aiern-modeline-vcs-max-length 12)
 
-;;         ;; Whether display the workspace name. Non-nil to display in the mode-line.
-;;         (doom-aiern-modeline-workspace-name t)
+        ;; Whether display the workspace name. Non-nil to display in the mode-line.
+        (doom-aiern-modeline-workspace-name t)
 
-;;         ;; Whether display the perspective name. Non-nil to display in the mode-line.
-;;         (doom-aiern-modeline-persp-name t)
+        ;; Whether display the perspective name. Non-nil to display in the mode-line.
+        (doom-aiern-modeline-persp-name t)
 
-;;         ;; If non nil the default perspective name is displayed in the mode-line.
-;;         (doom-aiern-modeline-display-default-persp-name nil)
+        ;; If non nil the default perspective name is displayed in the mode-line.
+        (doom-aiern-modeline-display-default-persp-name nil)
 
-;;         ;; If non nil the perspective name is displayed alongside a folder icon.
-;;         (doom-aiern-modeline-persp-icon t)
+        ;; If non nil the perspective name is displayed alongside a folder icon.
+        (doom-aiern-modeline-persp-icon t)
 
-;;         ;; Whether display the `lsp' state. Non-nil to display in the mode-line.
-;;         (doom-aiern-modeline-lsp t)
+        ;; Whether display the `lsp' state. Non-nil to display in the mode-line.
+        (doom-aiern-modeline-lsp t)
 
-;;         ;; Whether display the GitHub notifications. It requires `ghub' package.
-;;         (doom-aiern-modeline-github nil)
+        ;; Whether display the GitHub notifications. It requires `ghub' package.
+        (doom-aiern-modeline-github nil)
 
-;;         ;; The interval of checking GitHub.
-;;         (doom-aiern-modeline-github-interval (* 30 60))
+        ;; The interval of checking GitHub.
+        (doom-aiern-modeline-github-interval (* 30 60))
 
-;;         ;; Whether display the modal state icon.
-;;         ;; Including `evil', `overwrite', `god', `ryo' and `xah-fly-keys', etc.
-;;         (doom-aiern-modeline-modal-icon t)
+        ;; Whether display the modal state icon.
+        ;; Including `evil', `overwrite', `god', `ryo' and `xah-fly-keys', etc.
+        (doom-aiern-modeline-modal-icon t)
 
-;;         ;; Whether display the mu4e notifications. It requires `mu4e-alert' package.
-;;         (doom-aiern-modeline-mu4e nil)
+        ;; Whether display the mu4e notifications. It requires `mu4e-alert' package.
+        (doom-aiern-modeline-mu4e nil)
 
-;;         ;; Whether display the gnus notifications.
-;;         (doom-aiern-modeline-gnus t)
+        ;; Whether display the gnus notifications.
+        (doom-aiern-modeline-gnus t)
 
-;;         ;; Wheter gnus should automatically be updated and how often (set to 0 or smaller than 0 to disable)
-;;         (doom-aiern-modeline-gnus-timer 2)
+        ;; Wheter gnus should automatically be updated and how often (set to 0 or smaller than 0 to disable)
+        (doom-aiern-modeline-gnus-timer 2)
 
-;;         ;; Wheter groups should be excludede when gnus automatically being updated.
-;;         (doom-aiern-modeline-gnus-excluded-groups '("dummy.group"))
+        ;; Wheter groups should be excludede when gnus automatically being updated.
+        (doom-aiern-modeline-gnus-excluded-groups '("dummy.group"))
 
-;;         ;; Whether display the IRC notifications. It requires `circe' or `erc' package.
-;;         (doom-aiern-modeline-irc t)
+        ;; Whether display the IRC notifications. It requires `circe' or `erc' package.
+        (doom-aiern-modeline-irc t)
 
-;;         ;; Function to stylize the irc buffer names.
-;;         (doom-aiern-modeline-irc-stylize 'identity)
+        ;; Function to stylize the irc buffer names.
+        (doom-aiern-modeline-irc-stylize 'identity)
 
-;;         ;; Whether display the environment version.
-;;         (doom-aiern-modeline-env-version t)
-;;         ;; Or for individual languages
-;;         (doom-aiern-modeline-env-enable-python t)
-;;         (doom-aiern-modeline-env-enable-ruby t)
-;;         (doom-aiern-modeline-env-enable-perl t)
-;;         (doom-aiern-modeline-env-enable-go t)
-;;         (doom-aiern-modeline-env-enable-elixir t)
-;;         (doom-aiern-modeline-env-enable-rust t)
+        ;; Whether display the environment version.
+        (doom-aiern-modeline-env-version t)
+        ;; Or for individual languages
+        (doom-aiern-modeline-env-enable-python t)
+        (doom-aiern-modeline-env-enable-ruby t)
+        (doom-aiern-modeline-env-enable-perl t)
+        (doom-aiern-modeline-env-enable-go t)
+        (doom-aiern-modeline-env-enable-elixir t)
+        (doom-aiern-modeline-env-enable-rust t)
 
-;;         ;; Change the executables to use for the language version string
-;;         (doom-aiern-modeline-env-python-executable "python") ; or `python-shell-interpreter'
-;;         (doom-aiern-modeline-env-ruby-executable "ruby")
-;;         (doom-aiern-modeline-env-perl-executable "perl")
-;;         (doom-aiern-modeline-env-go-executable "go")
-;;         (doom-aiern-modeline-env-elixir-executable "iex")
-;;         (doom-aiern-modeline-env-rust-executable "rustc")
+        ;; Change the executables to use for the language version string
+        (doom-aiern-modeline-env-python-executable "python") ; or `python-shell-interpreter'
+        (doom-aiern-modeline-env-ruby-executable "ruby")
+        (doom-aiern-modeline-env-perl-executable "perl")
+        (doom-aiern-modeline-env-go-executable "go")
+        (doom-aiern-modeline-env-elixir-executable "iex")
+        (doom-aiern-modeline-env-rust-executable "rustc")
 
-;;         ;; What to dispaly as the version while a new one is being loaded
-;;         (doom-aiern-modeline-env-load-string "...")
+        ;; What to dispaly as the version while a new one is being loaded
+        (doom-aiern-modeline-env-load-string "...")
 
-;;         ;; Hooks that run before/after the modeline version string is updated
-;;         (doom-aiern-modeline-before-update-env-hook nil)
-;;         (doom-aiern-modeline-after-update-env-hook nil))
+        ;; Hooks that run before/after the modeline version string is updated
+        (doom-aiern-modeline-before-update-env-hook nil)
+        (doom-aiern-modeline-after-update-env-hook nil))
 
 (use-package writeroom-mode
     :hook emacs-startup
@@ -1328,11 +1325,11 @@ And in my experience... Not a good idea; much too confusing. Use
             (text-mode . line)
             (outline-mode . line))))
 
-(use-package projectile :straight t)
-(use-package yasnippet :straight t)
-(use-package company :straight t)
 (use-package yankpad
-    :after (projectile company yasnippet)
+    :use-package-preconfig
+        (projectile)
+        (yasnippet)
+        (company)
     :init/defun* (aiern/yankpad-hercules-toggle nil (interactive))
     :custom (yankpad-file "./yankpad.org")
     :gone
@@ -1354,37 +1351,38 @@ And in my experience... Not a good idea; much too confusing. Use
 
 ;; !!! THE ORDER HERE MATTERS! !!!
 ;; (add-hook 'emacs-startup '(lambda nil (interactive)
-;;     (load-emacs-file "fit-frame.el")
-;;     (load-emacs-file "autofit-frame.el")
-;;     ;; (load-emacs-file "buff-menu+.el")
-;;     (load-emacs-file "compile-.el")
-;;     (load-emacs-file "compile+.el")
-;;     (load-emacs-file "grep+.el")
-;;     (load-emacs-file "dired+.el")
-;;     (load-emacs-file "dired-details.el")
-;;     (load-emacs-file "dired-details+.el")
-;;     (load-emacs-file "doremi.el")
-;;     (load-emacs-file "hexrgb.el")
-;;     (load-emacs-file "frame-fns.el")
-;;     (load-emacs-file "faces+.el")
-;;     (load-emacs-file "doremi-frm.el")
-;;     (load-emacs-file "eyedropper.el")
-;;     (load-emacs-file "facemenu+.el")
-;;     (load-emacs-file "frame+.el")
-;;     (load-emacs-file "help+.el")
-;;     (load-emacs-file "info+.el")
-;;     (load-emacs-file "menu-bar+.el")
-;;     (load-emacs-file "mouse+.el")
-;;     (load-emacs-file "setup-keys.el")
-;;     (load-emacs-file "strings.el")
-;;     ;; (load-emacs-file "simple+.el")
-;;     (load-emacs-file "frame-cmds.el")
-;;     (load-emacs-file "thumb-frm.el")
-;;     (load-emacs-file "window+.el")
-;;     (load-emacs-file "zoom-frm.el")
-;;     (load-emacs-file "oneonone.el")
-;;     (use-package! oneonone
+;;     (use-package oneonone
 ;;         :demand t
+;;         :load-emacs-file-preconfig
+;;             ("fit-frame.el")
+;;             ("autofit-frame.el")
+;;             ;; ("buff-menu+.el")
+;;             ("compile-.el")
+;;             ("compile+.el")
+;;             ("grep+.el")
+;;             ("dired+.el")
+;;             ("dired-details.el")
+;;             ("dired-details+.el")
+;;             ("doremi.el")
+;;             ("hexrgb.el")
+;;             ("frame-fns.el")
+;;             ("faces+.el")
+;;             ("doremi-frm.el")
+;;             ("eyedropper.el")
+;;             ("facemenu+.el")
+;;             ("frame+.el")
+;;             ("help+.el")
+;;             ("info+.el")
+;;             ("menu-bar+.el")
+;;             ("mouse+.el")
+;;             ("setup-keys.el")
+;;             ("strings.el")
+;;             ;; ("simple+.el")
+;;             ("frame-cmds.el")
+;;             ("thumb-frm.el")
+;;             ("window+.el")
+;;             ("zoom-frm.el")
+;;             ("oneonone.el")
 ;;         :hook (after-init . 1on1-emacs)
 ;;         :custom
 ;;             (1on1-minibuffer-frame-width 10000)
@@ -1498,13 +1496,14 @@ Mostly from [[Emux's After Installing Section][https://github.com/re5et/emux#aft
 
 #+name: 20210601225342116066300
 #+begin_src emacs-lisp
-(load-emacs-file "emux/emux-base.el")
-(load-emacs-file "emux/emux-term.el")
-(load-emacs-file "emux/emux-screen.el")
-(load-emacs-file "emux/emux-session.el")
 (use-package emux
     ;; :straight (emux :type git :host github :repo "re5et/emux" :branch "master")
     ;; :hook (emacs-startup . emux-mode)
+    :load-emacs-file-preconfig
+        ("emux/emux-base.el")
+        ("emux/emux-term.el")
+        ("emux/emux-screen.el")
+        ("emux/emux-session.el")
     :config/defun*
         (aiern/make-frame nil (interactive) (modify-frame-parameters (make-frame) ((name . "emux"))))
         (aiern/select-emux nil (interactive) (select-frame-by-name "emux"))
@@ -1580,9 +1579,9 @@ Adapted From: https://tapoueh.org/blog/2009/09/escreen-integration/
 
 #+name: 20210601225345097323100
 #+begin_src emacs-lisp :comments org
-(load-emacs-file "escreen.el")
 (use-package escreen
     ;; :hook (after-init . escreen-install)
+    :load-emacs-file-preconfig ("escreen.el")
     :init/defun* (aiern/escreen-hercules-toggle nil (interactive))
     :gone
         ;; ((naked "C-\\ l") 'escreen-get-active-screen-numbers-with-emphasis)
@@ -1666,7 +1665,7 @@ Adapted From: https://tapoueh.org/blog/2009/09/escreen-integration/
 
 #+name: 20210601225348036290600
 #+begin_src emacs-lisp
-(use-package exwm :straight t)
+(use-package exwm)
 #+end_src
 
 **** system
