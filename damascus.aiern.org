@@ -322,9 +322,16 @@ Adapted From: https://github.com/hlissner/doom-emacs/blob/develop/early-init.el
     (setq use-package-keywords
         (cl-loop for item in use-package-keywords
             if (eq item :commands)
-            collect :commands and collect :init/defun and collect :init/defun* and collect :load-emacs-file-preconfig and collect :use-package-preconfig
+            collect :commands and
+            collect :init/defun and
+            collect :init/defun* and
+            collect :load-emacs-file-preconfig and
+            collect :use-package-preconfig
             else
-            unless (memq item '(:init/defun :init/defun* :load-emacs-file-preconfig :use-package-preconfig))
+            unless (memq item '(:init/defun
+                                :init/defun*
+                                :load-emacs-file-preconfig
+                                :use-package-preconfig))
             collect item))
 
     <<20210607194122528175700(name="config/defun", func="defun")>>
@@ -338,9 +345,16 @@ Adapted From: https://github.com/hlissner/doom-emacs/blob/develop/early-init.el
     (setq use-package-keywords
         (cl-loop for item in use-package-keywords
             if (eq item :load)
-            collect :load and collect :config/defun and collect :config/defun* and collect :load-emacs-file-postconfig and collect :use-package-postconfig
+            collect :load and
+            collect :config/defun and
+            collect :config/defun* and
+            collect :load-emacs-file-postconfig and
+            collect :use-package-postconfig
             else
-            unless (memq item '(:config/defun :config/defun* :load-emacs-file-postconfig :use-package-postconfig))
+            unless (memq item '(:config/defun
+                                :config/defun*
+                                :load-emacs-file-postconfig
+                                :use-package-postconfig))
             collect item))
 
     <<20210607194122528175700(name="postmaster", func="general-def")>>
@@ -365,7 +379,7 @@ Adapted From: https://github.com/hlissner/doom-emacs/blob/develop/early-init.el
 
     (add-to-list 'use-package-keywords :both-ex t)
 
-    <<20210607194122528175700(name="gone", func="general-def :keymaps '(override aiern-insert-state-map)")>>
+    <<20210607194122528175700(name="gone", func="general-def :keymaps '(global aiern-insert-state-map aiern-normal-state-map)")>>
 
     (setq use-package-keywords
         (cl-loop for item in use-package-keywords
@@ -383,11 +397,38 @@ Adapted From: https://github.com/hlissner/doom-emacs/blob/develop/early-init.el
             collect :gone and collect :modalka
             else
             unless (eq item :modalka)
-            collect item)))
+            collect item))
+
+    (with-eval-after-load 'general
+        <<20210607194122528175700(name="gsetq", func="general-setq")>>
+
+        (setq use-package-keywords
+            (cl-loop for item in use-package-keywords
+                if (eq item :init)
+                collect :init and collect :gsetq
+                else
+                unless (eq item :gsetq)
+                collect item))
+
+        <<20210607194122528175700(name="gadvice", func="general-add-advice")>>
+        <<20210607194122528175700(name="gradvice", func="general-remove-advice")>>
+
+        (add-to-list 'use-package-keywords :gadvice t)
+        (add-to-list 'use-package-keywords :gradvice t)
+
+        <<20210607194122528175700(name="grook", func="general-remove-hook")>>
+
+        (setq use-package-keywords
+            (cl-loop for item in use-package-keywords
+                if (eq item :gfhook)
+                collect :gfhook and collect :grook
+                else
+                unless (eq item :grook)
+                collect item))))
 
 ;; Adapted From: https://github.com/jwiegley/use-package#use-package-chords
 ;; Important: https://github.com/noctuid/general.el/issues/53#issuecomment-307262154
-(use-package use-package-chords :demand t :hook (after-init . key-chord-mode))
+(use-package use-package-chords :demand t)
 (use-package use-package-hydra
     :demand t
     :use-package-preconfig (hydra :demand t :custom (hydra-hint-display-type 'lv))
@@ -508,14 +549,11 @@ And in my experience... Not a good idea; much too confusing. Use
 #+begin_src emacs-lisp
 (use-package general
     :demand t
-    :use-package-preconfig
-        (command-log-mode)
-    :load-emacs-file-preconfig
-        ("naked.el")
+    :use-package-preconfig (command-log-mode)
+    :load-emacs-file-preconfig ("naked.el")
     :config (general-auto-unbind-keys)
     :postmaster
-        (:keymaps '(override aiern-insert-state-map)
-            (naked "RET") 'newline-and-indent
+        (:keymaps '(global aiern-insert-state-map aiern-normal-state-map)
             (general-chord "./") 'aiern/end-of-line-and-indented-new-line
 
             ;; Adapted From:
@@ -534,8 +572,7 @@ And in my experience... Not a good idea; much too confusing. Use
                 counsel-describe-map
                 helm-buffer-map)
             "M-x" 'exit-minibuffer)
-    :custom (general-implicit-kbd t)
-    :leaf (general :advice (:around newline-and-indent aiern/newline-and-indent-advice)))
+    :custom (general-implicit-kbd t))
 #+end_src
 
 **** modal modes
@@ -619,10 +656,7 @@ And in my experience... Not a good idea; much too confusing. Use
                 <<20210601225233511900800>>)) ("`" nil "cancel"))
         (all-keymaps (:color blue :pre (progn
                 <<20210601225233511900800>>)) ("`" nil "cancel"))
-    :leaf (hercules :advice (
-        (:override hercules--hide aiern/hercules--hide-advice)
-        (:override hercules--show aiern/hercules--show-advice)))
-    :custom
+    :gsetq
         (which-key-enable-extended-define-key t)
         (which-key-idle-delay 0.1)
         (which-key-idle-secondary-delay nil)
@@ -697,10 +731,7 @@ And in my experience... Not a good idea; much too confusing. Use
         ;; ((general-chord "") 'aiern/toggle-evil-ex-hercules-force)
         
         ((general-chord ",,") 'evil-ex)
-    :leaf (evil :advice (
-            (:before evil-close-fold aiern/go-to-parent)
-            (:override evil-insert-state aiern/disable-all-modal-modes)
-            (:around evil-ex aiern/evil-ex-advice)))
+    :leaf (evil :advice ((:override evil-insert-state aiern/disable-all-modal-modes)))
     :hydra+
     <<20210601225304341247500(map="evil-normal-state-map", mode="evil-mode", prefix="evil", short="e")>>
         ;; From: https://www.reddit.com/r/emacs/comments/lp45zd/help_requested_in_configuring_ryomodal/gp3rfx9?utm_source=share&utm_medium=web2x&context=3
@@ -776,9 +807,6 @@ And in my experience... Not a good idea; much too confusing. Use
         ;; ((general-chord "") 'aiern/toggle-aiern-ex-hercules-force)
 
         ((general-chord ",.") 'aiern-ex)
-    :leaf (aiern :advice (
-            (:before aiern-close-fold aiern/go-to-parent)
-            (:around aiern-ex aiern/evil-ex-advice)))
     :hydra+
     <<20210601225304341247500(map="aiern-normal-state-map", mode="aiern-mode", prefix="aiern", short="a")>>
         ;; TODO: How do I create a keymap `aiern-ex-keymap' out of the `aiern-ex-commands' alist?
@@ -899,9 +927,6 @@ And in my experience... Not a good idea; much too confusing. Use
 #+name: 20210601225236550932600
 #+begin_src emacs-lisp
 (use-package org
-    :hook (
-        (org-mode . aiern/org-babel-tangle-append-setup)
-        (org-cycle . (lambda (state) (interactive) (when (eq state 'children) (setq org-cycle-subtree-status 'subtree)))))
     :use-package-postconfig
         (nix-mode
             :demand t
@@ -966,14 +991,6 @@ And in my experience... Not a good idea; much too confusing. Use
                 org-babel-expand-body:vimrc)
             :mode "\\.vim\\(rc\\)?\\'")
         (ox-pandoc :demand t)
-    :leaf (org :advice (
-        ;; Adapted From: https://github.com/syl20bnr/spacemacs/issues/13058#issuecomment-565741009
-        (:after org-edit-src-exit aiern/src-mode-exit)
-        (:after org-edit-src-abort aiern/src-mode-exit)
-        (:after org-edit-special aiern/src-mode-settings)
-        (:override org-babel-tangle-collect-blocks aiern/org-babel-tangle-collect-blocks-handle-tangle-list)
-        (:around org-babel-tangle-single-block aiern/org-babel-tangle-single-block-handle-tangle-list)
-        ))
     :config
         (org-babel-do-load-languages 'org-babel-load-languages
             (append org-babel-load-languages
@@ -993,7 +1010,7 @@ And in my experience... Not a good idea; much too confusing. Use
                 ("n" aiern/narrow-or-widen-dwim "narrow")
                 ("s" org-edit-special "org edit special")
                 ("q" nil "cancel")))
-    :custom
+    :gsetq
         ;; I'm using ox-pandoc
         ;; (org-export-backends '(md gfm latex odt org))
         (org-directory "/tmp")
@@ -1028,17 +1045,6 @@ And in my experience... Not a good idea; much too confusing. Use
             ("e" execute-extended-command "M-x")
             ("q" nil "cancel"))
             :name "execute order 65"))
-
-(advice-add #'counsel-M-x :before #'aiern/which-key--hide-popup)
-(advice-add #'helm-smex-major-mode-commands :before #'aiern/which-key--hide-popup)
-(advice-add #'helm-smex :before #'aiern/which-key--hide-popup)
-
-;; TODO
-;; (advice-add #'execute-extended-command :before #'aiern/which-key--hide-popup)
-
-(advice-add #'keyboard-escape-quit :after #'aiern/which-key--show-popup)
-(advice-add #'keyboard-quit :after #'aiern/which-key--show-popup)
-(advice-add #'exit-minibuffer :after #'aiern/which-key--show-popup)
 #+end_src
 
 ***** helm
@@ -1134,8 +1140,6 @@ And in my experience... Not a good idea; much too confusing. Use
 
 (use-package rainbow-delimiters :hook (prog-mode-hook . rainbow-delimiters-mode))
 
-(add-hook 'before-save-hook 'aiern/untabify-except-makefiles)
-
 ;; Adapted From: https://github.com/seagle0128/doom-aiern-modeline#customize
 (use-package doom-aiern-modeline
     :straight nil
@@ -1144,7 +1148,7 @@ And in my experience... Not a good idea; much too confusing. Use
     :use-package-preconfig
         (all-the-icons)
         (shrink-path)
-    :custom
+    :gsetq
         ;; How tall the mode-line should be. It's only respected in GUI.
         ;; If the actual char height is larger, it respects the actual height.
         (doom-aiern-modeline-height 25)
@@ -1309,7 +1313,7 @@ And in my experience... Not a good idea; much too confusing. Use
 (use-package writeroom-mode
     :hook emacs-startup
     :gone ((general-chord "zz") 'writeroom-mode)
-    :custom
+    :gsetq
         (writeroom-fullscreen-effect t)
         (writeroom-fringes-outside-margins t)
         (writeroom-width 0.75)
@@ -1317,7 +1321,7 @@ And in my experience... Not a good idea; much too confusing. Use
 
 (use-package focus
     :hook (emacs-startup . focus-mode)
-    :custom
+    :gsetq
         (focus-mode-to-thing '(
             ;; (prog-mode . defun)
             (prog-mode . line)
@@ -1331,7 +1335,7 @@ And in my experience... Not a good idea; much too confusing. Use
         (yasnippet)
         (company)
     :init/defun* (aiern/yankpad-hercules-toggle nil (interactive))
-    :custom (yankpad-file "./yankpad.org")
+    :gsetq (yankpad-file "./yankpad.org")
     :gone
         ((general-chord "[[") 'aiern/yankpad-hercules-toggle)
         ((general-chord "]]") 'yankpad-expand)
@@ -1347,7 +1351,7 @@ And in my experience... Not a good idea; much too confusing. Use
 (use-package vlf
     :straight (vlf :type git :host github :repo "m00natic/vlfi" :branch "master")
     :demand t
-    :custom (vlf-application 'always))
+    :gsetq (vlf-application 'always))
 
 ;; !!! THE ORDER HERE MATTERS! !!!
 ;; (add-hook 'emacs-startup '(lambda nil (interactive)
@@ -1383,8 +1387,7 @@ And in my experience... Not a good idea; much too confusing. Use
 ;;             ("window+.el")
 ;;             ("zoom-frm.el")
 ;;             ("oneonone.el")
-;;         :hook (after-init . 1on1-emacs)
-;;         :custom
+;;         :gsetq
 ;;             (1on1-minibuffer-frame-width 10000)
 ;;             (1on1-minibuffer-frame-height 10000))))
 #+end_src
@@ -1441,7 +1444,7 @@ And in my experience... Not a good idea; much too confusing. Use
             "M-DEL"   'term-send-backward-kill-word
             "M-f"     'term-send-forward-word
             "M-o"     'term-send-backspace)
-    :custom
+    :gsetq
         (term-unbind-key-list '("C-z" "C-x" "C-c" "C-h" "C-l" "<ESC>"))
         (term-buffer-maximum-size 16384)
         (term-default-bg-color "#000000") '(term-default-fg-color "#AAAAAA")
@@ -1464,7 +1467,7 @@ And in my experience... Not a good idea; much too confusing. Use
 #+name: 20210601225339037191900
 #+begin_src emacs-lisp
 (use-package vterm
-    :custom
+    :gsetq
         (vterm-shell "/usr/bin/env xonsh")
         (vterm-always-compile-module t)
         (vterm-kill-buffer-on-exit t))
@@ -1480,7 +1483,7 @@ And in my experience... Not a good idea; much too confusing. Use
 #+name: 20210601225340625970700
 #+begin_src emacs-lisp
 (use-package multi-term
-    :custom
+    :gsetq
         (multi-term-program "/usr/bin/env xonsh")
         (multi-term-scroll-show-maximum-output t))
 #+end_src
@@ -1498,7 +1501,6 @@ Mostly from [[Emux's After Installing Section][https://github.com/re5et/emux#aft
 #+begin_src emacs-lisp
 (use-package emux
     ;; :straight (emux :type git :host github :repo "re5et/emux" :branch "master")
-    ;; :hook (emacs-startup . emux-mode)
     :load-emacs-file-preconfig
         ("emux/emux-base.el")
         ("emux/emux-term.el")
@@ -1553,9 +1555,7 @@ Mostly from [[Emux's After Installing Section][https://github.com/re5et/emux#aft
 #+begin_src emacs-lisp
 (use-package! elscreen
     :straight (elscreen :type git :host github :repo "knu/elscreen" :branch "master")
-    ;; :hook (after-init . elscreen-start)
-    ;; :hook (emacs-startup . elscreen-start)
-    :custom
+    :gsetq
         ;; NOTE: Remember to escape the backslash
         (elscreen-prefix-key "C-S-\\")
     :config/defun* (aiern/elscreen-hercules-toggle nil (interactive))
@@ -1580,7 +1580,6 @@ Adapted From: https://tapoueh.org/blog/2009/09/escreen-integration/
 #+name: 20210601225345097323100
 #+begin_src emacs-lisp :comments org
 (use-package escreen
-    ;; :hook (after-init . escreen-install)
     :load-emacs-file-preconfig ("escreen.el")
     :init/defun* (aiern/escreen-hercules-toggle nil (interactive))
     :gone
