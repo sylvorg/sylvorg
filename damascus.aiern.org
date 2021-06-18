@@ -925,8 +925,8 @@ And in my experience... Not a good idea; much too confusing. Use
 (use-package doom-aiern-modeline
     :straight nil
     :load-path "doom-aiern-modeline"
-    :hook (after-init . doom-aiern-modeline-mode)
-    ;; :gaa doom-aiern-modeline-mode
+    ;; :hook (after-init . doom-aiern-modeline-mode)
+    :gaa doom-aiern-modeline-mode
     :use-package-preconfig
         (all-the-icons)
         (shrink-path)
