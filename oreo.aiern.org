@@ -3207,7 +3207,7 @@ in with pkgs; [
     shadowfox
     vlc
     vscode
-    woeusb
+    # woeusb
     xclip
     xfce.thunar
     yubikey-manager-qt
@@ -3232,7 +3232,7 @@ in with pkgs; [
     "docker"
     "scripts"
 ]) ++ (with pkgs.nur.repos; [
-    (mkifnt onny.foliate)
+    # (mkifnt onny.foliate)
 ]) ++ [
     # For emacs
 
@@ -4782,7 +4782,7 @@ flake = lambda _hash: f'--flake "{args.directory}#{_hash}"' if args.flake else (
 if homeManager:
     command = lambda _hash: f'''home-manager {args.command} \
     --option build-use-substitutes true \
-    --option substitute {flake(_hash)}'''
+    --option substitute true {flake(_hash)}'''
 elif args.install:
     # command = lambda _hash: f'nixos-install --impure --show-trace {flake(_hash)}'
     command = lambda _hash: f'''nix build \
@@ -4795,7 +4795,7 @@ elif args.install:
 else:
     command = lambda _hash: f'''nixos-rebuild {args.command} \
         --option build-use-substitutes true \
-        --option substitute \
+        --option substitute true \
         --impure \
         --show-trace {flake(_hash)}'''
 

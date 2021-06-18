@@ -124,7 +124,7 @@ This is used to hold larger files for =./oreo.aiern.org=.
 ;;; Code:
 
 (require 'faces)
-(eval-when-compile (when (< emacs-major-version 21) (require 'cl))) ;; dolist, pop, push
+(eval-when-compile (when (< emacs-major-version 21) (require 'cl-lib))) ;; dolist, pop, push
 
 (require 'thingatpt nil t) ;; (no error if not found): symbol-at-point
 (when (and (require 'thingatpt+ nil t) ;; (no error if not found): symbol-nearest-point
@@ -396,7 +396,7 @@ as a face, leave it unmodified.  Value is FACE."
 ;;     oremi-boost-scale-factor: Clarified doc string.
 ;;      property -> parameter in all doc strings (RMS).
 ;; 2007/10/21 dadams
-;;     doremi: Don't let switch-frame events quit the loop.
+;;     doremi: Don't let switch-frame events quit the cl-loop.
 ;;     Added: doremi-limit, doremi-wrap.
 ;; 2006/01/07 dadams
 ;;     Added :link.
@@ -624,7 +624,7 @@ For examples of using `doremi', see the source code of libraries
     ;; Convert sequence of values (list, array, vector, string) to a ring.
     (when (and enum (sequencep enum)) (setq enum  (ring-convert-sequence-to-ring enum)))
 
-    ;; Loop.  Prompt, read event, and act on arrow-key or mouse-wheel event.
+    ;; cl-loop.  Prompt, read event, and act on arrow-key or mouse-wheel event.
     (let ((prompt           (format "Use %s, %s, or mouse wheel to adjust value"
                                     (single-key-description (car doremi-up-keys))
                                     (single-key-description (car doremi-down-keys))))
@@ -2048,7 +2048,7 @@ If SEQ is already a ring, return it."
 ;;
 ;;; Code:
 
-(eval-when-compile (require 'cl)) ;; case
+(eval-when-compile (require 'cl-lib)) ;; case
 
 ;; Unless you first load `hexrgb.el', then either `palette.el' or `eyedropper.el', you will get
 ;; warnings about variables and functions with prefix `eyedrop-' when you byte-compile
@@ -3283,7 +3283,7 @@ X must be between 0.0 and 1.0, or else an error is raised."
 
 (require 'menu-bar)
 
-(eval-when-compile (when (< emacs-major-version 21) (require 'cl))) ;; dolist
+(eval-when-compile (when (< emacs-major-version 21) (require 'cl-lib))) ;; dolist
 (when (eq system-type 'windows-nt)
   (require 'w32browser-dlgopen nil t)) ;; (no error if not found): dlgopen-open-files
                                        ;; `w32browser-dlgopen.el' is based on `dlgopen.el'
@@ -4296,12 +4296,12 @@ string.\nIt is most convenient from the keyboard.  Try it!")))
 ;----------------------
 (define-key menu-bar-search-tags-menu [separator-tags-misc] '("--"))
 (define-key menu-bar-search-tags-menu [tags-continue]
-  `(menu-item "    Continue Search/Replace" ,(if (featurep 'fileloop)
-                                                 'fileloop-continue ; Emacs 27+
-                                               'tags-loop-continue) ; Emacs < 27
+  `(menu-item "    Continue Search/Replace" ,(if (featurep 'filecl-loop)
+                                                 'filecl-loop-continue ; Emacs 27+
+                                               'tags-cl-loop-continue) ; Emacs < 27
               :help "Continue last tags search or replace operation"
-              :enable (or (and (featurep 'fileloop) ; Emacs 27+
-                               (not (eq fileloop--operate-function 'ignore)))
+              :enable (or (and (featurep 'filecl-loop) ; Emacs 27+
+                               (not (eq filecl-loop--operate-function 'ignore)))
                           (< emacs-major-version 27))))
 (define-key menu-bar-search-tags-menu [tags-search]
   '(menu-item "Search Tagged Files..." tags-search
@@ -4337,12 +4337,12 @@ string.\nIt is most convenient from the keyboard.  Try it!")))
 ;;--------------------
 (define-key menu-bar-search-replace-menu [separator-search-replace-global] '("--"))
 (define-key menu-bar-search-replace-menu [tags-repl-continue]
-  `(menu-item "                Continue Search/Replace" ,(if (featurep 'fileloop)
-                                                             'fileloop-continue ; Emacs 27+
-                                                           'tags-loop-continue) ; Emacs < 27
+  `(menu-item "                Continue Search/Replace" ,(if (featurep 'filecl-loop)
+                                                             'filecl-loop-continue ; Emacs 27+
+                                                           'tags-cl-loop-continue) ; Emacs < 27
               :help "Continue last tags search or replace operation"
-              :enable (or (and (featurep 'fileloop) ; Emacs 27+
-                               (not (eq fileloop--operate-function 'ignore)))
+              :enable (or (and (featurep 'filecl-loop) ; Emacs 27+
+                               (not (eq filecl-loop--operate-function 'ignore)))
                           (< emacs-major-version 27))))
 (define-key menu-bar-search-replace-menu [tags-query-replace]
   '(menu-item "            Tags..." tags-query-replace
@@ -6240,7 +6240,7 @@ This has no effect unless you use library `misc-cmds.el'.")
 ;;; Code:
 
 (require 'frame-cmds) ;; enlarge-font, rename-non-minibuffer-frame
-(eval-when-compile (require 'cl)) ;; case (plus, for Emacs 20: dolist)
+(eval-when-compile (require 'cl-lib)) ;; case (plus, for Emacs 20: dolist)
 
 ;; Quiet the byte-compiler
 (defvar read-file-name-completion-ignore-case) ; Emacs 22+
@@ -6718,7 +6718,7 @@ according to the direction of `thumfr-stack-display-edge'."
          last-fr)
     (when thumfr-sort-function (setq thumb-frs  (sort thumb-frs thumfr-sort-function)))
 
-    ;; These loops are similar, more or less symmetric.
+    ;; These cl-loops are similar, more or less symmetric.
     (case thumfr-stack-display-edge
       (left+down
        (dolist (fr  thumb-frs)
@@ -7261,7 +7261,7 @@ of window creation."
 ;;
 ;;; Code:
 
-(eval-when-compile (require 'cl)) ;; case
+(eval-when-compile (require 'cl-lib)) ;; case
 
 (require 'frame-cmds) ;; enlarge-font
 

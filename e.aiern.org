@@ -172,7 +172,7 @@ This is used to hold larger files for =./oreo.aiern.org=.
 ;; Don't want to do a (load-library "simple") either, because it wouldn't
 ;; allow doing (eval-after-load "simple" '(require 'simple+))
 
-(eval-when-compile (when (< emacs-major-version 21) (require 'cl))) ;; push, pop
+(eval-when-compile (when (< emacs-major-version 21) (require 'cl-lib))) ;; push, pop
 
 (require 'strings) ;; read-any-variable
 
@@ -519,7 +519,7 @@ not end the comment.  Blank lines do not get comments."
               (setq cs      (concat cs comment-start)
                     ce      (concat ce comment-end)
                     numarg  (1- numarg))))
-          ;; Loop over all lines from BEG to END.
+          ;; cl-loop over all lines from BEG to END.
           (narrow-to-region beg end)
           (goto-char beg)
           (if (or (eq numarg t) (< numarg 0))

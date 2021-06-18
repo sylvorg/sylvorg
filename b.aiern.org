@@ -181,7 +181,7 @@ This is used to hold larger files for =./oreo.aiern.org=.
 ;;
 ;;; Code:
 
-(eval-when-compile (require 'cl)) ;; psetq
+(eval-when-compile (require 'cl-lib)) ;; psetq
 
 (require 'thingatpt nil t) ;; (no error if not found): symbol-at-point
 (when (and (require 'thingatpt+ nil t);; (no error if not found)
@@ -1261,7 +1261,7 @@ Non-nil optional arg MSG-P means display an informative message."
 ;;     naked-edmacro-parse-keys: Use naked-string-match-p when don't need to set match data.
 ;;     naked-read-kbd-macro: Fixed typo: \P -> \nP.
 ;; 2017/04/18 dadams
-;;     Added forgotten compile-time require of cl.el, for macro loop.
+;;     Added forgotten compile-time require of cl.el, for macro cl-loop.
 ;; 2013/02/26 dadams
 ;;     Added (put 'naked 'pure t)
 ;; 2012/12/01 dadams
@@ -1297,7 +1297,7 @@ Non-nil optional arg MSG-P means display an informative message."
 ;;
 ;;; Code:
 
-(eval-when-compile (require 'cl)) ;; loop
+(eval-when-compile (require 'cl-lib)) ;; cl-loop
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -1335,7 +1335,7 @@ Non-nil optional arg ANGLES means to use angle brackets, exactly like
 `edmacro-parse-keys'.  See `naked-read-kbd-macro' for more about
 ANGLES."
   (let ((case-fold-search  nil)
-    (len               (length string)) ; We won't alter string in the loop below.
+    (len               (length string)) ; We won't alter string in the cl-loop below.
         (pos               0)
         (res               []))
     (while (and (< pos len)  (string-match "[^ \t\n\f]+" string pos))
@@ -1403,24 +1403,24 @@ ANGLES."
                                                          (?H . ?\H-\^@) (?M . ?\M-\^@)
                                                          (?s . ?\s-\^@) (?S . ?\S-\^@)))))
                    (incf prefix 2)
-                   (callf substring word 2))
+                   (cl-callf substring word 2))
                  (when (naked-string-match-p "^\\^.$" word)
                    (incf bits ?\C-\^@)
                    (incf prefix)
-                   (callf substring word 1))
+                   (cl-callf substring word 1))
                  (let ((found  (assoc word '(("NUL" . "\0") ("RET" . "\r") ("LFD" . "\n")
                                              ("ESC" . "\e") ("SPC" . " ") ("DEL" . "\177")
                                              ("TAB" . "\t")))))
                    (when found (setq word  (cdr found))))
                  (when (naked-string-match-p "^\\\\[0-7]+$" word)
-                   (loop for ch across word
+                   (cl-loop for ch across word
                          for n = 0 then (+ (* n 8) ch -48)
                          finally do (setq word  (vector n))))
                  (cond ((= bits 0) (setq key  word))
                        ((and (= bits ?\M-\^@)
                              (stringp word)
                              (naked-string-match-p "^-?[0-9]+$" word))
-                        (setq key  (loop for x across word collect (+ x bits))))
+                        (setq key  (cl-loop for x across word collect (+ x bits))))
                        ((/= (length word) 1)
                         (error "%s must prefix a single character, not %s"
                                (substring orig-word 0 prefix) word))
@@ -1432,16 +1432,16 @@ ANGLES."
                         (setq key  (list (+ bits (- ?\C-\^@) (logand (aref word 0) 31)))))
                        (t
                         (setq key  (list (+ bits (aref word 0)))))))))
-        (when key (loop repeat times do (callf vconcat res key)))))
+        (when key (cl-loop repeat times do (cl-callf vconcat res key)))))
     (when (and (>= (length res) 4)  (eq (aref res 0) ?\C-x)  (eq (aref res 1) ?\()
                (eq (aref res (- (length res) 2)) ?\C-x)  (eq (aref res (- (length res) 1)) ?\)))
       (setq res  (edmacro-subseq res 2 -2)))
     (if (and (not need-vector)
-         (loop for ch across res
+         (cl-loop for ch across res
            always (and (if (fboundp 'characterp) (characterp ch) (char-valid-p ch))
                    (let ((ch2  (logand ch (lognot ?\M-\^@))))
                  (and (>= ch2 0)  (<= ch2 127))))))
-    (concat (loop for ch across res collect (if (= (logand ch ?\M-\^@) 0)  ch  (+ ch 128))))
+    (concat (cl-loop for ch across res collect (if (= (logand ch ?\M-\^@) 0)  ch  (+ ch 128))))
       res)))
 
 ;; Same as `icicle-read-kbd-macro' in `icicles-mac.el'.
@@ -3169,7 +3169,7 @@ Returns a list of numbers which represent screen numbers presently in use."
 ;;; Code:
 
 
-(eval-when-compile (when (< emacs-major-version 21) (require 'cl))) ;; dolist, push
+(eval-when-compile (when (< emacs-major-version 21) (require 'cl-lib))) ;; dolist, push
 
 (require 'frame-cmds nil t) ;; (no error if not found): rename-frame
 (require 'zoom-frm nil t) ;; (no error if not found):
@@ -5213,7 +5213,7 @@ The top left corner of the frame is offset from POSITION according to
 ;;
 ;;; Code:
 
-(eval-when-compile (require 'cl)) ;; case, incf (plus, for Emacs 20: dolist, dotimes)
+(eval-when-compile (require 'cl-lib)) ;; case, incf (plus, for Emacs 20: dolist, dotimes)
 (require 'frame-fns) ;; frame-geom-value-cons, frame-geom-value-numeric, frames-on, get-frame-name,
                      ;; get-a-frame, read-frame
 (require 'strings nil t) ;; (no error if not found) read-buffer
@@ -7772,7 +7772,7 @@ If the selected window is not dedicated, then:
  ;; Don't want to do a (load-library "buff-menu") either, because it wouldn't
  ;; allow doing (eval-after-load "buff-menu" '(progn (require 'buff-menu+)))
 
-(eval-when-compile (require 'cl)) ;; case, (plus, for Emacs 20: push, pop, dolist,
+(eval-when-compile (require 'cl-lib)) ;; case, (plus, for Emacs 20: push, pop, dolist,
                                   ;;        and, for Emacs <20: cadr, when, unless)
 
 (require 'misc-fns nil t) ;; (no error if not found): undefine-killer-commands
@@ -9898,7 +9898,7 @@ FMTS is a list of format specs for transforming the file name.
           (setq loc (or line 1))   ; normalize no linenumber to line 1
           (catch 'marker       ; find nearest loc, at least one exists
             (dolist (x (cddr (compilation--file-struct->loc-tree
-                              file-struct))) ; Loop over remaining lines.
+                              file-struct))) ; cl-loop over remaining lines.
               (if (> (car x) loc)            ; still bigger
                   (setq marker-line x)
                 (if (> (- (or (car marker-line) 1) loc)
@@ -9987,7 +9987,7 @@ FMTS is a list of format specs for transforming the file name.
           (setq marker nil)    ; no valid marker for this file
         (setq loc (or line 1)) ; normalize no linenumber to line 1
         (catch 'marker         ; find nearest loc, at least one exists
-          (dolist (x (nthcdr 3 file-struct)) ; loop over remaining lines
+          (dolist (x (nthcdr 3 file-struct)) ; cl-loop over remaining lines
             (if (> (car x) loc)              ; still bigger
                 (setq marker-line x)
               (if (> (- (or (car marker-line) 1) loc)

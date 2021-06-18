@@ -1609,7 +1609,7 @@ code \\([0-9]+\\)\\)?.*"
 ;; 2021/01/02 dadams
 ;;     Updates for Emacs 27.1.
 ;;       dired-map-over-marks-check: Use ngettext for Emacs 27.
-;;       dired-do-search, dired-do-query-replace-regexp: Use fileloop-initialize-(search|replace) for Emacs 27.
+;;       dired-do-search, dired-do-query-replace-regexp: Use filecl-loop-initialize-(search|replace) for Emacs 27.
 ;;       dired-do-find-regexp: Require xref.el.  Map over rgrep-find-ignored-directories.
 ;;                             For Emacs 27+, xref--show-xrefs needs a fetcher function, not a file list.
 ;; 2020/12/27 dadams
@@ -2625,7 +2625,7 @@ code \\([0-9]+\\)\\)?.*"
 ;;       Enable Emacs 20/21 to handle -h option (decimal point size).
 ;;     Renamed: face diredp-inode+size to diredp-number.
 ;; 2010/10/01 dadams
-;;     dired-goto-file: Avoid infloop from looking for dir line.  Thx to not-use.dilines.net.
+;;     dired-goto-file: Avoid infcl-loop from looking for dir line.  Thx to not-use.dilines.net.
 ;; 2010/09/29 dadams
 ;;     Added: diredp-dired-union(-1|-other-window|-interactive-spec).
 ;;     dired-goto-file: fix for Emacs bug #7126.
@@ -2641,7 +2641,7 @@ code \\([0-9]+\\)\\)?.*"
 ;;     Use diredp-font-lock-keywords-1 properly as a second level of fontification.
 ;;     Added: diredp-w32-drives(-mode(-map)), dired-up-directory.
 ;; 2010/08/07 dadams
-;;     dired-map-over-marks: Removed loop that used dired-between-files.
+;;     dired-map-over-marks: Removed cl-loop that used dired-between-files.
 ;;     diredp-get-file-or-dir-name: test against subdir/..? also.
 ;;     dired-do-find-marked-files: Pass original ARG to dired-get-marked-files.
 ;; 2010/08/05 dadams
@@ -2838,7 +2838,7 @@ code \\([0-9]+\\)\\)?.*"
 ;;
 ;;; Code:
 
-(eval-when-compile (require 'cl)) ;; case (plus, for Emacs 20: dolist, pop, push)
+(eval-when-compile (require 'cl-lib)) ;; case (plus, for Emacs 20: dolist, pop, push)
 (eval-when-compile (require 'easymenu)) ;; easy-menu-create-menu
 
 (require 'dired) ;; dired-revert
@@ -3562,7 +3562,7 @@ BODY should not be too long, because it is expanded four times.
 If DISTINGUISH-ONE-MARKED is non-nil, then return (t FILENAME) instead
  of (FILENAME), if only one file is marked."
   ;; WARNING: BODY must not add new lines before point - this may cause an
-  ;; endless loop.  This warning should not apply any longer, sk  2-Sep-1991 14:10.
+  ;; endless cl-loop.  This warning should not apply any longer, sk  2-Sep-1991 14:10.
   `(prog1
        (let ((inhibit-read-only  t)
              (multi-C-u          (diredp-prefix-arg-all-files ,arg))
@@ -7215,7 +7215,7 @@ With a prefix argument, ignore all marks - include all files in this
 Dired buffer and all subdirs, recursively.
 
 Stops when a match is found.
-To continue searching for the next match, use `\\[tags-loop-continue]'.
+To continue searching for the next match, use `\\[tags-cl-loop-continue]'.
 
 When called from Lisp, optional arg DETAILS is passed to
 `diredp-get-files'."
@@ -7243,7 +7243,7 @@ With an (explicit) numeric prefix argument:
 ,* <= 0 means replace only word-delimited matches.
 
 If you exit (`\\[keyboard-quit]', `RET' or `q'), you can resume the query replacement
-using `\\[tags-loop-continue]'.
+using `\\[tags-cl-loop-continue]'.
 
 When called from Lisp, optional arg DETAILS is passed to
 `diredp-get-files'."
@@ -10697,8 +10697,8 @@ When invoked interactively, raise an error if no files are marked."
   "Search through all marked files for a match for REGEXP.
 Stops when a match is found.
 To continue searching for next match, use:
- ,* `\\[fileloop-continue]'  (Emacs 27+) or
- ,* `\\[tags-loop-continue]' (older Emacs versions)
+ ,* `\\[filecl-loop-continue]'  (Emacs 27+) or
+ ,* `\\[tags-cl-loop-continue]' (older Emacs versions)
 
 A prefix arg behaves as follows:
  ,* An integer means use the next ARG files (previous -ARG, if < 0).
@@ -10715,9 +10715,9 @@ When invoked interactively, raise an error if no files are marked."
                        t)))
   (if (< emacs-major-version 27)
       (tags-search regexp `(dired-get-marked-files nil ',arg #'dired-nondirectory-p nil ,interactivep))
-    (fileloop-initialize-search
+    (filecl-loop-initialize-search
      regexp `(dired-get-marked-files nil ',arg #'dired-nondirectory-p nil ,interactivep) 'default)
-    (fileloop-continue)))
+    (filecl-loop-continue)))
 
 
 ;; REPLACE ORIGINAL in `dired-aux.el':
@@ -10747,7 +10747,7 @@ So for example:
 When invoked interactively, raise an error if no files are marked.
 
 If you exit (\\[keyboard-quit], RET or q), you can resume the query replace
-with the command \\[tags-loop-continue]."
+with the command \\[tags-cl-loop-continue]."
   (interactive (let ((common  (query-replace-read-args "Query replace regexp in marked files" t t)))
                  (list (nth 0 common)
                        (nth 1 common)
@@ -10767,8 +10767,8 @@ with the command \\[tags-loop-continue]."
           (error "File `%s' is visited read-only" file))))
     (if (< emacs-major-version 27)
         (tags-query-replace from to delimited `',dgmf-arg)
-      (fileloop-initialize-replace from to `',dgmf-arg (and (not (equal from (downcase from)))  'default) delimited)
-      (fileloop-continue))))
+      (filecl-loop-initialize-replace from to `',dgmf-arg (and (not (equal from (downcase from)))  'default) delimited)
+      (filecl-loop-continue))))
 
 
 (when (fboundp 'xref-collect-matches)   ; Emacs 25+
@@ -12329,7 +12329,7 @@ Otherwise, an error occurs in these cases."
 
       ;; Unquote names quoted by `ls' or by `dired-insert-directory'.
       ;; Prior to Emacs 23.3, this code was written using `read' (see commented code below),
-      ;; because that is faster than substituting \007 (4 chars) -> ^G (1 char) etc. in a loop.
+      ;; because that is faster than substituting \007 (4 chars) -> ^G (1 char) etc. in a cl-loop.
       ;; Unfortunately, that implementation required hacks such as dealing with filenames
       ;; with quotation marks in their names.
       (while (string-match (if (> emacs-major-version 21)
@@ -17560,7 +17560,7 @@ Otherwise, use the default state, as determined by
 (unless (fboundp 'read-number)
   (require 'strings nil t)) ;; (no error if not found): read-number (std in Emacs 22)
 
-(eval-when-compile (require 'cl)) ;; case (plus, for Emacs 20: pop)
+(eval-when-compile (require 'cl-lib)) ;; case (plus, for Emacs 20: pop)
 
 ;; Quiet the byte-compiler
 (defvar text-scale-mode)                ; In `face-remap.el' (Emacs 23+)
@@ -18804,7 +18804,7 @@ increment."
 
 (defun doremi-all-frames-bg/fg-1 (frame-parameter component increment)
   "Iteratively INCREMENT color FRAME-PARAMETER on all frames for COMPONENT.
-This is a Do Re Mi loop: increment in response to user actions.
+This is a Do Re Mi cl-loop: increment in response to user actions.
 FRAME-PARAMETER can be `background-color' or `foreground-color'.
 COMPONENT and INCREMENT are as for `doremi-increment-color'."
   (setq increment  (doremi-adjust-increment-for-color-component component increment))
@@ -18849,7 +18849,7 @@ COMPONENT and INCREMENT are as for `doremi-increment-color'."
 
 (defun doremi-frame-color-component (frame-parameter component increment &optional frame)
   "Iteratively INCREMENT color FRAME-PARAMETER of FRAME for COMPONENT.
-This is a Do Re Mi loop: increment in response to user actions.
+This is a Do Re Mi cl-loop: increment in response to user actions.
 FRAME-PARAMETER can be `background-color' or `foreground-color'.
 COMPONENT and INCREMENT are as for `doremi-increment-color'."
   (setq increment  (doremi-adjust-increment-for-color-component component increment))
@@ -18999,7 +18999,7 @@ See `doremi-bg+' for info about the other args."
 
 (defun doremi-all-faces-bg/fg-1 (frame-parameter component increment)
   "Iteratively INCREMENT color FRAME-PARAMETER of all faces for COMPONENT.
-This is a Do Re Mi loop: increment in response to user actions.
+This is a Do Re Mi cl-loop: increment in response to user actions.
 FRAME-PARAMETER can be `background-color' or `foreground-color'.
 COMPONENT and INCREMENT are as for `doremi-increment-color'."
   (setq increment  (doremi-adjust-increment-for-color-component component increment))
@@ -19035,7 +19035,7 @@ COMPONENT and INCREMENT are as for `doremi-increment-color'."
 
 (defun doremi-face-bg/fg-1 (frame-parameter face component &optional increment)
   "Iteratively INCREMENT color FRAME-PARAMETER of FACE for COMPONENT.
-This is a Do Re Mi loop: increment in response to user actions.
+This is a Do Re Mi cl-loop: increment in response to user actions.
 FRAME-PARAMETER can be `background-color' or `foreground-color'.
 COMPONENT and INCREMENT are as for `doremi-increment-color'."
   (unless increment (setq increment  1))
@@ -19081,7 +19081,7 @@ value. Use `\\[customize-face]' to revisit changes.")))
 (defun doremi-face-color-component (frame-parameter face component increment)
   "Iteratively INCREMENT color FRAME-PARAMETER of FACE for COMPONENT.
 The color is changed on all frames.
-This is a Do Re Mi loop: increment in response to user actions.
+This is a Do Re Mi cl-loop: increment in response to user actions.
 FRAME-PARAMETER can be `background-color' or `foreground-color'.
 COMPONENT and INCREMENT are as for `doremi-increment-color'.
 INCREMENT is scaled here, for RGB, by `doremi-RGB-increment-factor'."
@@ -21534,7 +21534,7 @@ effect.  See `facemenu-remove-face-function'."
 ;;
 ;;; Code:
 
-(eval-when-compile (when (< emacs-major-version 21) (require 'cl))) ;; dolist
+(eval-when-compile (when (< emacs-major-version 21) (require 'cl-lib))) ;; dolist
 
 ;; Quiet the byte compiler.
 (defvar image-minor-mode)
@@ -22175,7 +22175,7 @@ FRAME is the frame to apply factor to."
 ;;
 ;;; Code:
 
-(eval-when-compile (when (< emacs-major-version 21) (require 'cl)))
+(eval-when-compile (when (< emacs-major-version 21) (require 'cl-lib)))
  ;; dolist, push
 (require 'avoid nil t) ;; mouse-avoidance-point-position
 
@@ -22858,7 +22858,7 @@ arguments."
 ;;  `Info-read-node-name'   - Added optional arg DEFAULT.
 ;;  `Info-search' - 1. Fits frame.
 ;;                  2. Highlights found regexp if `search-highlight'.
-;;  `Info--search-loop' - Use `Info-search-beg' and `Info-search-end'.
+;;  `Info--search-cl-loop' - Use `Info-search-beg' and `Info-search-end'.
 ;;  `Info-set-mode-line' - Handles breadcrumbs in the mode line.
 ;;  `Info-mouse-follow-nearest-node' - With prefix arg, show node in
 ;;                                     a new Info buffer.
@@ -23202,7 +23202,7 @@ arguments."
 ;; 2020/11/02 dadams
 ;;     Faces info-file, info-*-item, info-xref-bookmarked: Tweaked defaults.
 ;; 2020/11/01 dadams
-;;     Added: info--user-search-failed, (redefinition of) Info--search-loop.
+;;     Added: info--user-search-failed, (redefinition of) Info--search-cl-loop.
 ;;     Info-search: Bind isearchp-restrict-to-region-flag to (not Info-isearch-search), for isearch+.el.
 ;;                  Update for recent Emacs as of 26.3.
 ;;     Info-isearch-search: Updated for Emacs 25+.
@@ -23244,7 +23244,7 @@ arguments."
 ;;              Info-fontify-single-quote-flag to Info-fontify-isolated-quote-flag
 ;;              info-single-quote to info-isolated-quote.
 ;;     info-isolated-quote face: changed default value.
-;;     info-fontify-quotations: Handle Info-fontify-isolated-quote-flag - separate loops.
+;;     info-fontify-quotations: Handle Info-fontify-isolated-quote-flag - separate cl-loops.
 ;; 2020/10/19 dadams
 ;;     Quotation highlighting is now same-line only, by default.
 ;;       Added: info-quotation-same-line-regexp, info-quoted+<>-same-line-regexp.
@@ -23740,7 +23740,7 @@ arguments."
 ;;; Code:
 
 (require 'info)
-(eval-when-compile (require 'cl)) ;; case
+(eval-when-compile (require 'cl-lib)) ;; case
 
 ;; These are optional, for cosmetic purposes.
 (require 'thingatpt nil t) ;; (no error if not found): symbol-at-point
@@ -28474,7 +28474,7 @@ over.  To remove the highlighting, just start an incremental search:
                (found                             (save-excursion
                                                     (save-restriction
                                                       (widen)
-                                                      (Info--search-loop regexp bound backward))))
+                                                      (Info--search-cl-loop regexp bound backward))))
                (isearchp-restrict-to-region-flag  (not Info-isearch-search))) ; For `isearch+.el'.
 
           (setq Info-search-case-fold  case-fold-search)
@@ -28523,7 +28523,7 @@ over.  To remove the highlighting, just start an incremental search:
             (when backward
                       (goto-char (Info-search-end)))
             (setq list   (cdr list)
-                          found  (Info--search-loop regexp nil backward))
+                          found  (Info--search-cl-loop regexp nil backward))
             (when found (setq list  ())))
               (if found
               (message "")
@@ -28564,7 +28564,7 @@ over.  To remove the highlighting, just start an incremental search:
 ;;
 ;; Use `Info-search-beg' and `Info-search-end', not `point-min' and `point-max'.
 ;;
-(defun Info--search-loop (regexp bound backward)
+(defun Info--search-cl-loop (regexp bound backward)
   (when backward
     (narrow-to-region (save-excursion ; Hide Info file header for backward search.
                         (goto-char (Info-search-beg))
