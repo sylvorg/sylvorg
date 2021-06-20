@@ -123,7 +123,7 @@ Adapted From: https://github.com/hlissner/doom-emacs/blob/develop/early-init.el
 (straight-use-package 'leaf-keywords)
 
 (defun load-emacs-file (path) (interactive)
-    (load-file (concat user-emacs-directory path)))
+    (load (concat user-emacs-directory path)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -199,13 +199,13 @@ Adapted From: https://github.com/hlissner/doom-emacs/blob/develop/early-init.el
 ;; <<20210601225231422834500>>
 
 ;; From: https://github.com/hartzell/straight.el/commit/882649137f73998d60741c7c8c993c7ebbe0f77a#diff-b335630551682c19a781afebcf4d07bf978fb1f8ac04c6bf87428ed5106870f5R1649
-;; (setq straight-disable-byte-compilation t)
+(setq straight-disable-byte-compilation t)
 
 ;; Adapted From: https://github.com/jwiegley/use-package#use-package-chords
 ;; Important: https://github.com/noctuid/general.el/issues/53#issuecomment-307262154
 (use-package use-package-chords :demand t)
 
-(use-package use-package-extras :straight nil :load-path "use-package-extras")
+(use-package use-package-extras :demand t :straight nil :load-path "use-package-extras")
 (use-package use-package-hydra
     :demand t
     :use-package-preconfig (hydra :demand t :custom (hydra-hint-display-type 'lv))
@@ -324,14 +324,16 @@ And in my experience... Not a good idea; much too confusing. Use
 
 #+name: 20210603105149525867500
 #+begin_src emacs-lisp
-(use-package general
+(use-package tag
+    :straight nil
+    :load-path "tag"
     :demand t
     :use-package-preconfig (command-log-mode)
-    :load-emacs-file-preconfig ("naked.el")
-    :config (general-auto-unbind-keys)
-    :postmaster
-        (:keymaps '(global aiern-insert-state-map aiern-normal-state-map)
-            (general-chord "./") 'aiern/end-of-line-and-indented-new-line
+    :load-emacs-file-preconfig ("naked")
+    :config
+        (tag-auto-unbind-keys)
+        (tag-def :keymaps '(global aiern-insert-state-map aiern-normal-state-map)
+            (tag-chord "./") 'aiern/end-of-line-and-indented-new-line
 
             ;; Adapted From:
             ;; Answer: https://stackoverflow.com/a/4557027/10827766
@@ -344,12 +346,12 @@ And in my experience... Not a good idea; much too confusing. Use
             "\e[D" [left]
             "\eOC" [right]
             "\e[C" [right])
-        (:keymaps '(
+        (tag-def :keymaps '(
                 minibuffer-local-map
                 counsel-describe-map
                 helm-buffer-map)
             "M-x" 'exit-minibuffer)
-    :custom (general-implicit-kbd t))
+    :custom (tag-implicit-kbd t))
 #+end_src
 
 **** modal modes
@@ -375,6 +377,13 @@ And in my experience... Not a good idea; much too confusing. Use
     :keymap '%m
     ;; :transient t
     )
+;; :commands (
+;;     aiern/%p-hercules-toggle
+;;     aiern/%p-show-top-level
+;;     aiern/toggle-%p
+;;     aiern/toggle-%p-force
+;;     aiern/toggle-%p-hercules
+;;     aiern/toggle-%p-hercules-force)
 :config/defun
     (aiern/%p-hercules-toggle nil (interactive))
     (aiern/%p-show-top-level nil (interactive)
@@ -405,8 +414,8 @@ And in my experience... Not a good idea; much too confusing. Use
     :straight (hercules :type git :host gitlab :repo "jjzmajic/hercules.el" :branch "master")
     :demand t
     :gone
-        ((general-chord "\\\\") 'aiern/toggle-which-key)
-        ((general-chord "\\]") 'map-of-infinity/body)
+        ((tag-chord "\\\\") 'aiern/toggle-which-key)
+        ((tag-chord "\\]") 'map-of-infinity/body)
     :hydra (map-of-infinity (:color blue :pre (progn
                 <<20210601225233511900800>>))
             ("`" nil "cancel")
@@ -468,7 +477,7 @@ And in my experience... Not a good idea; much too confusing. Use
 (use-package ryo-modal
     :straight (ryo-modal :type git :host github :repo "kungsgeten/ryo-modal" :branch "master")
     :demand t
-    :gone ((general-chord "  ") 'aiern/toggle-ryo-hercules)
+    :gone ((tag-chord "  ") 'aiern/toggle-ryo-hercules)
     :hydra+
     <<20210601225304341247500(map="ryo-modal-mode-map", mode="ryo-modal-mode", prefix="ryo", short="r")>>
         ;; From: https://github.com/Kungsgeten/ryo-modal#which-key-integration
@@ -499,14 +508,14 @@ And in my experience... Not a good idea; much too confusing. Use
                 :branch "master"))
     :gsetq (evil-escape-key-sequence nil)
     :gone
-        ((general-chord "kk") 'aiern/toggle-evil)
-        ((general-chord "KK") 'aiern/toggle-evil-force)
+        ((tag-chord "kk") 'aiern/toggle-evil)
+        ((tag-chord "KK") 'aiern/toggle-evil-force)
         
         ;; TODO
-        ;; ((general-chord "") 'aiern/toggle-evil-ex-hercules)
-        ;; ((general-chord "") 'aiern/toggle-evil-ex-hercules-force)
+        ;; ((tag-chord "") 'aiern/toggle-evil-ex-hercules)
+        ;; ((tag-chord "") 'aiern/toggle-evil-ex-hercules-force)
         
-        ((general-chord ",,") 'evil-ex)
+        ((tag-chord ",,") 'evil-ex)
     :leaf (evil :advice ((:override evil-insert-state (lambda (&optional _) (interactive)
         (aiern/disable-all-modal-modes)))))
     :config/defun*
@@ -519,10 +528,10 @@ And in my experience... Not a good idea; much too confusing. Use
         ;; Kept for documentation porpoises
         ;; (eval
         ;;       `(ryo-modal-keys
-        ;;             ("l l" ,(general-simulate-key ":wq <RET>") :first '(evil-normal-state) :name "wq")
-        ;;             ("l p" ,(general-simulate-key ":q <RET>") :first '(evil-normal-state) :name "q")
-        ;;             ("l o" ,(general-simulate-key ":w <RET>") :first '(evil-normal-state) :name "w")
-        ;;             ("l q" ,(general-simulate-key ":q! <RET>") :first '(evil-normal-state) :name "q!")))
+        ;;             ("l l" ,(tag-simulate-key ":wq <RET>") :first '(evil-normal-state) :name "wq")
+        ;;             ("l p" ,(tag-simulate-key ":q <RET>") :first '(evil-normal-state) :name "q")
+        ;;             ("l o" ,(tag-simulate-key ":w <RET>") :first '(evil-normal-state) :name "w")
+        ;;             ("l q" ,(tag-simulate-key ":q! <RET>") :first '(evil-normal-state) :name "q!")))
 
         ;; Use to get command name:
         ;; Eg: (cdr (assoc "q" evil-ex-commands))
@@ -560,7 +569,7 @@ And in my experience... Not a good idea; much too confusing. Use
                     ("p" evil-quit ":q")
                     ("o" evil-write ":w")
                     ("O" evil-write-all ":wa")
-                    ;; ("q" (funcall (general-simulate-key ":q! <RET>")) ":q!"))
+                    ;; ("q" (funcall (tag-simulate-key ":q! <RET>")) ":q!"))
                     ("q" (funcall (evil-quit t)) ":q!"))
                 :name "evil exits"))
 #+end_src
@@ -580,14 +589,14 @@ And in my experience... Not a good idea; much too confusing. Use
     :straight nil
     :load-path "aiern"
     :gone
-        ((general-chord "uu") 'aiern/toggle-aiern)
-        ((general-chord "UU") 'aiern/toggle-aiern-force)
+        ((tag-chord "uu") 'aiern/toggle-aiern)
+        ((tag-chord "UU") 'aiern/toggle-aiern-force)
 
         ;; TODO
-        ;; ((general-chord "") 'aiern/toggle-aiern-ex-hercules)
-        ;; ((general-chord "") 'aiern/toggle-aiern-ex-hercules-force)
+        ;; ((tag-chord "") 'aiern/toggle-aiern-ex-hercules)
+        ;; ((tag-chord "") 'aiern/toggle-aiern-ex-hercules-force)
 
-        ((general-chord ",.") 'aiern-ex)
+        ((tag-chord ",.") 'aiern-ex)
     :hydra+
     <<20210601225304341247500(map="aiern-normal-state-map", mode="aiern-mode", prefix="aiern", short="a")>>
         ;; TODO: How do I create a keymap `aiern-ex-keymap' out of the `aiern-ex-commands' alist?
@@ -624,9 +633,10 @@ And in my experience... Not a good idea; much too confusing. Use
 #+name: 20210601225312959948800
 #+begin_src emacs-lisp
 (use-package god-mode
+    ;; :tag (:gone (tag-chord "jj") 'aiern/toggle-god)
     :gone
-        ((general-chord "jj") 'aiern/toggle-god)
-        ((general-chord ";'") 'god-execute-with-current-bindings)
+        ((tag-chord "jj") 'aiern/toggle-god)
+        ((tag-chord ";'") 'god-execute-with-current-bindings)
     :hydra+
     <<20210601225304341247500(map="global-map", mode="god-local-mode", prefix="god", short="g")>>
         (which-key-enable-god-mode-support))
@@ -663,7 +673,7 @@ And in my experience... Not a good idea; much too confusing. Use
 #+name: 20210601225316366565400
 #+begin_src emacs-lisp
 (use-package objed
-    :gone ((general-chord "ii") 'aiern/toggle-objed)
+    :gone ((tag-chord "ii") 'aiern/toggle-objed)
     :hydra+
     <<20210601225304341247500(map="objed-map", mode="objed-mode", prefix="objed", short="o")>>)
 #+end_src
@@ -693,7 +703,7 @@ And in my experience... Not a good idea; much too confusing. Use
 #+name: 20210601225319683820700
 #+begin_src emacs-lisp
 (use-package modalka
-    :gone ((general-chord "::") 'aiern/toggle-modalka-hercules)
+    :gone ((tag-chord "::") 'aiern/toggle-modalka-hercules)
     :hydra+
     <<20210601225304341247500(map="modalka-mode-map", mode="modalka-mode", prefix="modalka", short="m")>>)
 #+end_src
@@ -919,14 +929,13 @@ And in my experience... Not a good idea; much too confusing. Use
 #+begin_src emacs-lisp
 (defun display-startup-echo-area-message nil (aiern/which-key-show-top-level))
 
-(use-package rainbow-delimiters :hook (prog-mode-hook . rainbow-delimiters-mode))
+(use-package rainbow-delimiters :hook (prog-mode . rainbow-delimiters-mode))
 
 ;; Adapted From: https://github.com/seagle0128/doom-aiern-modeline#customize
 (use-package doom-aiern-modeline
     :straight nil
     :load-path "doom-aiern-modeline"
-    ;; :hook (after-init . doom-aiern-modeline-mode)
-    :gaa doom-aiern-modeline-mode
+    :hook (after-init . doom-aiern-modeline-mode)
     :use-package-preconfig
         (all-the-icons)
         (shrink-path)
@@ -1094,7 +1103,7 @@ And in my experience... Not a good idea; much too confusing. Use
 
 (use-package writeroom-mode
     :hook emacs-startup
-    :gone ((general-chord "zz") 'writeroom-mode)
+    :gone ((tag-chord "zz") 'writeroom-mode)
     :gsetq
         (writeroom-fullscreen-effect t)
         (writeroom-fringes-outside-margins t)
@@ -1119,8 +1128,8 @@ And in my experience... Not a good idea; much too confusing. Use
     :init/defun* (aiern/yankpad-hercules-toggle nil (interactive))
     :gsetq (yankpad-file "./yankpad.org")
     :gone
-        ((general-chord "[[") 'aiern/yankpad-hercules-toggle)
-        ((general-chord "]]") 'yankpad-expand)
+        ((tag-chord "[[") 'aiern/yankpad-hercules-toggle)
+        ((tag-chord "]]") 'yankpad-expand)
     :config (yankpad-map)
     :hercules
         (:show-funs #'aiern/yankpad-hercules-show
@@ -1140,35 +1149,35 @@ And in my experience... Not a good idea; much too confusing. Use
 ;;     (use-package oneonone
 ;;         :demand t
 ;;         :load-emacs-file-preconfig
-;;             ("fit-frame.el")
-;;             ("autofit-frame.el")
-;;             ;; ("buff-menu+.el")
-;;             ("compile-.el")
-;;             ("compile+.el")
-;;             ("grep+.el")
-;;             ("dired+.el")
-;;             ("dired-details.el")
-;;             ("dired-details+.el")
-;;             ("doremi.el")
-;;             ("hexrgb.el")
-;;             ("frame-fns.el")
-;;             ("faces+.el")
-;;             ("doremi-frm.el")
-;;             ("eyedropper.el")
-;;             ("facemenu+.el")
-;;             ("frame+.el")
-;;             ("help+.el")
-;;             ("info+.el")
-;;             ("menu-bar+.el")
-;;             ("mouse+.el")
-;;             ("setup-keys.el")
-;;             ("strings.el")
-;;             ;; ("simple+.el")
-;;             ("frame-cmds.el")
-;;             ("thumb-frm.el")
-;;             ("window+.el")
-;;             ("zoom-frm.el")
-;;             ("oneonone.el")
+;;             ("fit-frame")
+;;             ("autofit-frame")
+;;             ;; ("buff-menu+")
+;;             ("compile-")
+;;             ("compile+")
+;;             ("grep+")
+;;             ("dired+")
+;;             ("dired-details")
+;;             ("dired-details+")
+;;             ("doremi")
+;;             ("hexrgb")
+;;             ("frame-fns")
+;;             ("faces+")
+;;             ("doremi-frm")
+;;             ("eyedropper")
+;;             ("facemenu+")
+;;             ("frame+")
+;;             ("help+")
+;;             ("info+")
+;;             ("menu-bar+")
+;;             ("mouse+")
+;;             ("setup-keys")
+;;             ("strings")
+;;             ;; ("simple+")
+;;             ("frame-cmds")
+;;             ("thumb-frm")
+;;             ("window+")
+;;             ("zoom-frm")
+;;             ("oneonone")
 ;;         :gsetq
 ;;             (1on1-minibuffer-frame-width 10000)
 ;;             (1on1-minibuffer-frame-height 10000))))
@@ -1187,7 +1196,7 @@ And in my experience... Not a good idea; much too confusing. Use
 
 ;; (ansi-term-color-vector [unspecified "white" "red" "green" "yellow" "royal blue" "magenta" "cyan" "white"] t)
 ;; (ansi-color-names-vector [unspecified "white" "red" "green" "yellow" "royal blue" "magenta" "cyan" "white"] t)
-(load-emacs-file "fringe.el")
+(load-emacs-file "fringe")
 ;; (with-eval-after-load 'fringe-mode (fringe-mode (quote (1 . 1)) nil (fringe)))
 (with-eval-after-load 'fringe-mode (fringe-mode 'none))
 
@@ -1215,7 +1224,7 @@ And in my experience... Not a good idea; much too confusing. Use
 #+begin_src emacs-lisp
 (use-package term
     :config/defun* (aiern/term-hercules-toggle nil (interactive))
-    :general
+    :tag
         (:keymaps 'term-mode-map
             "C-c C-c" 'term-interrupt-subjob
             "C-m"     'term-send-raw
@@ -1284,10 +1293,10 @@ Mostly from [[Emux's After Installing Section][https://github.com/re5et/emux#aft
 (use-package emux
     ;; :straight (emux :type git :host github :repo "re5et/emux" :branch "master")
     :load-emacs-file-preconfig
-        ("emux/emux-base.el")
-        ("emux/emux-term.el")
-        ("emux/emux-screen.el")
-        ("emux/emux-session.el")
+        ("emux/emux-base")
+        ("emux/emux-term")
+        ("emux/emux-screen")
+        ("emux/emux-session")
     :config/defun*
         (aiern/make-frame nil (interactive) (modify-frame-parameters (make-frame) ((name . "emux"))))
         (aiern/select-emux nil (interactive) (select-frame-by-name "emux"))
@@ -1297,7 +1306,7 @@ Mostly from [[Emux's After Installing Section][https://github.com/re5et/emux#aft
         ;; (""          'aiern/select-emux)
         ("C-x c"     'emux-term-create)
         ("C-x P"     'emux-session-load-template)
-    :general
+    :tag
         (:keymaps 'term-mode-map
             "C-S-p"     'previous-line
             "C-S-r"     'isearch-backward
@@ -1362,7 +1371,7 @@ Adapted From: https://tapoueh.org/blog/2009/09/escreen-integration/
 #+name: 20210601225345097323100
 #+begin_src emacs-lisp :comments org
 (use-package escreen
-    :load-emacs-file-preconfig ("escreen.el")
+    :load-emacs-file-preconfig ("escreen")
     :init/defun* (aiern/escreen-hercules-toggle nil (interactive))
     :gone
         ;; ((naked "C-\\ l") 'escreen-get-active-screen-numbers-with-emphasis)
@@ -1373,8 +1382,8 @@ Adapted From: https://tapoueh.org/blog/2009/09/escreen-integration/
 
         ;; ([s-mouse-4] 'dim:escreen-goto-prev-screen)
         ;; ([s-mouse-5] 'dim:escreen-goto-next-screen)
-        ((general-chord "||") 'aiern/escreen-hercules-toggle)
-    ;; :general
+        ((tag-chord "||") 'aiern/escreen-hercules-toggle)
+    ;; :tag
         ;; (:keymaps 'escreen-map
             ;; escreen-prefix-char 'dim:escreen-goto-last-screen)
         ;; (:keymaps 'term-raw-map
@@ -1518,8 +1527,8 @@ Adapted from [[Ergoemacs' Emacs Lisp Code for Setting PATH and exec-path section
 (use-package damascus
     :demand t
     :straight nil
-    :load-emacs-file-preconfig ("damascus.el")
-    :load-emacs-file-postconfig ("help+20.el")
+    :load-emacs-file-preconfig ("damascus")
+    :load-emacs-file-postconfig ("help+20")
     ;; :hook
         ;; (find-file . aiern/set-buffer-save-without-query)
     :gsetq
@@ -1632,7 +1641,9 @@ Adapted from [[Ergoemacs' Emacs Lisp Code for Setting PATH and exec-path section
         ;; should never be allowed to enter Emacs in the first place.
         ;; (put 'buffer-save-without-query 'safe-local-variable #'booleanp)
 
-        (load-theme 'dracula-purple-dark))
+        (load-theme 'dracula-purple-dark)
+        (unless straight-disable-byte-compilation
+            (byte-recompile-directory user-emacs-directory nil t)))
 #+end_src
 
 *** org-tangle

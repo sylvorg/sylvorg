@@ -64,6 +64,15 @@ tangle-use-package-extras: tangle-setup
 # User: https://askubuntu.com/users/267867/peter-w-osel
 |yes yes | ~/.emacs.d/org-tangle ~/shadowrylander/home/.emacs.d/use-package-extras/README.org
 
+tangle-alamode: tangle-setup
+# Adapted From:
+# Answer: https://askubuntu.com/a/338860/1058868
+# User: https://askubuntu.com/users/1366/lesmana
+# From:
+# Answer: https://askubuntu.com/a/446480/1058868
+# User: https://askubuntu.com/users/267867/peter-w-osel
+|yes yes | ~/.emacs.d/org-tangle ~/shadowrylander/home/.emacs.d/alamode/README.org
+
 tangle: tangle-setup
 # Adapted From:
 # Answer: https://askubuntu.com/a/338860/1058868
@@ -74,7 +83,7 @@ tangle: tangle-setup
 |yes yes | ~/.emacs.d/org-tangle ~/shadowrylander/*.aiern.org
 |yes yes | ~/.emacs.d/org-tangle ~/shadowrylander/README.org
 
-tangle-all: tangle tangle-use-package-extras
+tangle-all: tangle tangle-use-package-extras tangle-alamode
 
 emacs-setup: tangle-damascus emacs-copy
 
@@ -103,4 +112,14 @@ push-use-package-extras:
 |-git -C ~/shadowrylander/home/.emacs.d/use-package-extras commit --allow-empty-message -am ""
 |-git -C ~/shadowrylander/home/.emacs.d/use-package-extras push
 
-push-all: push push-aiern push-doom-aiern-modeline push-use-package-extras
+push-tag:
+|git -C ~/shadowrylander/home/.emacs.d/tag add .
+|-git -C ~/shadowrylander/home/.emacs.d/tag commit --allow-empty-message -am ""
+|-git -C ~/shadowrylander/home/.emacs.d/tag push
+
+push-alamode:
+|git -C ~/shadowrylander/home/.emacs.d/alamode add .
+|-git -C ~/shadowrylander/home/.emacs.d/alamode commit --allow-empty-message -am ""
+|-git -C ~/shadowrylander/home/.emacs.d/alamode push
+
+push-all: push push-aiern push-doom-aiern-modeline push-use-package-extras push-tag push-alamode

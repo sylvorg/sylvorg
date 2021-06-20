@@ -1399,14 +1399,14 @@ ANGLES."
                      (prefix     0)
                      (bits       0))
                  (while (naked-string-match-p "^[ACHMsS]-." word)
-                   (incf bits (cdr (assq (aref word 0) '((?A . ?\A-\^@) (?C . ?\C-\^@)
+                   (cl-incf bits (cdr (assq (aref word 0) '((?A . ?\A-\^@) (?C . ?\C-\^@)
                                                          (?H . ?\H-\^@) (?M . ?\M-\^@)
                                                          (?s . ?\s-\^@) (?S . ?\S-\^@)))))
-                   (incf prefix 2)
+                   (cl-incf prefix 2)
                    (cl-callf substring word 2))
                  (when (naked-string-match-p "^\\^.$" word)
-                   (incf bits ?\C-\^@)
-                   (incf prefix)
+                   (cl-incf bits ?\C-\^@)
+                   (cl-incf prefix)
                    (cl-callf substring word 1))
                  (let ((found  (assoc word '(("NUL" . "\0") ("RET" . "\r") ("LFD" . "\n")
                                              ("ESC" . "\e") ("SPC" . " ") ("DEL" . "\177")
@@ -5213,7 +5213,7 @@ The top left corner of the frame is offset from POSITION according to
 ;;
 ;;; Code:
 
-(eval-when-compile (require 'cl-lib)) ;; case, incf (plus, for Emacs 20: dolist, dotimes)
+(eval-when-compile (require 'cl-lib)) ;; case, cl-incf (plus, for Emacs 20: dolist, dotimes)
 (require 'frame-fns) ;; frame-geom-value-cons, frame-geom-value-numeric, frames-on, get-frame-name,
                      ;; get-a-frame, read-frame
 (require 'strings nil t) ;; (no error if not found) read-buffer
@@ -5947,7 +5947,7 @@ In Lisp code:
                    (frame-geom-value-numeric 'height new-height))
                (cons 'restore-height orig-height)))))
     (show-frame frame)
-    (incf fr-origin (if (eq direction 'horizontal) fr-pixel-width fr-pixel-height))))
+    (cl-incf fr-origin (if (eq direction 'horizontal) fr-pixel-width fr-pixel-height))))
 
 ;;;###autoload
 (unless (fboundp 'restore-frame-horizontally)
@@ -6190,7 +6190,7 @@ the pixel width and height of the rectangle."
                           (if (eq direction 'horizontal) (or y-min-pix  0) fr-origin))
       (show-frame fr)
       ;; Move over the width or height of one frame, and add one border width.
-      (incf fr-origin (+ (or (cdr (assq 'border-width (frame-parameters fr)))  0)
+      (cl-incf fr-origin (+ (or (cdr (assq 'border-width (frame-parameters fr)))  0)
                          (if (eq direction 'horizontal) fr-pixel-width fr-pixel-height))))))
 
 (defun frcmds-extra-pixels-width (frame)
