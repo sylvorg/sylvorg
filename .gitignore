@@ -30,4 +30,7 @@
 !org-tangle
 !**/**/org-tangle
 
+!peru.yaml
+!**/**/peru.yaml
+
 !LICENSE

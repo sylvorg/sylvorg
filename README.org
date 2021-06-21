@@ -26,20 +26,6 @@ shadowrylander
 (format-time-string "%Y%m%d%H%M%S%N")
 #+end_src
 
-* current projects
-
-# !!! Local projects are in the `inca' directory !!!
-
-#+call: hash() :exports none
-
-#+RESULTS:
-: 20210601181716264678600
-
-#+name: 20210601181716264678600
-#+begin_src text
-<<username>>/<<username>> ~/<<username>>/home/<<username>>
-#+end_src
-
 * makefile
 
 #+call: hash() :exports none
@@ -50,10 +36,7 @@ shadowrylander
 #+name: 20210601181725825830000
 #+begin_src makefile :tangle makefile
 .RECIPEPREFIX := |
-
-init:
-|-git clone --recurse-submodule https://github.com/<<20210601181716264678600>>
-.DEFAULT_GOAL := init
+# .DEFAULT_GOAL := init
 
 rebuild:
 |chmod +x ./wheee
@@ -64,123 +47,24 @@ switch:
 |./wheee --use-hash ${HMASH} -H make --home-manager
 |./wheee --use-hash ${RMASH} -H make --home-manager
 
-# doom-set:
-# |rsync -avvczz --delete ~/<<username>>/home/.doom.d/ ~/.doom.d/
-# |chmod +x ~/.doom.d/org-tangle
-# |yes yes| ~/.doom.d/org-tangle ~/<<username>>/doom.aiern.org
-# |yes yes| ~/.doom.d/org-tangle ~/<<username>>/home/.doom.d/aiern/README.org
-# |rsync -avvczz --delete ~/<<username>>/home/.doom.d/ ~/.doom.d/
-
-# doom-sync:
-# |~/.emacs.d/bin/doom sync
-
-# doom-check:
-# |~/.emacs.d/bin/doom doctor
-
-# doom-test:
-# |emacs ~/<<username>>/doom.aiern.org
-
-# doom-pre: doom-set doom-sync doom-check
-
-# doom: doom-pre doom-test
-
-# doom-upgrade: doom-pre
-# |printf "n\ny\n" | ~/.emacs.d/bin/doom upgrade
-
-# doom-super: doom-set doom-sync doom-check doom-upgrade doom-sync doom-check doom-test
-
-emacs-copy:
-|rsync -avvczz ~/<<username>>/home/.emacs.d/ ~/.emacs.d/
-
-tangle-setup: emacs-copy
-|chmod +x ~/.emacs.d/org-tangle
-|yes yes| ~/.emacs.d/org-tangle ~/<<username>>/damascus.aiern.org
-|rsync -avvczz ~/<<username>>/home/.emacs.d/ ~/.emacs.d/
-
-tangle-damascus: tangle-setup
-# Adapted From:
-# Answer: https://askubuntu.com/a/338860/1058868
-# User: https://askubuntu.com/users/1366/lesmana
-# From:
-# Answer: https://askubuntu.com/a/446480/1058868
-# User: https://askubuntu.com/users/267867/peter-w-osel
-|yes yes | ~/.emacs.d/org-tangle ~/<<username>>/damascus.aiern.org
-
-tangle-use-package-extras: tangle-setup
-# Adapted From:
-# Answer: https://askubuntu.com/a/338860/1058868
-# User: https://askubuntu.com/users/1366/lesmana
-# From:
-# Answer: https://askubuntu.com/a/446480/1058868
-# User: https://askubuntu.com/users/267867/peter-w-osel
-|yes yes | ~/.emacs.d/org-tangle ~/<<username>>/home/.emacs.d/lib/use-package-extras/README.org
-
-tangle-alamode: tangle-setup
-# Adapted From:
-# Answer: https://askubuntu.com/a/338860/1058868
-# User: https://askubuntu.com/users/1366/lesmana
-# From:
-# Answer: https://askubuntu.com/a/446480/1058868
-# User: https://askubuntu.com/users/267867/peter-w-osel
-|yes yes | ~/.emacs.d/org-tangle ~/<<username>>/home/.emacs.d/lib/alamode/README.org
-
-tangle: tangle-setup
-# Adapted From:
-# Answer: https://askubuntu.com/a/338860/1058868
-# User: https://askubuntu.com/users/1366/lesmana
-# From:
-# Answer: https://askubuntu.com/a/446480/1058868
-# User: https://askubuntu.com/users/267867/peter-w-osel
-|yes yes | ~/.emacs.d/org-tangle ~/<<username>>/*.aiern.org
-|yes yes | ~/.emacs.d/org-tangle ~/<<username>>/README.org
-
-tangle-all: tangle tangle-use-package-extras tangle-alamode
-
-emacs-setup: tangle-damascus emacs-copy
-
-emacs-test:
-|emacs ~/<<username>>/damascus.aiern.org
-
-emacs: emacs-setup emacs-test
-
-clone-all:
-|git clone --recurse-submodule git@github.com:shadowrylander/aiern ~/<<username>>/home/.emacs.d/lib/aiern
-|git clone --recurse-submodule git@github.com:shadowrylander/doom-aiern-modeline ~/<<username>>/home/.emacs.d/lib/doom-aiern-modeline
-|git clone --recurse-submodule git@github.com:shadowrylander/use-package-extras ~/<<username>>/home/.emacs.d/lib/use-package-extras
-|git clone --recurse-submodule git@github.com:shadowrylander/tag ~/<<username>>/home/.emacs.d/lib/tag
-|git clone --recurse-submodule git@github.com:shadowrylander/alamode ~/<<username>>/home/.emacs.d/lib/alamode
+pull:
+|git -C ~/<<username>> pull
 
 push:
 |git -C ~/<<username>> add .
 |-git -C ~/<<username>> commit --allow-empty-message -am ""
 |-git -C ~/<<username>> push
 
-push-aiern:
-|git -C ~/<<username>>/home/.emacs.d/lib/aiern add .
-|-git -C ~/<<username>>/home/.emacs.d/lib/aiern commit --allow-empty-message -am ""
-|-git -C ~/<<username>>/home/.emacs.d/lib/aiern push
+tangle-all:
+|make -f ~/<<username>>/home/.emacs.d/makefile tangle-all
 
-push-doom-aiern-modeline:
-|git -C ~/<<username>>/home/.emacs.d/lib/doom-aiern-modeline add .
-|-git -C ~/<<username>>/home/.emacs.d/lib/doom-aiern-modeline commit --allow-empty-message -am ""
-|-git -C ~/<<username>>/home/.emacs.d/lib/doom-aiern-modeline push
+push-emacs:
+|make -f ~/<<username>>/home/.emacs.d/makefile push
 
-push-use-package-extras:
-|git -C ~/<<username>>/home/.emacs.d/lib/use-package-extras add .
-|-git -C ~/<<username>>/home/.emacs.d/lib/use-package-extras commit --allow-empty-message -am ""
-|-git -C ~/<<username>>/home/.emacs.d/lib/use-package-extras push
+emacs:
+|make -f ~/<<username>>/home/.emacs.d/makefile emacs
 
-push-tag:
-|git -C ~/<<username>>/home/.emacs.d/lib/tag add .
-|-git -C ~/<<username>>/home/.emacs.d/lib/tag commit --allow-empty-message -am ""
-|-git -C ~/<<username>>/home/.emacs.d/lib/tag push
-
-push-alamode:
-|git -C ~/<<username>>/home/.emacs.d/lib/alamode add .
-|-git -C ~/<<username>>/home/.emacs.d/lib/alamode commit --allow-empty-message -am ""
-|-git -C ~/<<username>>/home/.emacs.d/lib/alamode push
-
-push-all: push push-aiern push-doom-aiern-modeline push-use-package-extras push-tag push-alamode
+super-push: tangle-all push push-emacs
 #+end_src
 
 * previous projects

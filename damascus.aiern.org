@@ -8,6 +8,49 @@ which was written by [[https://emacs.stackexchange.com/users/2710/andrew-swann][
 
 * home
 ** .emacs.d
+*** makefile
+
+#+call: hash() :exports none
+
+#+name: 
+#+begin_src makefile :tangle (aiern/tangle-path)
+.RECIPEPREFIX := |
+.DEFAULT_GOAL := emacs
+
+pull:
+|git -C ~/<<username>> subtree pull-all
+
+push:
+|-git -C ~/<<username>> subtree push-all
+
+copy:
+|rsync -avvczz ~/<<username>>/home/.emacs.d/ ~/.emacs.d/
+
+tangle-setup: copy
+|chmod +x ~/.emacs.d/org-tangle
+|yes yes| ~/.emacs.d/org-tangle ~/<<username>>/damascus.aiern.org
+|make -f ~/<<username>>/home/.emacs.d/makefile copy
+
+tangle: tangle-setup
+|yes yes | ~/.emacs.d/org-tangle ~/<<username>>/*.aiern.org
+|yes yes | ~/.emacs.d/org-tangle ~/<<username>>/README.org
+
+tangle-damascus: tangle-setup
+|yes yes | ~/.emacs.d/org-tangle ~/<<username>>/damascus.aiern.org
+
+tangle-libs: tangle-setup
+|yes yes | find ~/<<username>>/home/.emacs.d/lib -name README.org -exec ~/.emacs.d/org-tangle "{}" \;
+
+tangle-all: tangle tangle-libs
+
+setup: tangle-damascus copy
+
+test:
+|emacs ~/<<username>>/damascus.aiern.org
+
+emacs: setup test
+#+end_src
+
 *** lib
 **** damascus.el
 
