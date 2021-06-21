@@ -1,0 +1,24 @@
+[subtree "home/.emacs.d/lib/aiern"]
+	url = aiern
+	path = home/.emacs.d/lib/aiern
+	branch = master
+[subtree "home/.emacs.d/lib/doom-aiern-modeline"]
+	url = doom-aiern-modeline
+	path = home/.emacs.d/lib/doom-aiern-modeline
+	branch = master
+[subtree "home/.emacs.d/lib/tag"]
+	url = tag
+	path = home/.emacs.d/lib/tag
+	branch = master
+[subtree "home/.emacs.d/lib/emux"]
+	url = emux
+	path = home/.emacs.d/lib/emux
+	branch = master
+[subtree "home/.emacs.d/lib/use-package-extras"]
+	url = use-package-extras
+	path = home/.emacs.d/lib/use-package-extras
+	branch = main
+[subtree "home/.emacs.d/lib/alamode"]
+	url = alamode
+	path = home/.emacs.d/lib/alamode
+	branch = main
