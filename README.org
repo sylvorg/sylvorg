@@ -36,7 +36,10 @@ shadowrylander
 #+name: 20210601181725825830000
 #+begin_src makefile :tangle makefile
 .RECIPEPREFIX := |
-# .DEFAULT_GOAL := init
+.DEFAULT_GOAL := super-push
+
+init:
+|sudo cp git-subtree.sh $$(git --exec-path)/git-subtree
 
 rebuild:
 |chmod +x ./wheee

@@ -1,5 +1,8 @@
 .RECIPEPREFIX := |
-# .DEFAULT_GOAL := init
+.DEFAULT_GOAL := super-push
+
+init:
+|sudo cp git-subtree.sh $$(git --exec-path)/git-subtree
 
 rebuild:
 |chmod +x ./wheee
