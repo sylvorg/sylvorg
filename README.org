@@ -143,6 +143,13 @@ emacs-test:
 
 emacs: emacs-setup emacs-test
 
+clone-all:
+|git clone --recurse-submodule git@github.com:shadowrylander/aiern ~/<<username>>/home/.emacs.d/lib/aiern
+|git clone --recurse-submodule git@github.com:shadowrylander/doom-aiern-modeline ~/<<username>>/home/.emacs.d/lib/doom-aiern-modeline
+|git clone --recurse-submodule git@github.com:shadowrylander/use-package-extras ~/<<username>>/home/.emacs.d/lib/use-package-extras
+|git clone --recurse-submodule git@github.com:shadowrylander/tag ~/<<username>>/home/.emacs.d/lib/tag
+|git clone --recurse-submodule git@github.com:shadowrylander/alamode ~/<<username>>/home/.emacs.d/lib/alamode
+
 push:
 |git -C ~/<<username>> add .
 |-git -C ~/<<username>> commit --allow-empty-message -am ""
