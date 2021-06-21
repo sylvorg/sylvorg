@@ -1,0 +1,13 @@
+#!/usr/bin/env mdsh
+
+# TODO: Implement saku as well
+
+#+property: header-args -n -r -l "[{(<%s>)}]" :tangle-mode (identity 0444) :noweb yes :mkdirp yes
+
+# Adapted From:
+# Answer: https://stackoverflow.com/a/65232183/10827766
+# User: https://stackoverflow.com/users/776405/whil
+#+startup: show3levels
+
+* alamode
+
