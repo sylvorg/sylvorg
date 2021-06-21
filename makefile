@@ -62,7 +62,7 @@ tangle-use-package-extras: tangle-setup
 # From:
 # Answer: https://askubuntu.com/a/446480/1058868
 # User: https://askubuntu.com/users/267867/peter-w-osel
-|yes yes | ~/.emacs.d/org-tangle ~/shadowrylander/home/.emacs.d/use-package-extras/README.org
+|yes yes | ~/.emacs.d/org-tangle ~/shadowrylander/home/.emacs.d/lib/use-package-extras/README.org
 
 tangle-alamode: tangle-setup
 # Adapted From:
@@ -71,7 +71,7 @@ tangle-alamode: tangle-setup
 # From:
 # Answer: https://askubuntu.com/a/446480/1058868
 # User: https://askubuntu.com/users/267867/peter-w-osel
-|yes yes | ~/.emacs.d/org-tangle ~/shadowrylander/home/.emacs.d/alamode/README.org
+|yes yes | ~/.emacs.d/org-tangle ~/shadowrylander/home/.emacs.d/lib/alamode/README.org
 
 tangle: tangle-setup
 # Adapted From:
@@ -98,28 +98,28 @@ push:
 |-git -C ~/shadowrylander push
 
 push-aiern:
-|git -C ~/shadowrylander/home/.emacs.d/aiern add .
-|-git -C ~/shadowrylander/home/.emacs.d/aiern commit --allow-empty-message -am ""
-|-git -C ~/shadowrylander/home/.emacs.d/aiern push
+|git -C ~/shadowrylander/home/.emacs.d/lib/aiern add .
+|-git -C ~/shadowrylander/home/.emacs.d/lib/aiern commit --allow-empty-message -am ""
+|-git -C ~/shadowrylander/home/.emacs.d/lib/aiern push
 
 push-doom-aiern-modeline:
-|git -C ~/shadowrylander/home/.emacs.d/doom-aiern-modeline add .
-|-git -C ~/shadowrylander/home/.emacs.d/doom-aiern-modeline commit --allow-empty-message -am ""
-|-git -C ~/shadowrylander/home/.emacs.d/doom-aiern-modeline push
+|git -C ~/shadowrylander/home/.emacs.d/lib/doom-aiern-modeline add .
+|-git -C ~/shadowrylander/home/.emacs.d/lib/doom-aiern-modeline commit --allow-empty-message -am ""
+|-git -C ~/shadowrylander/home/.emacs.d/lib/doom-aiern-modeline push
 
 push-use-package-extras:
-|git -C ~/shadowrylander/home/.emacs.d/use-package-extras add .
-|-git -C ~/shadowrylander/home/.emacs.d/use-package-extras commit --allow-empty-message -am ""
-|-git -C ~/shadowrylander/home/.emacs.d/use-package-extras push
+|git -C ~/shadowrylander/home/.emacs.d/lib/use-package-extras add .
+|-git -C ~/shadowrylander/home/.emacs.d/lib/use-package-extras commit --allow-empty-message -am ""
+|-git -C ~/shadowrylander/home/.emacs.d/lib/use-package-extras push
 
 push-tag:
-|git -C ~/shadowrylander/home/.emacs.d/tag add .
-|-git -C ~/shadowrylander/home/.emacs.d/tag commit --allow-empty-message -am ""
-|-git -C ~/shadowrylander/home/.emacs.d/tag push
+|git -C ~/shadowrylander/home/.emacs.d/lib/tag add .
+|-git -C ~/shadowrylander/home/.emacs.d/lib/tag commit --allow-empty-message -am ""
+|-git -C ~/shadowrylander/home/.emacs.d/lib/tag push
 
 push-alamode:
-|git -C ~/shadowrylander/home/.emacs.d/alamode add .
-|-git -C ~/shadowrylander/home/.emacs.d/alamode commit --allow-empty-message -am ""
-|-git -C ~/shadowrylander/home/.emacs.d/alamode push
+|git -C ~/shadowrylander/home/.emacs.d/lib/alamode add .
+|-git -C ~/shadowrylander/home/.emacs.d/lib/alamode commit --allow-empty-message -am ""
+|-git -C ~/shadowrylander/home/.emacs.d/lib/alamode push
 
 push-all: push push-aiern push-doom-aiern-modeline push-use-package-extras push-tag push-alamode

@@ -5,7 +5,8 @@ This is used to hold larger files for =./oreo.aiern.org=.
 
 * home
 ** .emacs.d
-*** strings.el
+*** lib
+**** strings.el
 
 #+call: hash() :exports none
 
@@ -795,7 +796,7 @@ NOTE:
 ;;; strings.el ends here
 #+end_src
 
-*** eyedropper.el
+**** eyedropper.el
 
 #+call: hash() :exports none
 
@@ -1140,7 +1141,7 @@ Non-nil optional arg MSG-P means display an informative message."
 ;;; eyedropper.el ends here
 #+end_src
 
-*** naked.el
+**** naked.el
 
 #+call: hash() :exports none
 
@@ -1487,7 +1488,7 @@ instead of \"C-x <delete>\" and \"C-<delete>\"."
 
 
 
-*** escreen.el
+**** escreen.el
 
 #+call: hash() :exports none
 
@@ -2433,7 +2434,7 @@ Returns a list of numbers which represent screen numbers presently in use."
 ;;; escreen.el ends here
 #+end_src
 
-*** oneonone.el
+**** oneonone.el
 
 #+call: hash() :exports none
 
@@ -4598,7 +4599,7 @@ The top left corner of the frame is offset from POSITION according to
 #+end_src
 
 
-*** frame-cmds.el
+**** frame-cmds.el
 
 #+call: hash() :exports none
 
@@ -6794,7 +6795,7 @@ VARIABLE is a symbol that names a user option."
 #+end_src
 
 
-*** autofit-frame.el
+**** autofit-frame.el
 
 #+call: hash() :exports none
 
@@ -7327,7 +7328,7 @@ If the selected window is not dedicated, then:
 ;;; autofit-frame.el ends here
 #+end_src
 
-*** buff-menu+.el
+**** buff-menu+.el
 
 #+call: hash() :exports none
 
@@ -9295,7 +9296,7 @@ marked/flagged."
 ;;; buff-menu+.el ends here
 #+end_src
 
-*** compile-.el
+**** compile-.el
 
 #+call: hash() :exports none
 
@@ -9451,7 +9452,7 @@ Usable, e.g., as a member of `compilation-finish-functions'."
 ;;; compile-.el ends here
 #+end_src
 
-*** compile+.el
+**** compile+.el
 
 #+call: hash() :exports none
 

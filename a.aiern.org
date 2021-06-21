@@ -610,7 +610,8 @@ index c61df8ceb00..d973837f0d3 100644
 
 * home
 ** .emacs.d
-*** help+.el
+*** lib
+**** help+.el
 
 #+call: hash() :exports none
 
@@ -1311,7 +1312,7 @@ If you click elsewhere in a buffer other than the minibuffer, then
 ;;; help+.el ends here
 #+end_src
 
-*** help+20.el
+**** help+20.el
 
 #+call: hash() :exports none
 

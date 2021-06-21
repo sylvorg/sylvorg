@@ -8,7 +8,8 @@ which was written by [[https://emacs.stackexchange.com/users/2710/andrew-swann][
 
 * home
 ** .emacs.d
-*** damascus.el
+*** lib
+**** damascus.el
 
 #+call: hash() :exports none
 
@@ -83,6 +84,11 @@ Adapted From: https://github.com/hlissner/doom-emacs/blob/develop/early-init.el
 
 ;; Ensure Doom is running out of this file's directory
 (setq user-emacs-directory (file-name-directory load-file-name))
+
+(byte-compile-file (concat user-emacs-directory "init.el") t)
+(add-to-list 'load-path (concat user-emacs-directory "lib"))
+(add-to-list 'custom-theme-load-path (concat user-emacs-directory "themes"))
+(setq custom-safe-themes t)
 #+end_src
 
 *** init.el
@@ -121,9 +127,6 @@ Adapted From: https://github.com/hlissner/doom-emacs/blob/develop/early-init.el
 (straight-use-package 'use-package)
 (straight-use-package 'leaf)
 (straight-use-package 'leaf-keywords)
-
-(defun load-emacs-file (path) (interactive)
-    (load (concat user-emacs-directory path)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -199,13 +202,16 @@ Adapted From: https://github.com/hlissner/doom-emacs/blob/develop/early-init.el
 ;; <<20210601225231422834500>>
 
 ;; From: https://github.com/hartzell/straight.el/commit/882649137f73998d60741c7c8c993c7ebbe0f77a#diff-b335630551682c19a781afebcf4d07bf978fb1f8ac04c6bf87428ed5106870f5R1649
-(setq straight-disable-byte-compilation t)
+(setq straight-disable-byte-compilation nil)
+(unless straight-disable-byte-compilation
+    (byte-recompile-directory (concat user-emacs-directory "lib") nil t)
+    (byte-recompile-directory (concat user-emacs-directory "themes") nil t))
 
 ;; Adapted From: https://github.com/jwiegley/use-package#use-package-chords
 ;; Important: https://github.com/noctuid/general.el/issues/53#issuecomment-307262154
 (use-package use-package-chords :demand t)
 
-(use-package use-package-extras :demand t :straight nil :load-path "use-package-extras")
+(use-package use-package-extras :demand t :straight nil :load-path "lib/use-package-extras")
 (use-package use-package-hydra
     :demand t
     :use-package-preconfig (hydra :demand t :custom (hydra-hint-display-type 'lv))
@@ -326,7 +332,7 @@ And in my experience... Not a good idea; much too confusing. Use
 #+begin_src emacs-lisp
 (use-package tag
     :straight nil
-    :load-path "tag"
+    :load-path "lib/tag"
     :demand t
     :use-package-preconfig (command-log-mode)
     :load-emacs-file-preconfig ("naked")
@@ -377,13 +383,6 @@ And in my experience... Not a good idea; much too confusing. Use
     :keymap '%m
     ;; :transient t
     )
-;; :commands (
-;;     aiern/%p-hercules-toggle
-;;     aiern/%p-show-top-level
-;;     aiern/toggle-%p
-;;     aiern/toggle-%p-force
-;;     aiern/toggle-%p-hercules
-;;     aiern/toggle-%p-hercules-force)
 :config/defun
     (aiern/%p-hercules-toggle nil (interactive))
     (aiern/%p-show-top-level nil (interactive)
@@ -396,6 +395,46 @@ And in my experience... Not a good idea; much too confusing. Use
         (funcall 'aiern/toggle-inner '%n \"%p\" (fbatp %n) '%m t))
     (aiern/toggle-%p-hercules-force nil (interactive)
         (funcall 'aiern/toggle-inner '%n \"%p\" (fbatp %n) '%m t t))
+
+    ;; Adapted From: https://github.com/emacsorphanage/god-mode/blob/master/god-mode.el#L392
+    (aiern/%p-execute-with-current-bindings (&optional called-interactively)
+        (interactive \"d\")
+        (if called-interactively
+            (unless %n
+            (message \"Switched to %p mode for the next command ...\")
+            (letrec ((caller this-command)
+                    (buffer (current-buffer))
+                    (cleanup
+                        (lambda ()
+                        ;; Perform cleanup in original buffer even if the command
+                        ;; switched buffers.
+                        (if (buffer-live-p buffer)
+                            (with-current-buffer buffer
+                            (unwind-protect (%n 0)
+                                (remove-hook 'post-command-hook post-hook)))
+                            (remove-hook 'post-command-hook post-hook))))
+                    (kill-transient-map
+                        (set-transient-map
+                        %m 'aiern/god-prefix-command-p cleanup))
+                    (post-hook
+                        (lambda ()
+                        (unless (and
+                                (eq this-command caller)
+                                ;; If we've entered the minibuffer, this implies
+                                ;; a non-prefix command was run, even if
+                                ;; `this-command' has not changed.  For example,
+                                ;; `execute-extended-command' behaves this way.
+                                (not (window-minibuffer-p)))
+                            (funcall kill-transient-map)))))
+                (add-hook 'post-command-hook post-hook)
+                ;; Pass the current prefix argument along to the next command.
+                (setq prefix-arg current-prefix-arg)
+                ;; Technically we don't need to activate %p mode since the
+                ;; transient keymap is already in place, but it's useful to provide
+                ;; a mode line lighter and run any hook functions the user has set
+                ;; up.  This could be made configurable in the future.
+                (%n 1)))
+        (error \"This function should only be called interactively\")))
 :config
     (add-to-list 'modal-modes '%n)
     (add-to-list 'modal-prefixes \"%p\")" `((?m . ,map) (?n . ,mode) (?p . ,prefix) (?s . ,short)))
@@ -587,7 +626,7 @@ And in my experience... Not a good idea; much too confusing. Use
     :demand t
     :use-package-preconfig (bind-map)
     :straight nil
-    :load-path "aiern"
+    :load-path "lib/aiern"
     :gone
         ((tag-chord "uu") 'aiern/toggle-aiern)
         ((tag-chord "UU") 'aiern/toggle-aiern-force)
@@ -597,6 +636,7 @@ And in my experience... Not a good idea; much too confusing. Use
         ;; ((tag-chord "") 'aiern/toggle-aiern-ex-hercules-force)
 
         ((tag-chord ",.") 'aiern-ex)
+        ((tag-chord ",/") 'aiern/aiern-execute-with-current-bindings)
     :hydra+
     <<20210601225304341247500(map="aiern-normal-state-map", mode="aiern-mode", prefix="aiern", short="a")>>
         ;; TODO: How do I create a keymap `aiern-ex-keymap' out of the `aiern-ex-commands' alist?
@@ -934,7 +974,7 @@ And in my experience... Not a good idea; much too confusing. Use
 ;; Adapted From: https://github.com/seagle0128/doom-aiern-modeline#customize
 (use-package doom-aiern-modeline
     :straight nil
-    :load-path "doom-aiern-modeline"
+    :load-path "lib/doom-aiern-modeline"
     :hook (after-init . doom-aiern-modeline-mode)
     :use-package-preconfig
         (all-the-icons)
@@ -1556,8 +1596,7 @@ Adapted from [[Ergoemacs' Emacs Lisp Code for Setting PATH and exec-path section
         ;;              auto-mode-alist))
 
         (user-full-name "Jeet Ray"
-            user-mail-address "aiern@protonmail.com"
-            custom-safe-themes t)
+            user-mail-address "aiern@protonmail.com")
     :config/defun*
         ;; Answer: https://emacs.stackexchange.com/a/51829
         ;; User: https://emacs.stackexchange.com/users/2370/tobias
@@ -1565,7 +1604,7 @@ Adapted from [[Ergoemacs' Emacs Lisp Code for Setting PATH and exec-path section
             "Set `buffer-save-without-query' to t."
             (unless (variable-binding-locus 'buffer-save-without-query)
                 (setq buffer-save-without-query t)))
-    :config
+    :init
         ;; From: https://www.masteringemacs.org/article/speed-up-emacs-libjansson-native-elisp-compilation
         (if (and (fbatp 'native-comp-available-p) (native-comp-available-p))
             (message "Native compilation is available")
@@ -1581,8 +1620,6 @@ Adapted from [[Ergoemacs' Emacs Lisp Code for Setting PATH and exec-path section
         ;; (if (or (eq json nil) (<= json 0)) "" "--json")
         ;; (if optargs (format "%s" optargs) "")
         ;; (format "%s" (cdr params))
-
-
 
         ;; This determines the style of line numbers in effect. If set to `nil', line
         ;; numbers are disabled. For relative line numbers, set this to `relative'.
@@ -1641,9 +1678,7 @@ Adapted from [[Ergoemacs' Emacs Lisp Code for Setting PATH and exec-path section
         ;; should never be allowed to enter Emacs in the first place.
         ;; (put 'buffer-save-without-query 'safe-local-variable #'booleanp)
 
-        (load-theme 'dracula-purple-dark)
-        (unless straight-disable-byte-compilation
-            (byte-recompile-directory user-emacs-directory nil t)))
+        (load-theme 'dracula-purple-dark))
 #+end_src
 
 *** org-tangle

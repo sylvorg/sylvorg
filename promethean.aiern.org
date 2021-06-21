@@ -209,7 +209,8 @@ This is used to hold themes for =emacs=.
     (file-name-as-directory (file-name-directory load-file-name))))
 #+end_src
 
-*** dracula-purple-light-theme.el
+*** themes
+**** dracula-purple-light-theme.el
 
 [[https://themer.dev/?colors.dark.shade0=%23222222&colors.dark.shade7=%23ab5dee&colors.light.shade0=%23ab5dee&colors.light.shade7=%23222222&activeColorSet=dark][Get the theme here!]]
 
@@ -262,7 +263,7 @@ This is used to hold themes for =emacs=.
 ;;; dracula-purple-light-theme.el ends here
 #+end_src
 
-*** dracula-purple-dark-theme.el
+**** dracula-purple-dark-theme.el
 
 [[https://themer.dev/?colors.dark.shade0=%23222222&colors.dark.shade7=%23ab5dee&colors.light.shade0=%23ab5dee&colors.light.shade7=%23222222&activeColorSet=dark][Get the theme here!]]
 
@@ -315,7 +316,7 @@ This is used to hold themes for =emacs=.
 ;;; dracula-purple-dark-theme.el ends here
 #+end_src
 
-*** dracula-orange-light-theme.el
+**** dracula-orange-light-theme.el
 
 [[https://themer.dev/?colors.dark.shade0=%23222222&colors.dark.shade7=%23ffb86c&colors.light.shade0=%23ffb86c&colors.light.shade7=%23222222&activeColorSet=dark][Get the theme here!]]
 
@@ -368,7 +369,7 @@ This is used to hold themes for =emacs=.
 ;;; dracula-orange-light-theme.el ends here
 #+end_src
 
-*** dracula-orange-dark-theme.el
+**** dracula-orange-dark-theme.el
 
 [[https://themer.dev/?colors.dark.shade0=%23222222&colors.dark.shade7=%23ffb86c&colors.light.shade0=%23ffb86c&colors.light.shade7=%23222222&activeColorSet=dark][Get the theme here!]]
 
@@ -421,7 +422,7 @@ This is used to hold themes for =emacs=.
 ;;; dracula-orange-dark-theme.el ends here
 #+end_src
 
-*** herschel-flamingo-pink-dark-theme.el
+**** herschel-flamingo-pink-dark-theme.el
 
 [[https://themer.dev/?colors.dark.shade0=%23222222&colors.dark.shade7=%23fca78e&colors.light.shade0=%23fca78e&colors.light.shade7=%23222222&activeColorSet=dark][Get the theme here!]]
 
@@ -474,7 +475,7 @@ This is used to hold themes for =emacs=.
 ;;; herschel-flamingo-pink-dark-theme.el ends here
 #+end_src
 
-*** herschel-flamingo-pink-light-theme.el
+**** herschel-flamingo-pink-light-theme.el
 
 [[https://themer.dev/?colors.dark.shade0=%23222222&colors.dark.shade7=%23fca78e&colors.light.shade0=%23fca78e&colors.light.shade7=%23222222&activeColorSet=dark][Get the theme here!]]
 
@@ -527,7 +528,7 @@ This is used to hold themes for =emacs=.
 ;;; herschel-flamingo-pink-light-theme.el ends here
 #+end_src
 
-*** exo-ui-red-dark-theme.el
+**** exo-ui-red-dark-theme.el
 
 [[https://themer.dev/?colors.dark.shade0=%23222222&colors.dark.shade7=%23ff5156&colors.light.shade0=%23ff5156&colors.light.shade7=%23222222&activeColorSet=dark][Get the theme here!]]
 
@@ -580,7 +581,7 @@ This is used to hold themes for =emacs=.
 ;;; exo-ui-red-dark-theme.el ends here
 #+end_src
 
-*** exo-ui-red-light-theme.el
+**** exo-ui-red-light-theme.el
 
 [[https://themer.dev/?colors.dark.shade0=%23222222&colors.dark.shade7=%23ff5156&colors.light.shade0=%23ff5156&colors.light.shade7=%23222222&activeColorSet=dark][Get the theme here!]]
 
