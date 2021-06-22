@@ -34,3 +34,4 @@ test:
 |emacs ~/shadowrylander/damascus.aiern.org
 
 emacs: setup test
+supermacs: tangle-all emacs

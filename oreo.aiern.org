@@ -270,7 +270,7 @@ Taken from [[https://github.com/NixOS/nixos-hardware/tree/master/microsoft/hyper
 
 #+name: 20210601184808685869700
 #+begin_src nix :tangle (aiern/tangle-path)
-{ config, lib, pkgs, device, ... }: with builtins; with lib; with j; {
+{ config, lib, pkgs, device, sources, ... }: with builtins; with lib; with j; {
     imports = [
         ./shared.nix
         sources.nixos-hardware.nixosModules.raspberry-pi-4

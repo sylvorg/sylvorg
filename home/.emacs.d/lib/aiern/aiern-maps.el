@@ -508,8 +508,8 @@ included in `aiern-insert-state-bindings' by default."
     (use-global-map global-map))))
   '("insert" "normal"))
 
-(add-hook 'aiern-insert-state-entry-hook #'(lambda nil (interactive) (advice-add #'newline-and-indent :around #'aiern/newline-and-indent-advice)))
-(add-hook 'aiern-insert-state-exit-hook #'(lambda nil (interactive) (advice-remove #'newline-and-indent #'aiern/newline-and-indent-advice)))
+;; (add-hook 'aiern-insert-state-entry-hook #'(lambda nil (interactive) (advice-add #'newline-and-indent :around #'aiern/newline-and-indent-advice)))
+;; (add-hook 'aiern-insert-state-exit-hook #'(lambda nil (interactive) (advice-remove #'newline-and-indent #'aiern/newline-and-indent-advice)))
 
 ;;; Replace state
 

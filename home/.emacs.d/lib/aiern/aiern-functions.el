@@ -213,21 +213,6 @@
             modal-modes)
     (aiern/hercules-hide-all-modal-modes keymap))
 
-;; Adapted From: https://gitlab.com/jjzmajic/hercules.el/-/blob/master/hercules.el#L83
-;;;###autoload (autoload 'aiern-mode "aiern" nil t)
-(defun aiern/toggle-inner (mode prefix mode-on map &optional use-hercules force) (interactive)
-    (aiern/disable-all-modal-modes)
-    (if mode-on
-        (when force (aiern/which-key--show-popup map force))
-        (when (member prefix '("aiern" "evil"))
-            `(setq
-                ,(intern (concat prefix "-state"))
-                ,(intern (concat (if (eq prefix "aiern") "evil" "aiern") "-state"))))
-        (funcall mode 1)
-        (if use-hercules (ignore-errors (funcall (intern (concat "aiern/" prefix "-hercules-show"))))
-            (aiern/which-key-show-top-level map))
-        (setq last-modal-mode prefix)))
-
 ;; Answer: https://stackoverflow.com/a/14490054/10827766
 ;; User: https://stackoverflow.com/users/1600898/user4815162342
 ;;;###autoload (autoload 'aiern-mode "aiern" nil t)

@@ -30,4 +30,10 @@ push-emacs:
 emacs:
 |make -f ~/shadowrylander/home/.emacs.d/makefile emacs
 
+emacs-test:
+|make -f ~/shadowrylander/home/.emacs.d/makefile emacs-test
+
+supermacs:
+|make -f ~/shadowrylander/home/.emacs.d/makefile supermacs
+
 super-push: tangle-all push push-emacs

@@ -12,7 +12,10 @@ which was written by [[https://emacs.stackexchange.com/users/2710/andrew-swann][
 
 #+call: hash() :exports none
 
-#+name: 
+#+RESULTS:
+: 20210622004216528168500
+
+#+name: 20210622004216528168500
 #+begin_src makefile :tangle (aiern/tangle-path)
 .RECIPEPREFIX := |
 .DEFAULT_GOAL := emacs
@@ -50,6 +53,7 @@ test:
 |emacs ~/<<username>>/damascus.aiern.org
 
 emacs: setup test
+supermacs: tangle-all emacs
 #+end_src
 
 *** lib
@@ -129,10 +133,16 @@ Adapted From: https://github.com/hlissner/doom-emacs/blob/develop/early-init.el
 ;; Ensure Doom is running out of this file's directory
 (setq user-emacs-directory (file-name-directory load-file-name))
 
-(byte-compile-file (concat user-emacs-directory "init.el") t)
 (add-to-list 'load-path (concat user-emacs-directory "lib"))
 (add-to-list 'custom-theme-load-path (concat user-emacs-directory "themes"))
 (setq custom-safe-themes t)
+
+;; From: https://github.com/hartzell/straight.el/commit/882649137f73998d60741c7c8c993c7ebbe0f77a#diff-b335630551682c19a781afebcf4d07bf978fb1f8ac04c6bf87428ed5106870f5R1649
+(setq straight-disable-byte-compilation nil)
+(unless straight-disable-byte-compilation
+    (byte-compile-file (concat user-emacs-directory "init.el") t)
+    (byte-recompile-directory (concat user-emacs-directory "lib") nil t)
+    (byte-recompile-directory (concat user-emacs-directory "themes") nil t))
 #+end_src
 
 *** init.el
@@ -185,6 +195,9 @@ Adapted From: https://github.com/hlissner/doom-emacs/blob/develop/early-init.el
 
 ;; aiern
 <<20210613162401887306100>>
+
+;; alamode
+<<20210622004411529714900>>
 
 ;; ryo modal
 <<20210601225309546041800>>
@@ -244,12 +257,6 @@ Adapted From: https://github.com/hlissner/doom-emacs/blob/develop/early-init.el
 #+name: 20210601225235077502200
 #+begin_src emacs-lisp
 ;; <<20210601225231422834500>>
-
-;; From: https://github.com/hartzell/straight.el/commit/882649137f73998d60741c7c8c993c7ebbe0f77a#diff-b335630551682c19a781afebcf4d07bf978fb1f8ac04c6bf87428ed5106870f5R1649
-(setq straight-disable-byte-compilation nil)
-(unless straight-disable-byte-compilation
-    (byte-recompile-directory (concat user-emacs-directory "lib") nil t)
-    (byte-recompile-directory (concat user-emacs-directory "themes") nil t))
 
 ;; Adapted From: https://github.com/jwiegley/use-package#use-package-chords
 ;; Important: https://github.com/noctuid/general.el/issues/53#issuecomment-307262154
@@ -382,9 +389,7 @@ And in my experience... Not a good idea; much too confusing. Use
     :load-emacs-file-preconfig ("naked")
     :config
         (tag-auto-unbind-keys)
-        (tag-def :keymaps '(global aiern-insert-state-map aiern-normal-state-map)
-            (tag-chord "./") 'aiern/end-of-line-and-indented-new-line
-
+        (tag-def :keymaps '(override aiern-insert-state-map aiern-normal-state-map)
             ;; Adapted From:
             ;; Answer: https://stackoverflow.com/a/4557027/10827766
             ;; User: https://stackoverflow.com/users/387076/gilles-so-stop-being-evil
@@ -405,84 +410,6 @@ And in my experience... Not a good idea; much too confusing. Use
 #+end_src
 
 **** modal modes
-
-#+call: hash() :exports none
-
-#+RESULTS:
-: 20210601225304341247500
-
-#+name: 20210601225304341247500
-#+begin_src emacs-lisp :var map="" :var mode="" :var prefix="" :var short=""
-;; Adapted From:
-;; Answer: https://emacs.stackexchange.com/a/7381/31428
-;; User: https://emacs.stackexchange.com/users/719/adobe
-(format-spec "  (toggles (:color blue :pre (progn
-                <<20210601225233511900800>>)) (\"%s\" aiern/toggle-%p \"%p\"))
-    (all-keymaps (:color blue :pre (progn
-                <<20210601225233511900800>>)) (\"%s\" (progn (setq all-keymaps-map '%n) (aiern/%p-show-top-level)) \"%p\"))
-:hercules
-    (:show-funs #'aiern/%p-hercules-show
-    :hide-funs #'aiern/%p-hercules-hide
-    :toggle-funs #'aiern/%p-hercules-toggle
-    :keymap '%m
-    ;; :transient t
-    )
-:config/defun
-    (aiern/%p-hercules-toggle nil (interactive))
-    (aiern/%p-show-top-level nil (interactive)
-        (aiern/which-key-show-top-level '%m))
-    (aiern/toggle-%p nil (interactive)
-        (funcall 'aiern/toggle-inner '%n \"%p\" (fbatp %n) '%m))
-    (aiern/toggle-%p-force nil (interactive)
-        (funcall 'aiern/toggle-inner '%n \"%p\" (fbatp %n) '%m nil t))
-    (aiern/toggle-%p-hercules nil (interactive)
-        (funcall 'aiern/toggle-inner '%n \"%p\" (fbatp %n) '%m t))
-    (aiern/toggle-%p-hercules-force nil (interactive)
-        (funcall 'aiern/toggle-inner '%n \"%p\" (fbatp %n) '%m t t))
-
-    ;; Adapted From: https://github.com/emacsorphanage/god-mode/blob/master/god-mode.el#L392
-    (aiern/%p-execute-with-current-bindings (&optional called-interactively)
-        (interactive \"d\")
-        (if called-interactively
-            (unless %n
-            (message \"Switched to %p mode for the next command ...\")
-            (letrec ((caller this-command)
-                    (buffer (current-buffer))
-                    (cleanup
-                        (lambda ()
-                        ;; Perform cleanup in original buffer even if the command
-                        ;; switched buffers.
-                        (if (buffer-live-p buffer)
-                            (with-current-buffer buffer
-                            (unwind-protect (%n 0)
-                                (remove-hook 'post-command-hook post-hook)))
-                            (remove-hook 'post-command-hook post-hook))))
-                    (kill-transient-map
-                        (set-transient-map
-                        %m 'aiern/god-prefix-command-p cleanup))
-                    (post-hook
-                        (lambda ()
-                        (unless (and
-                                (eq this-command caller)
-                                ;; If we've entered the minibuffer, this implies
-                                ;; a non-prefix command was run, even if
-                                ;; `this-command' has not changed.  For example,
-                                ;; `execute-extended-command' behaves this way.
-                                (not (window-minibuffer-p)))
-                            (funcall kill-transient-map)))))
-                (add-hook 'post-command-hook post-hook)
-                ;; Pass the current prefix argument along to the next command.
-                (setq prefix-arg current-prefix-arg)
-                ;; Technically we don't need to activate %p mode since the
-                ;; transient keymap is already in place, but it's useful to provide
-                ;; a mode line lighter and run any hook functions the user has set
-                ;; up.  This could be made configurable in the future.
-                (%n 1)))
-        (error \"This function should only be called interactively\")))
-:config
-    (add-to-list 'modal-modes '%n)
-    (add-to-list 'modal-prefixes \"%p\")" `((?m . ,map) (?n . ,mode) (?p . ,prefix) (?s . ,short)))
-#+end_src
 
 ***** hercules
 
@@ -548,6 +475,18 @@ And in my experience... Not a good idea; much too confusing. Use
         (which-key-side-window-max-height 0.25))
 #+end_src
 
+***** alamode
+
+#+call: hash() :exports none
+
+#+RESULTS:
+: 20210622004411529714900
+
+#+name: 20210622004411529714900
+#+begin_src emacs-lisp
+(use-package alamode :demand t :straight nil :load-path "lib/alamode")
+#+end_src
+
 ***** ryo modal
 
 #+call: hash() :exports none
@@ -561,9 +500,7 @@ And in my experience... Not a good idea; much too confusing. Use
     :straight (ryo-modal :type git :host github :repo "kungsgeten/ryo-modal" :branch "master")
     :demand t
     :gone ((tag-chord "  ") 'aiern/toggle-ryo-hercules)
-    :hydra+
-    <<20210601225304341247500(map="ryo-modal-mode-map", mode="ryo-modal-mode", prefix="ryo", short="r")>>
-        ;; From: https://github.com/Kungsgeten/ryo-modal#which-key-integration
+    :config ;; From: https://github.com/Kungsgeten/ryo-modal#which-key-integration
         (push '((nil . "ryo:.*:") . (nil . "")) which-key-replacement-alist))
 #+end_src
 
@@ -599,14 +536,14 @@ And in my experience... Not a good idea; much too confusing. Use
         ;; ((tag-chord "") 'aiern/toggle-evil-ex-hercules-force)
         
         ((tag-chord ",,") 'evil-ex)
-    :leaf (evil :advice ((:override evil-insert-state (lambda (&optional _) (interactive)
-        (aiern/disable-all-modal-modes)))))
+    :leaf (evil :advice
+        (:override evil-insert-state (lambda (&optional _) (interactive)
+            (aiern/disable-all-modal-modes))))
     :config/defun*
         (both-ex-define-command (cmd function) (interactive)
             (evil-ex-define-cmd cmd function)
             (aiern-ex-define-cmd cmd function))
-    :hydra+
-    <<20210601225304341247500(map="evil-normal-state-map", mode="evil-mode", prefix="evil", short="e")>>
+    :config
         ;; From: https://www.reddit.com/r/emacs/comments/lp45zd/help_requested_in_configuring_ryomodal/gp3rfx9?utm_source=share&utm_medium=web2x&context=3
         ;; Kept for documentation porpoises
         ;; (eval
@@ -671,6 +608,8 @@ And in my experience... Not a good idea; much too confusing. Use
     :use-package-preconfig (bind-map)
     :straight nil
     :load-path "lib/aiern"
+    :leaf (aiern :advice
+        (:around newline-and-indent aiern/newline-and-indent-advice))
     :gone
         ((tag-chord "uu") 'aiern/toggle-aiern)
         ((tag-chord "UU") 'aiern/toggle-aiern-force)
@@ -681,8 +620,11 @@ And in my experience... Not a good idea; much too confusing. Use
 
         ((tag-chord ",.") 'aiern-ex)
         ((tag-chord ",/") 'aiern/aiern-execute-with-current-bindings)
-    :hydra+
-    <<20210601225304341247500(map="aiern-normal-state-map", mode="aiern-mode", prefix="aiern", short="a")>>
+    :config
+        (advice-add #'newline-and-indent :around #'aiern/newline-and-indent-advice)
+        (tag-def :keymaps '(override aiern-insert-state-map)
+            (naked "RET") 'newline-and-indent
+            (tag-chord "./") 'aiern/end-of-line-and-indented-new-line)
         ;; TODO: How do I create a keymap `aiern-ex-keymap' out of the `aiern-ex-commands' alist?
 
         ;; (hercules-def :show-funs #'aiern/aiern-ex-hercules-show
@@ -717,13 +659,10 @@ And in my experience... Not a good idea; much too confusing. Use
 #+name: 20210601225312959948800
 #+begin_src emacs-lisp
 (use-package god-mode
-    ;; :tag (:gone (tag-chord "jj") 'aiern/toggle-god)
     :gone
         ((tag-chord "jj") 'aiern/toggle-god)
         ((tag-chord ";'") 'god-execute-with-current-bindings)
-    :hydra+
-    <<20210601225304341247500(map="global-map", mode="god-local-mode", prefix="god", short="g")>>
-        (which-key-enable-god-mode-support))
+    :config (which-key-enable-god-mode-support))
 #+end_src
 
 ***** xah-fly-keys
@@ -742,9 +681,7 @@ And in my experience... Not a good idea; much too confusing. Use
                 <<20210601225233511900800>>))
                 "A modal hydra!"
                 ("`" nil "cancel")
-                ("x" aiern/toggle-xah "xah-fly-keys")) :name "modal modes")
-    :hydra+
-    <<20210601225304341247500(map="xah-fly-command-map", mode="xah-fly-keys", prefix="xah", short="x")>>)
+                ("x" aiern/toggle-xah "xah-fly-keys")) :name "modal modes"))
 #+end_src
 
 ***** objed
@@ -757,9 +694,7 @@ And in my experience... Not a good idea; much too confusing. Use
 #+name: 20210601225316366565400
 #+begin_src emacs-lisp
 (use-package objed
-    :gone ((tag-chord "ii") 'aiern/toggle-objed)
-    :hydra+
-    <<20210601225304341247500(map="objed-map", mode="objed-mode", prefix="objed", short="o")>>)
+    :gone ((tag-chord "ii") 'aiern/toggle-objed))
 #+end_src
 
 ***** kakoune
@@ -771,10 +706,7 @@ And in my experience... Not a good idea; much too confusing. Use
 
 #+name: 20210601225318002941000
 #+begin_src emacs-lisp
-(use-package kakoune
-    :hydra+
-        (modal-modes (:color blue) ("k" aiern/toggle-kakoune-hercules "kakoune"))
-    <<20210601225304341247500(map="ryo-modal-mode-map", mode="ryo-modal-mode", prefix="kakoune", short="k")>>)
+(use-package kakoune :hydra+ (modal-modes (:color blue) ("k" aiern/toggle-kakoune-hercules "kakoune")))
 #+end_src
 
 ***** modalka
@@ -786,10 +718,7 @@ And in my experience... Not a good idea; much too confusing. Use
 
 #+name: 20210601225319683820700
 #+begin_src emacs-lisp
-(use-package modalka
-    :gone ((tag-chord "::") 'aiern/toggle-modalka-hercules)
-    :hydra+
-    <<20210601225304341247500(map="modalka-mode-map", mode="modalka-mode", prefix="modalka", short="m")>>)
+(use-package modalka :gone ((tag-chord "::") 'aiern/toggle-modalka-hercules))
 #+end_src
 
 **** org-mode
@@ -1721,6 +1650,8 @@ Adapted from [[Ergoemacs' Emacs Lisp Code for Setting PATH and exec-path section
         ;; The malicious code that must not be saved
         ;; should never be allowed to enter Emacs in the first place.
         ;; (put 'buffer-save-without-query 'safe-local-variable #'booleanp)
+
+        ;; (toggle-debug-on-error)
 
         (load-theme 'dracula-purple-dark))
 #+end_src

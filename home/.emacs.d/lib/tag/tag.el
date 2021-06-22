@@ -2722,7 +2722,7 @@ Return somethin"
      (use-package-process-keywords name rest state)
      `(,@(mapcar (lambda (arglist)
                    arglist
-                   `(tag-def :keymaps '(global aiern-insert-state-map aiern-normal-state-map) ,@arglist))
+                   `(tag-def :keymaps '(override aiern-insert-state-map aiern-normal-state-map) ,@arglist))
                  arglists))))
 
   (defalias 'use-package-autoloads/:gone #'use-package-autoloads/:ghook)

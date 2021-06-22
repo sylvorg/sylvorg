@@ -11,3 +11,170 @@
 
 * alamode
 
+#+name: hydra-settings
+#+begin_src emacs-lisp :exports none
+(when (aiern/any-popup-showing-p) (aiern/which-key--hide-popup))) :post (progn (unless hydra-curr-map (aiern/which-key--show-popup))
+#+end_src
+
+#+name: cmf
+#+begin_src emacs-lisp :var map="" :var mode="" :var prefix="" :var short="" :exports none
+;; Adapted From:
+;; Answer: https://emacs.stackexchange.com/a/7381/31428
+;; User: https://emacs.stackexchange.com/users/719/adobe
+(format-spec "(defhydra+ toggles (:color blue :pre (progn
+    <<hydra-settings>>))
+    (\"%s\" aiern/toggle-%p \"%p\"))
+(defhydra+ all-keymaps (:color blue :pre (progn
+    <<hydra-settings>>))
+    (\"%s\" (progn (setq all-keymaps-map '%m)
+    (aiern/%p-show-top-level)) \"%p\"))
+
+(hercules-def
+    :show-funs #'aiern/%p-hercules-show
+    :hide-funs #'aiern/%p-hercules-hide
+    :toggle-funs #'aiern/%p-hercules-toggle
+    :keymap '%m
+    ;; :transient t
+)
+
+;;;###autoload
+(defun aiern/%p-hercules-toggle nil (interactive))
+
+;;;###autoload
+(defun aiern/%p-show-top-level nil (interactive)
+    (aiern/which-key-show-top-level '%m))
+
+;;;###autoload
+(defun aiern/toggle-%p nil (interactive)
+    (funcall 'aiern/toggle-inner '%n \"%p\" (fbatp %n) '%m))
+
+;;;###autoload
+(defun aiern/toggle-%p-force nil (interactive)
+    (funcall 'aiern/toggle-inner '%n \"%p\" (fbatp %n) '%m nil t))
+
+;;;###autoload
+(defun aiern/toggle-%p-hercules nil (interactive)
+    (funcall 'aiern/toggle-inner '%n \"%p\" (fbatp %n) '%m t))
+
+;;;###autoload
+(defun aiern/toggle-%p-hercules-force nil (interactive)
+    (funcall 'aiern/toggle-inner '%n \"%p\" (fbatp %n) '%m t t))
+
+;; Adapted From: https://github.com/emacsorphanage/god-mode/blob/master/god-mode.el#L392
+;;;###autoload
+(defun aiern/%p-execute-with-current-bindings (&optional called-interactively)
+    (interactive \"d\")
+    (if called-interactively
+        (unless %n
+        (message \"Switched to %p mode for the next command ...\")
+        (letrec ((caller this-command)
+                (buffer (current-buffer))
+                (cleanup
+                    (lambda ()
+                    ;; Perform cleanup in original buffer even if the command
+                    ;; switched buffers.
+                    (if (buffer-live-p buffer)
+                        (with-current-buffer buffer
+                        (unwind-protect (%n 0)
+                            (remove-hook 'post-command-hook post-hook)))
+                        (remove-hook 'post-command-hook post-hook))))
+                (kill-transient-map
+                    (set-transient-map
+                    %m 'aiern/god-prefix-command-p cleanup))
+                (post-hook
+                    (lambda ()
+                    (unless (and
+                            (eq this-command caller)
+                            ;; If we've entered the minibuffer, this implies
+                            ;; a non-prefix command was run, even if
+                            ;; `this-command' has not changed.  For example,
+                            ;; `execute-extended-command' behaves this way.
+                            (not (window-minibuffer-p)))
+                        (funcall kill-transient-map)))))
+            (add-hook 'post-command-hook post-hook)
+            ;; Pass the current prefix argument along to the next command.
+            (setq prefix-arg current-prefix-arg)
+            ;; Technically we don't need to activate %p mode since the
+            ;; transient keymap is already in place, but it's useful to provide
+            ;; a mode line lighter and run any hook functions the user has set
+            ;; up.  This could be made configurable in the future.
+            (%n 1)))
+    (error \"This function should only be called interactively\")))
+
+    (add-to-list 'modal-modes '%n)
+    (add-to-list 'modal-prefixes \"%p\")" `((?m . ,map) (?n . ,mode) (?p . ,prefix) (?s . ,short)))
+#+end_src
+
+#+begin_src emacs-lisp :tangle alamode.el
+;;; alamode.el --- a simple package                     -*- lexical-binding: t; -*-
+
+;; Copyright (C) 2021  Jeet Ray
+
+;; Author: Jeet Ray <aiern@protonmail.com>
+;; Keywords: lisp
+;; Version: 0.0.1
+
+;; This program is free software; you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
+
+;; This program is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+
+;; You should have received a copy of the GNU General Public License
+;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+;;; Commentary:
+
+;; Put a description of the package here
+
+;;; Code:
+
+(require 'hydra)
+(require 'hercules)
+(require 'aiern)
+
+;; Adapted From: https://gitlab.com/jjzmajic/hercules.el/-/blob/master/hercules.el#L83
+;;;###autoload
+(defun aiern/toggle-inner (mode prefix mode-on map &optional use-hercules force) (interactive)
+    (aiern/disable-all-modal-modes)
+    (if mode-on
+        (when force (aiern/which-key--show-popup map force))
+        (when (member prefix '("aiern" "evil"))
+            `(setq
+                ,(intern (concat prefix "-state"))
+                ,(intern (concat (if (eq prefix "aiern") "evil" "aiern") "-state"))))
+        (funcall mode 1)
+        (if use-hercules (ignore-errors (funcall (intern (concat "aiern/" prefix "-hercules-show"))))
+            (aiern/which-key-show-top-level map))
+        (setq last-modal-mode prefix)))
+
+<<cmf(map="aiern-normal-state-map", mode="aiern-mode", prefix="aiern", short="a")>>
+
+(with-eval-after-load 'ryo-modal
+    <<cmf(map="ryo-modal-mode-map", mode="ryo-modal-mode", prefix="ryo", short="r")>>)
+
+(with-eval-after-load 'evil
+    <<cmf(map="evil-normal-state-map", mode="evil-mode", prefix="evil", short="e")>>)
+
+(with-eval-after-load 'god-mode
+    <<cmf(map="global-map", mode="god-local-mode", prefix="god", short="g")>>)
+
+(with-eval-after-load 'xah-fly-keys
+    <<cmf(map="xah-fly-command-map", mode="xah-fly-keys", prefix="xah", short="x")>>)
+
+(with-eval-after-load 'objed
+    <<cmf(map="objed-map", mode="objed-mode", prefix="objed", short="o")>>)
+
+(with-eval-after-load 'kakoune
+    <<cmf(map="ryo-modal-mode-map", mode="ryo-modal-mode", prefix="kakoune", short="k")>>)
+
+(with-eval-after-load 'modalka
+    <<cmf(map="modalka-mode-map", mode="modalka-mode", prefix="modalka", short="m")>>)
+
+(provide 'alamode)
+;;; alamode.el ends here
+#+end_src
