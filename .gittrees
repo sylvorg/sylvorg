@@ -10,10 +10,6 @@
 	url = tag
 	path = home/.emacs.d/lib/tag
 	branch = master
-[subtree "home/.emacs.d/lib/emux"]
-	url = emux
-	path = home/.emacs.d/lib/emux
-	branch = master
 [subtree "home/.emacs.d/lib/use-package-extras"]
 	url = use-package-extras
 	path = home/.emacs.d/lib/use-package-extras

@@ -5,6 +5,7 @@ pull:
 |git -C ~/shadowrylander subtree pull-all
 
 push:
+|git -C ~/shadowrylander subtree prune
 |-git -C ~/shadowrylander subtree push-all
 
 copy:

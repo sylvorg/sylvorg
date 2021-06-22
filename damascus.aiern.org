@@ -21,6 +21,7 @@ pull:
 |git -C ~/<<username>> subtree pull-all
 
 push:
+|git -C ~/<<username>> subtree prune
 |-git -C ~/<<username>> subtree push-all
 
 copy:

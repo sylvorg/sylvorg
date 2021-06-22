@@ -1,0 +1,3 @@
+[submodule "home/.emacs.d/lib/emux"]
+	path = home/.emacs.d/lib/emux
+	url = https://github.com/re5et/emux
