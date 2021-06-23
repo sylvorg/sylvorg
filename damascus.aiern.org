@@ -138,7 +138,7 @@ Adapted From: https://github.com/hlissner/doom-emacs/blob/develop/early-init.el
 (setq custom-safe-themes t)
 
 ;; From: https://github.com/hartzell/straight.el/commit/882649137f73998d60741c7c8c993c7ebbe0f77a#diff-b335630551682c19a781afebcf4d07bf978fb1f8ac04c6bf87428ed5106870f5R1649
-(setq straight-disable-byte-compilation nil)
+(setq straight-disable-byte-compilation t)
 (unless straight-disable-byte-compilation
     (byte-compile-file (concat user-emacs-directory "init.el") t)
     (byte-recompile-directory (concat user-emacs-directory "lib") nil t)
@@ -262,25 +262,13 @@ Adapted From: https://github.com/hlissner/doom-emacs/blob/develop/early-init.el
 ;; Important: https://github.com/noctuid/general.el/issues/53#issuecomment-307262154
 (use-package use-package-chords :demand t)
 
+(use-package deino
+    :demand t
+    :straight nil
+    :load-path "lib/deino"
+    :custom (deino-hint-display-type 'lv))
+
 (use-package use-package-extras :demand t :straight nil :load-path "lib/use-package-extras")
-(use-package use-package-hydra
-    :demand t
-    :use-package-preconfig (hydra :demand t :custom (hydra-hint-display-type 'lv))
-    :use-package-postconfig
-        (use-package-hydra+
-            :straight (use-package-hydra+
-                :type git
-                :host gitlab
-                :repo "picotech/use-package-hydra-plus"
-                :branch "master"))
-    :straight (use-package-hydra :type git :host gitlab :repo "picotech/use-package-hydra" :branch "master"))
-(use-package use-package-hercules
-    :demand t
-    :straight (use-package-hercules
-        :type git
-        :host gitlab
-        :repo "<<username>>/use-package-hercules"
-        :branch "master"))
 #+end_src
 
 ***** always defer package loading
@@ -410,7 +398,6 @@ And in my experience... Not a good idea; much too confusing. Use
 #+end_src
 
 **** modal modes
-
 ***** hercules
 
 #+call: hash() :exports none
@@ -499,7 +486,9 @@ And in my experience... Not a good idea; much too confusing. Use
 (use-package ryo-modal
     :straight (ryo-modal :type git :host github :repo "kungsgeten/ryo-modal" :branch "master")
     :demand t
-    :gone ((tag-chord "  ") 'aiern/toggle-ryo-hercules)
+    :gone
+        ((tag-chord "  ") 'aiern/toggle-ryo-hercules)
+        ((tag-chord " ,") 'aiern/ryo-execute-with-current-bindings)
     :config ;; From: https://github.com/Kungsgeten/ryo-modal#which-key-integration
         (push '((nil . "ryo:.*:") . (nil . "")) which-key-replacement-alist))
 #+end_src
@@ -539,10 +528,6 @@ And in my experience... Not a good idea; much too confusing. Use
     :leaf (evil :advice
         (:override evil-insert-state (lambda (&optional _) (interactive)
             (aiern/disable-all-modal-modes))))
-    :config/defun*
-        (both-ex-define-command (cmd function) (interactive)
-            (evil-ex-define-cmd cmd function)
-            (aiern-ex-define-cmd cmd function))
     :config
         ;; From: https://www.reddit.com/r/emacs/comments/lp45zd/help_requested_in_configuring_ryomodal/gp3rfx9?utm_source=share&utm_medium=web2x&context=3
         ;; Kept for documentation porpoises
@@ -608,8 +593,6 @@ And in my experience... Not a good idea; much too confusing. Use
     :use-package-preconfig (bind-map)
     :straight nil
     :load-path "lib/aiern"
-    :leaf (aiern :advice
-        (:around newline-and-indent aiern/newline-and-indent-advice))
     :gone
         ((tag-chord "uu") 'aiern/toggle-aiern)
         ((tag-chord "UU") 'aiern/toggle-aiern-force)
@@ -621,10 +604,9 @@ And in my experience... Not a good idea; much too confusing. Use
         ((tag-chord ",.") 'aiern-ex)
         ((tag-chord ",/") 'aiern/aiern-execute-with-current-bindings)
     :config
-        (advice-add #'newline-and-indent :around #'aiern/newline-and-indent-advice)
         (tag-def :keymaps '(override aiern-insert-state-map)
             (naked "RET") 'newline-and-indent
-            (tag-chord "./") 'aiern/end-of-line-and-indented-new-line)
+            (tag-chord "]\\") 'aiern/end-of-line-and-indented-new-line)
         ;; TODO: How do I create a keymap `aiern-ex-keymap' out of the `aiern-ex-commands' alist?
 
         ;; (hercules-def :show-funs #'aiern/aiern-ex-hercules-show

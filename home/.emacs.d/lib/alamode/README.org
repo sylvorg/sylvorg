@@ -75,9 +75,10 @@
                     ;; switched buffers.
                     (if (buffer-live-p buffer)
                         (with-current-buffer buffer
-                        (unwind-protect (%n 0)
+                        (unwind-protect (aiern/disable-all-modal-modes)
                             (remove-hook 'post-command-hook post-hook)))
-                        (remove-hook 'post-command-hook post-hook))))
+                        (remove-hook 'post-command-hook post-hook)
+                        (when last-modal-mode (funcall last-modal-mode 1)))))
                 (kill-transient-map
                     (set-transient-map
                     %m 'aiern/god-prefix-command-p cleanup))
@@ -143,14 +144,11 @@
     (aiern/disable-all-modal-modes)
     (if mode-on
         (when force (aiern/which-key--show-popup map force))
-        (when (member prefix '("aiern" "evil"))
-            `(setq
-                ,(intern (concat prefix "-state"))
-                ,(intern (concat (if (eq prefix "aiern") "evil" "aiern") "-state"))))
         (funcall mode 1)
         (if use-hercules (ignore-errors (funcall (intern (concat "aiern/" prefix "-hercules-show"))))
             (aiern/which-key-show-top-level map))
-        (setq last-modal-mode prefix)))
+        (setq current-modal-mode mode)
+        (setq last-modal-mode mode)))
 
 <<cmf(map="aiern-normal-state-map", mode="aiern-mode", prefix="aiern", short="a")>>
 

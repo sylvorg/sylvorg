@@ -53,18 +53,17 @@
 
 ;;; Code:
 
-(require 'use-package)
+(require 'use-package-core)
 
-(with-eval-after-load 'use-package-core
-    <<leaf>>
+<<leaf>>
 
-    <<around-init>>
+<<around-init>>
 
-    <<around-config>>
+<<around-config>>
 
-    <<tag>>
-    
-    <<ex>>)
+<<tag>>
+
+<<ex>>
 
 (provide 'use-package-extras)
 ;;; use-package-extras.el ends here
@@ -205,7 +204,7 @@
 
 (add-to-list 'use-package-keywords :aiern-ex t)
 
-<<normalize-and-handle(name="both-ex", func="both-ex-define-cmd")>>
+<<normalize-and-handle(name="both-ex", func="aiern/both-ex-define-cmd")>>
 
 (add-to-list 'use-package-keywords :both-ex t)
 #+end_src

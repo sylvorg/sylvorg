@@ -487,29 +487,12 @@ included in `aiern-insert-state-bindings' by default."
   [left] 'backward-char
   [right] 'forward-char)
 
-;; Adapted From:
-;; Answer: https://emacs.stackexchange.com/a/14956/31428
-;; User: https://emacs.stackexchange.com/users/25/gilles-so-stop-being-evil
-;; (with-eval-after-load 'evil (defun aiern/newline-and-indent-advice (func &rest arguments)
-;;;###autoload (autoload 'aiern-mode "aiern" nil t)
-(defun aiern/newline-and-indent-advice (func &rest arguments)
-    (if (window-minibuffer-p)
-        (cond
-            ;; ((evil-ex-p) (evil-ex-execute (minibuffer-contents)))
-            ;; ((aiern-ex-p) (aiern-ex-execute (minibuffer-contents)))
-            (t (progn (minibuffer-complete-and-exit) (minibuffer-complete-and-exit))))
-        (apply func arguments)))
-        ;; )
-
 (mapc #'(lambda (state) (interactive)
   (add-hook (intern (concat "aiern-" state "-state-entry-hook")) #'(lambda nil (interactive)
     `(use-global-map ,(intern (concat "aiern-" state "-state-map")))))
   (add-hook (intern (concat "aiern-" state "-state-exit-hook")) #'(lambda nil (interactive)
     (use-global-map global-map))))
   '("insert" "normal"))
-
-;; (add-hook 'aiern-insert-state-entry-hook #'(lambda nil (interactive) (advice-add #'newline-and-indent :around #'aiern/newline-and-indent-advice)))
-;; (add-hook 'aiern-insert-state-exit-hook #'(lambda nil (interactive) (advice-remove #'newline-and-indent #'aiern/newline-and-indent-advice)))
 
 ;;; Replace state
 

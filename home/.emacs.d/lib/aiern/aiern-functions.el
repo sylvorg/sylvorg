@@ -32,6 +32,7 @@
 (defvar modal-modes nil)
 (defvar modal-prefixes (mapcar (lambda (mode) (interactive) (car (split-string (symbol-name mode) "-"))) modal-modes))
 (defvar last-modal-mode nil)
+(defvar current-modal-mode nil)
 (defvar dont-disable-modal-modes nil)
 (defvar all-keymaps-map nil)
 (defvar last-global-map nil)
@@ -342,8 +343,8 @@
             #'(lambda nil (interactive)
                 (when which-key-persistent-popup (which-key--create-buffer-and-show nil current-map nil "Current bindings")))))
         (if (which-key--popup-showing-p)
-            (when (or (member last-modal-mode modal-prefixes) keymap)
-                (funcall which-key-function) (setq last-modal-mode nil))
+            (when (or (member current-modal-mode modal-modes) keymap)
+                (funcall which-key-function) (setq current-modal-mode nil))
             (funcall which-key-function))))
 
 ;; Adapted From:
@@ -359,6 +360,29 @@
         (setq overriding-terminal-local-map nil)) modal-prefixes))
     (aiern/which-key-show-top-level keymap))
 
+;; Adapted From:
+;; Answer: https://emacs.stackexchange.com/a/14956/31428
+;; User: https://emacs.stackexchange.com/users/25/gilles-so-stop-being-evil
+;; (with-eval-after-load 'evil (defun aiern/newline-and-indent-advice (func &rest arguments)
+;;;###autoload (autoload 'aiern-mode "aiern" nil t)
+(defun aiern/newline-and-indent-advice (func &rest arguments)
+    (if (window-minibuffer-p)
+        (cond
+            ((evil-ex-p) (evil-ex-execute (minibuffer-contents)))
+            ((aiern-ex-p) (aiern-ex-execute (minibuffer-contents)))
+            (t (progn (minibuffer-complete-and-exit) (minibuffer-complete-and-exit))))
+        (apply func arguments)))
+        ;; )
+
+;;;###autoload (autoload 'aiern-mode "aiern" nil t)
+(defun aiern/pre-post-command-hook-command nil (interactive)
+    (if (window-minibuffer-p)
+        (tag-def :keymaps 'override (naked "RET") nil)
+        (tag-def :keymaps 'override (naked "RET") 'newline-and-indent)))
+(add-hook 'pre-command-hook 'aiern/pre-post-command-hook-command)
+(add-hook 'post-command-hook 'aiern/pre-post-command-hook-command)
+
+;;;###autoload (autoload 'aiern-mode "aiern" nil t)
 (defun aiern/evil-ex-advice (func &rest arguments)
     (setq dont-disable-modal-modes t)
     (aiern/which-key--hide-popup)
@@ -391,6 +415,7 @@
 (add-hook 'before-save-hook 'aiern/untabify-except-makefiles)
 
 ;; Adapted From: https://github.com/emacsorphanage/god-mode/blob/master/god-mode.el#L454
+;;;###autoload (autoload 'aiern-mode "aiern" nil t)
 (defun aiern/god-prefix-command-p nil
   "Return non-nil if the current command is a \"prefix\" command.
 This includes prefix arguments and any other command that should
@@ -400,6 +425,10 @@ be ignored by `god-execute-with-current-bindings'."
                        negative-argument
                        universal-argument
                        universal-argument-more)))
+
+(with-eval-after-load 'evil (defun aiern/both-ex-define-cmd (cmd function) (interactive)
+    (evil-ex-define-cmd cmd function)
+    (aiern-ex-define-cmd cmd function)))
 
 (with-eval-after-load 'counsel (advice-add #'counsel-M-x :before #'aiern/which-key--hide-popup))
 (with-eval-after-load 'helm
