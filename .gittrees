@@ -30,3 +30,7 @@
 	url = use-package-deino
 	path = home/.emacs.d/lib/use-package-deino
 	branch = main
+[subtree "home/.emacs.d/lib/deino"]
+	url = deino
+	path = home/.emacs.d/lib/deino
+	branch = master
