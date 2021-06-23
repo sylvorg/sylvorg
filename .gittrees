@@ -34,3 +34,7 @@
 	url = deino
 	path = home/.emacs.d/lib/deino
 	branch = master
+[subtree "home/.emacs.d/lib/sorrow"]
+	url = sorrow
+	path = home/.emacs.d/lib/sorrow
+	branch = master
