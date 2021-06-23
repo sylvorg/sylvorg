@@ -25,7 +25,7 @@
 
 ;;; Code:
 
-(require 'use-package-core)
+(require 'use-package-deino)
 
 ;; Adapted From: https://github.com/jwiegley/use-package/blob/master/use-package-core.el#L1153
 (defalias 'use-package-normalize/:leaf 'use-package-normalize-forms)

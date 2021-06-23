@@ -262,13 +262,26 @@ Adapted From: https://github.com/hlissner/doom-emacs/blob/develop/early-init.el
 ;; Important: https://github.com/noctuid/general.el/issues/53#issuecomment-307262154
 (use-package use-package-chords :demand t)
 
+(use-package use-package-extras
+    :demand t
+    :straight nil
+    :load-path "lib/use-package-extras"
+    :init (use-package use-package-deino
+            :demand t
+            :straight nil
+            :load-path "lib/use-package-deino")
+            :init (use-package use-package-hydra
+                :demand t
+                :straight (use-package-hydra
+                    :type git
+                    :host gitlab
+                    :repo "picotech/use-package-hydra"
+                    :branch "master")))
 (use-package deino
     :demand t
     :straight nil
     :load-path "lib/deino"
     :custom (deino-hint-display-type 'lv))
-
-(use-package use-package-extras :demand t :straight nil :load-path "lib/use-package-extras")
 #+end_src
 
 ***** always defer package loading

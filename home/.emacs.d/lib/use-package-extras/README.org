@@ -17,9 +17,11 @@
 ;; Answer: https://emacs.stackexchange.com/a/7381/31428
 ;; User: https://emacs.stackexchange.com/users/719/adobe
 (format-spec ";; Adapted From: https://github.com/jwiegley/use-package/blob/master/use-package-core.el#L1153
+;;;###autoload
 (defalias 'use-package-normalize/:%n 'use-package-normalize-forms)
 
 ;; Adapted From: https://gitlab.com/to1ne/use-package-hydra/-/blob/master/use-package-hydra.el#L79
+;;;###autoload
 (defun use-package-handler/:%n (name keyword args rest state)
     (use-package-concat (mapcar #'(lambda (def) `(%f ,@def)) args)
     (use-package-process-keywords name rest state)))" `((?n . ,name) (?f . ,func)))
@@ -53,7 +55,11 @@
 
 ;;; Code:
 
-(require 'use-package-core)
+
+;; Adapted From: https://github.com/jwiegley/use-package#use-package-chords
+;; Important: https://github.com/noctuid/general.el/issues/53#issuecomment-307262154
+(require 'use-package-chords)
+(require 'use-package-deino)
 
 <<leaf>>
 
