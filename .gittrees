@@ -18,3 +18,7 @@
 	url = alamode
 	path = home/.emacs.d/lib/alamode
 	branch = main
+[subtree "home/.emacs.d/deino"]
+	url = deino
+	path = home/.emacs.d/deino
+	branch = master
