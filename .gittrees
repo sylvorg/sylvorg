@@ -38,3 +38,7 @@
 	url = sorrow
 	path = home/.emacs.d/lib/sorrow
 	branch = master
+[subtree "home/.emacs.d/lib/lode"]
+	url = lode
+	path = home/.emacs.d/lib/lode
+	branch = main
