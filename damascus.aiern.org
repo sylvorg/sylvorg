@@ -154,7 +154,7 @@ Adapted From: https://github.com/hlissner/doom-emacs/blob/develop/early-init.el
 
 #+name: 20210601225233511900800
 #+begin_src emacs-lisp
-(when (aiern/any-popup-showing-p) (aiern/which-key--hide-popup))) :post (progn (unless hydra-curr-map (aiern/which-key--show-popup))
+(when (aiern/any-popup-showing-p) (aiern/which-key--hide-popup))) :post (progn (unless deino-curr-map (aiern/which-key--show-popup))
 #+end_src
 
 #+call: hash() :exports none
@@ -262,26 +262,19 @@ Adapted From: https://github.com/hlissner/doom-emacs/blob/develop/early-init.el
 ;; Important: https://github.com/noctuid/general.el/issues/53#issuecomment-307262154
 (use-package use-package-chords :demand t)
 
-(use-package use-package-extras
+(use-package use-package-hydra
+    :demand t
+    :straight (use-package-hydra
+        :type git
+        :host gitlab
+        :repo "picotech/use-package-hydra"
+        :branch "master")
+    :init (use-package hydra :demand t :custom (hydra-hint-display-type 'lv)))
+(use-package use-package-deino
     :demand t
     :straight nil
-    :load-path "lib/use-package-extras"
-    :init (use-package use-package-deino
-            :demand t
-            :straight nil
-            :load-path "lib/use-package-deino")
-            :init (use-package use-package-hydra
-                :demand t
-                :straight (use-package-hydra
-                    :type git
-                    :host gitlab
-                    :repo "picotech/use-package-hydra"
-                    :branch "master")))
-(use-package deino
-    :demand t
-    :straight nil
-    :load-path "lib/deino"
-    :custom (deino-hint-display-type 'lv))
+    :load-path "lib/use-package-deino"
+    :init (use-package use-package-extras :demand t :straight nil :load-path "lib/use-package-extras"))
 #+end_src
 
 ***** always defer package loading
@@ -387,6 +380,8 @@ And in my experience... Not a good idea; much too confusing. Use
     :load-path "lib/tag"
     :demand t
     :use-package-preconfig (command-log-mode)
+    :use-package-postconfig
+        (deino :demand t :straight nil :load-path "lib/deino" :custom (deino-hint-display-type 'lv))
     :load-emacs-file-preconfig ("naked")
     :config
         (tag-auto-unbind-keys)
@@ -426,25 +421,25 @@ And in my experience... Not a good idea; much too confusing. Use
     :gone
         ((tag-chord "\\\\") 'aiern/toggle-which-key)
         ((tag-chord "\\]") 'map-of-infinity/body)
-    :hydra (map-of-infinity (:color blue :pre (progn
+    :deino (map-of-infinity (:color blue :pre (progn
                 <<20210601225233511900800>>))
             ("`" nil "cancel")
-            ("w" hydra/which-key/body "which-key")
-            ("h" hydra/hercules/body "hercules")
+            ("w" deino/which-key/body "which-key")
+            ("h" deino/hercules/body "hercules")
             ("d" aiern/disable-all-modal-modes "disable all modal modes")
             ("t" toggles/body "toggles")
             ("k" all-keymaps/body "all keymaps"))
-        (hydra/which-key (:color blue :pre (progn
+        (deino/which-key (:color blue :pre (progn
                 <<20210601225233511900800>>))
             ("`" nil "cancel")
             ("a" aiern/any-popup-showing-p "any popup showing")
             ("h" aiern/which-key--hide-popup "hide-popup")
             ("s" aiern/which-key--show-popup "show-popup")
             ("r" aiern/which-key--refresh-popup "refresh-popup")
-            ("t" aiern/toggle-which-key "toggle")
+            ((tag-chord "tt") aiern/toggle-which-key "toggle")
             ("l" aiern/which-key-show-top-level "aiern/toplevel")
             ("L" which-key-show-top-level "toplevel"))
-        (hydra/hercules (:color blue :pre (progn
+        (deino/hercules (:color blue :pre (progn
                 <<20210601225233511900800>>))
             ("`" nil "cancel")
             ("h" aiern/hercules-hide-all-modal-modes "hide all modal modes"))
@@ -504,6 +499,23 @@ And in my experience... Not a good idea; much too confusing. Use
         ((tag-chord " ,") 'aiern/ryo-execute-with-current-bindings)
     :config ;; From: https://github.com/Kungsgeten/ryo-modal#which-key-integration
         (push '((nil . "ryo:.*:") . (nil . "")) which-key-replacement-alist))
+#+end_src
+
+***** sorrow
+
+#+call: hash() :exports none
+
+#+name: 
+#+begin_src emacs-lisp
+(use-package sorrow
+    :demand t
+    :straight nil
+    :load-path "lib/sorrow"
+    :gone
+        ((tag-chord " .") 'aiern/toggle-ryo-hercules)
+        ((tag-chord " /") 'aiern/ryo-execute-with-current-bindings)
+    :config ;; From: https://github.com/shadowrylander/sorrow#which-key-integration
+        (push '((nil . "sorrow:.*:") . (nil . "")) which-key-replacement-alist))
 #+end_src
 
 ***** evil
@@ -581,7 +593,7 @@ And in my experience... Not a good idea; much too confusing. Use
                 '(evil-exits (:color blue :pre (progn
                 <<20210601225233511900800>>))
                     ;; From: https://github.com/emacs-evil/evil/blob/master/evil-maps.el#L449
-                    "A hydra for getting the fuck outta' here!"
+                    "A deino for getting the fuck outta' here!"
                     ("`" nil "cancel")
                     ("l" evil-save-and-quit ":wq")
                     ("p" evil-quit ":q")
@@ -674,7 +686,7 @@ And in my experience... Not a good idea; much too confusing. Use
         ("m" :hydra
             '(modal-modes (:color blue :pre (progn
                 <<20210601225233511900800>>))
-                "A modal hydra!"
+                "A modal deino!"
                 ("`" nil "cancel")
                 ("x" aiern/toggle-xah "xah-fly-keys")) :name "modal modes"))
 #+end_src
@@ -701,7 +713,7 @@ And in my experience... Not a good idea; much too confusing. Use
 
 #+name: 20210601225318002941000
 #+begin_src emacs-lisp
-(use-package kakoune :hydra+ (modal-modes (:color blue) ("k" aiern/toggle-kakoune-hercules "kakoune")))
+(use-package kakoune :deino+ (modal-modes (:color blue) ("k" aiern/toggle-kakoune-hercules "kakoune")))
 #+end_src
 
 ***** modalka
@@ -800,9 +812,9 @@ And in my experience... Not a good idea; much too confusing. Use
         <<20210601225401786848500>>
     ;; :gone ((naked "backtab") 'evil-close-fold)
     :ryo ("o" :hydra
-        '(hydra-org (:color blue :pre (progn
+        '(deino-org (:color blue :pre (progn
             <<20210601225233511900800>>))
-                "A hydra for org-mode!"
+                "A deino for org-mode!"
                 ("o" org-babel-tangle "tangle")
                 ("a" aiern/org-babel-tangle-append "tangle append")
                 ("f" org-babel-tangle-file "tangle file")
@@ -833,11 +845,11 @@ And in my experience... Not a good idea; much too confusing. Use
 #+begin_src emacs-lisp
 <<b7ccdbd9b486c4c7b221f9a885c076dc>>
 
-;; TODO: Split this into multiple `use-package!' instances using my new `hydra+' keyword
+;; TODO: Split this into multiple `use-package!' instances using my new `deino+' keyword
 (with-eval-after-load 'ryo-modal (ryo-modal-key "x" :hydra
-      '(hydra-execute (:color blue :pre (progn
+      '(deino-execute (:color blue :pre (progn
                 <<20210601225233511900800>>))
-            "A hydra for launching stuff!"
+            "A deino for launching stuff!"
             ("c" counsel-M-x "counsel")
             ("h" helm-smex-major-mode-commands "helm smex major mode")
             ("s" helm-smex "helm smex")
@@ -897,9 +909,9 @@ And in my experience... Not a good idea; much too confusing. Use
 #+begin_src emacs-lisp
 (use-package git-gutter
     :ryo ("g" :hydra
-        '(hydra-git (:pre (progn
+        '(deino-git (:pre (progn
                 <<20210601225233511900800>>))
-            "A hydra for git!"
+            "A deino for git!"
             ("`" nil "cancel" :color blue)
             ("j" git-gutter:next-hunk "next")
             ("k" git-gutter:previous-hunk "previous")
@@ -920,9 +932,9 @@ And in my experience... Not a good idea; much too confusing. Use
 #+begin_src emacs-lisp
 (use-package magit
     :ryo ("g" :hydra+
-        '(hydra-git (:pre (progn
+        '(deino-git (:pre (progn
                 <<20210601225233511900800>>))
-            "A hydra for git!"
+            "A deino for git!"
             ("g" magit-status "magit" :color blue))))
 #+end_src
 

@@ -137,6 +137,7 @@
 (declare-function dap-debug-recent 'dap-mode)
 (declare-function dap-disconnect 'dap-mode)
 (declare-function dap-hydra 'dap-hydra)
+(declare-function dap-deino 'dap-deino)
 (declare-function edebug-help 'edebug)
 (declare-function edebug-next-mode 'edebug)
 (declare-function edebug-stop 'edebug)

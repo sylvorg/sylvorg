@@ -3,10 +3,11 @@
 # From: https://jasonstitt.com/gitignore-whitelisting-patterns
 !*/
 
-!home/.emacs.d/lib/aiern
-!home/.emacs.d/lib/tag
-!home/.emacs.d/lib/doom-aiern-modeline
-!home/.emacs.d/lib/deino
+!home/.emacs.d/lib/aiern/**/**/*
+!home/.emacs.d/lib/tag/**/**/*
+!home/.emacs.d/lib/doom-aiern-modeline/**/**/*
+!home/.emacs.d/lib/deino/**/**/*
+!home/.emacs.d/lib/sorrow/**/**/*
 
 !*.org
 !**/**/*.org

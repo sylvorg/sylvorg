@@ -31,7 +31,7 @@
 (require 'aiern-command-window)
 (require 'aiern-common)
 (require 'tag)
-(require 'hydra)
+(require 'deino)
 (require 'naked)
 
 ;;; Code:

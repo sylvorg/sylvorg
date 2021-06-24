@@ -68,7 +68,7 @@ emacs:
 |make -f ~/<<username>>/home/.emacs.d/makefile emacs
 
 emacs-test:
-|make -f ~/<<username>>/home/.emacs.d/makefile emacs-test
+|make -f ~/<<username>>/home/.emacs.d/makefile test
 
 supermacs:
 |make -f ~/<<username>>/home/.emacs.d/makefile supermacs

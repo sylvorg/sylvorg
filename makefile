@@ -31,7 +31,7 @@ emacs:
 |make -f ~/shadowrylander/home/.emacs.d/makefile emacs
 
 emacs-test:
-|make -f ~/shadowrylander/home/.emacs.d/makefile emacs-test
+|make -f ~/shadowrylander/home/.emacs.d/makefile test
 
 supermacs:
 |make -f ~/shadowrylander/home/.emacs.d/makefile supermacs

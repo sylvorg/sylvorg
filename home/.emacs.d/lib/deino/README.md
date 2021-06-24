@@ -1,29 +1,29 @@
-# Hydra
+# deino
 
-[![Build Status](https://travis-ci.org/abo-abo/hydra.svg?branch=master)](https://travis-ci.org/abo-abo/hydra)
-[![MELPA](https://melpa.org/packages/hydra-badge.svg)](https://melpa.org/#/hydra)
-[![MELPA Stable](https://stable.melpa.org/packages/hydra-badge.svg)](https://stable.melpa.org/#/hydra)
+[![Build Status](https://travis-ci.org/abo-abo/deino.svg?branch=master)](https://travis-ci.org/abo-abo/deino)
+[![MELPA](https://melpa.org/packages/deino-badge.svg)](https://melpa.org/#/deino)
+[![MELPA Stable](https://stable.melpa.org/packages/deino-badge.svg)](https://stable.melpa.org/#/deino)
 
 This is a package for GNU Emacs that can be used to tie related commands into a family of short
-bindings with a common prefix - a Hydra.
+bindings with a common prefix - a deino.
 
-![hydra](http://oremacs.com/download/Hydra.jpg)
+![deino](http://oremacs.com/download/deino.jpg)
 
 ## Description for Poets
 
-Once you summon the Hydra through the prefixed binding (the body + any one head), all heads can be
+Once you summon the deino through the prefixed binding (the body + any one head), all heads can be
 called in succession with only a short extension.
 
-The Hydra is vanquished once Hercules, any binding that isn't the Hydra's head, arrives.  Note that
-Hercules, besides vanquishing the Hydra, will still serve his original purpose, calling his proper
-command.  This makes the Hydra very seamless, it's like a minor mode that disables itself
+The deino is vanquished once Hercules, any binding that isn't the deino's head, arrives.  Note that
+Hercules, besides vanquishing the deino, will still serve his original purpose, calling his proper
+command.  This makes the deino very seamless, it's like a minor mode that disables itself
 auto-magically.
 
 ## Description for Pragmatics
 
 Imagine that you have bound <kbd>C-c j</kbd> and <kbd>C-c k</kbd> in your
 config.  You want to call <kbd>C-c j</kbd> and <kbd>C-c k</kbd> in some
-(arbitrary) sequence. Hydra allows you to:
+(arbitrary) sequence. deino allows you to:
 
 - Bind your functions in a way that pressing <kbd>C-c jjkk3j5k</kbd> is
 equivalent to pressing <kbd>C-c j C-c j C-c k C-c k M-3 C-c j M-5 C-c
@@ -38,12 +38,12 @@ If you want to quickly understand the concept, see [the video demo](https://www.
 <!-- markdown-toc start - Don't edit this section. Run M-x markdown-toc/generate-toc again -->
 **Table of Contents**
 
-- [Sample Hydras](#sample-hydras)
+- [Sample deinos](#sample-deinos)
     - [The one with the least amount of code](#the-one-with-the-least-amount-of-code)
     - [The impressive-looking one](#the-impressive-looking-one)
 - [Community wiki](#community-wiki)
-- [The Rules of Hydra-tics](#the-rules-of-hydra-tics)
-    - [`hydra-awesome`](#hydra-awesome)
+- [The Rules of deino-tics](#the-rules-of-deino-tics)
+    - [`deino-awesome`](#deino-awesome)
     - [`awesome-map` and `awesome-binding`](#awesome-map-and-awesome-binding)
     - [`awesome-plist`](#awesome-plist)
         - [`:pre` and `:post`](#pre-and-post)
@@ -62,12 +62,12 @@ If you want to quickly understand the concept, see [the video demo](https://www.
 
 <!-- markdown-toc end -->
 
-# Sample Hydras
+# Sample deinos
 
 ## The one with the least amount of code
 
 ```elisp
-(defhydra hydra-zoom (global-map "<f2>")
+(defdeino deino-zoom (global-map "<f2>")
   "zoom"
   ("g" text-scale-increase "in")
   ("l" text-scale-decrease "out"))
@@ -81,7 +81,7 @@ With this simple code, you can:
 - Zoom in five times at once with <kbd>5g</kbd>.
 - Stop zooming with *any* key that isn't <kbd>g</kbd> or <kbd>l</kbd>.
 
-For any Hydra:
+For any deino:
 
 - `digit-argument` can be called with <kbd>0</kbd>-<kbd>9</kbd>.
 - `negative-argument` can be called with <kbd>-</kbd>.
@@ -91,12 +91,12 @@ For any Hydra:
 
 Here's the result of pressing <kbd>.</kbd> in the good-old Buffer menu:
 
-![hydra-buffer-menu](http://oremacs.com/download/hydra-buffer-menu.png)
+![deino-buffer-menu](http://oremacs.com/download/deino-buffer-menu.png)
 
 The code is large but very simple:
 
 ```elisp
-(defhydra hydra-buffer-menu (:color pink
+(defdeino deino-buffer-menu (:color pink
                              :hint nil)
   "
 ^Mark^             ^Unmark^           ^Actions^          ^Search
@@ -126,34 +126,34 @@ _~_: modified
   ("o" Buffer-menu-other-window "other-window" :color blue)
   ("q" quit-window "quit" :color blue))
 
-(define-key Buffer-menu-mode-map "." 'hydra-buffer-menu/body)
+(define-key Buffer-menu-mode-map "." 'deino-buffer-menu/body)
 ```
 
-Looking at the code, you can see `hydra-buffer-menu` as sort of a namespace construct that wraps
+Looking at the code, you can see `deino-buffer-menu` as sort of a namespace construct that wraps
 each function that it's given in code that shows that hint and makes it easy to call the related
-functions. One additional function is created and returned as the result of `defhydra` -
-`hydra-buffer-menu/body`.  This function does nothing except setting up the hint and the keymap, and
-is usually the entry point to complex hydras.
+functions. One additional function is created and returned as the result of `defdeino` -
+`deino-buffer-menu/body`.  This function does nothing except setting up the hint and the keymap, and
+is usually the entry point to complex deinos.
 
-To write your own hydras, you can:
+To write your own deinos, you can:
 
-- Either modify an existing hydra to do what you want to do.
-- Or read [the rules](#the-rules-of-hydra-tics),
-  [the examples](https://github.com/abo-abo/hydra/blob/master/hydra-examples.el),
+- Either modify an existing deino to do what you want to do.
+- Or read [the rules](#the-rules-of-deino-tics),
+  [the examples](https://github.com/abo-abo/deino/blob/master/deino-examples.el),
   the docstrings and comments in the source.
 
 # Community wiki
 
-You can find some user created hydras and more documentation in the project's
-[community wiki](https://github.com/abo-abo/hydra/wiki/). Feel free to add your
+You can find some user created deinos and more documentation in the project's
+[community wiki](https://github.com/abo-abo/deino/wiki/). Feel free to add your
 own or edit the existing ones.
 
-# The Rules of Hydra-tics
+# The Rules of deino-tics
 
-Each hydra (take `awesome` as a prefix to make it more specific) looks like this:
+Each deino (take `awesome` as a prefix to make it more specific) looks like this:
 
 ```
-(defhydra hydra-awesome (awesome-map awesome-binding awesome-plist)
+(defdeino deino-awesome (awesome-map awesome-binding awesome-plist)
   awesome-docstring
   awesome-head-1
   awesome-head-2
@@ -161,40 +161,40 @@ Each hydra (take `awesome` as a prefix to make it more specific) looks like this
   ...)
 ```
 
-## `hydra-awesome`
+## `deino-awesome`
 
-Each hydra needs a name, and this one is named `hydra-awesome`. You can name your hydras as you wish,
-but I prefer to start each one with `hydra-`, because it acts as an additional namespace layer, for example:
-`hydra-zoom`, `hydra-helm`, `hydra-apropos` etc.
+Each deino needs a name, and this one is named `deino-awesome`. You can name your deinos as you wish,
+but I prefer to start each one with `deino-`, because it acts as an additional namespace layer, for example:
+`deino-zoom`, `deino-helm`, `deino-apropos` etc.
 
-If you name your hydra `hydra-awesome`, the return result of `defhydra` will be `hydra-awesome/body`.
+If you name your deino `deino-awesome`, the return result of `defdeino` will be `deino-awesome/body`.
 
-Here's what `hydra-zoom/body` looks like, if you're interested:
+Here's what `deino-zoom/body` looks like, if you're interested:
 
 ```elisp
-(defun hydra-zoom/body ()
-  "Call the body in the \"hydra-zoom\" hydra.
+(defun deino-zoom/body ()
+  "Call the body in the \"deino-zoom\" deino.
 
-The heads for the associated hydra are:
+The heads for the associated deino are:
 
 \"g\":    `text-scale-increase',
 \"l\":    `text-scale-decrease'
 
-The body can be accessed via `hydra-zoom/body', which is bound to \"<f2>\"."
+The body can be accessed via `deino-zoom/body', which is bound to \"<f2>\"."
   (interactive)
-  (require 'hydra)
-  (hydra-default-pre)
-  (let ((hydra--ignore nil))
-    (hydra-keyboard-quit)
-    (setq hydra-curr-body-fn
-          'hydra-zoom/body))
-  (hydra-show-hint
-   hydra-zoom/hint
-   'hydra-zoom)
-  (hydra-set-transient-map
-   hydra-zoom/keymap
+  (require 'deino)
+  (deino-default-pre)
+  (let ((deino--ignore nil))
+    (deino-keyboard-quit)
+    (setq deino-curr-body-fn
+          'deino-zoom/body))
+  (deino-show-hint
+   deino-zoom/hint
+   'deino-zoom)
+  (deino-set-transient-map
+   deino-zoom/keymap
    (lambda nil
-     (hydra-keyboard-quit)
+     (deino-keyboard-quit)
      nil)
    nil)
   (setq prefix-arg
@@ -208,7 +208,7 @@ This can be any keymap, for instance, `global-map` or `isearch-mode-map`.
 For this example:
 
 ```elisp
-(defhydra hydra-zoom (global-map "<f2>")
+(defdeino deino-zoom (global-map "<f2>")
   "zoom"
   ("g" text-scale-increase "in")
   ("l" text-scale-decrease "out"))
@@ -223,9 +223,9 @@ And here's the relevant generated code:
 (unless (keymapp (lookup-key global-map (kbd "<f2>")))
   (define-key global-map (kbd "<f2>") nil))
 (define-key global-map [f2 103]
-  (function hydra-zoom/text-scale-increase))
+  (function deino-zoom/text-scale-increase))
 (define-key global-map [f2 108]
-  (function hydra-zoom/text-scale-decrease))
+  (function deino-zoom/text-scale-decrease))
 ```
 
 As you see, `"<f2>"` is used as a prefix for <kbd>g</kbd> (char value 103) and <kbd>l</kbd>
@@ -234,7 +234,7 @@ As you see, `"<f2>"` is used as a prefix for <kbd>g</kbd> (char value 103) and <
 If you don't want to use a map right now, you can skip it like this:
 
 ```elisp
-(defhydra hydra-zoom (nil nil)
+(defdeino deino-zoom (nil nil)
   "zoom"
   ("g" text-scale-increase "in")
   ("l" text-scale-decrease "out"))
@@ -243,14 +243,14 @@ If you don't want to use a map right now, you can skip it like this:
 Or even simpler:
 
 ```elisp
-(defhydra hydra-zoom ()
+(defdeino deino-zoom ()
   "zoom"
   ("g" text-scale-increase "in")
   ("l" text-scale-decrease "out"))
 ```
 
-But then you would have to bind `hydra-zoom/text-scale-increase` and
-`hydra-zoom/text-scale-decrease` yourself.
+But then you would have to bind `deino-zoom/text-scale-increase` and
+`deino-zoom/text-scale-decrease` yourself.
 
 ## `awesome-plist`
 
@@ -265,7 +265,7 @@ Below is a list of each key.
 You can specify code that will be called before each head, and after the body. For example:
 
 ```elisp
-(defhydra hydra-vi (:pre (set-cursor-color "#40e0d0")
+(defdeino deino-vi (:pre (set-cursor-color "#40e0d0")
                     :post (progn
                             (set-cursor-color "#ffffff")
                             (message
@@ -279,26 +279,26 @@ You can specify code that will be called before each head, and after the body. F
 ```
 
 Thanks to `:pre`, each time any head is called, the cursor color is changed.
-And when the hydra quits, the cursor color will be made black again with `:post`.
+And when the deino quits, the cursor color will be made black again with `:post`.
 
 ### `:exit`
 
 The `:exit` key is inherited by every head (they can override it) and influences what will happen
 after executing head's command:
 
-- `:exit nil` (the default) means that the hydra state will continue - you'll still see the hint and be able to use short bindings.
-- `:exit t` means that the hydra state will stop.
+- `:exit nil` (the default) means that the deino state will continue - you'll still see the hint and be able to use short bindings.
+- `:exit t` means that the deino state will stop.
 
 ### `:foreign-keys`
 
 The `:foreign-keys` key belongs to the body and decides what to do when a key is pressed that doesn't
 belong to any head:
 
-- `:foreign-keys nil` (the default) means that the hydra state will stop and the foreign key will
-do whatever it was supposed to do if there was no hydra state.
-- `:foreign-keys warn` will not stop the hydra state, but instead will issue a warning without
+- `:foreign-keys nil` (the default) means that the deino state will stop and the foreign key will
+do whatever it was supposed to do if there was no deino state.
+- `:foreign-keys warn` will not stop the deino state, but instead will issue a warning without
 running the foreign key.
-- `:foreign-keys run` will not stop the hydra state, and try to run the foreign key.
+- `:foreign-keys run` will not stop the deino state, and try to run the foreign key.
 
 ### `:color`
 
@@ -312,12 +312,12 @@ The `:color` key is a shortcut. It aggregates `:exit` and `:foreign-keys` key in
     | teal     | :foreign-keys warn :exit t |
     | pink     | :foreign-keys run          |
 
-It's also a trick to make you instantly aware of the current hydra keys that you're about to press:
+It's also a trick to make you instantly aware of the current deino keys that you're about to press:
 the keys will be highlighted with the appropriate color.
 
 ### `:timeout`
 
-The `:timeout` key starts a timer for the corresponding amount of seconds that disables the hydra.
+The `:timeout` key starts a timer for the corresponding amount of seconds that disables the deino.
 Calling any head will refresh the timer.
 
 ### `:hint`
@@ -332,20 +332,20 @@ used, you're not likely to need it.  But if you would like to bind your heads wi
 instead of `define-key` you can use this option.
 
 The `:bind` key can be overridden by each head. This is useful if you want to have a few heads that
-are not bound outside the hydra.
+are not bound outside the deino.
 
 ### `:base-map`
-Use this option if you want to override `hydra-base-map` for the current hydra.
+Use this option if you want to override `deino-base-map` for the current deino.
 
 ## `awesome-docstring`
 
-This can be a simple string used to build the final hydra hint.  However, if you start it with a
+This can be a simple string used to build the final deino hint.  However, if you start it with a
 newline, the key-highlighting and Ruby-style string interpolation becomes enabled, as you can see in
-`hydra-buffer-menu` above.
+`deino-buffer-menu` above.
 
 To highlight a key, just wrap it in underscores. Note that the key must belong to one of the heads.
 The key will be highlighted with the color that is appropriate to the behavior of the key, i.e.  if
-the key will make the hydra exit, the color will be blue.
+the key will make the deino exit, the color will be blue.
 
 To insert an empty character, use `^`. The only use of this is to have your code aligned as
 nicely as the result.
@@ -391,20 +391,20 @@ The `head-command` can be:
                  (call-interactively #'magit-status)))
              "git")
 
-- nil, which exits the hydra.
+- nil, which exits the deino.
 - a single sexp, which will be wrapped in an interactive lambda.
 
 Here's an example of the last option:
 
 ```elisp
-(defhydra hydra-launcher (:color blue)
+(defdeino deino-launcher (:color blue)
    "Launch"
    ("h" man "man")
    ("r" (browse-url "http://www.reddit.com/r/emacs/") "reddit")
    ("w" (browse-url "http://www.emacswiki.org/") "emacswiki")
    ("s" shell "shell")
    ("q" nil "cancel"))
-(global-set-key (kbd "C-c r") 'hydra-launcher/body)
+(global-set-key (kbd "C-c r") 'deino-launcher/body)
 ```
 
 ### `head-hint`
@@ -416,7 +416,7 @@ You can set the head hint to `nil` to do this.
 Example:
 
 ```elisp
-(defhydra hydra-zoom (global-map "<f2>")
+(defdeino deino-zoom (global-map "<f2>")
   "
 Press _g_ to zoom in.
 "
@@ -434,4 +434,4 @@ Here's a list of body keys that can be overridden in each head:
 - `:column`
 
 Use `:column` feature to have an aligned rectangular docstring without defining it manually.
-See [hydra-examples.el](https://github.com/abo-abo/hydra/blob/05871dd6c8af7b2268bd1a10eb9f8a3e423209cd/hydra-examples.el#L337) for an example code.
+See [deino-examples.el](https://github.com/abo-abo/deino/blob/05871dd6c8af7b2268bd1a10eb9f8a3e423209cd/deino-examples.el#L337) for an example code.

@@ -38,7 +38,7 @@
 (defgroup lv nil
   "The other echo area."
   :group 'minibuffer
-  :group 'hydra)
+  :group 'deino)
 
 (defcustom lv-use-separator nil
   "Whether to draw a line between the LV window and the Echo Area."

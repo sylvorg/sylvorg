@@ -3,4 +3,4 @@ targets/
 .dir-locals.el
 Makefile
 README.md
-hydra-test.el
+deino-test.el

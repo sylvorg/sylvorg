@@ -1,4 +1,4 @@
-;;; hydra-examples.el --- Some applications for Hydra
+;;; deino-examples.el --- Some applications for deino
 
 ;; Copyright (C) 2015  Free Software Foundation, Inc.
 
@@ -21,55 +21,55 @@
 
 ;;; Commentary:
 ;;
-;; These are the sample Hydras.
+;; These are the sample deinos.
 ;;
-;; If you want to use them plainly, set `hydra-examples-verbatim' to t
+;; If you want to use them plainly, set `deino-examples-verbatim' to t
 ;; before requiring this file. But it's probably better to only look
 ;; at them and use them as templates for building your own.
 
 ;;; Code:
 
-(require 'hydra)
+(require 'deino)
 
 ;;* Examples
 ;;** Example 1: text scale
-(when (bound-and-true-p hydra-examples-verbatim)
-  (defhydra hydra-zoom (global-map "<f2>")
+(when (bound-and-true-p deino-examples-verbatim)
+  (defdeino deino-zoom (global-map "<f2>")
     "zoom"
     ("g" text-scale-increase "in")
     ("l" text-scale-decrease "out")))
 
 ;; This example generates three commands:
 ;;
-;;     `hydra-zoom/text-scale-increase'
-;;     `hydra-zoom/text-scale-decrease'
-;;     `hydra-zoom/body'
+;;     `deino-zoom/text-scale-increase'
+;;     `deino-zoom/text-scale-decrease'
+;;     `deino-zoom/body'
 ;;
 ;; In addition, two of them are bound like this:
 ;;
-;;     (global-set-key (kbd "<f2> g") 'hydra-zoom/text-scale-increase)
-;;     (global-set-key (kbd "<f2> l") 'hydra-zoom/text-scale-decrease)
+;;     (global-set-key (kbd "<f2> g") 'deino-zoom/text-scale-increase)
+;;     (global-set-key (kbd "<f2> l") 'deino-zoom/text-scale-decrease)
 ;;
 ;; Note that you can substitute `global-map' with e.g. `emacs-lisp-mode-map' if you need.
 ;; The functions generated will be the same, except the binding code will change to:
 ;;
 ;;     (define-key emacs-lisp-mode-map [f2 103]
-;;       (function hydra-zoom/text-scale-increase))
+;;       (function deino-zoom/text-scale-increase))
 ;;     (define-key emacs-lisp-mode-map [f2 108]
-;;       (function hydra-zoom/text-scale-decrease))
+;;       (function deino-zoom/text-scale-decrease))
 
 ;;** Example 2: move window splitter
-(when (bound-and-true-p hydra-examples-verbatim)
-  (defhydra hydra-splitter (global-map "C-M-s")
+(when (bound-and-true-p deino-examples-verbatim)
+  (defdeino deino-splitter (global-map "C-M-s")
     "splitter"
-    ("h" hydra-move-splitter-left)
-    ("j" hydra-move-splitter-down)
-    ("k" hydra-move-splitter-up)
-    ("l" hydra-move-splitter-right)))
+    ("h" deino-move-splitter-left)
+    ("j" deino-move-splitter-down)
+    ("k" deino-move-splitter-up)
+    ("l" deino-move-splitter-right)))
 
 ;;** Example 3: jump to error
-(when (bound-and-true-p hydra-examples-verbatim)
-  (defhydra hydra-error (global-map "M-g")
+(when (bound-and-true-p deino-examples-verbatim)
+  (defdeino deino-error (global-map "M-g")
     "goto-error"
     ("h" first-error "first")
     ("j" next-error "next")
@@ -78,17 +78,17 @@
     ("q" nil "quit")))
 
 ;; This example introduces only one new thing: since the command
-;; passed to the "q" head is nil, it will quit the Hydra without doing
-;; anything. Heads that quit the Hydra instead of continuing are
+;; passed to the "q" head is nil, it will quit the deino without doing
+;; anything. Heads that quit the deino instead of continuing are
 ;; referred to as having blue :color. All the other heads have red
 ;; :color, unless other is specified.
 
 ;;** Example 4: toggle rarely used modes
-(when (bound-and-true-p hydra-examples-verbatim)
+(when (bound-and-true-p deino-examples-verbatim)
   (defvar whitespace-mode nil)
   (global-set-key
    (kbd "C-c C-v")
-   (defhydra hydra-toggle-simple (:color blue)
+   (defdeino deino-toggle-simple (:color blue)
      "toggle"
      ("a" abbrev-mode "abbrev")
      ("d" toggle-debug-on-error "debug")
@@ -97,11 +97,11 @@
      ("w" whitespace-mode "whitespace")
      ("q" nil "cancel"))))
 
-;; Note that in this case, `defhydra' returns the `hydra-toggle-simple/body'
+;; Note that in this case, `defdeino' returns the `deino-toggle-simple/body'
 ;; symbol, which is then passed to `global-set-key'.
 ;;
 ;; Another new thing is that both the keymap and the body prefix are
-;; skipped.  This means that `defhydra' will bind nothing - that's why
+;; skipped.  This means that `defdeino' will bind nothing - that's why
 ;; `global-set-key' is necessary.
 ;;
 ;; One more new thing is that you can assign a :color to the body. All
@@ -114,20 +114,20 @@
 ;;
 ;; * You get a hint immediately after "C-c C-v"
 ;; * You can cancel and call a command immediately, e.g. "C-c C-v C-n"
-;;   is equivalent to "C-n" with Hydra approach, while it will error
+;;   is equivalent to "C-n" with deino approach, while it will error
 ;;   that "C-c C-v C-n" isn't bound with the usual approach.
 
 ;;** Example 5: mini-vi
-(defun hydra-vi/pre ()
+(defun deino-vi/pre ()
   (set-cursor-color "#e52b50"))
 
-(defun hydra-vi/post ()
+(defun deino-vi/post ()
   (set-cursor-color "#ffffff"))
 
-(when (bound-and-true-p hydra-examples-verbatim)
+(when (bound-and-true-p deino-examples-verbatim)
   (global-set-key
    (kbd "C-z")
-   (defhydra hydra-vi (:pre hydra-vi/pre :post hydra-vi/post :color amaranth)
+   (defdeino deino-vi (:pre deino-vi/pre :post deino-vi/post :color amaranth)
      "vi"
      ("l" forward-char)
      ("h" backward-char)
@@ -139,21 +139,21 @@
      ("d" delete-region "del" :color blue)
      ("y" kill-ring-save "yank" :color blue)
      ("q" nil "quit")))
-  (hydra-set-property 'hydra-vi :verbosity 1))
+  (deino-set-property 'deino-vi :verbosity 1))
 
 ;; This example introduces :color amaranth. It's similar to red,
-;; except while you can quit red with any binding which isn't a Hydra
+;; except while you can quit red with any binding which isn't a deino
 ;; head, you can quit amaranth only with a blue head. So you can quit
 ;; this mode only with "d", "y", "q" or "C-g".
 ;;
 ;; Another novelty are the :pre and :post handlers. :pre will be
 ;; called before each command, while :post will be called when the
-;; Hydra quits. In this case, they're used to override the cursor
-;; color while Hydra is active.
+;; deino quits. In this case, they're used to override the cursor
+;; color while deino is active.
 
 ;;** Example 6: selective global bind
-(when (bound-and-true-p hydra-examples-verbatim)
-  (defhydra hydra-next-error (global-map "C-x")
+(when (bound-and-true-p deino-examples-verbatim)
+  (defdeino deino-next-error (global-map "C-x")
     "next-error"
     ("`" next-error "next")
     ("j" next-error "next" :bind nil)
@@ -165,7 +165,7 @@
 
 ;;** Example 7: toggle with Ruby-style docstring
 (defvar whitespace-mode nil)
-(defhydra hydra-toggle (:color pink)
+(defdeino deino-toggle (:color pink)
   "
 _a_ abbrev-mode:       %`abbrev-mode
 _d_ debug-on-error:    %`debug-on-error
@@ -181,7 +181,7 @@ _w_ whitespace-mode:   %`whitespace-mode
   ("w" whitespace-mode nil)
   ("q" nil "quit"))
 ;; Recommended binding:
-;; (global-set-key (kbd "C-c C-v") 'hydra-toggle/body)
+;; (global-set-key (kbd "C-c C-v") 'deino-toggle/body)
 
 ;; Here, using e.g. "_a_" translates to "a" with proper face.
 ;; More interestingly:
@@ -191,7 +191,7 @@ _w_ whitespace-mode:   %`whitespace-mode
 ;; This means that you actually see the state of the mode that you're changing.
 
 ;;** Example 8: the whole menu for `Buffer-menu-mode'
-(defhydra hydra-buffer-menu (:color pink
+(defdeino deino-buffer-menu (:color pink
                              :hint nil)
   "
 ^Mark^             ^Unmark^           ^Actions^          ^Search
@@ -221,15 +221,15 @@ _~_: modified      ^ ^                ^ ^                ^^                     
   ("o" Buffer-menu-other-window "other-window" :color blue)
   ("q" quit-window "quit" :color blue))
 ;; Recommended binding:
-;; (define-key Buffer-menu-mode-map "." 'hydra-buffer-menu/body)
+;; (define-key Buffer-menu-mode-map "." 'deino-buffer-menu/body)
 
 ;;** Example 9: s-expressions in the docstring
 ;; You can inline s-expresssions into the docstring like this:
 (defvar dired-mode-map)
 (declare-function dired-mark "dired")
-(when (bound-and-true-p hydra-examples-verbatim)
+(when (bound-and-true-p deino-examples-verbatim)
   (require 'dired)
-  (defhydra hydra-marked-items (dired-mode-map "")
+  (defdeino deino-marked-items (dired-mode-map "")
     "
 Number of marked items: %(length (dired-get-marked-files))
 "
@@ -243,7 +243,7 @@ Number of marked items: %(length (dired-get-marked-files))
 ;; You can use `format'-style width specs, e.g. % 10(length nil).
 
 ;;** Example 10: apropos family
-(defhydra hydra-apropos (:color blue
+(defdeino deino-apropos (:color blue
                          :hint nil)
   "
 _a_propos        _c_ommand
@@ -258,11 +258,11 @@ _v_ariable       _u_ser-option
   ("u" apropos-user-option)
   ("e" apropos-value))
 ;; Recommended binding:
-;; (global-set-key (kbd "C-c h") 'hydra-apropos/body)
+;; (global-set-key (kbd "C-c h") 'deino-apropos/body)
 
 ;;** Example 11: rectangle-mark-mode
 (require 'rect)
-(defhydra hydra-rectangle (:body-pre (rectangle-mark-mode 1)
+(defdeino deino-rectangle (:body-pre (rectangle-mark-mode 1)
                            :color pink
                            :post (deactivate-mark))
   "
@@ -276,7 +276,7 @@ _h_   _l_   _o_k        _y_ank
   ("l" rectangle-forward-char nil)
   ("k" rectangle-previous-line nil)
   ("j" rectangle-next-line nil)
-  ("e" hydra-ex-point-mark nil)
+  ("e" deino-ex-point-mark nil)
   ("n" copy-rectangle-as-kill nil)
   ("d" delete-rectangle nil)
   ("r" (if (region-active-p)
@@ -289,7 +289,7 @@ _h_   _l_   _o_k        _y_ank
   ("o" nil nil))
 
 ;; Recommended binding:
-;; (global-set-key (kbd "C-x SPC") 'hydra-rectangle/body)
+;; (global-set-key (kbd "C-x SPC") 'deino-rectangle/body)
 
 ;;** Example 12: org-agenda-view
 (defun org-agenda-cts ()
@@ -299,7 +299,7 @@ _h_   _l_   _o_k        _y_ank
                     'org-last-args)))
          (nth 2 args))))
 
-(defhydra hydra-org-agenda-view (:hint none)
+(defdeino deino-org-agenda-view (:hint none)
   "
 _d_: ?d? day        _g_: time grid=?g?  _a_: arch-trees
 _w_: ?w? week       _[_: inactive       _A_: arch-files
@@ -331,10 +331,10 @@ _y_: ?y? year       _q_: quit           _L__l__c_: log = ?l?"
   ("v" nil))
 
 ;; Recommended binding:
-;; (define-key org-agenda-mode-map "v" 'hydra-org-agenda-view/body)
+;; (define-key org-agenda-mode-map "v" 'deino-org-agenda-view/body)
 
 ;;** Example 13: automatic columns
-(defhydra hydra-movement ()
+(defdeino deino-movement ()
   ("j" next-line "down" :column "Vertical")
   ("k" previous-line "up")
   ("l" forward-char "forward" :column "Horizontal")
@@ -343,7 +343,7 @@ _y_: ?y? year       _q_: quit           _L__l__c_: log = ?l?"
 ;;* Helpers
 (require 'windmove)
 
-(defun hydra-move-splitter-left (arg)
+(defun deino-move-splitter-left (arg)
   "Move window splitter left."
   (interactive "p")
   (if (let ((windmove-wrap-around))
@@ -351,7 +351,7 @@ _y_: ?y? year       _q_: quit           _L__l__c_: log = ?l?"
       (shrink-window-horizontally arg)
     (enlarge-window-horizontally arg)))
 
-(defun hydra-move-splitter-right (arg)
+(defun deino-move-splitter-right (arg)
   "Move window splitter right."
   (interactive "p")
   (if (let ((windmove-wrap-around))
@@ -359,7 +359,7 @@ _y_: ?y? year       _q_: quit           _L__l__c_: log = ?l?"
       (enlarge-window-horizontally arg)
     (shrink-window-horizontally arg)))
 
-(defun hydra-move-splitter-up (arg)
+(defun deino-move-splitter-up (arg)
   "Move window splitter up."
   (interactive "p")
   (if (let ((windmove-wrap-around))
@@ -367,7 +367,7 @@ _y_: ?y? year       _q_: quit           _L__l__c_: log = ?l?"
       (enlarge-window arg)
     (shrink-window arg)))
 
-(defun hydra-move-splitter-down (arg)
+(defun deino-move-splitter-down (arg)
   "Move window splitter down."
   (interactive "p")
   (if (let ((windmove-wrap-around))
@@ -376,7 +376,7 @@ _y_: ?y? year       _q_: quit           _L__l__c_: log = ?l?"
     (enlarge-window arg)))
 
 (defvar rectangle-mark-mode)
-(defun hydra-ex-point-mark ()
+(defun deino-ex-point-mark ()
   "Exchange point and mark."
   (interactive)
   (if rectangle-mark-mode
@@ -385,9 +385,9 @@ _y_: ?y? year       _q_: quit           _L__l__c_: log = ?l?"
       (rectangle-mark-mode 1)
       (goto-char mk))))
 
-(provide 'hydra-examples)
+(provide 'deino-examples)
 
 ;; Local Variables:
 ;; no-byte-compile: t
 ;; End:
-;;; hydra-examples.el ends here
+;;; deino-examples.el ends here

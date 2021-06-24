@@ -1,6 +1,6 @@
 emacs ?= emacs
 
-LOAD = -l lv.el -l hydra.el -l hydra-test.el
+LOAD = -l lv.el -l deino.el -l deino-test.el
 
 .PHONY: all test clean
 
@@ -11,11 +11,11 @@ test:
 	$(emacs) -batch $(LOAD) -f ert-run-tests-batch-and-exit
 
 run:
-	$(emacs) -q $(LOAD) -l targets/hydra-init.el
+	$(emacs) -q $(LOAD) -l targets/deino-init.el
 	make clean
 
 compile:
-	$(emacs) -batch $(LOAD) -l targets/hydra-init.el
+	$(emacs) -batch $(LOAD) -l targets/deino-init.el
 
 clean:
 	rm -f *.elc

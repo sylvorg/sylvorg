@@ -1,24 +1,24 @@
 * 0.15.0
 ** New Features
 
-*** defhydra
+*** defdeino
 
 **** New :base-map option in body plist
-In case your hydra conflicts with el:hydra-base-map, you can now override it.
+In case your deino conflicts with el:deino-base-map, you can now override it.
 
 Example:
 #+begin_src elisp
-(defhydra hydra-numbers (:base-map (make-sparse-keymap))
+(defdeino deino-numbers (:base-map (make-sparse-keymap))
   "test"
   ("0" (message "zero"))
   ("1" (message "one")))
 #+end_src
-See [[https://github.com/abo-abo/hydra/issues/285][#285]].
+See [[https://github.com/abo-abo/deino/issues/285][#285]].
 
 **** Make no docstring equivalent to :hint nil
 Example:
 #+begin_src elisp
-(defhydra hydra-clock (:color blue)
+(defdeino deino-clock (:color blue)
   ("q" nil "quit" :column "Clock")
   ("c" org-clock-cancel "cancel" :color pink :column "Do")
   ("d" org-clock-display "display")
@@ -28,42 +28,42 @@ Example:
   ("o" org-clock-out "out")
   ("r" org-clock-report "report"))
 #+end_src
-See [[https://github.com/abo-abo/hydra/issues/291][#291]].
+See [[https://github.com/abo-abo/deino/issues/291][#291]].
 
 **** Declare /params and /docstring
-See [[https://github.com/abo-abo/hydra/issues/185][#185]].
+See [[https://github.com/abo-abo/deino/issues/185][#185]].
 
 **** Sexp hints are now supported for :columns
 Example
 #+begin_src elisp
-(defhydra hydra-test ()
+(defdeino deino-test ()
   "Test"
   ("j" next-line (format-time-string "%H:%M:%S" (current-time)) :column "One")
   ("k" previous-line (format-time-string "%H:%M:%S" (current-time)))
   ("l" backward-char "back" :column "Two"))
 #+end_src
-See [[https://github.com/abo-abo/hydra/issues/311][#311]].
+See [[https://github.com/abo-abo/deino/issues/311][#311]].
 
 
-*** defhydra+
-New macro. Allows to add heads to an existing hydra.
+*** defdeino+
+New macro. Allows to add heads to an existing deino.
 
 Example:
 #+begin_src elisp
-(defhydra hydra-extendable ()
+(defdeino deino-extendable ()
   "extendable"
   ("j" next-line "down"))
 
-(defhydra+ hydra-extendable ()
+(defdeino+ deino-extendable ()
   ("k" previous-line "up"))
 #+end_src
-See [[https://github.com/abo-abo/hydra/issues/185][#185]].
+See [[https://github.com/abo-abo/deino/issues/185][#185]].
 
-*** el:hydra-hint-display-type
+*** el:deino-hint-display-type
 Customize what to use to display the hint:
 - el:message
 - el:lv-message
 - posframe
 
-el:hydra-lv is now obsolete.
-See [[https://github.com/abo-abo/hydra/issues/317][#317]].
+el:deino-lv is now obsolete.
+See [[https://github.com/abo-abo/deino/issues/317][#317]].

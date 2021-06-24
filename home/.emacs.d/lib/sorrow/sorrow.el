@@ -103,7 +103,7 @@ will be translated as well."
 
 TARGET can be one of:
 
-kbd-string   Pressing KEY will simulate TARGET as a keypress.
+naked-string Pressing KEY will simulate TARGET as a keypress.
 command      Calls TARGET interactively.
 list         Each element of TARGET is sent to `ryo-modal-key' again, with
              KEY as a prefix key.  ARGS are copied, except for :name.
@@ -116,8 +116,17 @@ keymap       Similarly to list, each keybinding of provided keymap
 :hydra       If you have hydra installed, a new hydra will be created and
              bound to KEY.  The first element of ARGS should be a list
              containing the arguments sent to `defhydra'.
+:hydra+      If you have hydra installed, an old hydra will be added to.
+             The first element of ARGS should be a list containing the
+             arguments sent to `defhydra+'.
+:deino       If you have deino installed, a new deino will be created and
+             bound to KEY.  The first element of ARGS should be a list
+             containing the arguments sent to `defdeino'.
+:deino+      If you have deino installed, an old deino will be added to.
+             The first element of ARGS should be a list containing the
+             arguments sent to `defdeino+'.
 
-ARGS should be of the form [:keyword option]... if TARGET is a kbd-string
+ARGS should be of the form [:keyword option]... if TARGET is a naked-string
 or a command.  The following keywords exist:
 
 :name      A string, naming the binding.  If ommited get name from TARGET.
@@ -149,8 +158,8 @@ make sure the name of the created command is unique."
                 (set-keymap-parent (eval (intern map-name))
                                    ryo-modal-mode-map)
                 (add-to-list 'ryo-modal-mode-keymaps mode))
-              (define-key (eval (intern map-name)) (kbd key) `(,(plist-get args :name))))
-          (define-key ryo-modal-mode-map (kbd key) `(,(plist-get args :name))))))
+              (define-key (eval (intern map-name)) (naked key) `(,(plist-get args :name))))
+          (define-key ryo-modal-mode-map (naked key) `(,(plist-get args :name))))))
     (mapc (lambda (x)
             ;; Merge :then lists
             (when (and (plist-get (cddr x) :then)
@@ -169,8 +178,17 @@ make sure the name of the created command is unique."
    ((and (require 'hydra nil t)
          (equal target :hydra))
     (apply #'ryo-modal-key `(,key ,(eval `(defhydra ,@(car args))) ,@(cdr args))))
-   ((and (stringp target) (keymapp (key-binding (kbd target))))
-    (let* ((binding (key-binding (kbd target)))
+   ((and (require 'hydra nil t)
+         (equal target :hydra+))
+    (apply #'ryo-modal-key `(,key ,(eval `(defhydra+ ,@(car args))) ,@(cdr args))))
+   ((and (require 'deino nil t)
+         (equal target :deino))
+    (apply #'ryo-modal-key `(,key ,(eval `(defdeino ,@(car args))) ,@(cdr args))))
+   ((and (require 'deino nil t)
+         (equal target :deino+))
+    (apply #'ryo-modal-key `(,key ,(eval `(defdeino+ ,@(car args))) ,@(cdr args))))
+   ((and (stringp target) (keymapp (key-binding (naked target))))
+    (let* ((binding (key-binding (naked target)))
            (map-to-translate (if (symbolp binding) (symbol-function binding) binding)))
       (let ((translated-keymap (ryo-modal--translate-keymap map-to-translate)))
         (apply #'ryo-modal-key `(,key ,translated-keymap ,@args)))))
@@ -190,13 +208,13 @@ make sure the name of the created command is unique."
            (hash (secure-hash 'md5 (format "%s%s" target args)))
            (docs
             (if (stringp target)
-                (if (keymapp (key-binding (kbd target)))
+                (if (keymapp (key-binding (naked target)))
                     (concat "Call keymap " target)
                   (format "%s → %s (`%s')\n\n%s%s"
-                          (key-description (kbd key))
-                          (key-description (kbd target))
-                          (key-binding (kbd target))
-                          (documentation (key-binding (kbd target)))
+                          (key-description (naked key))
+                          (key-description (naked target))
+                          (key-binding (naked target))
+                          (documentation (key-binding (naked target)))
                           (mapconcat #'documentation (plist-get args :then) "\n")))
               (concat (documentation target)
                       (mapconcat #'documentation (plist-get args :then) "\n"))))
@@ -215,13 +233,13 @@ make sure the name of the created command is unique."
                           (call-interactively f))
                       (apply f nil)))
                   (if (and (stringp ',target)
-                           (keymapp (key-binding (kbd ,target))))
+                           (keymapp (key-binding (naked ,target))))
                       (progn
                         (when ,(plist-get args :exit) (ryo-modal-mode -1))
-                        (setq unread-command-events (listify-key-sequence (kbd ',target))))
+                        (setq unread-command-events (listify-key-sequence (naked ',target))))
                     (let ((real-this-command
                            (if (stringp ',target)
-                               (key-binding (kbd ,target))
+                               (key-binding (naked ,target))
                              ',target)))
                       (call-interactively real-this-command))
                     (dolist (f (quote ,(plist-get args :then)))
@@ -232,11 +250,11 @@ make sure the name of the created command is unique."
                     (when ,(plist-get args :exit) (ryo-modal-mode -1))
                     (when ,(plist-get args :read) (insert (read-string "Insert: ")))))))
              ((stringp target)
-              (if (keymapp (key-binding (kbd target)))
+              (if (keymapp (key-binding (naked target)))
                   ;; TODO: This doesn't seem to work with "keymaps inside of keymaps"
                   (lambda () (interactive)
-                    (setq unread-command-events (listify-key-sequence (kbd target))))
-                (key-binding (kbd target))))
+                    (setq unread-command-events (listify-key-sequence (naked target))))
+                (key-binding (naked target))))
              (t
               target)))
            (mode (plist-get args :mode)))
@@ -255,8 +273,8 @@ make sure the name of the created command is unique."
               (set-keymap-parent (eval (intern map-name))
                                  ryo-modal-mode-map)
               (add-to-list 'ryo-modal-mode-keymaps mode))
-            (define-key (eval (intern map-name)) (kbd key) func))
-        (define-key ryo-modal-mode-map (kbd key) func))
+            (define-key (eval (intern map-name)) (naked key) func))
+        (define-key ryo-modal-mode-map (naked key) func))
       (add-to-list 'ryo-modal-bindings-list `(,key ,name ,@args))))))
 
 ;;;###autoload
@@ -304,7 +322,7 @@ If COMMAND is excluded, use what is bound to right now in KEYMAP.
 If KEYMAP is excluded, use `current-global-map'."
   (let* ((keymap (or keymap (current-global-map)))
          (command (or command
-                      (lookup-key keymap (kbd binding))
+                      (lookup-key keymap (naked binding))
                       (user-error "No binding for '%s'" binding)))
          (name (symbol-name command))
          (hash (secure-hash 'md5 (format "%s-then-ryo" command)))
@@ -317,7 +335,7 @@ If KEYMAP is excluded, use `current-global-map'."
               (interactive)
               (call-interactively ',command)
               (ryo-modal-mode 1)))))
-    (define-key keymap (kbd binding) func)))
+    (define-key keymap (naked binding) func)))
 
 ;;;###autoload
 (defun ryo-modal-set-key (key command)
@@ -434,6 +452,24 @@ This function is meant to unbind keys set with `ryo-modal-set-key'."
                         (listp hydra-term)
                         (cadr hydra-term))
                (push (cadr hydra-term) commands))))
+          ((equal target :hydra+)
+           (dolist (hydra-term (cadr (cl-third arg)))
+             (when (and hydra-term
+                        (listp hydra-term)
+                        (cadr hydra-term))
+               (push (cadr hydra-term) commands))))
+          ((equal target :deino)
+           (dolist (deino-term (cadr (cl-third arg)))
+             (when (and deino-term
+                        (listp deino-term)
+                        (cadr deino-term))
+               (push (cadr deino-term) commands))))
+          ((equal target :deino+)
+           (dolist (deino-term (cadr (cl-third arg)))
+             (when (and deino-term
+                        (listp deino-term)
+                        (cadr deino-term))
+               (push (cadr deino-term) commands))))
           ((not (stringp target))
            (push target commands))))))))
 

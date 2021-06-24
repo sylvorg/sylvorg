@@ -1,4 +1,4 @@
-;;; hydra-test.el --- Tests for Hydra
+;;; deino-test.el --- Tests for deino
 
 ;; Copyright (C) 2015  Free Software Foundation, Inc.
 
@@ -25,32 +25,32 @@
 ;;; Code:
 
 (require 'ert)
-(require 'hydra)
+(require 'deino)
 (setq text-quoting-style 'grave)
 (message "Emacs version: %s" emacs-version)
 
-(ert-deftest hydra-red-error ()
+(ert-deftest deino-red-error ()
   (should
    (equal
     (macroexpand
-     '(defhydra hydra-error (global-map "M-g")
+     '(defdeino deino-error (global-map "M-g")
        "error"
        ("h" first-error "first")
        ("j" next-error "next")
        ("k" previous-error "prev")
-       ("SPC" hydra-repeat "rep" :bind nil)))
+       ("SPC" deino-repeat "rep" :bind nil)))
     '(progn
       (set
-       (defvar hydra-error/params nil
-         "Params of hydra-error.")
+       (defvar deino-error/params nil
+         "Params of deino-error.")
        (quote (global-map "M-g")))
       (set
-       (defvar hydra-error/docstring nil
-         "Docstring of hydra-error.")
+       (defvar deino-error/docstring nil
+         "Docstring of deino-error.")
        "error")
       (set
-       (defvar hydra-error/heads nil
-         "Heads for hydra-error.")
+       (defvar deino-error/heads nil
+         "Heads for deino-error.")
        (quote
         (("h"
           first-error
@@ -65,158 +65,158 @@
           "prev"
           :exit nil)
          ("SPC"
-          hydra-repeat
+          deino-repeat
           "rep"
           :bind nil
           :exit nil))))
       (set
-       (defvar hydra-error/keymap nil
-         "Keymap for hydra-error.")
+       (defvar deino-error/keymap nil
+         "Keymap for deino-error.")
        (quote
         (keymap
-         (32 . hydra-repeat)
-         (107 . hydra-error/previous-error)
-         (106 . hydra-error/next-error)
-         (104 . hydra-error/first-error)
-         (kp-subtract . hydra--negative-argument)
-         (kp-9 . hydra--digit-argument)
-         (kp-8 . hydra--digit-argument)
-         (kp-7 . hydra--digit-argument)
-         (kp-6 . hydra--digit-argument)
-         (kp-5 . hydra--digit-argument)
-         (kp-4 . hydra--digit-argument)
-         (kp-3 . hydra--digit-argument)
-         (kp-2 . hydra--digit-argument)
-         (kp-1 . hydra--digit-argument)
-         (kp-0 . hydra--digit-argument)
-         (57 . hydra--digit-argument)
-         (56 . hydra--digit-argument)
-         (55 . hydra--digit-argument)
-         (54 . hydra--digit-argument)
-         (53 . hydra--digit-argument)
-         (52 . hydra--digit-argument)
-         (51 . hydra--digit-argument)
-         (50 . hydra--digit-argument)
-         (49 . hydra--digit-argument)
-         (48 . hydra--digit-argument)
-         (45 . hydra--negative-argument)
-         (21 . hydra--universal-argument))))
+         (32 . deino-repeat)
+         (107 . deino-error/previous-error)
+         (106 . deino-error/next-error)
+         (104 . deino-error/first-error)
+         (kp-subtract . deino--negative-argument)
+         (kp-9 . deino--digit-argument)
+         (kp-8 . deino--digit-argument)
+         (kp-7 . deino--digit-argument)
+         (kp-6 . deino--digit-argument)
+         (kp-5 . deino--digit-argument)
+         (kp-4 . deino--digit-argument)
+         (kp-3 . deino--digit-argument)
+         (kp-2 . deino--digit-argument)
+         (kp-1 . deino--digit-argument)
+         (kp-0 . deino--digit-argument)
+         (57 . deino--digit-argument)
+         (56 . deino--digit-argument)
+         (55 . deino--digit-argument)
+         (54 . deino--digit-argument)
+         (53 . deino--digit-argument)
+         (52 . deino--digit-argument)
+         (51 . deino--digit-argument)
+         (50 . deino--digit-argument)
+         (49 . deino--digit-argument)
+         (48 . deino--digit-argument)
+         (45 . deino--negative-argument)
+         (21 . deino--universal-argument))))
       (set
-       (defvar hydra-error/hint nil
-         "Dynamic hint for hydra-error.")
+       (defvar deino-error/hint nil
+         "Dynamic hint for deino-error.")
        (quote
         (format
          #("error: [h]: first, [j]: next, [k]: prev, [SPC]: rep."
-           8 9 (face hydra-face-red)
-           20 21 (face hydra-face-red)
-           31 32 (face hydra-face-red)
-           42 45 (face hydra-face-red)))))
-      (defun hydra-error/first-error nil
-        "Call the head `first-error' in the \"hydra-error\" hydra.
+           8 9 (face deino-face-red)
+           20 21 (face deino-face-red)
+           31 32 (face deino-face-red)
+           42 45 (face deino-face-red)))))
+      (defun deino-error/first-error nil
+        "Call the head `first-error' in the \"deino-error\" deino.
 
-The heads for the associated hydra are:
+The heads for the associated deino are:
 
 \"h\":    `first-error',
 \"j\":    `next-error',
 \"k\":    `previous-error',
-\"SPC\":    `hydra-repeat'
+\"SPC\":    `deino-repeat'
 
-The body can be accessed via `hydra-error/body', which is bound to \"M-g\"."
+The body can be accessed via `deino-error/body', which is bound to \"M-g\"."
         (interactive)
-        (require (quote hydra))
-        (hydra-default-pre)
-        (let ((hydra--ignore t))
-          (hydra-keyboard-quit)
-          (setq hydra-curr-body-fn
-                (quote hydra-error/body)))
+        (require (quote deino))
+        (deino-default-pre)
+        (let ((deino--ignore t))
+          (deino-keyboard-quit)
+          (setq deino-curr-body-fn
+                (quote deino-error/body)))
         (condition-case err
             (progn
               (setq this-command
                     (quote first-error))
-              (hydra--call-interactively-remap-maybe
+              (deino--call-interactively-remap-maybe
                (function first-error)))
           ((quit error)
            (message
             (error-message-string err))))
-        (hydra-show-hint
-         hydra-error/hint
-         (quote hydra-error))
-        (hydra-set-transient-map
-         hydra-error/keymap
+        (deino-show-hint
+         deino-error/hint
+         (quote deino-error))
+        (deino-set-transient-map
+         deino-error/keymap
          (lambda nil
-           (hydra-keyboard-quit)
+           (deino-keyboard-quit)
            nil)
          nil))
-      (defun hydra-error/next-error nil
-        "Call the head `next-error' in the \"hydra-error\" hydra.
+      (defun deino-error/next-error nil
+        "Call the head `next-error' in the \"deino-error\" deino.
 
-The heads for the associated hydra are:
+The heads for the associated deino are:
 
 \"h\":    `first-error',
 \"j\":    `next-error',
 \"k\":    `previous-error',
-\"SPC\":    `hydra-repeat'
+\"SPC\":    `deino-repeat'
 
-The body can be accessed via `hydra-error/body', which is bound to \"M-g\"."
+The body can be accessed via `deino-error/body', which is bound to \"M-g\"."
         (interactive)
-        (require (quote hydra))
-        (hydra-default-pre)
-        (let ((hydra--ignore t))
-          (hydra-keyboard-quit)
-          (setq hydra-curr-body-fn
-                (quote hydra-error/body)))
+        (require (quote deino))
+        (deino-default-pre)
+        (let ((deino--ignore t))
+          (deino-keyboard-quit)
+          (setq deino-curr-body-fn
+                (quote deino-error/body)))
         (condition-case err
             (progn
               (setq this-command
                     (quote next-error))
-              (hydra--call-interactively-remap-maybe
+              (deino--call-interactively-remap-maybe
                (function next-error)))
           ((quit error)
            (message
             (error-message-string err))))
-        (hydra-show-hint
-         hydra-error/hint
-         (quote hydra-error))
-        (hydra-set-transient-map
-         hydra-error/keymap
+        (deino-show-hint
+         deino-error/hint
+         (quote deino-error))
+        (deino-set-transient-map
+         deino-error/keymap
          (lambda nil
-           (hydra-keyboard-quit)
+           (deino-keyboard-quit)
            nil)
          nil))
-      (defun hydra-error/previous-error nil
-        "Call the head `previous-error' in the \"hydra-error\" hydra.
+      (defun deino-error/previous-error nil
+        "Call the head `previous-error' in the \"deino-error\" deino.
 
-The heads for the associated hydra are:
+The heads for the associated deino are:
 
 \"h\":    `first-error',
 \"j\":    `next-error',
 \"k\":    `previous-error',
-\"SPC\":    `hydra-repeat'
+\"SPC\":    `deino-repeat'
 
-The body can be accessed via `hydra-error/body', which is bound to \"M-g\"."
+The body can be accessed via `deino-error/body', which is bound to \"M-g\"."
         (interactive)
-        (require (quote hydra))
-        (hydra-default-pre)
-        (let ((hydra--ignore t))
-          (hydra-keyboard-quit)
-          (setq hydra-curr-body-fn
-                (quote hydra-error/body)))
+        (require (quote deino))
+        (deino-default-pre)
+        (let ((deino--ignore t))
+          (deino-keyboard-quit)
+          (setq deino-curr-body-fn
+                (quote deino-error/body)))
         (condition-case err
             (progn
               (setq this-command
                     (quote previous-error))
-              (hydra--call-interactively-remap-maybe
+              (deino--call-interactively-remap-maybe
                (function previous-error)))
           ((quit error)
            (message
             (error-message-string err))))
-        (hydra-show-hint
-         hydra-error/hint
-         (quote hydra-error))
-        (hydra-set-transient-map
-         hydra-error/keymap
+        (deino-show-hint
+         deino-error/hint
+         (quote deino-error))
+        (deino-set-transient-map
+         deino-error/keymap
          (lambda nil
-           (hydra-keyboard-quit)
+           (deino-keyboard-quit)
            nil)
          nil))
       (unless (keymapp
@@ -226,47 +226,47 @@ The body can be accessed via `hydra-error/body', which is bound to \"M-g\"."
         (define-key global-map (kbd "M-g")
           nil))
       (define-key global-map [134217831 104]
-       (quote hydra-error/first-error))
+       (quote deino-error/first-error))
       (define-key global-map [134217831 106]
-       (quote hydra-error/next-error))
+       (quote deino-error/next-error))
       (define-key global-map [134217831 107]
        (quote
-        hydra-error/previous-error))
-      (defun hydra-error/body nil
-        "Call the body in the \"hydra-error\" hydra.
+        deino-error/previous-error))
+      (defun deino-error/body nil
+        "Call the body in the \"deino-error\" deino.
 
-The heads for the associated hydra are:
+The heads for the associated deino are:
 
 \"h\":    `first-error',
 \"j\":    `next-error',
 \"k\":    `previous-error',
-\"SPC\":    `hydra-repeat'
+\"SPC\":    `deino-repeat'
 
-The body can be accessed via `hydra-error/body', which is bound to \"M-g\"."
+The body can be accessed via `deino-error/body', which is bound to \"M-g\"."
         (interactive)
-        (require (quote hydra))
-        (hydra-default-pre)
-        (let ((hydra--ignore nil))
-          (hydra-keyboard-quit)
-          (setq hydra-curr-body-fn
-                (quote hydra-error/body)))
-        (hydra-show-hint
-         hydra-error/hint
-         (quote hydra-error))
-        (hydra-set-transient-map
-         hydra-error/keymap
+        (require (quote deino))
+        (deino-default-pre)
+        (let ((deino--ignore nil))
+          (deino-keyboard-quit)
+          (setq deino-curr-body-fn
+                (quote deino-error/body)))
+        (deino-show-hint
+         deino-error/hint
+         (quote deino-error))
+        (deino-set-transient-map
+         deino-error/keymap
          (lambda nil
-           (hydra-keyboard-quit)
+           (deino-keyboard-quit)
            nil)
          nil)
         (setq prefix-arg
               current-prefix-arg))))))
 
-(ert-deftest hydra-blue-toggle ()
+(ert-deftest deino-blue-toggle ()
   (should
    (equal
     (macroexpand
-     '(defhydra hydra-toggle (:color blue)
+     '(defdeino deino-toggle (:color blue)
        "toggle"
        ("t" toggle-truncate-lines "truncate")
        ("f" auto-fill-mode "fill")
@@ -274,20 +274,20 @@ The body can be accessed via `hydra-error/body', which is bound to \"M-g\"."
        ("q" nil "cancel")))
     '(progn
       (set
-       (defvar hydra-toggle/params nil
-         "Params of hydra-toggle.")
+       (defvar deino-toggle/params nil
+         "Params of deino-toggle.")
        (quote
         (nil
          nil
          :exit t
          :foreign-keys nil)))
       (set
-       (defvar hydra-toggle/docstring nil
-         "Docstring of hydra-toggle.")
+       (defvar deino-toggle/docstring nil
+         "Docstring of deino-toggle.")
        "toggle")
       (set
-       (defvar hydra-toggle/heads nil
-         "Heads for hydra-toggle.")
+       (defvar deino-toggle/heads nil
+         "Heads for deino-toggle.")
        (quote
         (("t"
           toggle-truncate-lines
@@ -303,166 +303,166 @@ The body can be accessed via `hydra-error/body', which is bound to \"M-g\"."
           :exit t)
          ("q" nil "cancel" :exit t))))
       (set
-       (defvar hydra-toggle/keymap nil
-         "Keymap for hydra-toggle.")
+       (defvar deino-toggle/keymap nil
+         "Keymap for deino-toggle.")
        (quote
         (keymap
-         (113 . hydra-toggle/nil)
-         (97 . hydra-toggle/abbrev-mode-and-exit)
-         (102 . hydra-toggle/auto-fill-mode-and-exit)
-         (116 . hydra-toggle/toggle-truncate-lines-and-exit)
-         (kp-subtract . hydra--negative-argument)
-         (kp-9 . hydra--digit-argument)
-         (kp-8 . hydra--digit-argument)
-         (kp-7 . hydra--digit-argument)
-         (kp-6 . hydra--digit-argument)
-         (kp-5 . hydra--digit-argument)
-         (kp-4 . hydra--digit-argument)
-         (kp-3 . hydra--digit-argument)
-         (kp-2 . hydra--digit-argument)
-         (kp-1 . hydra--digit-argument)
-         (kp-0 . hydra--digit-argument)
-         (57 . hydra--digit-argument)
-         (56 . hydra--digit-argument)
-         (55 . hydra--digit-argument)
-         (54 . hydra--digit-argument)
-         (53 . hydra--digit-argument)
-         (52 . hydra--digit-argument)
-         (51 . hydra--digit-argument)
-         (50 . hydra--digit-argument)
-         (49 . hydra--digit-argument)
-         (48 . hydra--digit-argument)
-         (45 . hydra--negative-argument)
-         (21 . hydra--universal-argument))))
+         (113 . deino-toggle/nil)
+         (97 . deino-toggle/abbrev-mode-and-exit)
+         (102 . deino-toggle/auto-fill-mode-and-exit)
+         (116 . deino-toggle/toggle-truncate-lines-and-exit)
+         (kp-subtract . deino--negative-argument)
+         (kp-9 . deino--digit-argument)
+         (kp-8 . deino--digit-argument)
+         (kp-7 . deino--digit-argument)
+         (kp-6 . deino--digit-argument)
+         (kp-5 . deino--digit-argument)
+         (kp-4 . deino--digit-argument)
+         (kp-3 . deino--digit-argument)
+         (kp-2 . deino--digit-argument)
+         (kp-1 . deino--digit-argument)
+         (kp-0 . deino--digit-argument)
+         (57 . deino--digit-argument)
+         (56 . deino--digit-argument)
+         (55 . deino--digit-argument)
+         (54 . deino--digit-argument)
+         (53 . deino--digit-argument)
+         (52 . deino--digit-argument)
+         (51 . deino--digit-argument)
+         (50 . deino--digit-argument)
+         (49 . deino--digit-argument)
+         (48 . deino--digit-argument)
+         (45 . deino--negative-argument)
+         (21 . deino--universal-argument))))
       (set
-       (defvar hydra-toggle/hint nil
-         "Dynamic hint for hydra-toggle.")
+       (defvar deino-toggle/hint nil
+         "Dynamic hint for deino-toggle.")
        (quote
         (format
          #("toggle: [t]: truncate, [f]: fill, [a]: abbrev, [q]: cancel."
-           9 10 (face hydra-face-blue)
-           24 25 (face hydra-face-blue)
-           35 36 (face hydra-face-blue)
-           48 49 (face hydra-face-blue)))))
-      (defun hydra-toggle/toggle-truncate-lines-and-exit nil
-        "Call the head `toggle-truncate-lines' in the \"hydra-toggle\" hydra.
+           9 10 (face deino-face-blue)
+           24 25 (face deino-face-blue)
+           35 36 (face deino-face-blue)
+           48 49 (face deino-face-blue)))))
+      (defun deino-toggle/toggle-truncate-lines-and-exit nil
+        "Call the head `toggle-truncate-lines' in the \"deino-toggle\" deino.
 
-The heads for the associated hydra are:
+The heads for the associated deino are:
 
 \"t\":    `toggle-truncate-lines',
 \"f\":    `auto-fill-mode',
 \"a\":    `abbrev-mode',
 \"q\":    `nil'
 
-The body can be accessed via `hydra-toggle/body'."
+The body can be accessed via `deino-toggle/body'."
         (interactive)
-        (require (quote hydra))
-        (hydra-default-pre)
-        (hydra-keyboard-quit)
-        (setq hydra-curr-body-fn
-              (quote hydra-toggle/body))
+        (require (quote deino))
+        (deino-default-pre)
+        (deino-keyboard-quit)
+        (setq deino-curr-body-fn
+              (quote deino-toggle/body))
         (progn
           (setq this-command
                 (quote toggle-truncate-lines))
-          (hydra--call-interactively-remap-maybe
+          (deino--call-interactively-remap-maybe
            (function
             toggle-truncate-lines))))
-      (defun hydra-toggle/auto-fill-mode-and-exit nil
-        "Call the head `auto-fill-mode' in the \"hydra-toggle\" hydra.
+      (defun deino-toggle/auto-fill-mode-and-exit nil
+        "Call the head `auto-fill-mode' in the \"deino-toggle\" deino.
 
-The heads for the associated hydra are:
+The heads for the associated deino are:
 
 \"t\":    `toggle-truncate-lines',
 \"f\":    `auto-fill-mode',
 \"a\":    `abbrev-mode',
 \"q\":    `nil'
 
-The body can be accessed via `hydra-toggle/body'."
+The body can be accessed via `deino-toggle/body'."
         (interactive)
-        (require (quote hydra))
-        (hydra-default-pre)
-        (hydra-keyboard-quit)
-        (setq hydra-curr-body-fn
-              (quote hydra-toggle/body))
+        (require (quote deino))
+        (deino-default-pre)
+        (deino-keyboard-quit)
+        (setq deino-curr-body-fn
+              (quote deino-toggle/body))
         (progn
           (setq this-command
                 (quote auto-fill-mode))
-          (hydra--call-interactively-remap-maybe
+          (deino--call-interactively-remap-maybe
            (function auto-fill-mode))))
-      (defun hydra-toggle/abbrev-mode-and-exit nil
-        "Call the head `abbrev-mode' in the \"hydra-toggle\" hydra.
+      (defun deino-toggle/abbrev-mode-and-exit nil
+        "Call the head `abbrev-mode' in the \"deino-toggle\" deino.
 
-The heads for the associated hydra are:
+The heads for the associated deino are:
 
 \"t\":    `toggle-truncate-lines',
 \"f\":    `auto-fill-mode',
 \"a\":    `abbrev-mode',
 \"q\":    `nil'
 
-The body can be accessed via `hydra-toggle/body'."
+The body can be accessed via `deino-toggle/body'."
         (interactive)
-        (require (quote hydra))
-        (hydra-default-pre)
-        (hydra-keyboard-quit)
-        (setq hydra-curr-body-fn
-              (quote hydra-toggle/body))
+        (require (quote deino))
+        (deino-default-pre)
+        (deino-keyboard-quit)
+        (setq deino-curr-body-fn
+              (quote deino-toggle/body))
         (progn
           (setq this-command
                 (quote abbrev-mode))
-          (hydra--call-interactively-remap-maybe
+          (deino--call-interactively-remap-maybe
            (function abbrev-mode))))
-      (defun hydra-toggle/nil nil
-        "Call the head `nil' in the \"hydra-toggle\" hydra.
+      (defun deino-toggle/nil nil
+        "Call the head `nil' in the \"deino-toggle\" deino.
 
-The heads for the associated hydra are:
-
-\"t\":    `toggle-truncate-lines',
-\"f\":    `auto-fill-mode',
-\"a\":    `abbrev-mode',
-\"q\":    `nil'
-
-The body can be accessed via `hydra-toggle/body'."
-        (interactive)
-        (require (quote hydra))
-        (hydra-default-pre)
-        (hydra-keyboard-quit)
-        (setq hydra-curr-body-fn
-              (quote hydra-toggle/body)))
-      (defun hydra-toggle/body nil
-        "Call the body in the \"hydra-toggle\" hydra.
-
-The heads for the associated hydra are:
+The heads for the associated deino are:
 
 \"t\":    `toggle-truncate-lines',
 \"f\":    `auto-fill-mode',
 \"a\":    `abbrev-mode',
 \"q\":    `nil'
 
-The body can be accessed via `hydra-toggle/body'."
+The body can be accessed via `deino-toggle/body'."
         (interactive)
-        (require (quote hydra))
-        (hydra-default-pre)
-        (let ((hydra--ignore nil))
-          (hydra-keyboard-quit)
-          (setq hydra-curr-body-fn
-                (quote hydra-toggle/body)))
-        (hydra-show-hint
-         hydra-toggle/hint
-         (quote hydra-toggle))
-        (hydra-set-transient-map
-         hydra-toggle/keymap
+        (require (quote deino))
+        (deino-default-pre)
+        (deino-keyboard-quit)
+        (setq deino-curr-body-fn
+              (quote deino-toggle/body)))
+      (defun deino-toggle/body nil
+        "Call the body in the \"deino-toggle\" deino.
+
+The heads for the associated deino are:
+
+\"t\":    `toggle-truncate-lines',
+\"f\":    `auto-fill-mode',
+\"a\":    `abbrev-mode',
+\"q\":    `nil'
+
+The body can be accessed via `deino-toggle/body'."
+        (interactive)
+        (require (quote deino))
+        (deino-default-pre)
+        (let ((deino--ignore nil))
+          (deino-keyboard-quit)
+          (setq deino-curr-body-fn
+                (quote deino-toggle/body)))
+        (deino-show-hint
+         deino-toggle/hint
+         (quote deino-toggle))
+        (deino-set-transient-map
+         deino-toggle/keymap
          (lambda nil
-           (hydra-keyboard-quit)
+           (deino-keyboard-quit)
            nil)
          nil)
         (setq prefix-arg
               current-prefix-arg))))))
 
-(ert-deftest hydra-amaranth-vi ()
+(ert-deftest deino-amaranth-vi ()
   (should
    (equal
     (macroexpand
-     '(defhydra hydra-vi
+     '(defdeino deino-vi
        (:pre
         (set-cursor-color "#e52b50")
         :post
@@ -474,8 +474,8 @@ The body can be accessed via `hydra-toggle/body'."
        ("q" nil "quit")))
     '(progn
       (set
-       (defvar hydra-vi/params nil
-         "Params of hydra-vi.")
+       (defvar deino-vi/params nil
+         "Params of deino-vi.")
        (quote
         (nil
          nil
@@ -484,12 +484,12 @@ The body can be accessed via `hydra-toggle/body'."
          :post (set-cursor-color "#ffffff")
          :pre (set-cursor-color "#e52b50"))))
       (set
-       (defvar hydra-vi/docstring nil
-         "Docstring of hydra-vi.")
+       (defvar deino-vi/docstring nil
+         "Docstring of deino-vi.")
        "vi")
       (set
-       (defvar hydra-vi/heads nil
-         "Heads for hydra-vi.")
+       (defvar deino-vi/heads nil
+         "Heads for deino-vi.")
        (quote
         (("j" next-line "" :exit nil)
          ("k"
@@ -498,185 +498,185 @@ The body can be accessed via `hydra-toggle/body'."
           :exit nil)
          ("q" nil "quit" :exit t))))
       (set
-       (defvar hydra-vi/keymap nil
-         "Keymap for hydra-vi.")
+       (defvar deino-vi/keymap nil
+         "Keymap for deino-vi.")
        (quote
         (keymap
-         (113 . hydra-vi/nil)
-         (107 . hydra-vi/previous-line)
-         (106 . hydra-vi/next-line)
-         (kp-subtract . hydra--negative-argument)
-         (kp-9 . hydra--digit-argument)
-         (kp-8 . hydra--digit-argument)
-         (kp-7 . hydra--digit-argument)
-         (kp-6 . hydra--digit-argument)
-         (kp-5 . hydra--digit-argument)
-         (kp-4 . hydra--digit-argument)
-         (kp-3 . hydra--digit-argument)
-         (kp-2 . hydra--digit-argument)
-         (kp-1 . hydra--digit-argument)
-         (kp-0 . hydra--digit-argument)
-         (57 . hydra--digit-argument)
-         (56 . hydra--digit-argument)
-         (55 . hydra--digit-argument)
-         (54 . hydra--digit-argument)
-         (53 . hydra--digit-argument)
-         (52 . hydra--digit-argument)
-         (51 . hydra--digit-argument)
-         (50 . hydra--digit-argument)
-         (49 . hydra--digit-argument)
-         (48 . hydra--digit-argument)
-         (45 . hydra--negative-argument)
-         (21 . hydra--universal-argument))))
+         (113 . deino-vi/nil)
+         (107 . deino-vi/previous-line)
+         (106 . deino-vi/next-line)
+         (kp-subtract . deino--negative-argument)
+         (kp-9 . deino--digit-argument)
+         (kp-8 . deino--digit-argument)
+         (kp-7 . deino--digit-argument)
+         (kp-6 . deino--digit-argument)
+         (kp-5 . deino--digit-argument)
+         (kp-4 . deino--digit-argument)
+         (kp-3 . deino--digit-argument)
+         (kp-2 . deino--digit-argument)
+         (kp-1 . deino--digit-argument)
+         (kp-0 . deino--digit-argument)
+         (57 . deino--digit-argument)
+         (56 . deino--digit-argument)
+         (55 . deino--digit-argument)
+         (54 . deino--digit-argument)
+         (53 . deino--digit-argument)
+         (52 . deino--digit-argument)
+         (51 . deino--digit-argument)
+         (50 . deino--digit-argument)
+         (49 . deino--digit-argument)
+         (48 . deino--digit-argument)
+         (45 . deino--negative-argument)
+         (21 . deino--universal-argument))))
       (set
-       (defvar hydra-vi/hint nil
-         "Dynamic hint for hydra-vi.")
+       (defvar deino-vi/hint nil
+         "Dynamic hint for deino-vi.")
        (quote
         (format
          #("vi: j, k, [q]: quit."
-           4 5 (face hydra-face-amaranth)
-           7 8 (face hydra-face-amaranth)
-           11 12 (face hydra-face-teal)))))
-      (defun hydra-vi/next-line nil
-        "Call the head `next-line' in the \"hydra-vi\" hydra.
+           4 5 (face deino-face-amaranth)
+           7 8 (face deino-face-amaranth)
+           11 12 (face deino-face-teal)))))
+      (defun deino-vi/next-line nil
+        "Call the head `next-line' in the \"deino-vi\" deino.
 
-The heads for the associated hydra are:
+The heads for the associated deino are:
 
 \"j\":    `next-line',
 \"k\":    `previous-line',
 \"q\":    `nil'
 
-The body can be accessed via `hydra-vi/body'."
+The body can be accessed via `deino-vi/body'."
         (interactive)
-        (require (quote hydra))
-        (hydra-default-pre)
+        (require (quote deino))
+        (deino-default-pre)
         (set-cursor-color "#e52b50")
-        (let ((hydra--ignore t))
-          (hydra-keyboard-quit)
-          (setq hydra-curr-body-fn
-                (quote hydra-vi/body)))
+        (let ((deino--ignore t))
+          (deino-keyboard-quit)
+          (setq deino-curr-body-fn
+                (quote deino-vi/body)))
         (condition-case err
             (progn
               (setq this-command
                     (quote next-line))
-              (hydra--call-interactively-remap-maybe
+              (deino--call-interactively-remap-maybe
                (function next-line)))
           ((quit error)
            (message
             (error-message-string err))))
-        (hydra-show-hint
-         hydra-vi/hint
-         (quote hydra-vi))
-        (hydra-set-transient-map
-         hydra-vi/keymap
+        (deino-show-hint
+         deino-vi/hint
+         (quote deino-vi))
+        (deino-set-transient-map
+         deino-vi/keymap
          (lambda nil
-           (hydra-keyboard-quit)
+           (deino-keyboard-quit)
            (set-cursor-color "#ffffff"))
          (quote warn)))
-      (defun hydra-vi/previous-line nil
-        "Call the head `previous-line' in the \"hydra-vi\" hydra.
+      (defun deino-vi/previous-line nil
+        "Call the head `previous-line' in the \"deino-vi\" deino.
 
-The heads for the associated hydra are:
+The heads for the associated deino are:
 
 \"j\":    `next-line',
 \"k\":    `previous-line',
 \"q\":    `nil'
 
-The body can be accessed via `hydra-vi/body'."
+The body can be accessed via `deino-vi/body'."
         (interactive)
-        (require (quote hydra))
-        (hydra-default-pre)
+        (require (quote deino))
+        (deino-default-pre)
         (set-cursor-color "#e52b50")
-        (let ((hydra--ignore t))
-          (hydra-keyboard-quit)
-          (setq hydra-curr-body-fn
-                (quote hydra-vi/body)))
+        (let ((deino--ignore t))
+          (deino-keyboard-quit)
+          (setq deino-curr-body-fn
+                (quote deino-vi/body)))
         (condition-case err
             (progn
               (setq this-command
                     (quote previous-line))
-              (hydra--call-interactively-remap-maybe
+              (deino--call-interactively-remap-maybe
                (function previous-line)))
           ((quit error)
            (message
             (error-message-string err))))
-        (hydra-show-hint
-         hydra-vi/hint
-         (quote hydra-vi))
-        (hydra-set-transient-map
-         hydra-vi/keymap
+        (deino-show-hint
+         deino-vi/hint
+         (quote deino-vi))
+        (deino-set-transient-map
+         deino-vi/keymap
          (lambda nil
-           (hydra-keyboard-quit)
+           (deino-keyboard-quit)
            (set-cursor-color "#ffffff"))
          (quote warn)))
-      (defun hydra-vi/nil nil
-        "Call the head `nil' in the \"hydra-vi\" hydra.
+      (defun deino-vi/nil nil
+        "Call the head `nil' in the \"deino-vi\" deino.
 
-The heads for the associated hydra are:
-
-\"j\":    `next-line',
-\"k\":    `previous-line',
-\"q\":    `nil'
-
-The body can be accessed via `hydra-vi/body'."
-        (interactive)
-        (require (quote hydra))
-        (hydra-default-pre)
-        (set-cursor-color "#e52b50")
-        (hydra-keyboard-quit)
-        (setq hydra-curr-body-fn
-              (quote hydra-vi/body)))
-      (defun hydra-vi/body nil
-        "Call the body in the \"hydra-vi\" hydra.
-
-The heads for the associated hydra are:
+The heads for the associated deino are:
 
 \"j\":    `next-line',
 \"k\":    `previous-line',
 \"q\":    `nil'
 
-The body can be accessed via `hydra-vi/body'."
+The body can be accessed via `deino-vi/body'."
         (interactive)
-        (require (quote hydra))
-        (hydra-default-pre)
+        (require (quote deino))
+        (deino-default-pre)
         (set-cursor-color "#e52b50")
-        (let ((hydra--ignore nil))
-          (hydra-keyboard-quit)
-          (setq hydra-curr-body-fn
-                (quote hydra-vi/body)))
-        (hydra-show-hint
-         hydra-vi/hint
-         (quote hydra-vi))
-        (hydra-set-transient-map
-         hydra-vi/keymap
+        (deino-keyboard-quit)
+        (setq deino-curr-body-fn
+              (quote deino-vi/body)))
+      (defun deino-vi/body nil
+        "Call the body in the \"deino-vi\" deino.
+
+The heads for the associated deino are:
+
+\"j\":    `next-line',
+\"k\":    `previous-line',
+\"q\":    `nil'
+
+The body can be accessed via `deino-vi/body'."
+        (interactive)
+        (require (quote deino))
+        (deino-default-pre)
+        (set-cursor-color "#e52b50")
+        (let ((deino--ignore nil))
+          (deino-keyboard-quit)
+          (setq deino-curr-body-fn
+                (quote deino-vi/body)))
+        (deino-show-hint
+         deino-vi/hint
+         (quote deino-vi))
+        (deino-set-transient-map
+         deino-vi/keymap
          (lambda nil
-           (hydra-keyboard-quit)
+           (deino-keyboard-quit)
            (set-cursor-color "#ffffff"))
          (quote warn))
         (setq prefix-arg
               current-prefix-arg))))))
 
-(ert-deftest hydra-zoom-duplicate-1 ()
+(ert-deftest deino-zoom-duplicate-1 ()
   (should
    (equal
     (macroexpand
-     '(defhydra hydra-zoom ()
+     '(defdeino deino-zoom ()
        "zoom"
        ("r" (text-scale-set 0) "reset")
        ("0" (text-scale-set 0) :bind nil :exit t)
        ("1" (text-scale-set 0) nil :bind nil :exit t)))
     '(progn
       (set
-       (defvar hydra-zoom/params nil
-         "Params of hydra-zoom.")
+       (defvar deino-zoom/params nil
+         "Params of deino-zoom.")
        (quote (nil nil)))
       (set
-       (defvar hydra-zoom/docstring nil
-         "Docstring of hydra-zoom.")
+       (defvar deino-zoom/docstring nil
+         "Docstring of deino-zoom.")
        "zoom")
       (set
-       (defvar hydra-zoom/heads nil
-         "Heads for hydra-zoom.")
+       (defvar deino-zoom/heads nil
+         "Heads for deino-zoom.")
        (quote
         (("r"
           (text-scale-set 0)
@@ -693,61 +693,61 @@ The body can be accessed via `hydra-vi/body'."
           :bind nil
           :exit t))))
       (set
-       (defvar hydra-zoom/keymap nil
-         "Keymap for hydra-zoom.")
+       (defvar deino-zoom/keymap nil
+         "Keymap for deino-zoom.")
        (quote
         (keymap
-         (114 . hydra-zoom/lambda-r)
-         (kp-subtract . hydra--negative-argument)
-         (kp-9 . hydra--digit-argument)
-         (kp-8 . hydra--digit-argument)
-         (kp-7 . hydra--digit-argument)
-         (kp-6 . hydra--digit-argument)
-         (kp-5 . hydra--digit-argument)
-         (kp-4 . hydra--digit-argument)
-         (kp-3 . hydra--digit-argument)
-         (kp-2 . hydra--digit-argument)
-         (kp-1 . hydra--digit-argument)
-         (kp-0 . hydra--digit-argument)
-         (57 . hydra--digit-argument)
-         (56 . hydra--digit-argument)
-         (55 . hydra--digit-argument)
-         (54 . hydra--digit-argument)
-         (53 . hydra--digit-argument)
-         (52 . hydra--digit-argument)
-         (51 . hydra--digit-argument)
-         (50 . hydra--digit-argument)
-         (49 . hydra-zoom/lambda-0-and-exit)
-         (48 . hydra-zoom/lambda-0-and-exit)
-         (45 . hydra--negative-argument)
-         (21 . hydra--universal-argument))))
+         (114 . deino-zoom/lambda-r)
+         (kp-subtract . deino--negative-argument)
+         (kp-9 . deino--digit-argument)
+         (kp-8 . deino--digit-argument)
+         (kp-7 . deino--digit-argument)
+         (kp-6 . deino--digit-argument)
+         (kp-5 . deino--digit-argument)
+         (kp-4 . deino--digit-argument)
+         (kp-3 . deino--digit-argument)
+         (kp-2 . deino--digit-argument)
+         (kp-1 . deino--digit-argument)
+         (kp-0 . deino--digit-argument)
+         (57 . deino--digit-argument)
+         (56 . deino--digit-argument)
+         (55 . deino--digit-argument)
+         (54 . deino--digit-argument)
+         (53 . deino--digit-argument)
+         (52 . deino--digit-argument)
+         (51 . deino--digit-argument)
+         (50 . deino--digit-argument)
+         (49 . deino-zoom/lambda-0-and-exit)
+         (48 . deino-zoom/lambda-0-and-exit)
+         (45 . deino--negative-argument)
+         (21 . deino--universal-argument))))
       (set
-       (defvar hydra-zoom/hint nil
-         "Dynamic hint for hydra-zoom.")
+       (defvar deino-zoom/hint nil
+         "Dynamic hint for deino-zoom.")
        (quote
         (format
          #("zoom: [r 0]: reset."
-           7 8 (face hydra-face-red)
-           9 10 (face hydra-face-blue)))))
-      (defun hydra-zoom/lambda-r nil
-        "Call the head `(text-scale-set 0)' in the \"hydra-zoom\" hydra.
+           7 8 (face deino-face-red)
+           9 10 (face deino-face-blue)))))
+      (defun deino-zoom/lambda-r nil
+        "Call the head `(text-scale-set 0)' in the \"deino-zoom\" deino.
 
-The heads for the associated hydra are:
+The heads for the associated deino are:
 
 \"r\":    `(text-scale-set 0)',
 \"0\":    `(text-scale-set 0)',
 \"1\":    `(text-scale-set 0)'
 
-The body can be accessed via `hydra-zoom/body'."
+The body can be accessed via `deino-zoom/body'."
         (interactive)
-        (require (quote hydra))
-        (hydra-default-pre)
-        (let ((hydra--ignore t))
-          (hydra-keyboard-quit)
-          (setq hydra-curr-body-fn
-                (quote hydra-zoom/body)))
+        (require (quote deino))
+        (deino-default-pre)
+        (let ((deino--ignore t))
+          (deino-keyboard-quit)
+          (setq deino-curr-body-fn
+                (quote deino-zoom/body)))
         (condition-case err
-            (hydra--call-interactively-remap-maybe
+            (deino--call-interactively-remap-maybe
              (function
               (lambda nil
                (interactive)
@@ -755,86 +755,86 @@ The body can be accessed via `hydra-zoom/body'."
           ((quit error)
            (message
             (error-message-string err))))
-        (hydra-show-hint
-         hydra-zoom/hint
-         (quote hydra-zoom))
-        (hydra-set-transient-map
-         hydra-zoom/keymap
+        (deino-show-hint
+         deino-zoom/hint
+         (quote deino-zoom))
+        (deino-set-transient-map
+         deino-zoom/keymap
          (lambda nil
-           (hydra-keyboard-quit)
+           (deino-keyboard-quit)
            nil)
          nil))
-      (defun hydra-zoom/lambda-0-and-exit nil
-        "Call the head `(text-scale-set 0)' in the \"hydra-zoom\" hydra.
+      (defun deino-zoom/lambda-0-and-exit nil
+        "Call the head `(text-scale-set 0)' in the \"deino-zoom\" deino.
 
-The heads for the associated hydra are:
+The heads for the associated deino are:
 
 \"r\":    `(text-scale-set 0)',
 \"0\":    `(text-scale-set 0)',
 \"1\":    `(text-scale-set 0)'
 
-The body can be accessed via `hydra-zoom/body'."
+The body can be accessed via `deino-zoom/body'."
         (interactive)
-        (require (quote hydra))
-        (hydra-default-pre)
-        (hydra-keyboard-quit)
-        (setq hydra-curr-body-fn
-              (quote hydra-zoom/body))
-        (hydra--call-interactively-remap-maybe
+        (require (quote deino))
+        (deino-default-pre)
+        (deino-keyboard-quit)
+        (setq deino-curr-body-fn
+              (quote deino-zoom/body))
+        (deino--call-interactively-remap-maybe
          (function
           (lambda nil
            (interactive)
            (text-scale-set 0)))))
-      (defun hydra-zoom/body nil
-        "Call the body in the \"hydra-zoom\" hydra.
+      (defun deino-zoom/body nil
+        "Call the body in the \"deino-zoom\" deino.
 
-The heads for the associated hydra are:
+The heads for the associated deino are:
 
 \"r\":    `(text-scale-set 0)',
 \"0\":    `(text-scale-set 0)',
 \"1\":    `(text-scale-set 0)'
 
-The body can be accessed via `hydra-zoom/body'."
+The body can be accessed via `deino-zoom/body'."
         (interactive)
-        (require (quote hydra))
-        (hydra-default-pre)
-        (let ((hydra--ignore nil))
-          (hydra-keyboard-quit)
-          (setq hydra-curr-body-fn
-                (quote hydra-zoom/body)))
-        (hydra-show-hint
-         hydra-zoom/hint
-         (quote hydra-zoom))
-        (hydra-set-transient-map
-         hydra-zoom/keymap
+        (require (quote deino))
+        (deino-default-pre)
+        (let ((deino--ignore nil))
+          (deino-keyboard-quit)
+          (setq deino-curr-body-fn
+                (quote deino-zoom/body)))
+        (deino-show-hint
+         deino-zoom/hint
+         (quote deino-zoom))
+        (deino-set-transient-map
+         deino-zoom/keymap
          (lambda nil
-           (hydra-keyboard-quit)
+           (deino-keyboard-quit)
            nil)
          nil)
         (setq prefix-arg
               current-prefix-arg))))))
 
-(ert-deftest hydra-zoom-duplicate-2 ()
+(ert-deftest deino-zoom-duplicate-2 ()
   (should
    (equal
     (macroexpand
-     '(defhydra hydra-zoom ()
+     '(defdeino deino-zoom ()
        "zoom"
        ("r" (text-scale-set 0) "reset")
        ("0" (text-scale-set 0) :bind nil :exit t)
        ("1" (text-scale-set 0) nil :bind nil)))
     '(progn
       (set
-       (defvar hydra-zoom/params nil
-         "Params of hydra-zoom.")
+       (defvar deino-zoom/params nil
+         "Params of deino-zoom.")
        (quote (nil nil)))
       (set
-       (defvar hydra-zoom/docstring nil
-         "Docstring of hydra-zoom.")
+       (defvar deino-zoom/docstring nil
+         "Docstring of deino-zoom.")
        "zoom")
       (set
-       (defvar hydra-zoom/heads nil
-         "Heads for hydra-zoom.")
+       (defvar deino-zoom/heads nil
+         "Heads for deino-zoom.")
        (quote
         (("r"
           (text-scale-set 0)
@@ -851,61 +851,61 @@ The body can be accessed via `hydra-zoom/body'."
           :bind nil
           :exit nil))))
       (set
-       (defvar hydra-zoom/keymap nil
-         "Keymap for hydra-zoom.")
+       (defvar deino-zoom/keymap nil
+         "Keymap for deino-zoom.")
        (quote
         (keymap
-         (114 . hydra-zoom/lambda-r)
-         (kp-subtract . hydra--negative-argument)
-         (kp-9 . hydra--digit-argument)
-         (kp-8 . hydra--digit-argument)
-         (kp-7 . hydra--digit-argument)
-         (kp-6 . hydra--digit-argument)
-         (kp-5 . hydra--digit-argument)
-         (kp-4 . hydra--digit-argument)
-         (kp-3 . hydra--digit-argument)
-         (kp-2 . hydra--digit-argument)
-         (kp-1 . hydra--digit-argument)
-         (kp-0 . hydra--digit-argument)
-         (57 . hydra--digit-argument)
-         (56 . hydra--digit-argument)
-         (55 . hydra--digit-argument)
-         (54 . hydra--digit-argument)
-         (53 . hydra--digit-argument)
-         (52 . hydra--digit-argument)
-         (51 . hydra--digit-argument)
-         (50 . hydra--digit-argument)
-         (49 . hydra-zoom/lambda-r)
-         (48 . hydra-zoom/lambda-0-and-exit)
-         (45 . hydra--negative-argument)
-         (21 . hydra--universal-argument))))
+         (114 . deino-zoom/lambda-r)
+         (kp-subtract . deino--negative-argument)
+         (kp-9 . deino--digit-argument)
+         (kp-8 . deino--digit-argument)
+         (kp-7 . deino--digit-argument)
+         (kp-6 . deino--digit-argument)
+         (kp-5 . deino--digit-argument)
+         (kp-4 . deino--digit-argument)
+         (kp-3 . deino--digit-argument)
+         (kp-2 . deino--digit-argument)
+         (kp-1 . deino--digit-argument)
+         (kp-0 . deino--digit-argument)
+         (57 . deino--digit-argument)
+         (56 . deino--digit-argument)
+         (55 . deino--digit-argument)
+         (54 . deino--digit-argument)
+         (53 . deino--digit-argument)
+         (52 . deino--digit-argument)
+         (51 . deino--digit-argument)
+         (50 . deino--digit-argument)
+         (49 . deino-zoom/lambda-r)
+         (48 . deino-zoom/lambda-0-and-exit)
+         (45 . deino--negative-argument)
+         (21 . deino--universal-argument))))
       (set
-       (defvar hydra-zoom/hint nil
-         "Dynamic hint for hydra-zoom.")
+       (defvar deino-zoom/hint nil
+         "Dynamic hint for deino-zoom.")
        (quote
         (format
          #("zoom: [r 0]: reset."
-           7 8 (face hydra-face-red)
-           9 10 (face hydra-face-blue)))))
-      (defun hydra-zoom/lambda-r nil
-        "Call the head `(text-scale-set 0)' in the \"hydra-zoom\" hydra.
+           7 8 (face deino-face-red)
+           9 10 (face deino-face-blue)))))
+      (defun deino-zoom/lambda-r nil
+        "Call the head `(text-scale-set 0)' in the \"deino-zoom\" deino.
 
-The heads for the associated hydra are:
+The heads for the associated deino are:
 
 \"r\":    `(text-scale-set 0)',
 \"0\":    `(text-scale-set 0)',
 \"1\":    `(text-scale-set 0)'
 
-The body can be accessed via `hydra-zoom/body'."
+The body can be accessed via `deino-zoom/body'."
         (interactive)
-        (require (quote hydra))
-        (hydra-default-pre)
-        (let ((hydra--ignore t))
-          (hydra-keyboard-quit)
-          (setq hydra-curr-body-fn
-                (quote hydra-zoom/body)))
+        (require (quote deino))
+        (deino-default-pre)
+        (let ((deino--ignore t))
+          (deino-keyboard-quit)
+          (setq deino-curr-body-fn
+                (quote deino-zoom/body)))
         (condition-case err
-            (hydra--call-interactively-remap-maybe
+            (deino--call-interactively-remap-maybe
              (function
               (lambda nil
                (interactive)
@@ -913,107 +913,107 @@ The body can be accessed via `hydra-zoom/body'."
           ((quit error)
            (message
             (error-message-string err))))
-        (hydra-show-hint
-         hydra-zoom/hint
-         (quote hydra-zoom))
-        (hydra-set-transient-map
-         hydra-zoom/keymap
+        (deino-show-hint
+         deino-zoom/hint
+         (quote deino-zoom))
+        (deino-set-transient-map
+         deino-zoom/keymap
          (lambda nil
-           (hydra-keyboard-quit)
+           (deino-keyboard-quit)
            nil)
          nil))
-      (defun hydra-zoom/lambda-0-and-exit nil
-        "Call the head `(text-scale-set 0)' in the \"hydra-zoom\" hydra.
+      (defun deino-zoom/lambda-0-and-exit nil
+        "Call the head `(text-scale-set 0)' in the \"deino-zoom\" deino.
 
-The heads for the associated hydra are:
+The heads for the associated deino are:
 
 \"r\":    `(text-scale-set 0)',
 \"0\":    `(text-scale-set 0)',
 \"1\":    `(text-scale-set 0)'
 
-The body can be accessed via `hydra-zoom/body'."
+The body can be accessed via `deino-zoom/body'."
         (interactive)
-        (require (quote hydra))
-        (hydra-default-pre)
-        (hydra-keyboard-quit)
-        (setq hydra-curr-body-fn
-              (quote hydra-zoom/body))
-        (hydra--call-interactively-remap-maybe
+        (require (quote deino))
+        (deino-default-pre)
+        (deino-keyboard-quit)
+        (setq deino-curr-body-fn
+              (quote deino-zoom/body))
+        (deino--call-interactively-remap-maybe
          (function
           (lambda nil
            (interactive)
            (text-scale-set 0)))))
-      (defun hydra-zoom/body nil
-        "Call the body in the \"hydra-zoom\" hydra.
+      (defun deino-zoom/body nil
+        "Call the body in the \"deino-zoom\" deino.
 
-The heads for the associated hydra are:
+The heads for the associated deino are:
 
 \"r\":    `(text-scale-set 0)',
 \"0\":    `(text-scale-set 0)',
 \"1\":    `(text-scale-set 0)'
 
-The body can be accessed via `hydra-zoom/body'."
+The body can be accessed via `deino-zoom/body'."
         (interactive)
-        (require (quote hydra))
-        (hydra-default-pre)
-        (let ((hydra--ignore nil))
-          (hydra-keyboard-quit)
-          (setq hydra-curr-body-fn
-                (quote hydra-zoom/body)))
-        (hydra-show-hint
-         hydra-zoom/hint
-         (quote hydra-zoom))
-        (hydra-set-transient-map
-         hydra-zoom/keymap
+        (require (quote deino))
+        (deino-default-pre)
+        (let ((deino--ignore nil))
+          (deino-keyboard-quit)
+          (setq deino-curr-body-fn
+                (quote deino-zoom/body)))
+        (deino-show-hint
+         deino-zoom/hint
+         (quote deino-zoom))
+        (deino-set-transient-map
+         deino-zoom/keymap
          (lambda nil
-           (hydra-keyboard-quit)
+           (deino-keyboard-quit)
            nil)
          nil)
         (setq prefix-arg
               current-prefix-arg))))))
 
-(ert-deftest defhydradio ()
+(ert-deftest defdeinodio ()
   (should (equal
            (macroexpand
-            '(defhydradio hydra-test ()
+            '(defdeinodio deino-test ()
               (num "Num" [0 1 2 3 4 5 6 7 8 9 10])
               (str "Str" ["foo" "bar" "baz"])))
            '(progn
-             (defvar hydra-test/num 0
+             (defvar deino-test/num 0
                "Num")
-             (put 'hydra-test/num 'range [0 1 2 3 4 5 6 7 8 9 10])
-             (defun hydra-test/num ()
-               (hydra--cycle-radio 'hydra-test/num))
-             (defvar hydra-test/str "foo"
+             (put 'deino-test/num 'range [0 1 2 3 4 5 6 7 8 9 10])
+             (defun deino-test/num ()
+               (deino--cycle-radio 'deino-test/num))
+             (defvar deino-test/str "foo"
                "Str")
-             (put 'hydra-test/str 'range ["foo" "bar" "baz"])
-             (defun hydra-test/str ()
-               (hydra--cycle-radio 'hydra-test/str))
-             (defvar hydra-test/names '(hydra-test/num hydra-test/str))))))
+             (put 'deino-test/str 'range ["foo" "bar" "baz"])
+             (defun deino-test/str ()
+               (deino--cycle-radio 'deino-test/str))
+             (defvar deino-test/names '(deino-test/num deino-test/str))))))
 
-(ert-deftest hydra-blue-compat ()
+(ert-deftest deino-blue-compat ()
   (should
    (equal
     (macroexpand
-     '(defhydra hydra-toggle (:color blue)
+     '(defdeino deino-toggle (:color blue)
        "toggle"
        ("t" toggle-truncate-lines "truncate")
        ("f" auto-fill-mode "fill")
        ("a" abbrev-mode "abbrev")
        ("q" nil "cancel")))
     (macroexpand
-     '(defhydra hydra-toggle (:exit t)
+     '(defdeino deino-toggle (:exit t)
        "toggle"
        ("t" toggle-truncate-lines "truncate")
        ("f" auto-fill-mode "fill")
        ("a" abbrev-mode "abbrev")
        ("q" nil "cancel"))))))
 
-(ert-deftest hydra-amaranth-compat ()
+(ert-deftest deino-amaranth-compat ()
   (should
    (equal
     (macroexpand
-     '(defhydra hydra-vi
+     '(defdeino deino-vi
        (:pre
         (set-cursor-color "#e52b50")
         :post
@@ -1024,7 +1024,7 @@ The body can be accessed via `hydra-zoom/body'."
        ("k" previous-line)
        ("q" nil "quit")))
     (macroexpand
-     '(defhydra hydra-vi
+     '(defdeino deino-vi
        (:pre
         (set-cursor-color "#e52b50")
         :post
@@ -1035,36 +1035,36 @@ The body can be accessed via `hydra-zoom/body'."
        ("k" previous-line)
        ("q" nil "quit"))))))
 
-(ert-deftest hydra-pink-compat ()
+(ert-deftest deino-pink-compat ()
   (should
    (equal
     (macroexpand
-     '(defhydra hydra-zoom (global-map "<f2>"
+     '(defdeino deino-zoom (global-map "<f2>"
                             :color pink)
        "zoom"
        ("g" text-scale-increase "in")
        ("l" text-scale-decrease "out")
        ("q" nil "quit")))
     (macroexpand
-     '(defhydra hydra-zoom (global-map "<f2>"
+     '(defdeino deino-zoom (global-map "<f2>"
                             :foreign-keys run)
        "zoom"
        ("g" text-scale-increase "in")
        ("l" text-scale-decrease "out")
        ("q" nil "quit"))))))
 
-(ert-deftest hydra-teal-compat ()
+(ert-deftest deino-teal-compat ()
   (should
    (equal
     (macroexpand
-     '(defhydra hydra-zoom (global-map "<f2>"
+     '(defdeino deino-zoom (global-map "<f2>"
                             :color teal)
        "zoom"
        ("g" text-scale-increase "in")
        ("l" text-scale-decrease "out")
        ("q" nil "quit")))
     (macroexpand
-     '(defhydra hydra-zoom (global-map "<f2>"
+     '(defdeino deino-zoom (global-map "<f2>"
                             :foreign-keys warn
                             :exit t)
        "zoom"
@@ -1072,12 +1072,12 @@ The body can be accessed via `hydra-zoom/body'."
        ("l" text-scale-decrease "out")
        ("q" nil "quit"))))))
 
-(ert-deftest hydra-format-1 ()
+(ert-deftest deino-format-1 ()
   (should (equal
-           (let ((hydra-fontify-head-function
-                  'hydra-fontify-head-greyscale))
-             (hydra--format
-              'hydra-toggle
+           (let ((deino-fontify-head-function
+                  'deino-fontify-head-greyscale))
+             (deino--format
+              'deino-toggle
               nil
               "
 _a_ abbrev-mode:       %`abbrev-mode
@@ -1099,11 +1099,11 @@ _f_ auto-fill-mode:    %`auto-fill-function
              "{d}" debug-on-error
              "{f}" auto-fill-function))))
 
-(ert-deftest hydra-format-2 ()
+(ert-deftest deino-format-2 ()
   (should (equal
-           (let ((hydra-fontify-head-function
-                  'hydra-fontify-head-greyscale))
-             (hydra--format
+           (let ((deino-fontify-head-function
+                  'deino-fontify-head-greyscale))
+             (deino--format
               'bar
               nil
               "\n  bar %s`foo\n"
@@ -1111,42 +1111,42 @@ _f_ auto-fill-mode:    %`auto-fill-function
                 ("q" nil "" :cmd-name bar/nil :exit t))))
            '(format "  bar %s\n{a}, [q]." foo))))
 
-(ert-deftest hydra-format-3 ()
+(ert-deftest deino-format-3 ()
   (should (equal
-           (let ((hydra-fontify-head-function
-                  'hydra-fontify-head-greyscale))
-             (hydra--format
+           (let ((deino-fontify-head-function
+                  'deino-fontify-head-greyscale))
+             (deino--format
               'bar
               nil
               "\n_<SPC>_   ^^ace jump\n"
               '(("<SPC>" ace-jump-char-mode nil :cmd-name bar/ace-jump-char-mode))))
            '(format "%s   ace jump\n" "{<SPC>}"))))
 
-(ert-deftest hydra-format-4 ()
+(ert-deftest deino-format-4 ()
   (should
-   (equal (hydra--format
+   (equal (deino--format
            nil
            '(nil nil :hint nil)
            "\n_j_,_k_"
            '(("j" nil nil :exit t) ("k" nil nil :exit t)))
           '(format "%s,%s"
-            #("j" 0 1 (face hydra-face-blue))
-            #("k" 0 1 (face hydra-face-blue))))))
+            #("j" 0 1 (face deino-face-blue))
+            #("k" 0 1 (face deino-face-blue))))))
 
-(ert-deftest hydra-format-5 ()
+(ert-deftest deino-format-5 ()
   (should
-   (equal (hydra--format
+   (equal (deino--format
            nil nil "\n_-_: mark          _u_: unmark\n"
            '(("-" Buffer-menu-mark nil)
              ("u" Buffer-menu-unmark nil)))
           '(format
             "%s: mark          %s: unmark\n"
-            #("-" 0 1 (face hydra-face-red))
-            #("u" 0 1 (face hydra-face-red))))))
+            #("-" 0 1 (face deino-face-red))
+            #("u" 0 1 (face deino-face-red))))))
 
-(ert-deftest hydra-format-6 ()
+(ert-deftest deino-format-6 ()
   (should
-   (equal (hydra--format
+   (equal (deino--format
            nil nil "\n[_]_] forward [_[_] backward\n"
            '(("]" forward-char nil)
              ("[" backward-char nil)))
@@ -1154,86 +1154,86 @@ _f_ auto-fill-mode:    %`auto-fill-function
             "[%s] forward [%s] backward\n"
             #("]"
               0 1 (face
-                   hydra-face-red))
+                   deino-face-red))
             #("["
               0 1 (face
-                   hydra-face-red))))))
+                   deino-face-red))))))
 
-(ert-deftest hydra-format-7 ()
+(ert-deftest deino-format-7 ()
   (should
    (equal
-    (hydra--format nil nil "test"
+    (deino--format nil nil "test"
                    '(("%" forward-char "" :exit nil)
                      ("b" backward-char "" :exit nil)))
     '(format
       #("test: %%%%, b."
-        6 7 (face hydra-face-red)
-        7 8 (face hydra-face-red)
-        8 9 (face hydra-face-red)
-        9 10 (face hydra-face-red)
-        12 13 (face hydra-face-red)))))
+        6 7 (face deino-face-red)
+        7 8 (face deino-face-red)
+        8 9 (face deino-face-red)
+        9 10 (face deino-face-red)
+        12 13 (face deino-face-red)))))
   (should
    (equal
-    (hydra--format nil nil "\n_%_ forward\n"
+    (deino--format nil nil "\n_%_ forward\n"
                    '(("%" forward-char nil :exit nil)))
     '(format
       "%s forward\n"
       #("%%"
-        0 2 (face hydra-face-red))))))
+        0 2 (face deino-face-red))))))
 
-(ert-deftest hydra-format-8 ()
+(ert-deftest deino-format-8 ()
   (should
    (equal
-    (hydra--format nil '(nil nil :hint nil) "test"
+    (deino--format nil '(nil nil :hint nil) "test"
                    '(("f" forward-char nil :exit nil)
                      ("b" backward-char "back" :exit nil)))
     '(format
       #("test: [b]: back."
-        7 8 (face hydra-face-red))))))
+        7 8 (face deino-face-red))))))
 
-(ert-deftest hydra-format-9 ()
+(ert-deftest deino-format-9 ()
   (should
    (equal
-    (hydra--format nil '(nil nil :hint nil) "\n_f_(foo)"
+    (deino--format nil '(nil nil :hint nil) "\n_f_(foo)"
                    '(("f" forward-char nil :exit nil)))
     '(format
       "%s(foo)"
-      #("f" 0 1 (face hydra-face-red))))))
+      #("f" 0 1 (face deino-face-red))))))
 
-(ert-deftest hydra-format-10 ()
+(ert-deftest deino-format-10 ()
   (should
    (equal
-    (hydra--format nil '(nil nil) "Test:"
+    (deino--format nil '(nil nil) "Test:"
                    '(("j" next-line (format-time-string "%H:%M:%S" (current-time))
                       :exit nil)))
     '(concat
       (format "Test:\n")
       (mapconcat
        (function
-        hydra--eval-and-format)
+        deino--eval-and-format)
        (quote
-        ((#("j" 0 1 (face hydra-face-red))
+        ((#("j" 0 1 (face deino-face-red))
            format-time-string
            "%H:%M:%S"
            (current-time))))
        ", ")
       "."))))
 
-(ert-deftest hydra-format-11 ()
+(ert-deftest deino-format-11 ()
   (should
    (equal
-    (hydra--format nil '(nil nil :hint nil) "\n_f_ #+begin__src/#+end__src"
+    (deino--format nil '(nil nil :hint nil) "\n_f_ #+begin__src/#+end__src"
                    '(("f" forward-char nil :exit nil)))
     '(format
       "%s #+begin_src/#+end_src"
-      #("f" 0 1 (face hydra-face-red))))))
+      #("f" 0 1 (face deino-face-red))))))
 
-(ert-deftest hydra-format-with-sexp-1 ()
+(ert-deftest deino-format-with-sexp-1 ()
   (should (equal
-           (let ((hydra-fontify-head-function
-                  'hydra-fontify-head-greyscale))
-             (hydra--format
-              'hydra-toggle nil
+           (let ((deino-fontify-head-function
+                  'deino-fontify-head-greyscale))
+             (deino--format
+              'deino-toggle nil
               "\n_n_ narrow-or-widen-dwim %(progn (message \"checking\")(buffer-narrowed-p))asdf\n"
               '(("n" narrow-to-region nil) ("q" nil "cancel" :exit t))))
            '(format
@@ -1243,12 +1243,12 @@ _f_ auto-fill-mode:    %`auto-fill-function
                (message "checking")
                (buffer-narrowed-p))))))
 
-(ert-deftest hydra-format-with-sexp-2 ()
+(ert-deftest deino-format-with-sexp-2 ()
   (should (equal
-           (let ((hydra-fontify-head-function
-                  'hydra-fontify-head-greyscale))
-             (hydra--format
-              'hydra-toggle nil
+           (let ((deino-fontify-head-function
+                  'deino-fontify-head-greyscale))
+             (deino--format
+              'deino-toggle nil
               "\n_n_ narrow-or-widen-dwim %s(progn (message \"checking\")(buffer-narrowed-p))asdf\n"
               '(("n" narrow-to-region nil) ("q" nil "cancel" :exit t))))
            '(format
@@ -1258,11 +1258,11 @@ _f_ auto-fill-mode:    %`auto-fill-function
                (message "checking")
                (buffer-narrowed-p))))))
 
-(ert-deftest hydra-compat-colors-2 ()
+(ert-deftest deino-compat-colors-2 ()
   (should
    (equal
     (cddr (macroexpand
-           '(defhydra hydra-test (:color amaranth)
+           '(defdeino deino-test (:color amaranth)
              ("a" fun-a)
              ("b" fun-b :color blue)
              ("c" fun-c :color blue)
@@ -1270,7 +1270,7 @@ _f_ auto-fill-mode:    %`auto-fill-function
              ("e" fun-e :color blue)
              ("f" fun-f :color blue))))
     (cddr (macroexpand
-           '(defhydra hydra-test (:color teal)
+           '(defdeino deino-test (:color teal)
              ("a" fun-a :color red)
              ("b" fun-b)
              ("c" fun-c)
@@ -1278,11 +1278,11 @@ _f_ auto-fill-mode:    %`auto-fill-function
              ("e" fun-e)
              ("f" fun-f)))))))
 
-(ert-deftest hydra-compat-colors-3 ()
+(ert-deftest deino-compat-colors-3 ()
   (should
    (equal
     (cddr (macroexpand
-           '(defhydra hydra-test ()
+           '(defdeino deino-test ()
              ("a" fun-a)
              ("b" fun-b :color blue)
              ("c" fun-c :color blue)
@@ -1290,7 +1290,7 @@ _f_ auto-fill-mode:    %`auto-fill-function
              ("e" fun-e :color blue)
              ("f" fun-f :color blue))))
     (cddr (macroexpand
-           '(defhydra hydra-test (:color blue)
+           '(defdeino deino-test (:color blue)
              ("a" fun-a :color red)
              ("b" fun-b)
              ("c" fun-c)
@@ -1298,11 +1298,11 @@ _f_ auto-fill-mode:    %`auto-fill-function
              ("e" fun-e)
              ("f" fun-f)))))))
 
-(ert-deftest hydra-compat-colors-4 ()
+(ert-deftest deino-compat-colors-4 ()
   (should
    (equal
     (cddr (macroexpand
-           '(defhydra hydra-test ()
+           '(defdeino deino-test ()
              ("a" fun-a)
              ("b" fun-b :exit t)
              ("c" fun-c :exit t)
@@ -1310,7 +1310,7 @@ _f_ auto-fill-mode:    %`auto-fill-function
              ("e" fun-e :exit t)
              ("f" fun-f :exit t))))
     (cddr (macroexpand
-           '(defhydra hydra-test (:exit t)
+           '(defdeino deino-test (:exit t)
              ("a" fun-a :exit nil)
              ("b" fun-b)
              ("c" fun-c)
@@ -1318,28 +1318,28 @@ _f_ auto-fill-mode:    %`auto-fill-function
              ("e" fun-e)
              ("f" fun-f)))))))
 
-(ert-deftest hydra--pad ()
-  (should (equal (hydra--pad '(a b c) 3)
+(ert-deftest deino--pad ()
+  (should (equal (deino--pad '(a b c) 3)
                  '(a b c)))
-  (should (equal (hydra--pad '(a) 3)
+  (should (equal (deino--pad '(a) 3)
                  '(a nil nil))))
 
-(ert-deftest hydra--matrix ()
-  (should (equal (hydra--matrix '(a b c) 2 2)
+(ert-deftest deino--matrix ()
+  (should (equal (deino--matrix '(a b c) 2 2)
                  '((a b) (c nil))))
-  (should (equal (hydra--matrix '(a b c d e f g h i) 4 3)
+  (should (equal (deino--matrix '(a b c d e f g h i) 4 3)
                  '((a b c d) (e f g h) (i nil nil nil)))))
 
-(ert-deftest hydra--cell ()
-  (should (equal (hydra--cell "% -75s %%`%s" '(hydra-hint-display-type hydra-verbose))
-                 "The utility to show hydra hint                                              %`hydra-hint-display-type
-When non-nil, hydra will issue some non essential style warnings.           %`hydra-verbose^^^^^^^^^^")))
+(ert-deftest deino--cell ()
+  (should (equal (deino--cell "% -75s %%`%s" '(deino-hint-display-type deino-verbose))
+                 "The utility to show deino hint                                              %`deino-hint-display-type
+When non-nil, deino will issue some non essential style warnings.           %`deino-verbose^^^^^^^^^^")))
 
-(ert-deftest hydra--vconcat ()
-  (should (equal (hydra--vconcat '("abc\ndef" "012\n34" "def\nabc"))
+(ert-deftest deino--vconcat ()
+  (should (equal (deino--vconcat '("abc\ndef" "012\n34" "def\nabc"))
                  "abc012def\ndef34abc")))
 
-(defhydradio hydra-tng ()
+(defdeinodio deino-tng ()
   (picard "_p_ Captain Jean Luc Picard:")
   (riker "_r_ Commander William Riker:")
   (data "_d_ Lieutenant Commander Data:")
@@ -1349,39 +1349,39 @@ When non-nil, hydra will issue some non essential style warnings.           %`hy
   (dr-crusher "_c_ Doctor Beverly Crusher:")
   (phaser "_h_ Set phasers to " [stun kill]))
 
-(ert-deftest hydra--table ()
-  (let ((hydra-cell-format "% -30s %% -8`%s"))
-    (should (equal (hydra--table hydra-tng/names 5 2)
+(ert-deftest deino--table ()
+  (let ((deino-cell-format "% -30s %% -8`%s"))
+    (should (equal (deino--table deino-tng/names 5 2)
                    (substring "
-_p_ Captain Jean Luc Picard:   % -8`hydra-tng/picard^^    _t_ Deanna Troi:               % -8`hydra-tng/troi^^^^^^
-_r_ Commander William Riker:   % -8`hydra-tng/riker^^^    _c_ Doctor Beverly Crusher:    % -8`hydra-tng/dr-crusher
-_d_ Lieutenant Commander Data: % -8`hydra-tng/data^^^^    _h_ Set phasers to             % -8`hydra-tng/phaser^^^^
-_w_ Worf:                      % -8`hydra-tng/worf^^^^
-_f_ Geordi La Forge:           % -8`hydra-tng/la-forge" 1)))
-    (should (equal (hydra--table hydra-tng/names 4 3)
+_p_ Captain Jean Luc Picard:   % -8`deino-tng/picard^^    _t_ Deanna Troi:               % -8`deino-tng/troi^^^^^^
+_r_ Commander William Riker:   % -8`deino-tng/riker^^^    _c_ Doctor Beverly Crusher:    % -8`deino-tng/dr-crusher
+_d_ Lieutenant Commander Data: % -8`deino-tng/data^^^^    _h_ Set phasers to             % -8`deino-tng/phaser^^^^
+_w_ Worf:                      % -8`deino-tng/worf^^^^
+_f_ Geordi La Forge:           % -8`deino-tng/la-forge" 1)))
+    (should (equal (deino--table deino-tng/names 4 3)
                    (substring "
-_p_ Captain Jean Luc Picard:   % -8`hydra-tng/picard    _f_ Geordi La Forge:           % -8`hydra-tng/la-forge^^
-_r_ Commander William Riker:   % -8`hydra-tng/riker^    _t_ Deanna Troi:               % -8`hydra-tng/troi^^^^^^
-_d_ Lieutenant Commander Data: % -8`hydra-tng/data^^    _c_ Doctor Beverly Crusher:    % -8`hydra-tng/dr-crusher
-_w_ Worf:                      % -8`hydra-tng/worf^^    _h_ Set phasers to             % -8`hydra-tng/phaser^^^^" 1)))))
+_p_ Captain Jean Luc Picard:   % -8`deino-tng/picard    _f_ Geordi La Forge:           % -8`deino-tng/la-forge^^
+_r_ Commander William Riker:   % -8`deino-tng/riker^    _t_ Deanna Troi:               % -8`deino-tng/troi^^^^^^
+_d_ Lieutenant Commander Data: % -8`deino-tng/data^^    _c_ Doctor Beverly Crusher:    % -8`deino-tng/dr-crusher
+_w_ Worf:                      % -8`deino-tng/worf^^    _h_ Set phasers to             % -8`deino-tng/phaser^^^^" 1)))))
 
-(ert-deftest hydra--make-funcall ()
+(ert-deftest deino--make-funcall ()
   (should (equal (let ((body-pre 'foo))
-                   (hydra--make-funcall body-pre)
+                   (deino--make-funcall body-pre)
                    body-pre)
                  '(funcall (function foo)))))
 
-(defhydra hydra-simple-1 (global-map "C-c")
+(defdeino deino-simple-1 (global-map "C-c")
   ("a" (insert "j"))
   ("b" (insert "k"))
   ("q" nil))
 
-(defhydra hydra-simple-2 (global-map "C-c" :color amaranth)
+(defdeino deino-simple-2 (global-map "C-c" :color amaranth)
   ("c" self-insert-command)
   ("d" self-insert-command)
   ("q" nil))
 
-(defhydra hydra-simple-3 (global-map "C-c")
+(defdeino deino-simple-3 (global-map "C-c")
   ("g" goto-line)
   ("1" find-file)
   ("q" nil))
@@ -1395,11 +1395,11 @@ _w_ Worf:                      % -8`hydra-tng/worf^^    _h_ Set phasers to      
 (define-key global-map (kbd "C-=") 'remapable-print)
 (define-key global-map [remap remapable-print] 'remaped-print)
 
-(defhydra hydra-simple-with-remap (global-map "C-c")
+(defdeino deino-simple-with-remap (global-map "C-c")
   ("r" remapable-print)
   ("q" nil))
 
-(defmacro hydra-with (in &rest body)
+(defmacro deino-with (in &rest body)
   `(let ((temp-buffer (generate-new-buffer " *temp*")))
      (save-window-excursion
        (unwind-protect
@@ -1426,12 +1426,12 @@ _w_ Worf:                      % -8`hydra-tng/worf^^    _h_ Set phasers to      
          (and (buffer-name temp-buffer)
               (kill-buffer temp-buffer))))))
 
-(ert-deftest hydra-integration-1 ()
-  (should (string= (hydra-with "|"
+(ert-deftest deino-integration-1 ()
+  (should (string= (deino-with "|"
                                (execute-kbd-macro
                                 (kbd "C-c aabbaaqaabbaa")))
                    "jjkkjjaabbaa|"))
-  (should (string= (hydra-with "|"
+  (should (string= (deino-with "|"
                                (condition-case nil
                                    (execute-kbd-macro
                                     (kbd "C-c aabb C-g"))
@@ -1439,44 +1439,44 @@ _w_ Worf:                      % -8`hydra-tng/worf^^    _h_ Set phasers to      
                                (execute-kbd-macro "aaqaabbaa"))
                    "jjkkaaqaabbaa|")))
 
-(ert-deftest hydra-integration-2 ()
-  (should (string= (hydra-with "|"
+(ert-deftest deino-integration-2 ()
+  (should (string= (deino-with "|"
                                (execute-kbd-macro
                                 (kbd "C-c c 1 c 2 d 4 c q")))
                    "ccddcccc|"))
-  (should (string= (hydra-with "|"
+  (should (string= (deino-with "|"
                                (execute-kbd-macro
                                 (kbd "C-c c 1 c C-u d C-u 10 c q")))
                    "ccddddcccccccccc|")))
 
-(ert-deftest hydra-integration-3 ()
-  (should (string= (hydra-with "foo\nbar|"
+(ert-deftest deino-integration-3 ()
+  (should (string= (deino-with "foo\nbar|"
                                (execute-kbd-macro
                                 (kbd "C-c g 1 RET q")))
                    "|foo\nbar")))
 
-(ert-deftest hydra-remap-lookup-1 ()
+(ert-deftest deino-remap-lookup-1 ()
   "try calling a remapped command while option is disabled "
-  (setq hydra-look-for-remap nil)
-  (should (string= (hydra-with "|"
+  (setq deino-look-for-remap nil)
+  (should (string= (deino-with "|"
                                (execute-kbd-macro
                                 (kbd "C-c rq")))
                    "remapable print was called|")))
-(ert-deftest hydra-remap-lookup-2 ()
+(ert-deftest deino-remap-lookup-2 ()
   "try calling a remapped command while option is enabled"
-  (setq hydra-look-for-remap t)
-  (should (string= (hydra-with "|"
+  (setq deino-look-for-remap t)
+  (should (string= (deino-with "|"
                                (execute-kbd-macro
                                 (kbd "C-c rq")))
                    "*remaped* print was called|")))
 
-(ert-deftest hydra-columns-1 ()
+(ert-deftest deino-columns-1 ()
   (should (equal (eval
                   (cadr
                    (nth 2
                         (nth 5
                              (macroexpand
-                              '(defhydra hydra-info (:color blue
+                              '(defdeino deino-info (:color blue
                                                      :columns 3)
                                 "Info-mode"
                                 ("?" Info-summary "summary")
@@ -1500,7 +1500,7 @@ _w_ Worf:                      % -8`hydra-tng/worf^^    _h_ Set phasers to      
                                 ("T" Info-toc "TOC")
                                 ("u" Info-up "up")
                                 ("m" Info-menu "menu")
-                                ("t" hydra-info-to/body "info-to")))))))
+                                ("t" deino-info-to/body "info-to")))))))
                  #("Info-mode:
 ?: summary       ]: forward       [: backward
 <: top node      >: final node    h: help
@@ -1510,64 +1510,64 @@ I: virtual index L: hist          n: next
 p: previous      s: search        S: case-search
 T: TOC           u: up            m: menu
 t: info-to"
-                   11 12 (face hydra-face-blue)
-                   28 29 (face hydra-face-blue)
-                   45 46 (face hydra-face-blue)
-                   57 58 (face hydra-face-blue)
-                   74 75 (face hydra-face-blue)
-                   91 92 (face hydra-face-blue)
-                   99 100 (face hydra-face-blue)
-                   116 117 (face hydra-face-blue)
-                   133 134 (face hydra-face-blue)
-                   146 147 (face hydra-face-blue)
-                   163 164 (face hydra-face-blue)
-                   180 181 (face hydra-face-blue)
-                   189 190 (face hydra-face-blue)
-                   206 207 (face hydra-face-blue)
-                   223 224 (face hydra-face-blue)
-                   231 232 (face hydra-face-blue)
-                   248 249 (face hydra-face-blue)
-                   265 266 (face hydra-face-blue)
-                   280 281 (face hydra-face-blue)
-                   297 298 (face hydra-face-blue)
-                   314 315 (face hydra-face-blue)
-                   322 323 (face hydra-face-blue)))))
+                   11 12 (face deino-face-blue)
+                   28 29 (face deino-face-blue)
+                   45 46 (face deino-face-blue)
+                   57 58 (face deino-face-blue)
+                   74 75 (face deino-face-blue)
+                   91 92 (face deino-face-blue)
+                   99 100 (face deino-face-blue)
+                   116 117 (face deino-face-blue)
+                   133 134 (face deino-face-blue)
+                   146 147 (face deino-face-blue)
+                   163 164 (face deino-face-blue)
+                   180 181 (face deino-face-blue)
+                   189 190 (face deino-face-blue)
+                   206 207 (face deino-face-blue)
+                   223 224 (face deino-face-blue)
+                   231 232 (face deino-face-blue)
+                   248 249 (face deino-face-blue)
+                   265 266 (face deino-face-blue)
+                   280 281 (face deino-face-blue)
+                   297 298 (face deino-face-blue)
+                   314 315 (face deino-face-blue)
+                   322 323 (face deino-face-blue)))))
 
-(ert-deftest hydra-columns-2 ()
+(ert-deftest deino-columns-2 ()
   (should (equal (eval
                   (cadr
                    (nth 2
                         (nth 5
                              (macroexpand
-                              '(defhydra hydra-foo (:color blue)
-                                "Silly hydra"
+                              '(defdeino deino-foo (:color blue)
+                                "Silly deino"
                                 ("x" forward-char "forward" :column "sideways")
                                 ("y" backward-char "back")
                                 ("a" next-line "down" :column "vertical")
                                 ("b" previous-line "up")))))))
-                 #("Silly hydra:
+                 #("Silly deino:
 sideways    | vertical
 ----------- | -----------
 x: forward  | a: down
 y: back     | b: up
 "
-                   62 63 (face hydra-face-blue)
-                   76 77 (face hydra-face-blue)
-                   84 85 (face hydra-face-blue)
-                   98 99 (face hydra-face-blue)))))
+                   62 63 (face deino-face-blue)
+                   76 77 (face deino-face-blue)
+                   84 85 (face deino-face-blue)
+                   98 99 (face deino-face-blue)))))
 
 ;; checked:
 ;; basic rendering
 ;; column compatibility with ruby style and no column specified
 ;; column declared several time
 ;; nil column
-(ert-deftest hydra-column-basic ()
+(ert-deftest deino-column-basic ()
   (should (equal (eval
                   (cadr
                    (nth 2
                         (nth 5
                              (macroexpand
-                              '(defhydra hydra-rectangle (:body-pre (rectangle-mark-mode 1)
+                              '(defdeino deino-rectangle (:body-pre (rectangle-mark-mode 1)
                                                           :color pink
                                                           :post (deactivate-mark))
                                 "
@@ -1608,31 +1608,31 @@ d: delete   | u: undo
 o: ok       | s: string
             | p: paste
 [Of]: outside of table 1, [Os]: outside of table 2, [Ot]: outside of table 3."
-                   2 3 (face hydra-face-pink)
-                   17 18 (face hydra-face-pink)
-                   21 22 (face hydra-face-pink)
-                   38 39 (face hydra-face-pink)
-                   128 129 (face hydra-face-pink)
-                   142 143 (face hydra-face-pink)
-                   151 152 (face hydra-face-pink)
-                   165 166 (face hydra-face-pink)
-                   173 174 (face hydra-face-pink)
-                   187 188 (face hydra-face-pink)
-                   195 196 (face hydra-face-blue)
-                   209 210 (face hydra-face-pink)
-                   233 234 (face hydra-face-pink)
-                   243 245 (face hydra-face-pink)
-                   269 271 (face hydra-face-pink)
-                   295 297 (face hydra-face-pink)))))
+                   2 3 (face deino-face-pink)
+                   17 18 (face deino-face-pink)
+                   21 22 (face deino-face-pink)
+                   38 39 (face deino-face-pink)
+                   128 129 (face deino-face-pink)
+                   142 143 (face deino-face-pink)
+                   151 152 (face deino-face-pink)
+                   165 166 (face deino-face-pink)
+                   173 174 (face deino-face-pink)
+                   187 188 (face deino-face-pink)
+                   195 196 (face deino-face-blue)
+                   209 210 (face deino-face-pink)
+                   233 234 (face deino-face-pink)
+                   243 245 (face deino-face-pink)
+                   269 271 (face deino-face-pink)
+                   295 297 (face deino-face-pink)))))
 
-;; check column order is the same as they appear in defhydra
-(ert-deftest hydra-column-order ()
+;; check column order is the same as they appear in defdeino
+(ert-deftest deino-column-order ()
   (should (equal (eval
                   (cadr
                    (nth 2
                         (nth 5
                              (macroexpand
-                              '(defhydra hydra-window-order
+                              '(defdeino deino-window-order
                                 (:color red :timeout 4)
                                 ("z" ace-window "ace" :color blue :column "Switch")
                                 ("h" windmove-left "← window")
@@ -1657,27 +1657,27 @@ j: ↓ window | d: delete current window   |                     | M: minimize c
 l: → window | f: toggle follow mode      |                     |
 k: ↑ window |                            |                     |
 [q]: quit menu."
-                   173 174 (face hydra-face-blue)
-                   187 188 (face hydra-face-blue)
-                   216 217 (face hydra-face-red)
-                   238 239 (face hydra-face-red)
-                   263 264 (face hydra-face-red)
-                   277 278 (face hydra-face-blue)
-                   306 307 (face hydra-face-red)
-                   328 329 (face hydra-face-red)
-                   355 356 (face hydra-face-red)
-                   369 370 (face hydra-face-red)
-                   420 421 (face hydra-face-red)
-                   447 448 (face hydra-face-red)
-                   461 462 (face hydra-face-red)
-                   512 513 (face hydra-face-red)
-                   578 579 (face hydra-face-blue)))))
+                   173 174 (face deino-face-blue)
+                   187 188 (face deino-face-blue)
+                   216 217 (face deino-face-red)
+                   238 239 (face deino-face-red)
+                   263 264 (face deino-face-red)
+                   277 278 (face deino-face-blue)
+                   306 307 (face deino-face-red)
+                   328 329 (face deino-face-red)
+                   355 356 (face deino-face-red)
+                   369 370 (face deino-face-red)
+                   420 421 (face deino-face-red)
+                   447 448 (face deino-face-red)
+                   461 462 (face deino-face-red)
+                   512 513 (face deino-face-red)
+                   578 579 (face deino-face-blue)))))
 
-(ert-deftest hydra-column-sexp ()
+(ert-deftest deino-column-sexp ()
   (should (equal
            (eval (nth 5
                       (macroexpand
-                       '(defhydra hydra-toggle-stuff ()
+                       '(defdeino deino-toggle-stuff ()
                          "Toggle"
                          ("d" toggle-debug-on-error "debug-on-error" :column "Misc")
                          ("a" abbrev-mode
@@ -1692,11 +1692,11 @@ k: ↑ window |                            |                     |
              "-----------------"
              "\n"
              #("d: debug-on-error"
-               0 1 (face hydra-face-red))
+               0 1 (face deino-face-red))
              "\n"
              (format
               "%1s: %-15s"
-              #("a" 0 1 (face hydra-face-red))
+              #("a" 0 1 (face deino-face-red))
               (format
                "abbrev: %s"
                (if (bound-and-true-p abbrev-mode)
@@ -1704,28 +1704,28 @@ k: ↑ window |                            |                     |
                  "[ ]")))
              "\n"))))
 
-(defhydra hydra-extendable ()
+(defdeino deino-extendable ()
   "extendable"
   ("j" next-line "down"))
 
-(ert-deftest hydra-extend ()
+(ert-deftest deino-extend ()
   (should (equal (macroexpand
-                  '(defhydra+ hydra-extendable ()
+                  '(defdeino+ deino-extendable ()
                     ("k" previous-line "up")))
                  (macroexpand
-                  '(defhydra hydra-extendable ()
+                  '(defdeino deino-extendable ()
                     "extendable"
                     ("j" next-line "down")
                     ("k" previous-line "up")))))
   (should (equal (macroexpand
-                  '(defhydra+ hydra-extendable ()
+                  '(defdeino+ deino-extendable ()
                     ("k" previous-line "up" :exit t)))
                  (macroexpand
-                  '(defhydra hydra-extendable ()
+                  '(defdeino deino-extendable ()
                     "extendable"
                     ("j" next-line "down")
                     ("k" previous-line "up" :exit t))))))
 
-(provide 'hydra-test)
+(provide 'deino-test)
 
-;;; hydra-test.el ends here
+;;; deino-test.el ends here

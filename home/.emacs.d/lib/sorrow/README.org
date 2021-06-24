@@ -111,17 +111,17 @@ As can be seen above, prefix keys could be used in a similar way as /verbs/ and 
             ("c" ,text-objects :then '(kill-region) :exit t))))
 #+END_SRC
 
-** Creating and binding hydras to keys
+** Creating and binding deinos to keys
 
-[[https://github.com/abo-abo/hydra][Hydra]] is a package that allows creation of bindings which are /sort of modal/. =ryo-modal= does not require =hydra=, but if you have it installed you can easily define and bind hydras to keys. This way you can easily create a new "modal state".
+[[https://github.com/abo-abo/deino][deino]] is a package that allows creation of bindings which are /sort of modal/. =ryo-modal= does not require =deino=, but if you have it installed you can easily define and bind deinos to keys. This way you can easily create a new "modal state".
 
-In order to create a hydra, bind it to a key using =ryo-modal-key= or =ryo-modal-keys=. The /target/ of the key should be =:hydra= and the third argument should be a (quoted) list; this list will be used as the arguments sent to =defhydra=. An example:
+In order to create a deino, bind it to a key using =ryo-modal-key= or =ryo-modal-keys=. The /target/ of the key should be =:deino= and the third argument should be a (quoted) list; this list will be used as the arguments sent to =defdeino=. An example:
 
 #+BEGIN_SRC emacs-lisp
   (ryo-modal-key
-   "SPC g" :hydra
-   '(hydra-git ()
-               "A hydra for git!"
+   "SPC g" :deino
+   '(deino-git ()
+               "A deino for git!"
                ("g" magit-status "magit" :color blue)
                ("j" git-gutter:next-hunk "next")
                ("k" git-gutter:previous-hunk "previous")
@@ -157,15 +157,15 @@ Ryo-modal also provides a =use-package= keyword: =:ryo=, which is similar to =:b
 
   ;; This new list of keywords will reset the applied defaults; it applies to all keybindings following.
   (:norepeat t)
-  ("SPC g" :hydra
-   '(hydra-nav ()
-                "A hydra for navigation"
+  ("SPC g" :deino
+   '(deino-nav ()
+                "A deino for navigation"
                 ("n" next-line "next line")
                 ("p" previous-line "previous line")
                 ("q" nil "cancel" :color blue))))
 #+end_src
 
-Notice that the target should not be quoted if using =:ryo= (although the third argument when using =:hydra= should be.
+Notice that the target should not be quoted if using =:ryo= (although the third argument when using =:deino= should be.
 
 ** =which-key= integration
 

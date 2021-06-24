@@ -11,9 +11,9 @@
 
 * alamode
 
-#+name: hydra-settings
+#+name: deino-settings
 #+begin_src emacs-lisp :exports none
-(when (aiern/any-popup-showing-p) (aiern/which-key--hide-popup))) :post (progn (unless hydra-curr-map (aiern/which-key--show-popup))
+(when (aiern/any-popup-showing-p) (aiern/which-key--hide-popup))) :post (progn (unless deino-curr-map (aiern/which-key--show-popup))
 #+end_src
 
 #+name: cmf
@@ -21,11 +21,11 @@
 ;; Adapted From:
 ;; Answer: https://emacs.stackexchange.com/a/7381/31428
 ;; User: https://emacs.stackexchange.com/users/719/adobe
-(format-spec "(defhydra+ toggles (:color blue :pre (progn
-    <<hydra-settings>>))
+(format-spec "(defdeino+ toggles (:color blue :pre (progn
+    <<deino-settings>>))
     (\"%s\" aiern/toggle-%p \"%p\"))
-(defhydra+ all-keymaps (:color blue :pre (progn
-    <<hydra-settings>>))
+(defdeino+ all-keymaps (:color blue :pre (progn
+    <<deino-settings>>))
     (\"%s\" (progn (setq all-keymaps-map '%m)
     (aiern/%p-show-top-level)) \"%p\"))
 
@@ -134,7 +134,7 @@
 
 ;;; Code:
 
-(require 'hydra)
+(require 'deino)
 (require 'hercules)
 (require 'aiern)
 

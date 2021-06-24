@@ -1,4 +1,4 @@
-;;; hydra-test.el --- bare hydra init
+;;; deino-test.el --- bare deino init
 
 ;; Copyright (C) 2015  Free Software Foundation, Inc.
 
@@ -20,8 +20,8 @@
 ;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
 (add-to-list 'load-path default-directory)
-(require 'hydra)
-(setq hydra-examples-verbatim t)
-(require 'hydra-examples)
-(require 'hydra-test)
-(mapc #'byte-compile-file '("hydra.el" "hydra-examples.el" "hydra-ox.el" "hydra-test.el" "lv.el"))
+(require 'deino)
+(setq deino-examples-verbatim t)
+(require 'deino-examples)
+(require 'deino-test)
+(mapc #'byte-compile-file '("deino.el" "deino-examples.el" "deino-ox.el" "deino-test.el" "lv.el"))
