@@ -3459,7 +3459,7 @@ in
 : 20210601185410274391500
 
 #+name: 20210601185410274391500
-#+begin_src gitattributes :tangle (aiern/tangle-oreo)
+#+begin_src gitattributes :tangle (aiern/tangle-path)
 <<20210601214257298335500>>
 #+end_src
 
@@ -3496,7 +3496,7 @@ echo $(dpkg --get-selections | fzf-tmux)
 : 20210601185424827789400
 
 #+name: 20210601185424827789400
-#+begin_src xonsh :tangle (aiern/tangle-oreo)
+#+begin_src xonsh :tangle (aiern/tangle-path)
 <<20210601214242951916200>>
 #+end_src
 
@@ -3875,7 +3875,7 @@ include ./theme.conf
 : 20210601185823132554800
 
 #+name: 20210601185823132554800
-#+begin_src python :tangle (aiern/tangle-oreo)
+#+begin_src python :tangle (aiern/tangle-path)
 <<20210601214231713054800>>
 #+end_src
 
@@ -4387,7 +4387,7 @@ eval (starship init elvish)
 : 20210601185907580979300
 
 #+name: 20210601185907580979300
-#+begin_src conf :tangle (aiern/tangle-oreo)
+#+begin_src conf :tangle (aiern/tangle-path)
 <<20210601214235078130500>>
 #+end_src
 
@@ -4400,7 +4400,7 @@ eval (starship init elvish)
 : 20210601185909239055500
 
 #+name: 20210601185909239055500
-#+begin_src vimrc :tangle (aiern/tangle-oreo)
+#+begin_src vimrc :tangle (aiern/tangle-path)
 <<20210601214241093346900>>
 #+end_src
 
@@ -4624,7 +4624,7 @@ starship = {
 : 20210601185934915109100
 
 #+name: 20210601185934915109100
-#+begin_src conf :tangle (aiern/tangle-oreo)
+#+begin_src conf :tangle (aiern/tangle-path)
 <<20210601214259128138500>>
 #+end_src
 
@@ -4637,7 +4637,7 @@ starship = {
 : 20210601185936581538600
 
 #+name: 20210601185936581538600
-#+begin_src conf :tangle (aiern/tangle-oreo)
+#+begin_src conf :tangle (aiern/tangle-path)
 <<20210601214259128138500>>
 #+end_src
 

@@ -36,4 +36,7 @@ emacs-test:
 supermacs:
 |make -f ~/shadowrylander/home/.emacs.d/makefile supermacs
 
+libemacs:
+|make -f ~/shadowrylander/home/.emacs.d/makefile libemacs
+
 super-push: tangle-all push push-emacs

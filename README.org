@@ -73,6 +73,9 @@ emacs-test:
 supermacs:
 |make -f ~/<<username>>/home/.emacs.d/makefile supermacs
 
+libemacs:
+|make -f ~/<<username>>/home/.emacs.d/makefile libemacs
+
 super-push: tangle-all push push-emacs
 #+end_src
 

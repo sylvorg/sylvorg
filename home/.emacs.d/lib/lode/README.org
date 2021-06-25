@@ -1,0 +1,107 @@
+#!/usr/bin/env mdsh
+
+# TODO: Implement saku as well
+
+#+property: header-args -n -r -l "[{(<%s>)}]" :tangle-mode (identity 0444) :noweb yes :mkdirp yes
+
+# Adapted From:
+# Answer: https://stackoverflow.com/a/65232183/10827766
+# User: https://stackoverflow.com/users/776405/whil
+#+startup: show3levels
+
+* lode
+
+#+begin_src emacs-lisp :tangle lode.el
+;;; lode.el --- a simple package                     -*- lexical-binding: t; -*-
+
+;; Copyright (C) 2021  Jeet Ray
+
+;; Author: Jeet Ray <aiern@protonmail.com>
+;; Keywords: lisp
+;; Version: 0.0.1
+
+;; This program is free software; you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
+
+;; This program is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+
+;; You should have received a copy of the GNU General Public License
+;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+;;; Commentary:
+
+;; Put a description of the package here
+
+;;; Code:
+
+(require 'hydra)
+(require 'tag)
+
+;;;###autoload
+(defun lodestar (keychain func hint &optional grandparent)
+    (let* ((keys (if (stringp keychain) (split-string keychain) keychain))
+            (last-step (= (length keys) 2))
+            (carkey (pop keys))
+            (current-parent (concat (when grandparent (concat grandparent "/")) carkey))
+            (hydra-name (concat "lodestar/" current-parent))
+
+            ;; TODO
+            (hydra-funk (intern (concat
+                "defhydra"
+                (when `(fboundp ,(intern (concat hydra-name "/body"))) "+")))))
+
+        ;; Adapted From: https://github.com/abo-abo/hydra/issues/164#issuecomment-136650511
+        (eval `(defhydra
+
+            ;; TODO
+            ;; ,hydra-funk
+
+            ,(intern hydra-name)
+            (:color blue)
+            ("`" nil "cancel")
+            (
+                ;; TODO
+                ,(cadr keys)
+
+                ,(if last-step func (lodestar keys func hint current-parent))
+                ;; hint
+                "")
+            ))))
+
+;; Adapted From: https://github.com/noctuid/general.el/blob/master/general.el#L2708
+;;;###autoload
+(defun use-package-handler/:lode (name _keyword arglists rest state)
+"Use-package handler for :lode."
+(use-package-concat
+    (use-package-process-keywords name rest state)
+    `(,@(mapcar (lambda (arglist)
+                arglist
+                `(lodestar ,@arglist))
+                arglists))))
+
+;;;###autoload
+(defalias 'use-package-autoloads/:lode #'use-package-autoloads/:ghook)
+;;;###autoload
+(defalias 'use-package-normalize/:lode #'use-package-normalize/:ghook)
+
+;; Adapted From: https://github.com/noctuid/general.el/blob/master/general.el#L2554
+(setq use-package-keywords
+    ;; should go in the same location as :bind
+    ;; adding to end may not cause problems, but see issue #22
+    (cl-loop for item in use-package-keywords
+                if (eq item :bind-keymap*)
+                collect :bind-keymap* and
+                collect :lode
+                else
+                ;; don't add duplicates
+                unless (eq item :lode)
+                collect item))
+
+(provide 'lode)
+;;; lode.el ends here
+#+end_src

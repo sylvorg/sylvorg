@@ -35,3 +35,4 @@ test:
 
 emacs: setup test
 supermacs: tangle-all emacs
+libemacs: tangle-libs emacs

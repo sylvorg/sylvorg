@@ -54,6 +54,7 @@ test:
 
 emacs: setup test
 supermacs: tangle-all emacs
+libemacs: tangle-libs emacs
 #+end_src
 
 *** lib
@@ -201,6 +202,9 @@ Adapted From: https://github.com/hlissner/doom-emacs/blob/develop/early-init.el
 
 ;; ryo modal
 <<20210601225309546041800>>
+
+;; sorrow
+<<20210624151540904695400>>
 
 ;; damascus
 <<20210601225354262898500>>
@@ -381,7 +385,8 @@ And in my experience... Not a good idea; much too confusing. Use
     :demand t
     :use-package-preconfig (command-log-mode)
     :use-package-postconfig
-        (deino :demand t :straight nil :load-path "lib/deino" :custom (deino-hint-display-type 'lv))
+        (deino :demand t :straight nil :load-path "lib/deino" :gsetq (deino-hint-display-type 'lv))
+        (lode :demand t :straight nil :load-path "lib/lode")
     :load-emacs-file-preconfig ("naked")
     :config
         (tag-auto-unbind-keys)
@@ -403,6 +408,7 @@ And in my experience... Not a good idea; much too confusing. Use
                 helm-buffer-map)
             "M-x" 'exit-minibuffer)
     :custom (tag-implicit-kbd t))
+(lodestar "a b c" 'evil-quit "evil-quit")
 #+end_src
 
 **** modal modes
@@ -436,7 +442,7 @@ And in my experience... Not a good idea; much too confusing. Use
             ("h" aiern/which-key--hide-popup "hide-popup")
             ("s" aiern/which-key--show-popup "show-popup")
             ("r" aiern/which-key--refresh-popup "refresh-popup")
-            ((tag-chord "tt") aiern/toggle-which-key "toggle")
+            ("t" aiern/toggle-which-key "toggle")
             ("l" aiern/which-key-show-top-level "aiern/toplevel")
             ("L" which-key-show-top-level "toplevel"))
         (deino/hercules (:color blue :pre (progn
@@ -504,6 +510,9 @@ And in my experience... Not a good idea; much too confusing. Use
 ***** sorrow
 
 #+call: hash() :exports none
+
+#+RESULTS:
+: 20210624151540904695400
 
 #+name: 
 #+begin_src emacs-lisp
@@ -843,7 +852,9 @@ And in my experience... Not a good idea; much too confusing. Use
 
 #+name: 20210601225321180742600
 #+begin_src emacs-lisp
-<<b7ccdbd9b486c4c7b221f9a885c076dc>>
+<<20210624171113086324000>>
+
+<<20210601225322706724000>>
 
 ;; TODO: Split this into multiple `use-package!' instances using my new `deino+' keyword
 (with-eval-after-load 'ryo-modal (ryo-modal-key "x" :hydra
@@ -858,6 +869,18 @@ And in my experience... Not a good idea; much too confusing. Use
             :name "execute order 65"))
 #+end_src
 
+***** ivy
+
+#+call: hash() :exports none
+
+#+RESULTS:
+: 20210624171113086324000
+
+#+name: 20210624171113086324000
+#+begin_src emacs-lisp
+(use-package ivy :hook (emacs-startup . counsel-mode) (emacs-startup . ivy-mode))
+#+end_src
+
 ***** helm
 
 #+call: hash() :exports none
@@ -865,23 +888,30 @@ And in my experience... Not a good idea; much too confusing. Use
 #+RESULTS:
 : 20210601225322706724000
 
-#+name: helm
+#+name: 20210601225322706724000
 #+begin_src emacs-lisp
-;; Adapted From: https://github.com/clemera/helm-ido-like-guide
-(use-package helm-ido-like
-    :straight (helm-ido-like
-        :type git
-        :host github
-        :repo "<<username>>/helm-ido-like-guide"
-        :branch "master")
-    :hook after-init
-    :after
-        (helm-swoop
-        helm-flx
-        helm-fuzzier
-        helm-smex
-        smex
-        dash))
+(use-package helm
+    :use-package-postconfig ;; Adapted From: https://github.com/clemera/helm-ido-like-guide
+        (helm-swoop)
+        (helm-flx)
+        (smex)
+        (helm-smex)
+        (dash)
+        (s)
+        (helm-ido-like
+            :straight (helm-ido-like
+                :type git
+                :host github
+                :repo "<<username>>/helm-ido-like-guide"
+                :branch "master")
+            :hook after-init
+            :after
+                (helm-swoop
+                helm-flx
+                helm-fuzzier
+                helm-smex
+                smex
+                dash)))
 #+end_src
 
 **** git
@@ -1822,16 +1852,17 @@ trees with the :notangle: tag."
 
 #+name: 20210601225401786848500
 #+begin_src emacs-lisp :tangle (aiern/tangle-path)
+(when (file-exists-p "~/<<username>>/README.org")
+    (org-babel-lob-ingest "~/<<username>>/README.org"))
+(when (file-exists-p "~/<<username>>/strange.aiern.org")
+    (org-babel-lob-ingest "~/<<username>>/strange.aiern.org"))
+
 (defun aiern/get-header nil (interactive)
     (nth 4 (org-heading-components)))
 (defun aiern/tangle-path nil (interactive)
-    (org-babel-lob-ingest "./README.org")
     (string-remove-prefix "/" (concat
         (org-format-outline-path (org-get-outline-path)) "/"
             (aiern/get-header))))
-(defun aiern/tangle-oreo nil (interactive)
-    (org-babel-lob-ingest "./strange.aiern.org")
-    (aiern/tangle-path))
 (defun aiern/get-theme-from-header nil (interactive)
     (string-remove-suffix "-theme.el" (aiern/get-header)))
 #+end_src
