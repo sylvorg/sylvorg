@@ -101,8 +101,7 @@
 ;;; Code:
 
 (require 'deino)
-(require 'hercules)
-(require 'aiern)
+(require 'meq)
 
 ;; Adapted From: https://gitlab.com/jjzmajic/hercules.el/-/blob/master/hercules.el#L83
 ;;;###autoload

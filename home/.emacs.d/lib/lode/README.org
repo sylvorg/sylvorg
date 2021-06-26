@@ -42,6 +42,7 @@
 (require 'deino)
 (require 'tag)
 (require 'dash)
+(require 'meq)
 
 ;;;###autoload
 (defun lode* (parent tags key func hint &rest keychain)

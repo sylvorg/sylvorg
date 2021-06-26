@@ -384,11 +384,6 @@ And in my experience... Not a good idea; much too confusing. Use
     :load-path "lib/tag"
     :demand t
     :use-package-preconfig (command-log-mode)
-    :use-package-postconfig
-        (dash)
-        (s)
-        (deino :demand t :straight nil :load-path "lib/deino" :gsetq (deino-hint-display-type 'lv))
-        (lode :demand t :straight nil :load-path "lib/lode")
     :load-emacs-file-preconfig ("naked")
     :config
         (tag-auto-unbind-keys)
@@ -424,7 +419,12 @@ And in my experience... Not a good idea; much too confusing. Use
 #+begin_src emacs-lisp
 (use-package hercules
     :straight (hercules :type git :host gitlab :repo "jjzmajic/hercules.el" :branch "master")
-    :use-package-post-config (meq :straight nil :load-path "lib/meq" :demand t)
+    :use-package-postconfig
+        (dash)
+        (s)
+        (meq :straight nil :load-path "lib/meq" :demand t)
+        (deino :demand t :straight nil :load-path "lib/deino" :gsetq (deino-hint-display-type 'lv))
+        (lode :demand t :straight nil :load-path "lib/lode")
     :demand t
     :gone
         ((tag-chord "\\\\") 'meq/toggle-which-key)

@@ -280,7 +280,7 @@
             (when force (setq which-key-really-dont-show nil) (funcall show-popup keymap))
             (funcall show-popup keymap))))
 
-(mapc #'(lambda (state) (interactive)
+(with-eval-after-load 'aiern (mapc #'(lambda (state) (interactive)
     (add-hook (intern (concat "aiern-" (symbol-name (car state)) "-state-entry-hook"))
         #'(lambda nil (interactive)
             (meq/which-key--show-popup (intern (concat "aiern-" (symbol-name (car state)) "-state-map")))))
@@ -295,7 +295,7 @@
         #'(lambda nil (interactive)
             (setq dont-disable-modal-modes t)
             (meq/which-key--hide-popup))))
-    aiern-state-properties)
+    aiern-state-properties))
 
 ;;;###autoload
 (defun meq/which-key--refresh-popup (&optional keymap) (interactive)

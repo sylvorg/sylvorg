@@ -277,7 +277,7 @@
 ;; Adapted From: https://gitlab.com/to1ne/use-package-hydra/-/blob/master/use-package-hydra.el#L79
 ;;;###autoload
 (defun use-package-handler/:both-ex (name keyword args rest state)
-    (use-package-concat (mapcar #'(lambda (def) `(aiern/both-ex-define-cmd ,@def)) args)
+    (use-package-concat (mapcar #'(lambda (def) `(meq/both-ex-define-cmd ,@def)) args)
     (use-package-process-keywords name rest state)))
 
 (add-to-list 'use-package-keywords :both-ex t)
