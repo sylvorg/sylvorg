@@ -42,3 +42,7 @@
 	url = lode
 	path = home/.emacs.d/lib/lode
 	branch = main
+[subtree "home/.emacs.d/lib/meq"]
+	url = meq
+	path = home/.emacs.d/lib/meq
+	branch = main
