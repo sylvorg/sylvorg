@@ -60,47 +60,13 @@
 (defun aiern/toggle-%p-hercules-force nil (interactive)
     (funcall 'aiern/toggle-inner '%n \"%p\" (fbatp %n) '%m t t))
 
-;; Adapted From: https://github.com/emacsorphanage/god-mode/blob/master/god-mode.el#L392
 ;;;###autoload
-(defun aiern/%p-execute-with-current-bindings (&optional called-interactively)
-    (interactive \"d\")
-    (if called-interactively
-        (unless %n
-        (message \"Switched to %p mode for the next command ...\")
-        (letrec ((caller this-command)
-                (buffer (current-buffer))
-                (cleanup
-                    (lambda ()
-                    ;; Perform cleanup in original buffer even if the command
-                    ;; switched buffers.
-                    (if (buffer-live-p buffer)
-                        (with-current-buffer buffer
-                        (unwind-protect (aiern/disable-all-modal-modes)
-                            (remove-hook 'post-command-hook post-hook)))
-                        (remove-hook 'post-command-hook post-hook)
-                        (when last-modal-mode (funcall last-modal-mode 1)))))
-                (kill-transient-map
-                    (set-transient-map
-                    %m 'aiern/god-prefix-command-p cleanup))
-                (post-hook
-                    (lambda ()
-                    (unless (and
-                            (eq this-command caller)
-                            ;; If we've entered the minibuffer, this implies
-                            ;; a non-prefix command was run, even if
-                            ;; `this-command' has not changed.  For example,
-                            ;; `execute-extended-command' behaves this way.
-                            (not (window-minibuffer-p)))
-                        (funcall kill-transient-map)))))
-            (add-hook 'post-command-hook post-hook)
-            ;; Pass the current prefix argument along to the next command.
-            (setq prefix-arg current-prefix-arg)
-            ;; Technically we don't need to activate %p mode since the
-            ;; transient keymap is already in place, but it's useful to provide
-            ;; a mode line lighter and run any hook functions the user has set
-            ;; up.  This could be made configurable in the future.
-            (%n 1)))
-    (error \"This function should only be called interactively\")))
+(defun aiern/%p-execute-with-current-bindings (&optional called-interactively) (interactive \"d\")
+    (funcall 'aiern/execute-with-current-bindings-inner '%n \"%p\" (fbatp %n) '%m nil called-interactively))
+
+;;;###autoload
+(defun aiern/%p-hercules-execute-with-current-bindings (&optional called-interactively) (interactive \"d\")
+    (funcall 'aiern/execute-with-current-bindings-inner '%n \"%p\" (fbatp %n) '%m t called-interactively))
 
     (add-to-list 'modal-modes '%n)
     (add-to-list 'modal-prefixes \"%p\")" `((?m . ,map) (?n . ,mode) (?p . ,prefix) (?s . ,short)))
@@ -149,6 +115,49 @@
             (aiern/which-key-show-top-level map))
         (setq current-modal-mode mode)
         (setq last-modal-mode mode)))
+
+;; Adapted From: https://github.com/emacsorphanage/god-mode/blob/master/god-mode.el#L392
+;;;###autoload
+(defun aiern/execute-with-current-bindings-inner (mode prefix mode-on map &optional use-hercules called-interactively)
+    (interactive "d")
+    (if called-interactively
+        (unless mode-on
+        (message (format "Switched to %s mode for the next command ..." prefix))
+        (letrec ((caller this-command)
+                (buffer (current-buffer))
+                (cleanup
+                    (lambda ()
+                    ;; Perform cleanup in original buffer even if the command
+                    ;; switched buffers.
+                    (if (buffer-live-p buffer)
+                        (with-current-buffer buffer
+                        (unwind-protect (aiern/disable-all-modal-modes)
+                            (remove-hook 'post-command-hook post-hook)))
+                        (remove-hook 'post-command-hook post-hook)
+                        (when last-modal-mode (funcall last-modal-mode 1)))))
+                (kill-transient-map
+                    (set-transient-map
+                    map 'aiern/god-prefix-command-p cleanup))
+                (post-hook
+                    (lambda ()
+                    (unless (and
+                            (eq this-command caller)
+                            ;; If we've entered the minibuffer, this implies
+                            ;; a non-prefix command was run, even if
+                            ;; `this-command' has not changed.  For example,
+                            ;; `execute-extended-command' behaves this way.
+                            (not (window-minibuffer-p)))
+                        (funcall kill-transient-map)))))
+            (add-hook 'post-command-hook post-hook)
+            ;; Pass the current prefix argument along to the next command.
+            (setq prefix-arg current-prefix-arg)
+            ;; Technically we don't need to activate %p mode since the
+            ;; transient keymap is already in place, but it's useful to provide
+            ;; a mode line lighter and run any hook functions the user has set
+            ;; up.  This could be made configurable in the future.
+            (funcall mode 1)
+            (when use-hercules (funcall (intern (concat "aiern/" prefix "-hercules-show"))))))
+    (error "This function should only be called interactively")))
 
 <<cmf(map="aiern-normal-state-map", mode="aiern-mode", prefix="aiern", short="a")>>
 

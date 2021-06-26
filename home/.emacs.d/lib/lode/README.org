@@ -50,7 +50,7 @@
   (substring (symbol-name keyword) 1))
 
 ;;;###autoload
-(defun lode* (parent key func hint &rest keychain)
+(defun lode* (parent tags key func hint &rest keychain)
     (let* ((last-step (= (-count 'keywordp keychain) 1))
             (carkey (aiern/keyword-to-symbol-name (pop keychain)))
             (last-name (concat (when parent (concat parent "/")) carkey))
@@ -60,22 +60,24 @@
                 (when (fboundp (intern (concat deino-name "/body"))) "+"))))
             (last-list (if last-step `(,key ,func ,hint) 
                 `(,(aiern/keyword-to-symbol-name (car keychain))
-                    ,(eval `(lode* ,last-name ,key ',func ,hint ,@keychain))))))
+                    ,(eval `(lode* ,last-name nil ,key ',func ,hint ,@keychain))))))
 
         ;; Adapted From: https://github.com/abo-abo/deino/issues/164#issuecomment-136650511
         (eval `(,deino-funk
             ,(intern deino-name)
             (:color blue)
             ,last-list
-            ("`" nil "cancel")))))
+            ("`" nil "cancel")))
+        (when tags `(tag-def ,@tags))))
 
 ;;;###autoload
-(defun lodestar (key func hint &rest keychain) (interactive) (apply #'lode* nil key func hint keychain))
+(defun lodestar (key func hint &rest keychain) (interactive) (apply #'lode* nil nil key func hint keychain))
+(defun lodetags (tags key func hint &rest keychain) (interactive) (apply #'lode* nil tags key func hint keychain))
 
 ;; Adapted From: https://github.com/noctuid/general.el/blob/master/general.el#L2708
 ;;;###autoload
-(defun use-package-handler/:lode (name _keyword arglists rest state)
-"Use-package handler for :lode."
+(defun use-package-handler/:lodestar (name _keyword arglists rest state)
+"Use-package handler for :lodestar."
 (use-package-concat
     (use-package-process-keywords name rest state)
     `(,@(mapcar (lambda (arglist)
@@ -84,9 +86,25 @@
                 arglists))))
 
 ;;;###autoload
-(defalias 'use-package-autoloads/:lode #'use-package-autoloads/:ghook)
+(defalias 'use-package-autoloads/:lodestar #'use-package-autoloads/:ghook)
 ;;;###autoload
-(defalias 'use-package-normalize/:lode #'use-package-normalize/:ghook)
+(defalias 'use-package-normalize/:lodestar #'use-package-normalize/:ghook)
+
+;; Adapted From: https://github.com/noctuid/general.el/blob/master/general.el#L2708
+;;;###autoload
+(defun use-package-handler/:lodetags (name _keyword arglists rest state)
+"Use-package handler for :lodetags."
+(use-package-concat
+    (use-package-process-keywords name rest state)
+    `(,@(mapcar (lambda (arglist)
+                arglist
+                `(lodetags ,@arglist))
+                arglists))))
+
+;;;###autoload
+(defalias 'use-package-autoloads/:lodetags #'use-package-autoloads/:ghook)
+;;;###autoload
+(defalias 'use-package-normalize/:lodetags #'use-package-normalize/:ghook)
 
 ;; Adapted From: https://github.com/noctuid/general.el/blob/master/general.el#L2554
 (setq use-package-keywords
@@ -95,10 +113,11 @@
     (cl-loop for item in use-package-keywords
                 if (eq item :bind-keymap*)
                 collect :bind-keymap* and
-                collect :lode
+                collect :lodestar and
+                collect :lodetags
                 else
                 ;; don't add duplicates
-                unless (eq item :lode)
+                unless (memq item '(:lodestar :lodetags))
                 collect item))
 
 (provide 'lode)

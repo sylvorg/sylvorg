@@ -410,8 +410,6 @@ And in my experience... Not a good idea; much too confusing. Use
                 helm-buffer-map)
             "M-x" 'exit-minibuffer)
     :custom (tag-implicit-kbd t))
-(lodestar "c" 'evil-quit "evil-quit" :a :b)
-(lodestar "d" 'command-log-mode "command-log-mode" :a :b)
 #+end_src
 
 **** modal modes
