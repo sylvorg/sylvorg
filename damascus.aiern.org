@@ -16,7 +16,7 @@ which was written by [[https://emacs.stackexchange.com/users/2710/andrew-swann][
 : 20210622004216528168500
 
 #+name: 20210622004216528168500
-#+begin_src makefile :tangle (aiern/tangle-path)
+#+begin_src makefile :tangle (meq/tangle-path)
 .RECIPEPREFIX := |
 .DEFAULT_GOAL := emacs
 
@@ -66,7 +66,7 @@ libemacs: tangle-libs emacs
 : 20210616175359970389700
 
 #+name: 20210616175359970389700
-#+begin_src emacs-lisp :tangle (aiern/tangle-path)
+#+begin_src emacs-lisp :tangle (meq/tangle-path)
 ;;; damascus.el --- a simple package                     -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2021  Jeet Ray
@@ -110,7 +110,7 @@ Adapted From: https://github.com/hlissner/doom-emacs/blob/develop/early-init.el
 : 20210604182053300746900
 
 #+name: 20210604182053300746900
-#+begin_src emacs-lisp :tangle (aiern/tangle-path)
+#+begin_src emacs-lisp :tangle (meq/tangle-path)
 ;;; early-init.el -*- lexical-binding: t; -*-
 
 ;; Emacs 27.1 introduced early-init.el, which is run before init.el, before
@@ -155,7 +155,7 @@ Adapted From: https://github.com/hlissner/doom-emacs/blob/develop/early-init.el
 
 #+name: 20210601225233511900800
 #+begin_src emacs-lisp
-(when (aiern/any-popup-showing-p) (aiern/which-key--hide-popup))) :post (progn (unless deino-curr-map (aiern/which-key--show-popup))
+(when (meq/any-popup-showing-p) (meq/which-key--hide-popup))) :post (progn (unless deino-curr-map (meq/which-key--show-popup))
 #+end_src
 
 #+call: hash() :exports none
@@ -164,7 +164,7 @@ Adapted From: https://github.com/hlissner/doom-emacs/blob/develop/early-init.el
 : 20210601225227507463400
 
 #+name: 20210601225227507463400
-#+begin_src emacs-lisp :tangle (aiern/tangle-path)
+#+begin_src emacs-lisp :tangle (meq/tangle-path)
 ;;; $EMACSDIR/config.el -*- lexical-binding: t; -*-
 (setq straight-use-package-by-default t)
 (defvar bootstrap-version)
@@ -426,30 +426,30 @@ And in my experience... Not a good idea; much too confusing. Use
     :straight (hercules :type git :host gitlab :repo "jjzmajic/hercules.el" :branch "master")
     :demand t
     :gone
-        ((tag-chord "\\\\") 'aiern/toggle-which-key)
+        ((tag-chord "\\\\") 'meq/toggle-which-key)
         ((tag-chord "\\]") 'map-of-infinity/body)
     :deino (map-of-infinity (:color blue :pre (progn
                 <<20210601225233511900800>>))
             ("`" nil "cancel")
             ("w" deino/which-key/body "which-key")
             ("h" deino/hercules/body "hercules")
-            ("d" aiern/disable-all-modal-modes "disable all modal modes")
+            ("d" meq/disable-all-modal-modes "disable all modal modes")
             ("t" toggles/body "toggles")
             ("k" all-keymaps/body "all keymaps"))
         (deino/which-key (:color blue :pre (progn
                 <<20210601225233511900800>>))
             ("`" nil "cancel")
-            ("a" aiern/any-popup-showing-p "any popup showing")
-            ("h" aiern/which-key--hide-popup "hide-popup")
-            ("s" aiern/which-key--show-popup "show-popup")
-            ("r" aiern/which-key--refresh-popup "refresh-popup")
-            ("t" aiern/toggle-which-key "toggle")
-            ("l" aiern/which-key-show-top-level "aiern/toplevel")
+            ("a" meq/any-popup-showing-p "any popup showing")
+            ("h" meq/which-key--hide-popup "hide-popup")
+            ("s" meq/which-key--show-popup "show-popup")
+            ("r" meq/which-key--refresh-popup "refresh-popup")
+            ("t" meq/toggle-which-key "toggle")
+            ("l" meq/which-key-show-top-level "meq/toplevel")
             ("L" which-key-show-top-level "toplevel"))
         (deino/hercules (:color blue :pre (progn
                 <<20210601225233511900800>>))
             ("`" nil "cancel")
-            ("h" aiern/hercules-hide-all-modal-modes "hide all modal modes"))
+            ("h" meq/hercules-hide-all-modal-modes "hide all modal modes"))
         (toggles (:color blue :pre (progn
                 <<20210601225233511900800>>)) ("`" nil "cancel"))
         (all-keymaps (:color blue :pre (progn
@@ -502,8 +502,8 @@ And in my experience... Not a good idea; much too confusing. Use
     :straight (ryo-modal :type git :host github :repo "kungsgeten/ryo-modal" :branch "master")
     :demand t
     :gone
-        ((tag-chord "  ") 'aiern/toggle-ryo-hercules)
-        ((tag-chord " ,") 'aiern/ryo-execute-with-current-bindings)
+        ((tag-chord "  ") 'meq/toggle-ryo-hercules)
+        ((tag-chord " ,") 'meq/ryo-execute-with-current-bindings)
     :config ;; From: https://github.com/Kungsgeten/ryo-modal#which-key-integration
         (push '((nil . "ryo:.*:") . (nil . "")) which-key-replacement-alist))
 #+end_src
@@ -522,8 +522,8 @@ And in my experience... Not a good idea; much too confusing. Use
     :straight nil
     :load-path "lib/sorrow"
     :gone
-        ((tag-chord " .") 'aiern/toggle-ryo-hercules)
-        ((tag-chord " /") 'aiern/ryo-execute-with-current-bindings)
+        ((tag-chord " .") 'meq/toggle-ryo-hercules)
+        ((tag-chord " /") 'meq/ryo-execute-with-current-bindings)
     :config ;; From: https://github.com/shadowrylander/sorrow#which-key-integration
         (push '((nil . "sorrow:.*:") . (nil . "")) which-key-replacement-alist))
 #+end_src
@@ -552,17 +552,17 @@ And in my experience... Not a good idea; much too confusing. Use
                 :branch "master"))
     :gsetq (evil-escape-key-sequence nil)
     :gone
-        ((tag-chord "kk") 'aiern/toggle-evil)
-        ((tag-chord "KK") 'aiern/toggle-evil-force)
+        ((tag-chord "kk") 'meq/toggle-evil)
+        ((tag-chord "KK") 'meq/toggle-evil-force)
         
         ;; TODO
-        ;; ((tag-chord "") 'aiern/toggle-evil-ex-hercules)
-        ;; ((tag-chord "") 'aiern/toggle-evil-ex-hercules-force)
+        ;; ((tag-chord "") 'meq/toggle-evil-ex-hercules)
+        ;; ((tag-chord "") 'meq/toggle-evil-ex-hercules-force)
         
         ((tag-chord ",,") 'evil-ex)
     :leaf (evil :advice
         (:override evil-insert-state (lambda (&optional _) (interactive)
-            (aiern/disable-all-modal-modes))))
+            (meq/disable-all-modal-modes))))
     :config
         ;; From: https://www.reddit.com/r/emacs/comments/lp45zd/help_requested_in_configuring_ryomodal/gp3rfx9?utm_source=share&utm_medium=web2x&context=3
         ;; Kept for documentation porpoises
@@ -579,25 +579,25 @@ And in my experience... Not a good idea; much too confusing. Use
 
         ;; TODO: How do I create a keymap `evil-ex-keymap' out of the `evil-ex-commands' alist?
 
-        ;; (hercules-def :show-funs #'aiern/evil-ex-hercules-show
-        ;;     :hide-funs #'aiern/evil-ex-hercules-hide
-        ;;     :toggle-funs #'aiern/evil-ex-hercules-toggle
+        ;; (hercules-def :show-funs #'meq/evil-ex-hercules-show
+        ;;     :hide-funs #'meq/evil-ex-hercules-hide
+        ;;     :toggle-funs #'meq/evil-ex-hercules-toggle
         ;;     :keymap 'evil-ex-keymap
         ;;     ;; :transient t
         ;; )
 
-        ;; (defun aiern/evil-ex-hercules-toggle nil (interactive))
-        ;; (defun aiern/evil-ex-show-top-level nil (interactive)
-        ;;     (aiern/which-key-show-top-level 'evil-ex-keymap))
+        ;; (defun meq/evil-ex-hercules-toggle nil (interactive))
+        ;; (defun meq/evil-ex-show-top-level nil (interactive)
+        ;;     (meq/which-key-show-top-level 'evil-ex-keymap))
 
-        ;; (defun aiern/toggle-evil-ex nil (interactive)
-        ;;     (funcall 'aiern/toggle-inner 'evil-mode "evil-ex" (meq/fbatp evil-mode) 'evil-ex-keymap))
-        ;; (defun aiern/toggle-evil-ex-force nil (interactive)
-        ;;     (funcall 'aiern/toggle-inner 'evil-mode "evil-ex" (meq/fbatp evil-mode) 'evil-ex-keymap nil t))
-        ;; (defun aiern/toggle-evil-ex-hercules nil (interactive)
-        ;;     (funcall 'aiern/toggle-inner 'evil-mode "evil-ex" (meq/fbatp evil-mode) 'evil-ex-keymap t))
-        ;; (defun aiern/toggle-evil-ex-hercules-force nil (interactive)
-        ;;     (funcall 'aiern/toggle-inner 'evil-mode "evil-ex" (meq/fbatp evil-mode) 'evil-ex-keymap t t))
+        ;; (defun meq/toggle-evil-ex nil (interactive)
+        ;;     (funcall 'meq/toggle-inner 'evil-mode "evil-ex" (meq/fbatp evil-mode) 'evil-ex-keymap))
+        ;; (defun meq/toggle-evil-ex-force nil (interactive)
+        ;;     (funcall 'meq/toggle-inner 'evil-mode "evil-ex" (meq/fbatp evil-mode) 'evil-ex-keymap nil t))
+        ;; (defun meq/toggle-evil-ex-hercules nil (interactive)
+        ;;     (funcall 'meq/toggle-inner 'evil-mode "evil-ex" (meq/fbatp evil-mode) 'evil-ex-keymap t))
+        ;; (defun meq/toggle-evil-ex-hercules-force nil (interactive)
+        ;;     (funcall 'meq/toggle-inner 'evil-mode "evil-ex" (meq/fbatp evil-mode) 'evil-ex-keymap t t))
     :ryo
         ("l" :hydra
                 '(evil-exits (:color blue :pre (progn
@@ -629,40 +629,40 @@ And in my experience... Not a good idea; much too confusing. Use
     :straight nil
     :load-path "lib/aiern"
     :gone
-        ((tag-chord "uu") 'aiern/toggle-aiern)
-        ((tag-chord "UU") 'aiern/toggle-aiern-force)
+        ((tag-chord "uu") 'meq/toggle-aiern)
+        ((tag-chord "UU") 'meq/toggle-aiern-force)
 
         ;; TODO
-        ;; ((tag-chord "") 'aiern/toggle-aiern-ex-hercules)
-        ;; ((tag-chord "") 'aiern/toggle-aiern-ex-hercules-force)
+        ;; ((tag-chord "") 'meq/toggle-aiern-ex-hercules)
+        ;; ((tag-chord "") 'meq/toggle-aiern-ex-hercules-force)
 
         ((tag-chord ",.") 'aiern-ex)
-        ((tag-chord ",/") 'aiern/aiern-execute-with-current-bindings)
+        ((tag-chord ",/") 'meq/aiern-execute-with-current-bindings)
     :config
         (tag-def :keymaps '(override aiern-insert-state-map)
             (naked "RET") 'newline-and-indent
-            (tag-chord "]\\") 'aiern/end-of-line-and-indented-new-line)
+            (tag-chord "]\\") 'meq/end-of-line-and-indented-new-line)
         ;; TODO: How do I create a keymap `aiern-ex-keymap' out of the `aiern-ex-commands' alist?
 
-        ;; (hercules-def :show-funs #'aiern/aiern-ex-hercules-show
-        ;;     :hide-funs #'aiern/aiern-ex-hercules-hide
-        ;;     :toggle-funs #'aiern/aiern-ex-hercules-toggle
+        ;; (hercules-def :show-funs #'meq/aiern-ex-hercules-show
+        ;;     :hide-funs #'meq/aiern-ex-hercules-hide
+        ;;     :toggle-funs #'meq/aiern-ex-hercules-toggle
         ;;     :keymap 'aiern-ex-keymap
         ;;     ;; :transient t
         ;; )
 
-        ;; (defun aiern/aiern-ex-hercules-toggle nil (interactive))
-        ;; (defun aiern/aiern-ex-show-top-level nil (interactive)
-        ;;     (aiern/which-key-show-top-level 'aiern-ex-keymap))
+        ;; (defun meq/aiern-ex-hercules-toggle nil (interactive))
+        ;; (defun meq/aiern-ex-show-top-level nil (interactive)
+        ;;     (meq/which-key-show-top-level 'aiern-ex-keymap))
 
-        ;; (defun aiern/toggle-aiern-ex nil (interactive)
-        ;;     (funcall 'aiern/toggle-inner 'aiern-mode "aiern-ex" (meq/fbatp aiern-mode) 'aiern-ex-keymap))
-        ;; (defun aiern/toggle-aiern-ex-force nil (interactive)
-        ;;     (funcall 'aiern/toggle-inner 'aiern-mode "aiern-ex" (meq/fbatp aiern-mode) 'aiern-ex-keymap nil t))
-        ;; (defun aiern/toggle-aiern-ex-hercules nil (interactive)
-        ;;     (funcall 'aiern/toggle-inner 'aiern-mode "aiern-ex" (meq/fbatp aiern-mode) 'aiern-ex-keymap t))
-        ;; (defun aiern/toggle-aiern-ex-hercules-force nil (interactive)
-        ;;     (funcall 'aiern/toggle-inner 'aiern-mode "aiern-ex" (meq/fbatp aiern-mode) 'aiern-ex-keymap t t))
+        ;; (defun meq/toggle-aiern-ex nil (interactive)
+        ;;     (funcall 'meq/toggle-inner 'aiern-mode "aiern-ex" (meq/fbatp aiern-mode) 'aiern-ex-keymap))
+        ;; (defun meq/toggle-aiern-ex-force nil (interactive)
+        ;;     (funcall 'meq/toggle-inner 'aiern-mode "aiern-ex" (meq/fbatp aiern-mode) 'aiern-ex-keymap nil t))
+        ;; (defun meq/toggle-aiern-ex-hercules nil (interactive)
+        ;;     (funcall 'meq/toggle-inner 'aiern-mode "aiern-ex" (meq/fbatp aiern-mode) 'aiern-ex-keymap t))
+        ;; (defun meq/toggle-aiern-ex-hercules-force nil (interactive)
+        ;;     (funcall 'meq/toggle-inner 'aiern-mode "aiern-ex" (meq/fbatp aiern-mode) 'aiern-ex-keymap t t))
         )
 #+end_src
 
@@ -677,7 +677,7 @@ And in my experience... Not a good idea; much too confusing. Use
 #+begin_src emacs-lisp
 (use-package god-mode
     :gone
-        ((tag-chord "jj") 'aiern/toggle-god)
+        ((tag-chord "jj") 'meq/toggle-god)
         ((tag-chord ";'") 'god-execute-with-current-bindings)
     :config (which-key-enable-god-mode-support))
 #+end_src
@@ -698,7 +698,7 @@ And in my experience... Not a good idea; much too confusing. Use
                 <<20210601225233511900800>>))
                 "A modal deino!"
                 ("`" nil "cancel")
-                ("x" aiern/toggle-xah "xah-fly-keys")) :name "modal modes"))
+                ("x" meq/toggle-xah "xah-fly-keys")) :name "modal modes"))
 #+end_src
 
 ***** objed
@@ -711,7 +711,7 @@ And in my experience... Not a good idea; much too confusing. Use
 #+name: 20210601225316366565400
 #+begin_src emacs-lisp
 (use-package objed
-    :gone ((tag-chord "ii") 'aiern/toggle-objed))
+    :gone ((tag-chord "ii") 'meq/toggle-objed))
 #+end_src
 
 ***** kakoune
@@ -723,7 +723,7 @@ And in my experience... Not a good idea; much too confusing. Use
 
 #+name: 20210601225318002941000
 #+begin_src emacs-lisp
-(use-package kakoune :deino+ (modal-modes (:color blue) ("k" aiern/toggle-kakoune-hercules "kakoune")))
+(use-package kakoune :deino+ (modal-modes (:color blue) ("k" meq/toggle-kakoune-hercules "kakoune")))
 #+end_src
 
 ***** modalka
@@ -735,7 +735,7 @@ And in my experience... Not a good idea; much too confusing. Use
 
 #+name: 20210601225319683820700
 #+begin_src emacs-lisp
-(use-package modalka :gone ((tag-chord "::") 'aiern/toggle-modalka-hercules))
+(use-package modalka :gone ((tag-chord "::") 'meq/toggle-modalka-hercules))
 #+end_src
 
 **** org-mode
@@ -826,9 +826,9 @@ And in my experience... Not a good idea; much too confusing. Use
             <<20210601225233511900800>>))
                 "A deino for org-mode!"
                 ("o" org-babel-tangle "tangle")
-                ("a" aiern/org-babel-tangle-append "tangle append")
+                ("a" meq/org-babel-tangle-append "tangle append")
                 ("f" org-babel-tangle-file "tangle file")
-                ("n" aiern/narrow-or-widen-dwim "narrow")
+                ("n" meq/narrow-or-widen-dwim "narrow")
                 ("s" org-edit-special "org edit special")
                 ("q" nil "cancel")))
     :gsetq
@@ -976,7 +976,7 @@ And in my experience... Not a good idea; much too confusing. Use
 
 #+name: 20210601225332587709700
 #+begin_src emacs-lisp
-(defun display-startup-echo-area-message nil (aiern/which-key-show-top-level))
+(defun display-startup-echo-area-message nil (meq/which-key-show-top-level))
 
 (use-package rainbow-delimiters :hook (prog-mode . rainbow-delimiters-mode))
 
@@ -1174,16 +1174,16 @@ And in my experience... Not a good idea; much too confusing. Use
         (projectile)
         (yasnippet)
         (company)
-    :init/defun* (aiern/yankpad-hercules-toggle nil (interactive))
+    :init/defun* (meq/yankpad-hercules-toggle nil (interactive))
     :gsetq (yankpad-file "./yankpad.org")
     :gone
-        ((tag-chord "[[") 'aiern/yankpad-hercules-toggle)
+        ((tag-chord "[[") 'meq/yankpad-hercules-toggle)
         ((tag-chord "]]") 'yankpad-expand)
     :config (yankpad-map)
     :hercules
-        (:show-funs #'aiern/yankpad-hercules-show
-            :hide-funs #'aiern/yankpad-hercules-hide
-            :toggle-funs #'aiern/yankpad-hercules-toggle
+        (:show-funs #'meq/yankpad-hercules-show
+            :hide-funs #'meq/yankpad-hercules-hide
+            :toggle-funs #'meq/yankpad-hercules-toggle
             :keymap 'yankpad-keymap
             ;; :transient t
         ))
@@ -1272,7 +1272,7 @@ And in my experience... Not a good idea; much too confusing. Use
 #+name: 20210601225337340164800
 #+begin_src emacs-lisp
 (use-package term
-    :config/defun* (aiern/term-hercules-toggle nil (interactive))
+    :config/defun* (meq/term-hercules-toggle nil (interactive))
     :tag
         (:keymaps 'term-mode-map
             "C-c C-c" 'term-interrupt-subjob
@@ -1289,9 +1289,9 @@ And in my experience... Not a good idea; much too confusing. Use
         (term-buffer-maximum-size 16384)
         (term-default-bg-color "#000000") '(term-default-fg-color "#AAAAAA")
     :hercules
-        (:show-funs #'aiern/term-hercules-show
-        :hide-funs #'aiern/term-hercules-hide
-        :toggle-funs #'aiern/term-hercules-toggle
+        (:show-funs #'meq/term-hercules-show
+        :hide-funs #'meq/term-hercules-hide
+        :toggle-funs #'meq/term-hercules-toggle
         :keymap 'term-raw-map
         ;; :transient t
         ))
@@ -1347,12 +1347,12 @@ Mostly from [[Emux's After Installing Section][https://github.com/re5et/emux#aft
         ("emux/emux-screen")
         ("emux/emux-session")
     :config/defun*
-        (aiern/make-frame nil (interactive) (modify-frame-parameters (make-frame) ((name . "emux"))))
-        (aiern/select-emux nil (interactive) (select-frame-by-name "emux"))
+        (meq/make-frame nil (interactive) (modify-frame-parameters (make-frame) ((name . "emux"))))
+        (meq/select-emux nil (interactive) (select-frame-by-name "emux"))
     :config (emux-completing-read-command (quote ido-completing-read))
     :gone
-        ;; (""          'aiern/make-frame)
-        ;; (""          'aiern/select-emux)
+        ;; (""          'meq/make-frame)
+        ;; (""          'meq/select-emux)
         ("C-x c"     'emux-term-create)
         ("C-x P"     'emux-session-load-template)
     :tag
@@ -1376,9 +1376,9 @@ Mostly from [[Emux's After Installing Section][https://github.com/re5et/emux#aft
             "C-x S"     'emux-session-switch
             "M-."       'comint-dynamic-complete)
     :hercules
-        (:show-funs #'aiern/emux-hercules-show
-        :hide-funs #'aiern/emux-hercules-hide
-        :toggle-funs #'aiern/emux-hercules-toggle
+        (:show-funs #'meq/emux-hercules-show
+        :hide-funs #'meq/emux-hercules-hide
+        :toggle-funs #'meq/emux-hercules-toggle
         :keymap 'term-mode-map
         ;; :transient t
         ))
@@ -1398,11 +1398,11 @@ Mostly from [[Emux's After Installing Section][https://github.com/re5et/emux#aft
     :gsetq
         ;; NOTE: Remember to escape the backslash
         (elscreen-prefix-key "C-S-\\")
-    :config/defun* (aiern/elscreen-hercules-toggle nil (interactive))
+    :config/defun* (meq/elscreen-hercules-toggle nil (interactive))
     :hercules
-        (:show-funs #'aiern/elscreen-hercules-show
-        :hide-funs #'aiern/elscreen-hercules-hide
-        :toggle-funs #'aiern/elscreen-hercules-toggle
+        (:show-funs #'meq/elscreen-hercules-show
+        :hide-funs #'meq/elscreen-hercules-hide
+        :toggle-funs #'meq/elscreen-hercules-toggle
         :keymap 'elscreen-map
         ;; :transient t
         ))
@@ -1421,7 +1421,7 @@ Adapted From: https://tapoueh.org/blog/2009/09/escreen-integration/
 #+begin_src emacs-lisp :comments org
 (use-package escreen
     :load-emacs-file-preconfig ("escreen")
-    :init/defun* (aiern/escreen-hercules-toggle nil (interactive))
+    :init/defun* (meq/escreen-hercules-toggle nil (interactive))
     :gone
         ;; ((naked "C-\\ l") 'escreen-get-active-screen-numbers-with-emphasis)
         ;; ((naked "M-[") 'dim:escreen-goto-prev-screen)
@@ -1431,7 +1431,7 @@ Adapted From: https://tapoueh.org/blog/2009/09/escreen-integration/
 
         ;; ([s-mouse-4] 'dim:escreen-goto-prev-screen)
         ;; ([s-mouse-5] 'dim:escreen-goto-next-screen)
-        ((tag-chord "||") 'aiern/escreen-hercules-toggle)
+        ((tag-chord "||") 'meq/escreen-hercules-toggle)
     ;; :tag
         ;; (:keymaps 'escreen-map
             ;; escreen-prefix-char 'dim:escreen-goto-last-screen)
@@ -1475,9 +1475,9 @@ Adapted From: https://tapoueh.org/blog/2009/09/escreen-integration/
     :config
         (require 'term)
     :hercules
-        (:show-funs #'aiern/escreen-hercules-show
-        :hide-funs #'aiern/escreen-hercules-hide
-        :toggle-funs #'aiern/escreen-hercules-toggle
+        (:show-funs #'meq/escreen-hercules-show
+        :hide-funs #'meq/escreen-hercules-hide
+        :toggle-funs #'meq/escreen-hercules-toggle
         :keymap 'escreen-map
         ;; :transient t
         ))
@@ -1579,7 +1579,7 @@ Adapted from [[Ergoemacs' Emacs Lisp Code for Setting PATH and exec-path section
     :load-emacs-file-preconfig ("damascus")
     :load-emacs-file-postconfig ("help+20")
     ;; :hook
-        ;; (find-file . aiern/set-buffer-save-without-query)
+        ;; (find-file . meq/set-buffer-save-without-query)
     :gsetq
         (indent-tabs-mode nil
             confirm-kill-emacs nil)
@@ -1609,7 +1609,7 @@ Adapted from [[Ergoemacs' Emacs Lisp Code for Setting PATH and exec-path section
     :config/defun*
         ;; Answer: https://emacs.stackexchange.com/a/51829
         ;; User: https://emacs.stackexchange.com/users/2370/tobias
-        (aiern/set-buffer-save-without-query nil
+        (meq/set-buffer-save-without-query nil
             "Set `buffer-save-without-query' to t."
             (unless (variable-binding-locus 'buffer-save-without-query)
                 (setq buffer-save-without-query t)))
@@ -1649,10 +1649,10 @@ Adapted from [[Ergoemacs' Emacs Lisp Code for Setting PATH and exec-path section
         (setq initial-scratch-message "")
 
         ;; Removes *scratch* from buffer after the mode has been set.
-        (defun aiern/remove-scratch-buffer nil
+        (defun meq/remove-scratch-buffer nil
         (if (get-buffer "*scratch*")
             (kill-buffer "*scratch*")))
-        (add-hook 'after-change-major-mode-hook 'aiern/remove-scratch-buffer)
+        (add-hook 'after-change-major-mode-hook 'meq/remove-scratch-buffer)
 
         ;; Removes *messages* from the buffer.
         (setq-default message-log-max nil)
@@ -1702,7 +1702,7 @@ Adapted from: https://github.com/hlissner/doom-emacs/blob/develop/bin/org-tangle
 : 20210601225359807196100
 
 #+name: 20210601225359807196100
-#+begin_src emacs-lisp :tangle (aiern/tangle-path) :shebang "#!/usr/bin/env sh"
+#+begin_src emacs-lisp :tangle (meq/tangle-path) :shebang "#!/usr/bin/env sh"
 ":"; exec emacs --quick --script "$0" -- "$@" # -*- mode: emacs-lisp; lexical-binding: t; -*-
 
 (setq org-confirm-babel-evaluate nil)
@@ -1850,18 +1850,18 @@ trees with the :notangle: tag."
 : 20210601225401786848500
 
 #+name: 20210601225401786848500
-#+begin_src emacs-lisp :tangle (aiern/tangle-path)
+#+begin_src emacs-lisp :tangle (meq/tangle-path)
 (when (file-exists-p "~/<<username>>/README.org")
     (org-babel-lob-ingest "~/<<username>>/README.org"))
 (when (file-exists-p "~/<<username>>/strange.aiern.org")
     (org-babel-lob-ingest "~/<<username>>/strange.aiern.org"))
 
-(defun aiern/get-header nil (interactive)
+(defun meq/get-header nil (interactive)
     (nth 4 (org-heading-components)))
-(defun aiern/tangle-path nil (interactive)
+(defun meq/tangle-path nil (interactive)
     (string-remove-prefix "/" (concat
         (org-format-outline-path (org-get-outline-path)) "/"
-            (aiern/get-header))))
-(defun aiern/get-theme-from-header nil (interactive)
-    (string-remove-suffix "-theme.el" (aiern/get-header)))
+            (meq/get-header))))
+(defun meq/get-theme-from-header nil (interactive)
+    (string-remove-suffix "-theme.el" (meq/get-header)))
 #+end_src
