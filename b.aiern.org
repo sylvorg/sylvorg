@@ -14,7 +14,7 @@ This is used to hold larger files for =./oreo.aiern.org=.
 : 20210601220321926742900
 
 #+name: 20210601220321926742900
-#+begin_src emacs-lisp :tangle (aiern/tangle-path)
+#+begin_src emacs-lisp :tangle (meq/tangle-path)
 ;;; strings.el --- Miscellaneous string functions.
 ;;
 ;; Filename: strings.el
@@ -804,7 +804,7 @@ NOTE:
 : 20210601220323739799100
 
 #+name: 20210601220323739799100
-#+begin_src emacs-lisp :tangle (aiern/tangle-path)
+#+begin_src emacs-lisp :tangle (meq/tangle-path)
 ;;; eyedropper.el --- Pick foreground and background colors at cursor or pointer.
 ;;
 ;; Filename: eyedropper.el
@@ -1149,7 +1149,7 @@ Non-nil optional arg MSG-P means display an informative message."
 : 20210601220333046938600
 
 #+name: 20210601220333046938600
-#+begin_src emacs-lisp :tangle (aiern/tangle-path)
+#+begin_src emacs-lisp :tangle (meq/tangle-path)
 ;;; naked.el --- Provide for naked key descriptions: no angle brackets.
 ;;
 ;; Filename: naked.el
@@ -1496,7 +1496,7 @@ instead of \"C-x <delete>\" and \"C-<delete>\"."
 : 20210601220338361638300
 
 #+name: 20210601220338361638300
-#+begin_src emacs-lisp :tangle (aiern/tangle-path)
+#+begin_src emacs-lisp :tangle (meq/tangle-path)
 ;;; escreen.el --- emacs window session manager
 
 ;; Author: Noah Friedman <friedman@splode.com>
@@ -2442,7 +2442,7 @@ Returns a list of numbers which represent screen numbers presently in use."
 : 20210601220342869843300
 
 #+name: 20210601220342869843300
-#+begin_src emacs-lisp :tangle (aiern/tangle-path)
+#+begin_src emacs-lisp :tangle (meq/tangle-path)
 ;;; oneonone.el --- Frame configuration that uses one frame per window.
 ;;
 ;; Filename: oneonone.el
@@ -4607,7 +4607,7 @@ The top left corner of the frame is offset from POSITION according to
 : 20210601220346323117100
 
 #+name: 20210601220346323117100
-#+begin_src emacs-lisp :tangle (aiern/tangle-path)
+#+begin_src emacs-lisp :tangle (meq/tangle-path)
 ;;; frame-cmds.el --- Frame and window commands (interactive functions).
 ;;
 ;; Filename: frame-cmds.el
@@ -6803,7 +6803,7 @@ VARIABLE is a symbol that names a user option."
 : 20210601220350678843900
 
 #+name: 20210601220350678843900
-#+begin_src emacs-lisp :tangle (aiern/tangle-path)
+#+begin_src emacs-lisp :tangle (meq/tangle-path)
 ;;; autofit-frame.el --- Automatically resize one-window frames to fit
 ;;
 ;; Filename: autofit-frame.el
@@ -7336,7 +7336,7 @@ If the selected window is not dedicated, then:
 : 20210601220402754928300
 
 #+name: 20210601220402754928300
-#+begin_src emacs-lisp :tangle (aiern/tangle-path)
+#+begin_src emacs-lisp :tangle (meq/tangle-path)
 ;;; buff-menu+.el --- Extensions to `buff-menu.el'.    -*- coding:utf-8 -*-
 ;;
 ;; Filename: buff-menu+.el
@@ -9304,7 +9304,7 @@ marked/flagged."
 : 20210601220406083051600
 
 #+name: 20210601220406083051600
-#+begin_src emacs-lisp :tangle (aiern/tangle-path)
+#+begin_src emacs-lisp :tangle (meq/tangle-path)
 ;;; compile-.el --- Extensions to `compile.el'.
 ;;
 ;; Filename: compile-.el
@@ -9460,7 +9460,7 @@ Usable, e.g., as a member of `compilation-finish-functions'."
 : 20210601220408082274600
 
 #+name: 20210601220408082274600
-#+begin_src emacs-lisp :tangle (aiern/tangle-path)
+#+begin_src emacs-lisp :tangle (meq/tangle-path)
 ;;; compile+.el --- Extensions to `compile.el'.
 ;;
 ;; Filename: compile+.el

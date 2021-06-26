@@ -134,7 +134,6 @@
 (require 'aiern-commands)
 (require 'aiern-jumps)
 (require 'aiern-maps)
-(require 'aiern-functions)
 
 (when aiern-want-integration
   (require 'aiern-integration))

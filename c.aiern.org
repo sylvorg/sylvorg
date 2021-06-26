@@ -14,7 +14,7 @@ This is used to hold larger files for =./oreo.aiern.org=.
 : 20210601220410729118900
 
 #+name: 20210601220410729118900
-#+begin_src emacs-lisp :tangle (aiern/tangle-path)
+#+begin_src emacs-lisp :tangle (meq/tangle-path)
 ;;; grep+.el --- Extensions to standard library `grep.el'.
 ;;
 ;; Filename: grep+.el
@@ -690,7 +690,7 @@ code \\([0-9]+\\)\\)?.*"
 : 20210601220413315315300
 
 #+name: 20210601220413315315300
-#+begin_src emacs-lisp :tangle (aiern/tangle-path)
+#+begin_src emacs-lisp :tangle (meq/tangle-path)
 ;;; dired+.el --- Extensions to Dired.
 ;;
 ;; Filename: dired+.el
@@ -16666,7 +16666,7 @@ If no one is selected, symmetric encryption will be performed.  "
 : 20210601220434714952000
 
 #+name: 20210601220434714952000
-#+begin_src emacs-lisp :tangle (aiern/tangle-path)
+#+begin_src emacs-lisp :tangle (meq/tangle-path)
 ;;; dired-details+.el --- Enhancements to library `dired-details+.el'.
 ;;
 ;; Filename: dired-details+.el
@@ -16910,7 +16910,7 @@ Otherwise, use the default state, as determined by
 : 20210601220444734995300
 
 #+name: 20210601220444734995300
-#+begin_src emacs-lisp :tangle (aiern/tangle-path)
+#+begin_src emacs-lisp :tangle (meq/tangle-path)
 ;;; doremi-frm.el --- Incrementally adjust face attributes and frame parameters.
 ;;
 ;; Filename: doremi-frm.el
@@ -19376,7 +19376,7 @@ FACE is a face symbol."
 : 20210601220449908089400
 
 #+name: 20210601220449908089400
-#+begin_src emacs-lisp :tangle (aiern/tangle-path)
+#+begin_src emacs-lisp :tangle (meq/tangle-path)
 ;;; facemenu+.el --- Extensions to `facemenu.el'.
 ;;
 ;; Filename: facemenu+.el
@@ -21239,7 +21239,7 @@ effect.  See `facemenu-remove-face-function'."
 : 20210601220455404939700
 
 #+name: 20210601220455404939700
-#+begin_src emacs-lisp :tangle (aiern/tangle-path)
+#+begin_src emacs-lisp :tangle (meq/tangle-path)
 ;;; fit-frame.el --- Resize a frame.  In particular, fit a frame to its buffers.
 ;;
 ;; Filename: fit-frame.el
@@ -22093,7 +22093,7 @@ FRAME is the frame to apply factor to."
 : 20210601220500125486500
 
 #+name: 20210601220500125486500
-#+begin_src emacs-lisp :tangle (aiern/tangle-path)
+#+begin_src emacs-lisp :tangle (meq/tangle-path)
 ;;; frame-fns.el --- Non-interactive frame and window functions.
 ;;
 ;; Filename: frame-fns.el
@@ -22416,7 +22416,7 @@ Terminates any keyboard macro executing, unless arg DO-NOT-TERMINATE non-nil."
 : 20210601220504090444700
 
 #+name: 20210601220504090444700
-#+begin_src emacs-lisp :tangle (aiern/tangle-path)
+#+begin_src emacs-lisp :tangle (meq/tangle-path)
 ;;; frame+.el --- Extensions to `frame.el'.
 ;;
 ;; Filename: frame+.el
@@ -22620,7 +22620,7 @@ arguments."
 : 20210601220517776845400
 
 #+name: 20210601220517776845400
-#+begin_src emacs-lisp :tangle (aiern/tangle-path)
+#+begin_src emacs-lisp :tangle (meq/tangle-path)
 ;;; info+.el --- Extensions to `info.el'.     -*- coding:utf-8 -*-
 ;;
 ;; Filename: info+.el
@@ -29183,7 +29183,7 @@ See `Info-bookmark-name-for-node' for the form of the bookmark name."
 : 20210601220536098434900
 
 #+name: 20210601220536098434900
-#+begin_src emacs-lisp :tangle (aiern/tangle-path)
+#+begin_src emacs-lisp :tangle (meq/tangle-path)
 ;;; mouse+.el --- Extensions to `mouse.el'.
 ;;
 ;; Filename: mouse+.el

@@ -11,7 +11,7 @@
 : 20210601220934981016400
 
 #+name: 20210601220934981016400
-#+begin_src $1 :tangle (aiern/tangle-path)
+#+begin_src $1 :tangle (meq/tangle-path)
 $0
 #+end_src
 
@@ -23,7 +23,7 @@ $0
 : 20210601220938466234900
 
 #+name: 20210601220938466234900
-#+begin_src nix :tangle (aiern/tangle-path)
+#+begin_src nix :tangle (meq/tangle-path)
 $0
 #+end_src
 
@@ -35,6 +35,6 @@ $0
 : 20210601220943523404100
 
 #+name: 20210601220943523404100
-#+begin_src emacs-lisp :tangle (aiern/tangle-path)
+#+begin_src emacs-lisp :tangle (meq/tangle-path)
 $0
 #+end_src

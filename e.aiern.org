@@ -14,7 +14,7 @@ This is used to hold larger files for =./oreo.aiern.org=.
 : 20210601220542751717900
 
 #+name: 20210601220542751717900
-#+begin_src emacs-lisp :tangle (aiern/tangle-path)
+#+begin_src emacs-lisp :tangle (meq/tangle-path)
 ;;; simple+.el --- Extensions to standard library `simple.el'.
 ;;
 ;; Filename: simple+.el
@@ -617,7 +617,7 @@ the front of the kill ring, rather than being added to the list."
 : 20210601220546246471000
 
 #+name: 20210601220546246471000
-#+begin_src emacs-lisp :tangle (aiern/tangle-path)
+#+begin_src emacs-lisp :tangle (meq/tangle-path)
 ;;; window+.el --- Extensions to `window.el'.
 ;;
 ;; Filename: window+.el
@@ -913,7 +913,7 @@ and the buffer that is killed or buried is the one in that window."
 : 20210601220552477105500
 
 #+name: 20210601220552477105500
-#+begin_src emacs-lisp :tangle (aiern/tangle-path)
+#+begin_src emacs-lisp :tangle (meq/tangle-path)
 ;;; dired-details.el --- make file details hide-able in dired
 
 ;; Copyright (C) 2003-2011 Rob Giardina
@@ -1195,7 +1195,7 @@ hidden in this buffer."
 #+call: hash() :exports none
 
 #+name: 
-#+begin_src emacs-lisp :tangle (aiern/tangle-path)
+#+begin_src emacs-lisp :tangle (meq/tangle-path)
 ;;; fringe.el --- fringe setup and control  -*- coding: utf-8 -*-
 
 ;; Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007, 2008,

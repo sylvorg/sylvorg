@@ -591,13 +591,13 @@ And in my experience... Not a good idea; much too confusing. Use
         ;;     (aiern/which-key-show-top-level 'evil-ex-keymap))
 
         ;; (defun aiern/toggle-evil-ex nil (interactive)
-        ;;     (funcall 'aiern/toggle-inner 'evil-mode "evil-ex" (fbatp evil-mode) 'evil-ex-keymap))
+        ;;     (funcall 'aiern/toggle-inner 'evil-mode "evil-ex" (meq/fbatp evil-mode) 'evil-ex-keymap))
         ;; (defun aiern/toggle-evil-ex-force nil (interactive)
-        ;;     (funcall 'aiern/toggle-inner 'evil-mode "evil-ex" (fbatp evil-mode) 'evil-ex-keymap nil t))
+        ;;     (funcall 'aiern/toggle-inner 'evil-mode "evil-ex" (meq/fbatp evil-mode) 'evil-ex-keymap nil t))
         ;; (defun aiern/toggle-evil-ex-hercules nil (interactive)
-        ;;     (funcall 'aiern/toggle-inner 'evil-mode "evil-ex" (fbatp evil-mode) 'evil-ex-keymap t))
+        ;;     (funcall 'aiern/toggle-inner 'evil-mode "evil-ex" (meq/fbatp evil-mode) 'evil-ex-keymap t))
         ;; (defun aiern/toggle-evil-ex-hercules-force nil (interactive)
-        ;;     (funcall 'aiern/toggle-inner 'evil-mode "evil-ex" (fbatp evil-mode) 'evil-ex-keymap t t))
+        ;;     (funcall 'aiern/toggle-inner 'evil-mode "evil-ex" (meq/fbatp evil-mode) 'evil-ex-keymap t t))
     :ryo
         ("l" :hydra
                 '(evil-exits (:color blue :pre (progn
@@ -656,13 +656,13 @@ And in my experience... Not a good idea; much too confusing. Use
         ;;     (aiern/which-key-show-top-level 'aiern-ex-keymap))
 
         ;; (defun aiern/toggle-aiern-ex nil (interactive)
-        ;;     (funcall 'aiern/toggle-inner 'aiern-mode "aiern-ex" (fbatp aiern-mode) 'aiern-ex-keymap))
+        ;;     (funcall 'aiern/toggle-inner 'aiern-mode "aiern-ex" (meq/fbatp aiern-mode) 'aiern-ex-keymap))
         ;; (defun aiern/toggle-aiern-ex-force nil (interactive)
-        ;;     (funcall 'aiern/toggle-inner 'aiern-mode "aiern-ex" (fbatp aiern-mode) 'aiern-ex-keymap nil t))
+        ;;     (funcall 'aiern/toggle-inner 'aiern-mode "aiern-ex" (meq/fbatp aiern-mode) 'aiern-ex-keymap nil t))
         ;; (defun aiern/toggle-aiern-ex-hercules nil (interactive)
-        ;;     (funcall 'aiern/toggle-inner 'aiern-mode "aiern-ex" (fbatp aiern-mode) 'aiern-ex-keymap t))
+        ;;     (funcall 'aiern/toggle-inner 'aiern-mode "aiern-ex" (meq/fbatp aiern-mode) 'aiern-ex-keymap t))
         ;; (defun aiern/toggle-aiern-ex-hercules-force nil (interactive)
-        ;;     (funcall 'aiern/toggle-inner 'aiern-mode "aiern-ex" (fbatp aiern-mode) 'aiern-ex-keymap t t))
+        ;;     (funcall 'aiern/toggle-inner 'aiern-mode "aiern-ex" (meq/fbatp aiern-mode) 'aiern-ex-keymap t t))
         )
 #+end_src
 
@@ -1615,10 +1615,10 @@ Adapted from [[Ergoemacs' Emacs Lisp Code for Setting PATH and exec-path section
                 (setq buffer-save-without-query t)))
     :init
         ;; From: https://www.masteringemacs.org/article/speed-up-emacs-libjansson-native-elisp-compilation
-        (if (and (fbatp 'native-comp-available-p) (native-comp-available-p))
+        (if (and (meq/fbatp 'native-comp-available-p) (native-comp-available-p))
             (message "Native compilation is available")
             (message "Native complation is *not* available"))
-        (if (fbatp 'json-serialize)
+        (if (meq/fbatp 'json-serialize)
             (message "Native JSON is available")
             (message "Native JSON is *not* available"))
 

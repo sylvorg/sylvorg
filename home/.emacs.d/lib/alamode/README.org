@@ -13,7 +13,7 @@
 
 #+name: deino-settings
 #+begin_src emacs-lisp :exports none
-(when (aiern/any-popup-showing-p) (aiern/which-key--hide-popup))) :post (progn (unless deino-curr-map (aiern/which-key--show-popup))
+(when (meq/any-popup-showing-p) (meq/which-key--hide-popup))) :post (progn (unless deino-curr-map (meq/which-key--show-popup))
 #+end_src
 
 #+name: cmf
@@ -23,50 +23,50 @@
 ;; User: https://emacs.stackexchange.com/users/719/adobe
 (format-spec "(defdeino+ toggles (:color blue :pre (progn
     <<deino-settings>>))
-    (\"%s\" aiern/toggle-%p \"%p\"))
+    (\"%s\" meq/toggle-%p \"%p\"))
 (defdeino+ all-keymaps (:color blue :pre (progn
     <<deino-settings>>))
     (\"%s\" (progn (setq all-keymaps-map '%m)
-    (aiern/%p-show-top-level)) \"%p\"))
+    (meq/%p-show-top-level)) \"%p\"))
 
 (hercules-def
-    :show-funs #'aiern/%p-hercules-show
-    :hide-funs #'aiern/%p-hercules-hide
-    :toggle-funs #'aiern/%p-hercules-toggle
+    :show-funs #'meq/%p-hercules-show
+    :hide-funs #'meq/%p-hercules-hide
+    :toggle-funs #'meq/%p-hercules-toggle
     :keymap '%m
     ;; :transient t
 )
 
 ;;;###autoload
-(defun aiern/%p-hercules-toggle nil (interactive))
+(defun meq/%p-hercules-toggle nil (interactive))
 
 ;;;###autoload
-(defun aiern/%p-show-top-level nil (interactive)
-    (aiern/which-key-show-top-level '%m))
+(defun meq/%p-show-top-level nil (interactive)
+    (meq/which-key-show-top-level '%m))
 
 ;;;###autoload
-(defun aiern/toggle-%p nil (interactive)
-    (funcall 'aiern/toggle-inner '%n \"%p\" (fbatp %n) '%m))
+(defun meq/toggle-%p nil (interactive)
+    (funcall 'meq/toggle-inner '%n \"%p\" (meq/fbatp %n) '%m))
 
 ;;;###autoload
-(defun aiern/toggle-%p-force nil (interactive)
-    (funcall 'aiern/toggle-inner '%n \"%p\" (fbatp %n) '%m nil t))
+(defun meq/toggle-%p-force nil (interactive)
+    (funcall 'meq/toggle-inner '%n \"%p\" (meq/fbatp %n) '%m nil t))
 
 ;;;###autoload
-(defun aiern/toggle-%p-hercules nil (interactive)
-    (funcall 'aiern/toggle-inner '%n \"%p\" (fbatp %n) '%m t))
+(defun meq/toggle-%p-hercules nil (interactive)
+    (funcall 'meq/toggle-inner '%n \"%p\" (meq/fbatp %n) '%m t))
 
 ;;;###autoload
-(defun aiern/toggle-%p-hercules-force nil (interactive)
-    (funcall 'aiern/toggle-inner '%n \"%p\" (fbatp %n) '%m t t))
+(defun meq/toggle-%p-hercules-force nil (interactive)
+    (funcall 'meq/toggle-inner '%n \"%p\" (meq/fbatp %n) '%m t t))
 
 ;;;###autoload
-(defun aiern/%p-execute-with-current-bindings (&optional called-interactively) (interactive \"d\")
-    (funcall 'aiern/execute-with-current-bindings-inner '%n \"%p\" (fbatp %n) '%m nil called-interactively))
+(defun meq/%p-execute-with-current-bindings (&optional called-interactively) (interactive \"d\")
+    (funcall 'meq/execute-with-current-bindings-inner '%n \"%p\" (meq/fbatp %n) '%m nil called-interactively))
 
 ;;;###autoload
-(defun aiern/%p-hercules-execute-with-current-bindings (&optional called-interactively) (interactive \"d\")
-    (funcall 'aiern/execute-with-current-bindings-inner '%n \"%p\" (fbatp %n) '%m t called-interactively))
+(defun meq/%p-hercules-execute-with-current-bindings (&optional called-interactively) (interactive \"d\")
+    (funcall 'meq/execute-with-current-bindings-inner '%n \"%p\" (meq/fbatp %n) '%m t called-interactively))
 
     (add-to-list 'modal-modes '%n)
     (add-to-list 'modal-prefixes \"%p\")" `((?m . ,map) (?n . ,mode) (?p . ,prefix) (?s . ,short)))
@@ -106,19 +106,19 @@
 
 ;; Adapted From: https://gitlab.com/jjzmajic/hercules.el/-/blob/master/hercules.el#L83
 ;;;###autoload
-(defun aiern/toggle-inner (mode prefix mode-on map &optional use-hercules force) (interactive)
-    (aiern/disable-all-modal-modes)
+(defun meq/toggle-inner (mode prefix mode-on map &optional use-hercules force) (interactive)
+    (meq/disable-all-modal-modes)
     (if mode-on
-        (when force (aiern/which-key--show-popup map force))
+        (when force (meq/which-key--show-popup map force))
         (funcall mode 1)
-        (if use-hercules (ignore-errors (funcall (intern (concat "aiern/" prefix "-hercules-show"))))
-            (aiern/which-key-show-top-level map))
+        (if use-hercules (ignore-errors (funcall (intern (concat "meq/" prefix "-hercules-show"))))
+            (meq/which-key-show-top-level map))
         (setq current-modal-mode mode)
         (setq last-modal-mode mode)))
 
 ;; Adapted From: https://github.com/emacsorphanage/god-mode/blob/master/god-mode.el#L392
 ;;;###autoload
-(defun aiern/execute-with-current-bindings-inner (mode prefix mode-on map &optional use-hercules called-interactively)
+(defun meq/execute-with-current-bindings-inner (mode prefix mode-on map &optional use-hercules called-interactively)
     (interactive "d")
     (if called-interactively
         (unless mode-on
@@ -131,13 +131,13 @@
                     ;; switched buffers.
                     (if (buffer-live-p buffer)
                         (with-current-buffer buffer
-                        (unwind-protect (aiern/disable-all-modal-modes)
+                        (unwind-protect (meq/disable-all-modal-modes)
                             (remove-hook 'post-command-hook post-hook)))
                         (remove-hook 'post-command-hook post-hook)
                         (when last-modal-mode (funcall last-modal-mode 1)))))
                 (kill-transient-map
                     (set-transient-map
-                    map 'aiern/god-prefix-command-p cleanup))
+                    map 'meq/god-prefix-command-p cleanup))
                 (post-hook
                     (lambda ()
                     (unless (and
@@ -156,7 +156,7 @@
             ;; a mode line lighter and run any hook functions the user has set
             ;; up.  This could be made configurable in the future.
             (funcall mode 1)
-            (when use-hercules (funcall (intern (concat "aiern/" prefix "-hercules-show"))))))
+            (when use-hercules (funcall (intern (concat "meq/" prefix "-hercules-show"))))))
     (error "This function should only be called interactively")))
 
 <<cmf(map="aiern-normal-state-map", mode="aiern-mode", prefix="aiern", short="a")>>

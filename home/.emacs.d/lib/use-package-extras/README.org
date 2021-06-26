@@ -210,7 +210,7 @@
 
 (add-to-list 'use-package-keywords :aiern-ex t)
 
-<<normalize-and-handle(name="both-ex", func="aiern/both-ex-define-cmd")>>
+<<normalize-and-handle(name="both-ex", func="meq/both-ex-define-cmd")>>
 
 (add-to-list 'use-package-keywords :both-ex t)
 #+end_src
