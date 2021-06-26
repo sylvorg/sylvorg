@@ -194,9 +194,6 @@ Adapted From: https://github.com/hlissner/doom-emacs/blob/develop/early-init.el
 ;; hercules
 <<20210601225307809867100>>
 
-;; aiern
-<<20210613162401887306100>>
-
 ;; alamode
 <<20210622004411529714900>>
 
@@ -210,6 +207,9 @@ Adapted From: https://github.com/hlissner/doom-emacs/blob/develop/early-init.el
 <<20210601225354262898500>>
 
 ;; modal-modes
+
+;; aiern
+<<20210613162401887306100>>
 
 ;; evil
 <<20210601225311301844400>>
@@ -424,6 +424,7 @@ And in my experience... Not a good idea; much too confusing. Use
 #+begin_src emacs-lisp
 (use-package hercules
     :straight (hercules :type git :host gitlab :repo "jjzmajic/hercules.el" :branch "master")
+    :use-package-post-config (meq :straight nil :load-path "lib/meq" :demand t)
     :demand t
     :gone
         ((tag-chord "\\\\") 'meq/toggle-which-key)
