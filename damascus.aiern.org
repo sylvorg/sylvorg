@@ -385,6 +385,8 @@ And in my experience... Not a good idea; much too confusing. Use
     :demand t
     :use-package-preconfig (command-log-mode)
     :use-package-postconfig
+        (dash)
+        (s)
         (deino :demand t :straight nil :load-path "lib/deino" :gsetq (deino-hint-display-type 'lv))
         (lode :demand t :straight nil :load-path "lib/lode")
     :load-emacs-file-preconfig ("naked")
@@ -408,7 +410,8 @@ And in my experience... Not a good idea; much too confusing. Use
                 helm-buffer-map)
             "M-x" 'exit-minibuffer)
     :custom (tag-implicit-kbd t))
-;; (lodestar "c" 'evil-quit "evil-quit" :a '(:color red) :b)
+(lodestar "c" 'evil-quit "evil-quit" :a :b)
+(lodestar "d" 'command-log-mode "command-log-mode" :a :b)
 #+end_src
 
 **** modal modes
@@ -896,8 +899,6 @@ And in my experience... Not a good idea; much too confusing. Use
         (helm-flx)
         (smex)
         (helm-smex)
-        (dash)
-        (s)
         (helm-ido-like
             :straight (helm-ido-like
                 :type git
