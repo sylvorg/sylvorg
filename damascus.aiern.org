@@ -408,7 +408,7 @@ And in my experience... Not a good idea; much too confusing. Use
                 helm-buffer-map)
             "M-x" 'exit-minibuffer)
     :custom (tag-implicit-kbd t))
-(lodestar "a b c" 'evil-quit "evil-quit")
+;; (lodestar "c" 'evil-quit "evil-quit" :a '(:color red) :b)
 #+end_src
 
 **** modal modes
