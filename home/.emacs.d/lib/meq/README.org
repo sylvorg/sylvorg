@@ -262,7 +262,7 @@
 ;;;###autoload
 (defun meq/which-key--hide-popup (&optional force dont-disable-modal-modes) (interactive)
         (when force (setq which-key-really-dont-show t))
-        (if dont-disable-modal-modes (meq/which-key-show-top-level) (meq/disable-all-modal-modes))
+        (unless dont-disable-modal-modes (meq/disable-all-modal-modes))
         (setq which-key-persistent-popup nil)
         (which-key--hide-popup)
         (which-key-mode -1))
@@ -279,6 +279,7 @@
             (when force (setq which-key-really-dont-show nil) (funcall show-popup keymap))
             (funcall show-popup keymap))))
 
+;; TODO: This bit is hiding the which-key popup when evil- or aiern-mode are disabled
 (with-eval-after-load 'aiern (mapc #'(lambda (state) (interactive)
     (add-hook (intern (concat "aiern-" (symbol-name (car state)) "-state-entry-hook"))
         #'(lambda nil (interactive)
