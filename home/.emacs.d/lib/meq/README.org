@@ -262,15 +262,17 @@
 ;;;###autoload
 (defun meq/which-key--hide-popup (&optional force dont-disable-modal-modes) (interactive)
         (when force (setq which-key-really-dont-show t))
-        (unless dont-disable-modal-modes (meq/disable-all-modal-modes))
+        (if dont-disable-modal-modes (meq/which-key-show-top-level) (meq/disable-all-modal-modes))
         (setq which-key-persistent-popup nil)
         (which-key--hide-popup)
         (which-key-mode -1))
 
 ;;;###autoload
-(defun meq/which-key--show-popup (&optional keymap force) (interactive)
+(defun meq/which-key--show-popup (&optional keymap force disable-modal-modes) (interactive)
     (let ((show-popup #'(lambda (keymap) (interactive)
-            (meq/disable-all-modal-modes keymap)
+            (if disable-modal-modes
+                (meq/disable-all-modal-modes keymap)
+                (meq/which-key-show-top-level keymap))
             (which-key-mode 1)
             (setq which-key-persistent-popup t))))
         (if which-key-really-dont-show

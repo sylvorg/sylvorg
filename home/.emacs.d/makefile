@@ -34,5 +34,5 @@ test:
 |emacs ~/shadowrylander/damascus.aiern.org
 
 emacs: setup test
-supermacs: tangle-all emacs
-libemacs: tangle-libs emacs
+supermacs: tangle-all copy tangle-all copy emacs
+libemacs: tangle-libs copy tangle-libs copy emacs
