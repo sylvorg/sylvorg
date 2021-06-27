@@ -26,6 +26,7 @@
 ;; along with aiern.  If not, see <http://www.gnu.org/licenses/>.
 
 (require 'aiern-core)
+(require 'aiern-god-state)
 
 ;;; Code:
 

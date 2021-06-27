@@ -33,6 +33,11 @@ setup: tangle-damascus copy
 test:
 |emacs ~/shadowrylander/damascus.aiern.org
 
+test-and-kill:
+|emacs ~/shadowrylander/damascus.aiern.org --bg-daemon=test
+|emacsclient -s test -e "(evil-quit t)"
+
 emacs: setup test
-supermacs: tangle-all copy tangle-all copy emacs
-libemacs: tangle-libs copy tangle-libs copy emacs
+emacs-and-kill: setup test-and-kill
+supermacs: tangle-all emacs-and-kill emacs
+libemacs: tangle-libs emacs-and-kill emacs

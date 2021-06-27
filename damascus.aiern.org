@@ -52,9 +52,14 @@ setup: tangle-damascus copy
 test:
 |emacs ~/<<username>>/damascus.aiern.org
 
+test-and-kill:
+|emacs ~/<<username>>/damascus.aiern.org --bg-daemon=test
+|emacsclient -s test -e "(evil-quit t)"
+
 emacs: setup test
-supermacs: tangle-all copy tangle-all copy emacs
-libemacs: tangle-libs copy tangle-libs copy emacs
+emacs-and-kill: setup test-and-kill
+supermacs: tangle-all emacs-and-kill emacs
+libemacs: tangle-libs emacs-and-kill emacs
 #+end_src
 
 *** lib
@@ -529,7 +534,13 @@ And in my experience... Not a good idea; much too confusing. Use
 #+begin_src emacs-lisp
 (use-package evil
     :demand t
-    :use-package-preconfig (bind-map)
+    :use-package-preconfig
+        (bind-map)
+        (evil-god-state :demand t :straight (evil-god-state
+            :type git
+            :host github
+            :repo "gridaphobe/evil-god-state"
+            :branch "master"))
     :use-package-postconfig
         ;; Adapted From: https://github.com/mohsenil85/evil-evilified-state and
         ;; https://github.com/syl20bnr/spacemacs
@@ -614,7 +625,9 @@ And in my experience... Not a good idea; much too confusing. Use
 #+begin_src emacs-lisp
 (use-package aiern
     :demand t
-    :use-package-preconfig (bind-map)
+    :use-package-preconfig
+        (bind-map)
+        (aiern-god-state :straight nil :load-path "lib/aiern-god-state" :demand t)
     :straight nil
     :load-path "lib/aiern"
     :gone

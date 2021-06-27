@@ -268,31 +268,28 @@
         (which-key-mode -1))
 
 ;;;###autoload
-(defun meq/which-key--show-popup (&optional keymap force disable-modal-modes) (interactive)
+(defun meq/which-key--show-popup (&optional keymap force) (interactive)
     (let ((show-popup #'(lambda (keymap) (interactive)
-            (if disable-modal-modes
-                (meq/disable-all-modal-modes keymap)
-                (meq/which-key-show-top-level keymap))
             (which-key-mode 1)
-            (setq which-key-persistent-popup t))))
+            (setq which-key-persistent-popup t)
+            (meq/disable-all-modal-modes keymap))))
         (if which-key-really-dont-show
             (when force (setq which-key-really-dont-show nil) (funcall show-popup keymap))
             (funcall show-popup keymap))))
 
-;; TODO: This bit is hiding the which-key popup when evil- or aiern-mode are disabled
 (with-eval-after-load 'aiern (mapc #'(lambda (state) (interactive)
     (add-hook (intern (concat "aiern-" (symbol-name (car state)) "-state-entry-hook"))
         #'(lambda nil (interactive)
             (meq/which-key--show-popup (intern (concat "aiern-" (symbol-name (car state)) "-state-map")))))
     (add-hook (intern (concat "aiern-" (symbol-name (car state)) "-state-exit-hook"))
         #'(lambda nil (interactive)
-            (meq/which-key--hide-popup nil t)))
+            (meq/which-key--show-popup)))
     (add-hook (intern (concat "evil-" (symbol-name (car state)) "-state-entry-hook"))
         #'(lambda nil (interactive)
             (meq/which-key--show-popup (intern (concat "evil-" (symbol-name (car state)) "-state-map")))))
     (add-hook (intern (concat "evil-" (symbol-name (car state)) "-state-exit-hook"))
         #'(lambda nil (interactive)
-            (meq/which-key--hide-popup nil t))))
+            (meq/which-key--show-popup))))
     aiern-state-properties))
 
 ;;;###autoload
@@ -304,7 +301,9 @@
 (defun meq/toggle-which-key (&optional keymap) (interactive)
     (if (meq/any-popup-showing-p)
         (meq/which-key--hide-popup t)
-        (meq/which-key--show-popup keymap t)))
+        (meq/which-key--show-popup keymap t)
+        ;; (meq/which-key-show-top-level keymap)
+        ))
 
 ;;;###autoload
 (defun meq/hercules--hide-advice (&optional keymap flatten &rest _)
