@@ -139,7 +139,7 @@ Adapted From: https://github.com/hlissner/doom-emacs/blob/develop/early-init.el
 (setq custom-safe-themes t)
 
 ;; From: https://github.com/hartzell/straight.el/commit/882649137f73998d60741c7c8c993c7ebbe0f77a#diff-b335630551682c19a781afebcf4d07bf978fb1f8ac04c6bf87428ed5106870f5R1649
-(setq straight-disable-byte-compilation t)
+(setq straight-disable-byte-compilation nil)
 (unless straight-disable-byte-compilation
     (byte-compile-file (concat user-emacs-directory "init.el") t)
     (byte-recompile-directory (concat user-emacs-directory "lib") nil t)
@@ -147,16 +147,6 @@ Adapted From: https://github.com/hlissner/doom-emacs/blob/develop/early-init.el
 #+end_src
 
 *** init.el
-
-#+call: hash() :exports none
-
-#+RESULTS:
-: 20210601225233511900800
-
-#+name: 20210601225233511900800
-#+begin_src emacs-lisp
-(when (meq/any-popup-showing-p) (meq/which-key--hide-popup))) :post (progn (unless deino-curr-map (meq/which-key--show-popup))
-#+end_src
 
 #+call: hash() :exports none
 
@@ -182,6 +172,12 @@ Adapted From: https://github.com/hlissner/doom-emacs/blob/develop/early-init.el
 (straight-use-package 'use-package)
 (straight-use-package 'leaf)
 (straight-use-package 'leaf-keywords)
+
+;; Adapted From: https://www.reddit.com/r/emacs/comments/caifq4/package_updates_with_straight/et99epi?utm_source=share&utm_medium=web2x&context=3
+;; And: https://github.com/raxod502/straight.el#updating-recipe-repositories
+(straight-pull-all)
+(straight-merge-all)
+(straight-freeze-versions)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -419,9 +415,7 @@ And in my experience... Not a good idea; much too confusing. Use
 #+begin_src emacs-lisp
 (use-package hercules
     :straight (hercules :type git :host gitlab :repo "jjzmajic/hercules.el" :branch "master")
-    :use-package-postconfig
-        (dash)
-        (s)
+    :use-package-postconfig (dash) (s)
         (meq :straight nil :load-path "lib/meq" :demand t)
         (deino :demand t :straight nil :load-path "lib/deino" :gsetq (deino-hint-display-type 'lv))
         (lode :demand t :straight nil :load-path "lib/lode")
@@ -429,16 +423,14 @@ And in my experience... Not a good idea; much too confusing. Use
     :gone
         ((tag-chord "\\\\") 'meq/toggle-which-key)
         ((tag-chord "\\]") 'map-of-infinity/body)
-    :deino (map-of-infinity (:color blue :pre (progn
-                <<20210601225233511900800>>))
+    :deino (map-of-infinity (:color blue)
             ("`" nil "cancel")
             ("w" deino/which-key/body "which-key")
             ("h" deino/hercules/body "hercules")
             ("d" meq/disable-all-modal-modes "disable all modal modes")
             ("t" toggles/body "toggles")
             ("k" all-keymaps/body "all keymaps"))
-        (deino/which-key (:color blue :pre (progn
-                <<20210601225233511900800>>))
+        (deino/which-key (:color blue)
             ("`" nil "cancel")
             ("a" meq/any-popup-showing-p "any popup showing")
             ("h" meq/which-key--hide-popup "hide-popup")
@@ -447,14 +439,11 @@ And in my experience... Not a good idea; much too confusing. Use
             ("t" meq/toggle-which-key "toggle")
             ("l" meq/which-key-show-top-level "meq/toplevel")
             ("L" which-key-show-top-level "toplevel"))
-        (deino/hercules (:color blue :pre (progn
-                <<20210601225233511900800>>))
+        (deino/hercules (:color blue)
             ("`" nil "cancel")
             ("h" meq/hercules-hide-all-modal-modes "hide all modal modes"))
-        (toggles (:color blue :pre (progn
-                <<20210601225233511900800>>)) ("`" nil "cancel"))
-        (all-keymaps (:color blue :pre (progn
-                <<20210601225233511900800>>)) ("`" nil "cancel"))
+        (toggles (:color blue) ("`" nil "cancel"))
+        (all-keymaps (:color blue) ("`" nil "cancel"))
     :gsetq
         (which-key-enable-extended-define-key t)
         (which-key-idle-delay 0.1)
@@ -601,8 +590,7 @@ And in my experience... Not a good idea; much too confusing. Use
         ;;     (funcall 'meq/toggle-inner 'evil-mode "evil-ex" (meq/fbatp evil-mode) 'evil-ex-keymap t t))
     :ryo
         ("l" :hydra
-                '(evil-exits (:color blue :pre (progn
-                <<20210601225233511900800>>))
+                '(evil-exits (:color blue)
                     ;; From: https://github.com/emacs-evil/evil/blob/master/evil-maps.el#L449
                     "A deino for getting the fuck outta' here!"
                     ("`" nil "cancel")
@@ -695,8 +683,7 @@ And in my experience... Not a good idea; much too confusing. Use
 (use-package xah-fly-keys
     :ryo
         ("m" :hydra
-            '(modal-modes (:color blue :pre (progn
-                <<20210601225233511900800>>))
+            '(modal-modes (:color blue)
                 "A modal deino!"
                 ("`" nil "cancel")
                 ("x" meq/toggle-xah "xah-fly-keys")) :name "modal modes"))
@@ -748,6 +735,7 @@ And in my experience... Not a good idea; much too confusing. Use
 
 #+name: 20210601225236550932600
 #+begin_src emacs-lisp
+(use-package outshine :hook (outline-mode prog-mode text-mode org-mode))
 (use-package org
     :use-package-postconfig
         (nix-mode
@@ -823,8 +811,7 @@ And in my experience... Not a good idea; much too confusing. Use
         <<20210601225401786848500>>
     ;; :gone ((naked "backtab") 'evil-close-fold)
     :ryo ("o" :hydra
-        '(deino-org (:color blue :pre (progn
-            <<20210601225233511900800>>))
+        '(deino-org (:color blue)
                 "A deino for org-mode!"
                 ("o" org-babel-tangle "tangle")
                 ("a" meq/org-babel-tangle-append "tangle append")
@@ -860,8 +847,7 @@ And in my experience... Not a good idea; much too confusing. Use
 
 ;; TODO: Split this into multiple `use-package!' instances using my new `deino+' keyword
 (with-eval-after-load 'ryo-modal (ryo-modal-key "x" :hydra
-      '(deino-execute (:color blue :pre (progn
-                <<20210601225233511900800>>))
+      '(deino-execute (:color blue)
             "A deino for launching stuff!"
             ("c" counsel-M-x "counsel")
             ("h" helm-smex-major-mode-commands "helm smex major mode")
@@ -880,7 +866,7 @@ And in my experience... Not a good idea; much too confusing. Use
 
 #+name: 20210624171113086324000
 #+begin_src emacs-lisp
-(use-package ivy :hook (emacs-startup . counsel-mode) (emacs-startup . ivy-mode))
+(use-package ivy :hook ((emacs-startup . counsel-mode) (emacs-startup . ivy-mode)))
 #+end_src
 
 ***** helm
@@ -939,8 +925,7 @@ And in my experience... Not a good idea; much too confusing. Use
 #+begin_src emacs-lisp
 (use-package git-gutter
     :ryo ("g" :hydra
-        '(deino-git (:pre (progn
-                <<20210601225233511900800>>))
+        '(deino-git nil
             "A deino for git!"
             ("`" nil "cancel" :color blue)
             ("j" git-gutter:next-hunk "next")
@@ -962,8 +947,7 @@ And in my experience... Not a good idea; much too confusing. Use
 #+begin_src emacs-lisp
 (use-package magit
     :ryo ("g" :hydra+
-        '(deino-git (:pre (progn
-                <<20210601225233511900800>>))
+        '(deino-git nil
             "A deino for git!"
             ("g" magit-status "magit" :color blue))))
 #+end_src

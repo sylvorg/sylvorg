@@ -38,6 +38,15 @@
 
 ;;; Normal state
 
+(defdeino aiern-comma (aiern-normal-state-map ","))
+(defdeino aiern-comma (aiern-normal-state-map "."))
+(defdeino aiern-comma (aiern-normal-state-map " "))
+(defdeino aiern-comma (aiern-normal-state-map ";")
+  (";" aiern-ex "aiern-ex")
+  ("'" evil-ex "evil-ex"))
+(defdeino aiern-comma (aiern-normal-state-map "/"))
+(defdeino aiern-comma (aiern-normal-state-map "\\"))
+
 ;; (define-key aiern-normal-state-map "a" 'aiern-append)
 ;; (define-key aiern-normal-state-map "A" 'aiern-append-line)
 ;; (define-key aiern-normal-state-map "c" 'aiern-change)
@@ -95,7 +104,7 @@
 ;; (define-key aiern-normal-state-map "\C-t" 'pop-tag-mark)
 ;; (define-key aiern-normal-state-map (kbd "C-.") 'aiern-repeat-pop)
 ;; (define-key aiern-normal-state-map (kbd "M-.") 'aiern-repeat-pop-next)
-(define-key aiern-normal-state-map "." 'aiern-repeat)
+;; (define-key aiern-normal-state-map "." 'aiern-repeat)
 ;; (define-key aiern-normal-state-map "@" 'aiern-execute-macro)
 (define-key aiern-normal-state-map "\"" 'aiern-use-register)
 ;; (define-key aiern-normal-state-map "~" 'aiern-invert-char)
@@ -109,9 +118,9 @@
 ;; (define-key aiern-normal-state-map [remap cua-paste-pop] 'aiern-paste-pop)
 ;; (define-key aiern-normal-state-map [remap yank-pop] 'aiern-paste-pop)
 
-;; (when (featurep 'tab-bar)
-;;   (define-key aiern-normal-state-map "gt" 'tab-bar-switch-to-next-tab)
-;;   (define-key aiern-normal-state-map "gT" 'tab-bar-switch-to-prev-tab))
+(when (featurep 'tab-bar)
+  (define-key aiern-normal-state-map "t" 'tab-bar-switch-to-next-tab)
+  (define-key aiern-normal-state-map "T" 'tab-bar-switch-to-prev-tab))
 
 ;; go to last change
 (define-key aiern-normal-state-map "g;" 'goto-last-change)
@@ -120,9 +129,6 @@
 ;; undo
 (define-key aiern-normal-state-map "u" 'aiern-undo)
 (define-key aiern-normal-state-map "\C-r" 'aiern-redo)
-
-(define-key aiern-normal-state-map ";" 'aiern-ex)
-(define-key aiern-normal-state-map (tag-chord ";;") 'evil-ex)
 
 ;; window commands
 (define-prefix-command 'aiern-window-map)

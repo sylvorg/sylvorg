@@ -46,7 +46,6 @@
 (defvar modal-prefixes (mapcar (lambda (mode) (interactive) (car (split-string (symbol-name mode) "-"))) modal-modes))
 (defvar last-modal-mode nil)
 (defvar current-modal-mode nil)
-(defvar dont-disable-modal-modes nil)
 (defvar all-keymaps-map nil)
 (defvar last-global-map nil)
 (defvar which-key-really-dont-show t)
@@ -261,11 +260,9 @@
 ;; Answer: https://emacs.stackexchange.com/questions/12997/how-do-i-use-nadvice/14827#14827
 ;; User: https://emacs.stackexchange.com/users/2308/kdb
 ;;;###autoload
-(defun meq/which-key--hide-popup (&optional force) (interactive)
+(defun meq/which-key--hide-popup (&optional force dont-disable-modal-modes) (interactive)
         (when force (setq which-key-really-dont-show t))
-        (unless dont-disable-modal-modes
-            (setq dont-disable-modal-modes nil)
-            (meq/disable-all-modal-modes))
+        (unless dont-disable-modal-modes (meq/disable-all-modal-modes))
         (setq which-key-persistent-popup nil)
         (which-key--hide-popup)
         (which-key-mode -1))
@@ -286,15 +283,13 @@
             (meq/which-key--show-popup (intern (concat "aiern-" (symbol-name (car state)) "-state-map")))))
     (add-hook (intern (concat "aiern-" (symbol-name (car state)) "-state-exit-hook"))
         #'(lambda nil (interactive)
-            (setq dont-disable-modal-modes t)
-            (meq/which-key--hide-popup)))
+            (meq/which-key--hide-popup nil t)))
     (add-hook (intern (concat "evil-" (symbol-name (car state)) "-state-entry-hook"))
         #'(lambda nil (interactive)
             (meq/which-key--show-popup (intern (concat "evil-" (symbol-name (car state)) "-state-map")))))
     (add-hook (intern (concat "evil-" (symbol-name (car state)) "-state-exit-hook"))
         #'(lambda nil (interactive)
-            (setq dont-disable-modal-modes t)
-            (meq/which-key--hide-popup))))
+            (meq/which-key--hide-popup nil t))))
     aiern-state-properties))
 
 ;;;###autoload
@@ -403,8 +398,7 @@
 
 ;;;###autoload
 (defun meq/evil-ex-advice (func &rest arguments)
-    (setq dont-disable-modal-modes t)
-    (meq/which-key--hide-popup)
+    (meq/which-key--hide-popup nil t)
     (setq last-global-map (current-global-map))
     (use-global-map global-map)
 

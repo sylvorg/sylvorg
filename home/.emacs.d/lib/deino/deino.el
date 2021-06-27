@@ -83,6 +83,7 @@
 (require 'cl-lib)
 (require 'lv)
 (require 'ring)
+(require 'meq)
 
 (defvar deino-curr-map nil
   "The keymap of the current deino called.")
@@ -899,7 +900,8 @@ BODY-AFTER-EXIT is added to the end of the wrapper."
                             (deino--call-interactively cmd (cadr head)))
                       ,body-after-exit))
                 (when cmd
-                  `(,(deino--call-interactively cmd (cadr head)))))))
+                  `(,(deino--call-interactively cmd (cadr head)))))
+            (unless deino-curr-map (meq/which-key--show-popup))))
          (body-on-exit-nil
           (delq
            nil
@@ -926,6 +928,7 @@ BODY-AFTER-EXIT is added to the end of the wrapper."
        ,doc
        (interactive)
        (require 'deino)
+       (when (meq/any-popup-showing-p) (meq/which-key--hide-popup))
        (deino-default-pre)
        ,@(when body-pre (list body-pre))
        ,@(cond ((eq (deino--head-property head :exit) t)

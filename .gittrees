@@ -18,14 +18,6 @@
 	url = alamode
 	path = home/.emacs.d/lib/alamode
 	branch = main
-[subtree "home/.emacs.d/deino"]
-	url = deino
-	path = home/.emacs.d/deino
-	branch = master
-[subtree "home/.emacs.d/use-package-deino"]
-	url = use-package-deino
-	path = home/.emacs.d/use-package-deino
-	branch = main
 [subtree "home/.emacs.d/lib/use-package-deino"]
 	url = use-package-deino
 	path = home/.emacs.d/lib/use-package-deino

@@ -8,6 +8,7 @@
 !home/.emacs.d/lib/doom-aiern-modeline/**/**/*
 !home/.emacs.d/lib/deino/**/**/*
 !home/.emacs.d/lib/sorrow/**/**/*
+!home/.emacs.d/lib/aiern-god-mode/**/**/*
 
 !*.org
 !**/**/*.org

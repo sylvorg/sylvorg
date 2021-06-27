@@ -11,21 +11,14 @@
 
 * alamode
 
-#+name: deino-settings
-#+begin_src emacs-lisp :exports none
-(when (meq/any-popup-showing-p) (meq/which-key--hide-popup))) :post (progn (unless deino-curr-map (meq/which-key--show-popup))
-#+end_src
-
 #+name: cmf
 #+begin_src emacs-lisp :var map="" :var mode="" :var prefix="" :var short="" :exports none
 ;; Adapted From:
 ;; Answer: https://emacs.stackexchange.com/a/7381/31428
 ;; User: https://emacs.stackexchange.com/users/719/adobe
-(format-spec "(defdeino+ toggles (:color blue :pre (progn
-    <<deino-settings>>))
+(format-spec "(defdeino+ toggles (:color blue)
     (\"%s\" meq/toggle-%p \"%p\"))
-(defdeino+ all-keymaps (:color blue :pre (progn
-    <<deino-settings>>))
+(defdeino+ all-keymaps (:color blue)
     (\"%s\" (progn (setq all-keymaps-map '%m)
     (meq/%p-show-top-level)) \"%p\"))
 
