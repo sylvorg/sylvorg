@@ -42,3 +42,7 @@
 	url = alloy
 	path = home/.emacs.d/lib/alloy
 	branch = master
+[subtree "home/.emacs.d"]
+	url = emacs
+	path = home/.emacs.d
+	branch = main
