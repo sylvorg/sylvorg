@@ -388,7 +388,11 @@ And in my experience... Not a good idea; much too confusing. Use
     :load-emacs-file-preconfig ("naked")
     :config
         (tag-auto-unbind-keys)
-        (tag-def :keymaps '(override aiern-insert-state-map aiern-normal-state-map)
+        (tag-def :keymaps '(override
+            aiern-insert-state-map
+            aiern-normal-state-map
+            evil-insert-state-map
+            evil-normal-state-map)
             ;; Adapted From:
             ;; Answer: https://stackoverflow.com/a/4557027/10827766
             ;; User: https://stackoverflow.com/users/387076/gilles-so-stop-being-evil
@@ -534,13 +538,7 @@ And in my experience... Not a good idea; much too confusing. Use
 #+begin_src emacs-lisp
 (use-package evil
     :demand t
-    :use-package-preconfig
-        (bind-map)
-        (evil-god-state :demand t :straight (evil-god-state
-            :type git
-            :host github
-            :repo "gridaphobe/evil-god-state"
-            :branch "master"))
+    :use-package-preconfig (bind-map)
     :use-package-postconfig
         ;; Adapted From: https://github.com/mohsenil85/evil-evilified-state and
         ;; https://github.com/syl20bnr/spacemacs
@@ -625,9 +623,7 @@ And in my experience... Not a good idea; much too confusing. Use
 #+begin_src emacs-lisp
 (use-package aiern
     :demand t
-    :use-package-preconfig
-        (bind-map)
-        (aiern-god-state :straight nil :load-path "lib/aiern-god-state" :demand t)
+    :use-package-preconfig (bind-map)
     :straight nil
     :load-path "lib/aiern"
     :gone
@@ -678,6 +674,14 @@ And in my experience... Not a good idea; much too confusing. Use
 #+name: 20210601225312959948800
 #+begin_src emacs-lisp
 (use-package god-mode
+    :demand t
+    :use-package-postconfig
+        (aiern-god-state :straight nil :load-path "lib/aiern-god-state" :demand t)
+        (evil-god-state :demand t :straight (evil-god-state
+            :type git
+            :host github
+            :repo "gridaphobe/evil-god-state"
+            :branch "master"))
     :gone
         ((tag-chord "jj") 'meq/toggle-god)
         ((tag-chord ";'") 'god-execute-with-current-bindings)
@@ -748,7 +752,7 @@ And in my experience... Not a good idea; much too confusing. Use
 
 #+name: 20210601225236550932600
 #+begin_src emacs-lisp
-(use-package outshine :hook (outline-mode prog-mode text-mode org-mode))
+(use-package outshine :hook ((outline-mode prog-mode text-mode org-mode) . outshine-mode))
 (use-package org
     :use-package-postconfig
         (nix-mode
@@ -813,7 +817,6 @@ And in my experience... Not a good idea; much too confusing. Use
                 (org-babel-execute:vimrc
                 org-babel-expand-body:vimrc)
             :mode "\\.vim\\(rc\\)?\\'")
-        (ox-pandoc :demand t)
     :config
         (org-babel-do-load-languages 'org-babel-load-languages
             (append org-babel-load-languages
@@ -843,6 +846,14 @@ And in my experience... Not a good idea; much too confusing. Use
         (org-src-fontify-natively t)
         ;; (org-src-window-setup 'current-window)
         (org-cycle-emulate-tab 'whitestart))
+(use-package org-pandoc-import
+    :use-package-preconfig (ox-gfm) (ox-pandoc)
+    :hook (after-init . org-pandoc-import-transient-mode)
+    :straight (org-pandoc-import
+        :type git
+        :host github
+        :repo "tecosaur/org-pandoc-import"
+        :files ("*.el" "filters" "preprocessors")))
 #+end_src
 
 **** minibuffer

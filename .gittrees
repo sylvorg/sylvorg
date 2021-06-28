@@ -6,10 +6,6 @@
 	url = doom-aiern-modeline
 	path = home/.emacs.d/lib/doom-aiern-modeline
 	branch = master
-[subtree "home/.emacs.d/lib/tag"]
-	url = tag
-	path = home/.emacs.d/lib/tag
-	branch = master
 [subtree "home/.emacs.d/lib/use-package-extras"]
 	url = use-package-extras
 	path = home/.emacs.d/lib/use-package-extras
@@ -38,3 +34,7 @@
 	url = meq
 	path = home/.emacs.d/lib/meq
 	branch = main
+[subtree "home/.emacs.d/lib/aiern-god-state"]
+	url = aiern-god-state
+	path = home/.emacs.d/lib/aiern-god-state
+	branch = master

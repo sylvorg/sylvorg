@@ -160,6 +160,7 @@
 (declare-function evil-insert-state-p 'evil-states)
 (declare-function evil-motion-state-p 'evil-states)
 (declare-function evil-normal-state-p 'evil-states)
+(declare-function evil-god-state-p 'evil-states)
 (declare-function evil-operator-state-p 'evil-states)
 (declare-function evil-replace-state-p 'evil-states)
 (declare-function evil-state-property 'evil-common)
@@ -170,6 +171,7 @@
 (declare-function aiern-insert-state-p 'aiern-states)
 (declare-function aiern-motion-state-p 'aiern-states)
 (declare-function aiern-normal-state-p 'aiern-states)
+(declare-function aiern-god-state-p 'aiern-states)
 (declare-function aiern-operator-state-p 'aiern-states)
 (declare-function aiern-replace-state-p 'aiern-states)
 (declare-function aiern-state-property 'aiern-common)
@@ -1789,6 +1791,7 @@ TEXT is alternative if icon is not available."
        (if (stringp tag) tag (funcall tag)))
      (cond
       ((evil-normal-state-p) 'doom-aiern-modeline-evil-normal-state)
+      ((evil-god-state-p) 'doom-aiern-modeline-evil-god-state)
       ((evil-emacs-state-p) 'doom-aiern-modeline-evil-emacs-state)
       ((evil-insert-state-p) 'doom-aiern-modeline-evil-insert-state)
       ((evil-motion-state-p) 'doom-aiern-modeline-evil-motion-state)
@@ -1806,6 +1809,7 @@ TEXT is alternative if icon is not available."
        (if (stringp tag) tag (funcall tag)))
      (cond
       ((aiern-normal-state-p) 'doom-aiern-modeline-aiern-normal-state)
+      ((aiern-god-state-p) 'doom-aiern-modeline-aiern-god-state)
       ((aiern-emacs-state-p) 'doom-aiern-modeline-aiern-emacs-state)
       ((aiern-insert-state-p) 'doom-aiern-modeline-aiern-insert-state)
       ((aiern-motion-state-p) 'doom-aiern-modeline-aiern-motion-state)
@@ -1831,6 +1835,11 @@ TEXT is alternative if icon is not available."
   "The current ryo-modal state which is enabled by the command `ryo-modal-mode'."
   (when (bound-and-true-p ryo-modal-mode)
     (doom-aiern-modeline--modal-icon " <R> " 'doom-aiern-modeline-evil-normal-state "Ryo modal")))
+
+(defsubst doom-aiern-modeline--modalka ()
+  "The current modalka state which is enabled by the command `modalka-mode'."
+  (when (bound-and-true-p modalka-mode)
+    (doom-aiern-modeline--modal-icon " <M> " 'doom-aiern-modeline-evil-normal-state "Modalka modal")))
 
 (defsubst doom-aiern-modeline--xah-fly-keys ()
   "The current `xah-fly-keys' state."
@@ -1869,17 +1878,19 @@ and `xha-fly-kyes', etc."
          (ow (doom-aiern-modeline--overwrite))
          (god (doom-aiern-modeline--god))
          (ryo (doom-aiern-modeline--ryo))
+         (modalka (doom-aiern-modeline--modalka))
          (xf (doom-aiern-modeline--xah-fly-keys))
          (boon (doom-aiern-modeline--boon))
          (vsep (doom-aiern-modeline-vspc))
          (meow (doom-aiern-modeline--meow))
          (sep (and (or evil aiern ow god ryo xf boon) (doom-aiern-modeline-spc))))
     (concat sep
-            (and evil (concat evil (and (or aiern ow god ryo xf boon meow) vsep)))
-            (and aiern (concat aiern (and (or ow god ryo xf boon meow) vsep)))
-            (and ow (concat ow (and (or god ryo xf boon meow) vsep)))
-            (and god (concat god (and (or ryo xf boon meow) vsep)))
-            (and ryo (concat ryo (and (or xf boon meow) vsep)))
+            (and evil (concat evil (and (or aiern ow god ryo modalka xf boon meow) vsep)))
+            (and aiern (concat aiern (and (or ow god ryo modalka xf boon meow) vsep)))
+            (and ow (concat ow (and (or god ryo modalka xf boon meow) vsep)))
+            (and god (concat god (and (or ryo modalka xf boon meow) vsep)))
+            (and ryo (concat ryo (and (or modalka xf boon meow) vsep)))
+            (and modalka (concat modalka (and (or xf boon meow) vsep)))
             (and xf (concat xf (and (or boon meow) vsep)))
             (and boon (concat boon (and meow vsep)))
             meow

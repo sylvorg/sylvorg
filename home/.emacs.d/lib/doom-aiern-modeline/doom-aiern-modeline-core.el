@@ -693,6 +693,11 @@ etc. (also see the face `doom-aiern-modeline-unread-number')."
   "Face for the normal state tag in evil state indicator."
   :group 'doom-aiern-modeline-faces)
 
+(defface doom-aiern-modeline-evil-god-state
+  '((t (:inherit doom-aiern-modeline-info)))
+  "Face for the god state tag in evil state indicator."
+  :group 'doom-aiern-modeline-faces)
+
 (defface doom-aiern-modeline-evil-operator-state
   '((t (:inherit doom-aiern-modeline-buffer-file)))
   "Face for the operator state tag in evil state indicator."
@@ -726,6 +731,11 @@ etc. (also see the face `doom-aiern-modeline-unread-number')."
 (defface doom-aiern-modeline-aiern-normal-state
   '((t (:inherit doom-aiern-modeline-info)))
   "Face for the normal state tag in aiern state indicator."
+  :group 'doom-aiern-modeline-faces)
+
+(defface doom-aiern-modeline-aiern-god-state
+  '((t (:inherit doom-aiern-modeline-info)))
+  "Face for the aiern god state tag in aiern state indicator."
   :group 'doom-aiern-modeline-faces)
 
 (defface doom-aiern-modeline-aiern-operator-state
