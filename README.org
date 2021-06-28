@@ -9,147 +9,112 @@
 # User: https://stackoverflow.com/users/776405/whil
 #+startup: show3levels
 
-#+name: username
-#+begin_src text :exports none
-shadowrylander
+* lode
+
+#+begin_src emacs-lisp :tangle lode.el
+;;; lode.el --- a simple package                     -*- lexical-binding: t; -*-
+
+;; Copyright (C) 2021  Jeet Ray
+
+;; Author: Jeet Ray <aiern@protonmail.com>
+;; Keywords: lisp
+;; Version: 0.0.1
+
+;; This program is free software; you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
+
+;; This program is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+
+;; You should have received a copy of the GNU General Public License
+;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+;;; Commentary:
+
+;; Put a description of the package here
+
+;;; Code:
+
+(require 'deino)
+(require 'alloy)
+(require 'dash)
+(require 'meq)
+
+;;;###autoload
+(defun lode* (parent tags key func hint &rest keychain)
+    (let* ((last-step (= (-count 'keywordp keychain) 1))
+            (carkey (meq/keyword-to-symbol-name (pop keychain)))
+            (last-name (concat (when parent (concat parent "/")) carkey))
+            (deino-name (concat "lodestar/" last-name))
+            (deino-funk (intern (concat
+                "defdeino"
+                (when (fboundp (intern (concat deino-name "/body"))) "+"))))
+            (last-list (if last-step `(,key ,func ,hint) 
+                `(,(meq/keyword-to-symbol-name (car keychain))
+                    ,(eval `(lode* ,last-name nil ,key ',func ,hint ,@keychain))))))
+
+        ;; Adapted From: https://github.com/abo-abo/deino/issues/164#issuecomment-136650511
+        (eval `(,deino-funk
+            ,(intern deino-name)
+            (:color blue)
+            ,last-list
+            ("`" nil "cancel")))
+        (when tags `(alloy-def ,@tags))))
+
+;;;###autoload
+(defun lodestar (key func hint &rest keychain) (interactive) (apply #'lode* nil nil key func hint keychain))
+(defun lodetags (tags key func hint &rest keychain) (interactive) (apply #'lode* nil tags key func hint keychain))
+
+;; Adapted From: https://github.com/noctuid/general.el/blob/master/general.el#L2708
+;;;###autoload
+(defun use-package-handler/:lodestar (name _keyword arglists rest state)
+"Use-package handler for :lodestar."
+(use-package-concat
+    (use-package-process-keywords name rest state)
+    `(,@(mapcar (lambda (arglist)
+                arglist
+                `(lodestar ,@arglist))
+                arglists))))
+
+;;;###autoload
+(defalias 'use-package-autoloads/:lodestar #'use-package-autoloads/:ghook)
+;;;###autoload
+(defalias 'use-package-normalize/:lodestar #'use-package-normalize/:ghook)
+
+;; Adapted From: https://github.com/noctuid/general.el/blob/master/general.el#L2708
+;;;###autoload
+(defun use-package-handler/:lodetags (name _keyword arglists rest state)
+"Use-package handler for :lodetags."
+(use-package-concat
+    (use-package-process-keywords name rest state)
+    `(,@(mapcar (lambda (arglist)
+                arglist
+                `(lodetags ,@arglist))
+                arglists))))
+
+;;;###autoload
+(defalias 'use-package-autoloads/:lodetags #'use-package-autoloads/:ghook)
+;;;###autoload
+(defalias 'use-package-normalize/:lodetags #'use-package-normalize/:ghook)
+
+;; Adapted From: https://github.com/noctuid/general.el/blob/master/general.el#L2554
+(setq use-package-keywords
+    ;; should go in the same location as :bind
+    ;; adding to end may not cause problems, but see issue #22
+    (cl-loop for item in use-package-keywords
+                if (eq item :bind-keymap*)
+                collect :bind-keymap* and
+                collect :lodestar and
+                collect :lodetags
+                else
+                ;; don't add duplicates
+                unless (memq item '(:lodestar :lodetags))
+                collect item))
+
+(provide 'lode)
+;;; lode.el ends here
 #+end_src
-
-#+name: hash-deprecated
-#+begin_src emacs-lisp :var name="" :exports none
-(md5 (concat (replace-regexp-in-string "/" "" (
-    org-format-outline-path (org-get-outline-path))) (
-        nth 4 (org-heading-components)) name))
-#+end_src
-
-#+name: hash
-#+begin_src emacs-lisp :exports none
-(format-time-string "%Y%m%d%H%M%S%N")
-#+end_src
-
-* makefile
-
-#+call: hash() :exports none
-
-#+RESULTS:
-: 20210601181725825830000
-
-#+name: 20210601181725825830000
-#+begin_src makefile :tangle makefile
-.RECIPEPREFIX := |
-.DEFAULT_GOAL := super-push
-
-init:
-|sudo cp git-subtree.sh $$(git --exec-path)/git-subtree
-
-rebuild:
-|chmod +x ./wheee
-|./wheee --use-hash ${HASH} -H make
-
-switch:
-|chmod +x ./wheee
-|./wheee --use-hash ${HMASH} -H make --home-manager
-|./wheee --use-hash ${RMASH} -H make --home-manager
-
-pull:
-|git -C ~/<<username>> pull
-
-push:
-|git -C ~/<<username>> add .
-|-git -C ~/<<username>> commit --allow-empty-message -am ""
-|-git -C ~/<<username>> push
-
-tangle-all:
-|make -f ~/<<username>>/home/.emacs.d/makefile tangle-all
-
-push-emacs:
-|make -f ~/<<username>>/home/.emacs.d/makefile push
-
-emacs:
-|make -f ~/<<username>>/home/.emacs.d/makefile emacs
-
-emacs-test:
-|make -f ~/<<username>>/home/.emacs.d/makefile test
-
-supermacs:
-|make -f ~/<<username>>/home/.emacs.d/makefile supermacs
-
-libemacs:
-|make -f ~/<<username>>/home/.emacs.d/makefile libemacs
-
-super-push: tangle-all push push-emacs
-#+end_src
-
-* previous projects
-** bakery
-
-My pride and joy; based off of [[https://github.com/amoffat][Andrew Moffat's]] [[https://amoffat.github.io/sh/][sh]],
-this python module allows you to import shell commands as modules as well. For example:
-
-# How does the code below work exactly, again? Revise it!
-
-#+begin_src python
-<<20210601181755824433500>>
-<<20210601181800630609300>>
-<<20210601181804730771100>>
-#+end_src
-
-You might be thinking to yourself, "Cool!" And also, "...Wait what?"
-
-*** breaking it down
-
------
-
-#+call: hash() :exports none
-
-#+RESULTS:
-: 20210601181755824433500
-
-#+name: 20210601181755824433500
-#+begin_src python
-from baker.y import git
-#+end_src
-
-This will import the =git= utility from your path as a =bakery= object;
-note, however, that while the statement is importing =git= from =baker.y=,
-there are actually two submodules in play here: =baker= with a =y=,
-and =baker= with an =i=.
-
-To facilitate the use of =git(C = [path]).status()=, the latter submodule must be used.
-This also prevents the use of something like =git()=, but, since that just shows the help text,
-one can simply use =git.help()= instead.
-
------
-
-#+call: hash() :exports none
-
-#+RESULTS:
-: 20210601181800630609300
-
-#+name: 20210601181800630609300
-#+begin_src python
-git.clone(
-    b = "master",
-    recurse_submodule = True,
-    "https://github.com/<<username>>/<<username>>",
-    "~/<<username>>",
-    _run = True,
-)
-#+end_src
-
------
-
-#+call: hash() :exports none
-
-#+RESULTS:
-: 20210601181804730771100
-
-#+name: 20210601181804730771100
-#+begin_src python
-print(git(C = "~/<<username>>").status())
-#+end_src
-
-*** want more information?
-
-Get it here! https://gitlab.com/picotech/bakery
-
-Also: eh heh heh... yeah... I like =gitlab's= grouping system... */sheepish grin/*
