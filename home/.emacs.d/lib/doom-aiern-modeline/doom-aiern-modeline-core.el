@@ -33,6 +33,7 @@
 (require 'dash)
 (require 'all-the-icons)
 (require 'shrink-path)
+(require 'deino)
 
 
 ;;
@@ -729,7 +730,8 @@ etc. (also see the face `doom-aiern-modeline-unread-number')."
   :group 'doom-aiern-modeline-faces)
 
 (defface doom-aiern-modeline-aiern-normal-state
-  '((t (:inherit doom-aiern-modeline-info)))
+  ;; '((t (:inherit deino-face-amaranth)))
+  '((t (:foreground "#FFB86C" :bold t)))
   "Face for the normal state tag in aiern state indicator."
   :group 'doom-aiern-modeline-faces)
 

@@ -174,7 +174,7 @@
 ;; Adapted From: https://gitlab.com/to1ne/use-package-hydra/-/blob/master/use-package-hydra.el#L79
 ;;;###autoload
 (defun use-package-handler/:gsetq (name keyword args rest state)
-    (use-package-concat (mapcar #'(lambda (def) `(tag-setq ,@def)) args)
+    (use-package-concat (mapcar #'(lambda (def) `(alloy-setq ,@def)) args)
     (use-package-process-keywords name rest state)))
 
 (setq use-package-keywords
@@ -214,7 +214,7 @@
 ;; Adapted From: https://gitlab.com/to1ne/use-package-hydra/-/blob/master/use-package-hydra.el#L79
 ;;;###autoload
 (defun use-package-handler/:postmaster (name keyword args rest state)
-    (use-package-concat (mapcar #'(lambda (def) `(tag-def ,@def)) args)
+    (use-package-concat (mapcar #'(lambda (def) `(alloy-def ,@def)) args)
     (use-package-process-keywords name rest state)))
 
 (setq use-package-keywords

@@ -4170,6 +4170,9 @@ hash = user: j.hostName { stc = stc // { inherit user; }; };
 ({
     <<20210601185837674888000>>
 })
+({
+    <<20210628133141897003000>>
+})
 #+end_src
 
 #+call: hash() :exports none
@@ -4598,6 +4601,28 @@ emacs = {
 ".emacs.d".source = "${homeDirectory}/${primary.user}/home/.emacs.d";
 #+end_src
 
+** .xinitrc
+
+#+call: hash() :export none
+
+#+RESULTS:
+: 20210628133137833159900
+
+#+name: 
+#+begin_src shell :tangle (meq/tangle-path)
+exec emacs --exwm
+#+end_src
+
+#+call: hash() :exports none
+
+#+RESULTS:
+: 20210628133141897003000
+
+#+name: 
+#+begin_src nix
+".xinitrc".source = "${homeDirectory}/${primary.user}/home/.xinitrc";
+#+end_src
+
 ** starship
 
 #+call: hash() :exports none
@@ -4715,7 +4740,6 @@ direnv = {
 #+begin_src nix
 ".direnvrc".source = "${homeDirectory}/${primary.user}/home/.direnvrc";
 #+end_src
-
 
 * wheee
 

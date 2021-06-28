@@ -158,7 +158,7 @@
 
 #+name: tag
 #+begin_src emacs-lisp
-<<normalize-and-handle(name="gsetq", func="tag-setq")>>
+<<normalize-and-handle(name="gsetq", func="alloy-setq")>>
 
 (setq use-package-keywords
     (cl-loop for item in use-package-keywords
@@ -174,7 +174,7 @@
 (add-to-list 'use-package-keywords :gadvice t)
 (add-to-list 'use-package-keywords :gradvice t)
 
-<<normalize-and-handle(name="postmaster", func="tag-def")>>
+<<normalize-and-handle(name="postmaster", func="alloy-def")>>
 
 (setq use-package-keywords
     (cl-loop for item in use-package-keywords

@@ -39,5 +39,5 @@ test-and-kill:
 
 emacs: setup test
 emacs-and-kill: setup test-and-kill
-supermacs: tangle-all emacs-and-kill emacs
+supermacs: tangle-all emacs-and-kill emacs-and-kill emacs
 libemacs: tangle-libs emacs-and-kill emacs

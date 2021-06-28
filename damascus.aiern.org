@@ -58,7 +58,7 @@ test-and-kill:
 
 emacs: setup test
 emacs-and-kill: setup test-and-kill
-supermacs: tangle-all emacs-and-kill emacs
+supermacs: tangle-all emacs-and-kill emacs-and-kill emacs
 libemacs: tangle-libs emacs-and-kill emacs
 #+end_src
 
@@ -380,15 +380,15 @@ And in my experience... Not a good idea; much too confusing. Use
 
 #+name: 20210603105149525867500
 #+begin_src emacs-lisp
-(use-package tag
+(use-package alloy
     :straight nil
-    :load-path "lib/tag"
+    :load-path "lib/alloy"
     :demand t
     :use-package-preconfig (command-log-mode)
     :load-emacs-file-preconfig ("naked")
     :config
-        (tag-auto-unbind-keys)
-        (tag-def :keymaps '(override
+        (alloy-auto-unbind-keys)
+        (alloy-def :keymaps '(override
             aiern-insert-state-map
             aiern-normal-state-map
             evil-insert-state-map
@@ -404,12 +404,12 @@ And in my experience... Not a good idea; much too confusing. Use
             "\e[D" [left]
             "\eOC" [right]
             "\e[C" [right])
-        (tag-def :keymaps '(
+        (alloy-def :keymaps '(
                 minibuffer-local-map
                 counsel-describe-map
                 helm-buffer-map)
             "M-x" 'exit-minibuffer)
-    :custom (tag-implicit-kbd t))
+    :custom (alloy-implicit-kbd t))
 #+end_src
 
 **** modal modes
@@ -429,9 +429,9 @@ And in my experience... Not a good idea; much too confusing. Use
         (deino :demand t :straight nil :load-path "lib/deino" :gsetq (deino-hint-display-type 'lv))
         (lode :demand t :straight nil :load-path "lib/lode")
     :demand t
-    :gone
-        ((tag-chord "\\\\") 'meq/toggle-which-key)
-        ((tag-chord "\\]") 'map-of-infinity/body)
+    :demon
+        ((alloy-chord "\\\\") 'meq/toggle-which-key)
+        ((alloy-chord "\\]") 'map-of-infinity/body)
     :deino (map-of-infinity (:color blue)
             ("`" nil "cancel")
             ("w" deino/which-key/body "which-key")
@@ -500,9 +500,9 @@ And in my experience... Not a good idea; much too confusing. Use
 (use-package ryo-modal
     :straight (ryo-modal :type git :host github :repo "kungsgeten/ryo-modal" :branch "master")
     :demand t
-    :gone
-        ((tag-chord "  ") 'meq/toggle-ryo-hercules)
-        ((tag-chord " ,") 'meq/ryo-execute-with-current-bindings)
+    :demon
+        ((alloy-chord "  ") 'meq/toggle-ryo-hercules)
+        ((alloy-chord " ,") 'meq/ryo-execute-with-current-bindings)
     :config ;; From: https://github.com/Kungsgeten/ryo-modal#which-key-integration
         (push '((nil . "ryo:.*:") . (nil . "")) which-key-replacement-alist))
 #+end_src
@@ -520,9 +520,9 @@ And in my experience... Not a good idea; much too confusing. Use
     :demand t
     :straight nil
     :load-path "lib/sorrow"
-    :gone
-        ((tag-chord " .") 'meq/toggle-ryo-hercules)
-        ((tag-chord " /") 'meq/ryo-execute-with-current-bindings)
+    :demon
+        ((alloy-chord " .") 'meq/toggle-ryo-hercules)
+        ((alloy-chord " /") 'meq/ryo-execute-with-current-bindings)
     :config ;; From: https://github.com/shadowrylander/sorrow#which-key-integration
         (push '((nil . "sorrow:.*:") . (nil . "")) which-key-replacement-alist))
 #+end_src
@@ -550,15 +550,15 @@ And in my experience... Not a good idea; much too confusing. Use
                 :repo "<<username>>/evil-evilified-state"
                 :branch "master"))
     :gsetq (evil-escape-key-sequence nil)
-    :gone
-        ((tag-chord "kk") 'meq/toggle-evil)
-        ((tag-chord "KK") 'meq/toggle-evil-force)
+    :demon
+        ((alloy-chord "kk") 'meq/toggle-evil)
+        ((alloy-chord "KK") 'meq/toggle-evil-force)
         
         ;; TODO
-        ;; ((tag-chord "") 'meq/toggle-evil-ex-hercules)
-        ;; ((tag-chord "") 'meq/toggle-evil-ex-hercules-force)
+        ;; ((alloy-chord "") 'meq/toggle-evil-ex-hercules)
+        ;; ((alloy-chord "") 'meq/toggle-evil-ex-hercules-force)
         
-        ((tag-chord ",,") 'evil-ex)
+        ((alloy-chord ",,") 'evil-ex)
     :leaf (evil :advice
         (:override evil-insert-state (lambda (&optional _) (interactive)
             (meq/disable-all-modal-modes))))
@@ -567,10 +567,10 @@ And in my experience... Not a good idea; much too confusing. Use
         ;; Kept for documentation porpoises
         ;; (eval
         ;;       `(ryo-modal-keys
-        ;;             ("l l" ,(tag-simulate-key ":wq <RET>") :first '(evil-normal-state) :name "wq")
-        ;;             ("l p" ,(tag-simulate-key ":q <RET>") :first '(evil-normal-state) :name "q")
-        ;;             ("l o" ,(tag-simulate-key ":w <RET>") :first '(evil-normal-state) :name "w")
-        ;;             ("l q" ,(tag-simulate-key ":q! <RET>") :first '(evil-normal-state) :name "q!")))
+        ;;             ("l l" ,(alloy-simulate-key ":wq <RET>") :first '(evil-normal-state) :name "wq")
+        ;;             ("l p" ,(alloy-simulate-key ":q <RET>") :first '(evil-normal-state) :name "q")
+        ;;             ("l o" ,(alloy-simulate-key ":w <RET>") :first '(evil-normal-state) :name "w")
+        ;;             ("l q" ,(alloy-simulate-key ":q! <RET>") :first '(evil-normal-state) :name "q!")))
 
         ;; Use to get command name:
         ;; Eg: (cdr (assoc "q" evil-ex-commands))
@@ -607,7 +607,7 @@ And in my experience... Not a good idea; much too confusing. Use
                     ("p" evil-quit ":q")
                     ("o" evil-write ":w")
                     ("O" evil-write-all ":wa")
-                    ;; ("q" (funcall (tag-simulate-key ":q! <RET>")) ":q!"))
+                    ;; ("q" (funcall (alloy-simulate-key ":q! <RET>")) ":q!"))
                     ("q" (funcall (evil-quit t)) ":q!"))
                 :name "evil exits"))
 #+end_src
@@ -626,20 +626,20 @@ And in my experience... Not a good idea; much too confusing. Use
     :use-package-preconfig (bind-map)
     :straight nil
     :load-path "lib/aiern"
-    :gone
-        ((tag-chord "uu") 'meq/toggle-aiern)
-        ((tag-chord "UU") 'meq/toggle-aiern-force)
+    :demon
+        ((alloy-chord "uu") 'meq/toggle-aiern)
+        ((alloy-chord "UU") 'meq/toggle-aiern-force)
 
         ;; TODO
-        ;; ((tag-chord "") 'meq/toggle-aiern-ex-hercules)
-        ;; ((tag-chord "") 'meq/toggle-aiern-ex-hercules-force)
+        ;; ((alloy-chord "") 'meq/toggle-aiern-ex-hercules)
+        ;; ((alloy-chord "") 'meq/toggle-aiern-ex-hercules-force)
 
-        ((tag-chord ",.") 'aiern-ex)
-        ((tag-chord ",/") 'meq/aiern-execute-with-current-bindings)
+        ((alloy-chord ",.") 'aiern-ex)
+        ((alloy-chord ",/") 'meq/aiern-execute-with-current-bindings)
     :config
-        (tag-def :keymaps '(override aiern-insert-state-map)
+        (alloy-def :keymaps '(override aiern-insert-state-map)
             (naked "RET") 'newline-and-indent
-            (tag-chord "]\\") 'meq/end-of-line-and-indented-new-line)
+            (alloy-chord "]\\") 'meq/end-of-line-and-indented-new-line)
         ;; TODO: How do I create a keymap `aiern-ex-keymap' out of the `aiern-ex-commands' alist?
 
         ;; (hercules-def :show-funs #'meq/aiern-ex-hercules-show
@@ -682,9 +682,9 @@ And in my experience... Not a good idea; much too confusing. Use
             :host github
             :repo "gridaphobe/evil-god-state"
             :branch "master"))
-    :gone
-        ((tag-chord "jj") 'meq/toggle-god)
-        ((tag-chord ";'") 'god-execute-with-current-bindings)
+    :demon
+        ((alloy-chord "jj") 'meq/toggle-god)
+        ((alloy-chord ";'") 'god-execute-with-current-bindings)
     :config (which-key-enable-god-mode-support))
 #+end_src
 
@@ -716,7 +716,7 @@ And in my experience... Not a good idea; much too confusing. Use
 #+name: 20210601225316366565400
 #+begin_src emacs-lisp
 (use-package objed
-    :gone ((tag-chord "ii") 'meq/toggle-objed))
+    :demon ((alloy-chord "ii") 'meq/toggle-objed))
 #+end_src
 
 ***** kakoune
@@ -740,7 +740,7 @@ And in my experience... Not a good idea; much too confusing. Use
 
 #+name: 20210601225319683820700
 #+begin_src emacs-lisp
-(use-package modalka :gone ((tag-chord "::") 'meq/toggle-modalka-hercules))
+(use-package modalka :demon ((alloy-chord "::") 'meq/toggle-modalka-hercules))
 #+end_src
 
 **** org-mode
@@ -825,7 +825,7 @@ And in my experience... Not a good idea; much too confusing. Use
         (org-babel-lob-ingest "./README.org")
 
         <<20210601225401786848500>>
-    ;; :gone ((naked "backtab") 'evil-close-fold)
+    ;; :demon ((naked "backtab") 'evil-close-fold)
     :ryo ("o" :hydra
         '(deino-org (:color blue)
                 "A deino for org-mode!"
@@ -1161,7 +1161,7 @@ And in my experience... Not a good idea; much too confusing. Use
 
 (use-package writeroom-mode
     :hook emacs-startup
-    :gone ((tag-chord "zz") 'writeroom-mode)
+    :demon ((alloy-chord "zz") 'writeroom-mode)
     :gsetq
         (writeroom-fullscreen-effect t)
         (writeroom-fringes-outside-margins t)
@@ -1185,9 +1185,9 @@ And in my experience... Not a good idea; much too confusing. Use
         (company)
     :init/defun* (meq/yankpad-hercules-toggle nil (interactive))
     :gsetq (yankpad-file "./yankpad.org")
-    :gone
-        ((tag-chord "[[") 'meq/yankpad-hercules-toggle)
-        ((tag-chord "]]") 'yankpad-expand)
+    :demon
+        ((alloy-chord "[[") 'meq/yankpad-hercules-toggle)
+        ((alloy-chord "]]") 'yankpad-expand)
     :config (yankpad-map)
     :hercules
         (:show-funs #'meq/yankpad-hercules-show
@@ -1282,7 +1282,7 @@ And in my experience... Not a good idea; much too confusing. Use
 #+begin_src emacs-lisp
 (use-package term
     :config/defun* (meq/term-hercules-toggle nil (interactive))
-    :tag
+    :alloy
         (:keymaps 'term-mode-map
             "C-c C-c" 'term-interrupt-subjob
             "C-m"     'term-send-raw
@@ -1359,12 +1359,12 @@ Mostly from [[Emux's After Installing Section][https://github.com/re5et/emux#aft
         (meq/make-frame nil (interactive) (modify-frame-parameters (make-frame) ((name . "emux"))))
         (meq/select-emux nil (interactive) (select-frame-by-name "emux"))
     :config (emux-completing-read-command (quote ido-completing-read))
-    :gone
+    :demon
         ;; (""          'meq/make-frame)
         ;; (""          'meq/select-emux)
         ("C-x c"     'emux-term-create)
         ("C-x P"     'emux-session-load-template)
-    :tag
+    :alloy
         (:keymaps 'term-mode-map
             "C-S-p"     'previous-line
             "C-S-r"     'isearch-backward
@@ -1431,7 +1431,7 @@ Adapted From: https://tapoueh.org/blog/2009/09/escreen-integration/
 (use-package escreen
     :load-emacs-file-preconfig ("escreen")
     :init/defun* (meq/escreen-hercules-toggle nil (interactive))
-    :gone
+    :demon
         ;; ((naked "C-\\ l") 'escreen-get-active-screen-numbers-with-emphasis)
         ;; ((naked "M-[") 'dim:escreen-goto-prev-screen)
         ;; ((naked "M-]") 'dim:escreen-goto-next-screen)
@@ -1440,8 +1440,8 @@ Adapted From: https://tapoueh.org/blog/2009/09/escreen-integration/
 
         ;; ([s-mouse-4] 'dim:escreen-goto-prev-screen)
         ;; ([s-mouse-5] 'dim:escreen-goto-next-screen)
-        ((tag-chord "||") 'meq/escreen-hercules-toggle)
-    ;; :tag
+        ((alloy-chord "||") 'meq/escreen-hercules-toggle)
+    ;; :alloy
         ;; (:keymaps 'escreen-map
             ;; escreen-prefix-char 'dim:escreen-goto-last-screen)
         ;; (:keymaps 'term-raw-map
@@ -1513,7 +1513,12 @@ Adapted From: https://tapoueh.org/blog/2009/09/escreen-integration/
 
 #+name: 20210601225348036290600
 #+begin_src emacs-lisp
-(use-package exwm)
+(when (member "--exwm" argv) (use-package exwm :demand t
+    :config
+        (require 'exwm-config)
+        (exwm-config-default)
+        ;; (exwm-enable)
+        ))
 #+end_src
 
 **** system

@@ -30,7 +30,7 @@
 (require 'aiern-commands)
 (require 'aiern-command-window)
 (require 'aiern-common)
-(require 'tag)
+(require 'alloy)
 (require 'deino)
 (require 'naked)
 
@@ -38,14 +38,15 @@
 
 ;;; Normal state
 
-(defdeino aiern-comma (aiern-normal-state-map ","))
-(defdeino aiern-comma (aiern-normal-state-map "."))
-(defdeino aiern-comma (aiern-normal-state-map " "))
+(defdeino aiern-comma (aiern-normal-state-map ",") ("`" nil "cancel"))
+(defdeino aiern-comma (aiern-normal-state-map ".") ("`" nil "cancel"))
+(defdeino aiern-comma (aiern-normal-state-map " ") ("`" nil "cancel"))
 (defdeino aiern-comma (aiern-normal-state-map ";")
   (";" aiern-ex "aiern-ex")
-  ("'" evil-ex "evil-ex"))
-(defdeino aiern-comma (aiern-normal-state-map "/"))
-(defdeino aiern-comma (aiern-normal-state-map "\\"))
+  ("'" evil-ex "evil-ex")
+  ("`" nil "cancel"))
+(defdeino aiern-comma (aiern-normal-state-map "/") ("`" nil "cancel"))
+(defdeino aiern-comma (aiern-normal-state-map "\\") ("`" nil "cancel"))
 
 ;; (define-key aiern-normal-state-map "a" 'aiern-append)
 ;; (define-key aiern-normal-state-map "A" 'aiern-append-line)
@@ -449,19 +450,19 @@ included in `aiern-insert-state-bindings' by default."
 ;; User: https://emacs.stackexchange.com/users/2454/alexander-shukaev 
 (let ((c ?\s))
     (while (< c ?\d)
-        (tag-def :keymaps 'aiern-insert-state-map (vector c) 'self-insert-command)
+        (alloy-def :keymaps 'aiern-insert-state-map (vector c) 'self-insert-command)
         (setq c (1+ c)))
     (when (eq system-type 'ms-dos)
         (setq c 128)
         (while (< c 160)
-          (tag-def :keymaps 'aiern-insert-state-map (vector c) 'self-insert-command)
+          (alloy-def :keymaps 'aiern-insert-state-map (vector c) 'self-insert-command)
           (setq c (1+ c))))
     (setq c 160)
     (while (< c 256)
-        (tag-def :keymaps 'aiern-insert-state-map (vector c) 'self-insert-command)
+        (alloy-def :keymaps 'aiern-insert-state-map (vector c) 'self-insert-command)
         (setq c (1+ c))))
 
-(tag-def :keymaps 'aiern-insert-state-map
+(alloy-def :keymaps 'aiern-insert-state-map
   ;; NOTE: When I couldn't find this, I used `command-log-mode':
   ;; http://ergoemacs.org/emacs/emacs_show_key_and_command.html
   [deletechar] 'delete-char
@@ -472,7 +473,7 @@ included in `aiern-insert-state-bindings' by default."
   [?\d] 'delete-backward-char
   (naked "RET") 'newline-and-indent)
 
-(tag-def :keymaps '(aiern-insert-state-map aiern-normal-state-map)
+(alloy-def :keymaps '(aiern-insert-state-map aiern-normal-state-map)
   "C-x C-c" 'save-buffers-kill-terminal
   [t] 'self-insert-command
 
@@ -524,7 +525,7 @@ included in `aiern-insert-state-bindings' by default."
 
 ;; (aiern-ex-define-cmd "e[dit]" 'aiern-edit)
 (aiern-ex-define-cmd "w[rite]" 'aiern-write)
-;; (aiern-ex-define-cmd "wa[ll]" 'aiern-write-all)
+(aiern-ex-define-cmd "wa[ll]" 'aiern-write-all)
 ;; (aiern-ex-define-cmd "sav[eas]" 'aiern-save)
 ;; (aiern-ex-define-cmd "r[ead]" 'aiern-read)
 ;; (aiern-ex-define-cmd "b[uffer]" 'aiern-buffer)
@@ -559,12 +560,12 @@ included in `aiern-insert-state-bindings' by default."
 ;; (aiern-ex-define-cmd "clo[se]" 'aiern-window-delete)
 ;; (aiern-ex-define-cmd "on[ly]" 'delete-other-windows)
 (aiern-ex-define-cmd "q[uit]" 'aiern-quit)
-;; (aiern-ex-define-cmd "wq" 'aiern-save-and-close)
-;; (aiern-ex-define-cmd "quita[ll]" 'aiern-quit-all)
-;; (aiern-ex-define-cmd "qa[ll]" "quitall")
+(aiern-ex-define-cmd "wq" 'aiern-save-and-close)
+(aiern-ex-define-cmd "quita[ll]" 'aiern-quit-all)
+(aiern-ex-define-cmd "qa[ll]" "quitall")
 ;; (aiern-ex-define-cmd "cq[uit]" 'aiern-quit-all-with-error-code)
-;; (aiern-ex-define-cmd "wqa[ll]" 'aiern-save-and-quit)
-;; (aiern-ex-define-cmd "xa[ll]" "wqall")
+(aiern-ex-define-cmd "wqa[ll]" 'aiern-save-and-quit)
+(aiern-ex-define-cmd "xa[ll]" "wqall")
 ;; (aiern-ex-define-cmd "x[it]" 'aiern-save-modified-and-close)
 ;; (aiern-ex-define-cmd "exi[t]" 'aiern-save-modified-and-close)
 ;; (aiern-ex-define-cmd "bd[elete]" 'aiern-delete-buffer)

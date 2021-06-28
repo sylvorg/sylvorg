@@ -393,8 +393,8 @@
 ;;;###autoload
 (defun meq/pre-post-command-hook-command nil (interactive)
     (if (window-minibuffer-p)
-        (tag-def :keymaps 'override (naked "RET") nil)
-        (tag-def :keymaps 'override (naked "RET") 'newline-and-indent)))
+        (alloy-def :keymaps 'override (naked "RET") nil)
+        (alloy-def :keymaps 'override (naked "RET") 'newline-and-indent)))
 (add-hook 'pre-command-hook 'meq/pre-post-command-hook-command)
 (add-hook 'post-command-hook 'meq/pre-post-command-hook-command)
 

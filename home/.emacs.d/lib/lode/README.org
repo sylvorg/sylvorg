@@ -40,7 +40,7 @@
 ;;; Code:
 
 (require 'deino)
-(require 'tag)
+(require 'alloy)
 (require 'dash)
 (require 'meq)
 
@@ -63,7 +63,7 @@
             (:color blue)
             ,last-list
             ("`" nil "cancel")))
-        (when tags `(tag-def ,@tags))))
+        (when tags `(alloy-def ,@tags))))
 
 ;;;###autoload
 (defun lodestar (key func hint &rest keychain) (interactive) (apply #'lode* nil nil key func hint keychain))

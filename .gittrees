@@ -38,3 +38,7 @@
 	url = aiern-god-state
 	path = home/.emacs.d/lib/aiern-god-state
 	branch = master
+[subtree "home/.emacs.d/lib/alloy"]
+	url = alloy
+	path = home/.emacs.d/lib/alloy
+	branch = master
