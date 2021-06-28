@@ -1,43 +1,15 @@
-*
+.DS_Store
+*.html
 
-# From: https://jasonstitt.com/gitignore-whitelisting-patterns
-!*/
+# Compiled
+*.elc
 
-!home/.emacs.d/lib/aiern/**/**/*
-!home/.emacs.d/lib/alloy/**/**/*
-!home/.emacs.d/lib/doom-aiern-modeline/**/**/*
-!home/.emacs.d/lib/deino/**/**/*
-!home/.emacs.d/lib/sorrow/**/**/*
-!home/.emacs.d/lib/aiern-god-state/**/**/*
+# Packaging
+.cask
+/dist/
 
-!*.org
-!**/**/*.org
+# Backup files
+*~
 
-!README.*
-!**/**/README.*
-
-!*.dep
-!**/**/*.dep
-
-!*.lock
-!**/**/*.lock
-
-!flake.nix
-!**/**/flake.nix
-
-!*.git*
-!**/**/*.git*
-
-!bootstrap
-!**/**/bootstrap
-
-!makefile
-!**/**/makefile
-
-!org-tangle
-!**/**/org-tangle
-
-!peru.yaml
-!**/**/peru.yaml
-
-!LICENSE
+# Undo-tree save-files
+*.~undo-tree
