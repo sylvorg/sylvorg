@@ -9,147 +9,208 @@
 # User: https://stackoverflow.com/users/776405/whil
 #+startup: show3levels
 
-#+name: username
-#+begin_src text :exports none
-shadowrylander
+* use-package-extras
+
+#+name: normalize-and-handle
+#+begin_src emacs-lisp :var name="" :var func="" :exports none
+;; Adapted From:
+;; Answer: https://emacs.stackexchange.com/a/7381/31428
+;; User: https://emacs.stackexchange.com/users/719/adobe
+(format-spec ";; Adapted From: https://github.com/jwiegley/use-package/blob/master/use-package-core.el#L1153
+;;;###autoload
+(defalias 'use-package-normalize/:%n 'use-package-normalize-forms)
+
+;; Adapted From: https://gitlab.com/to1ne/use-package-hydra/-/blob/master/use-package-hydra.el#L79
+;;;###autoload
+(defun use-package-handler/:%n (name keyword args rest state)
+    (use-package-concat (mapcar #'(lambda (def) `(%f ,@def)) args)
+    (use-package-process-keywords name rest state)))" `((?n . ,name) (?f . ,func)))
 #+end_src
 
-#+name: hash-deprecated
-#+begin_src emacs-lisp :var name="" :exports none
-(md5 (concat (replace-regexp-in-string "/" "" (
-    org-format-outline-path (org-get-outline-path))) (
-        nth 4 (org-heading-components)) name))
+#+begin_src emacs-lisp :tangle use-package-extras.el :exports none
+;;; use-package-extras.el --- a simple package                     -*- lexical-binding: t; -*-
+
+;; Copyright (C) 2021  Jeet Ray
+
+;; Author: Jeet Ray <aiern@protonmail.com>
+;; Keywords: lisp
+;; Version: 0.0.1
+
+;; This program is free software; you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
+
+;; This program is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+
+;; You should have received a copy of the GNU General Public License
+;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+;;; Commentary:
+
+;; A bunch of `use-package' keywords that SEEM to work for me.
+
+;;; Code:
+
+
+;; Adapted From: https://github.com/jwiegley/use-package#use-package-chords
+;; Important: https://github.com/noctuid/general.el/issues/53#issuecomment-307262154
+(require 'use-package-chords)
+(require 'use-package-deino)
+
+<<leaf>>
+
+<<around-init>>
+
+<<around-config>>
+
+<<tag>>
+
+<<ex>>
+
+(provide 'use-package-extras)
+;;; use-package-extras.el ends here
 #+end_src
 
-#+name: hash
-#+begin_src emacs-lisp :exports none
-(format-time-string "%Y%m%d%H%M%S%N")
+** leaf
+
+#+name: leaf
+#+begin_src emacs-lisp
+<<normalize-and-handle(name="leaf", func="leaf")>>
+
+;; TODO: Convert these to an elisp or noweb function
+
+;; Adapted From: https://github.com/noctuid/general.el/blob/master/general.el#L2553
+(setq use-package-keywords
+    (cl-loop for item in use-package-keywords
+        if (eq item :hook)
+        collect :hook and collect :leaf
+        else
+        unless (eq item :leaf)
+        collect item))
 #+end_src
 
-* makefile
+** around init
 
-#+call: hash() :exports none
+#+name: around-init
+#+begin_src emacs-lisp
+<<normalize-and-handle(name="init/defun", func="defun")>>
 
-#+RESULTS:
-: 20210601181725825830000
+<<normalize-and-handle(name="init/defun*", func="cl-defun")>>
 
-#+name: 20210601181725825830000
-#+begin_src makefile :tangle makefile
-.RECIPEPREFIX := |
-.DEFAULT_GOAL := super-push
+;;;###autoload
+(defun load-emacs-file (path) (interactive)
+    (load (concat user-emacs-directory "lib/" path)))
 
-init:
-|sudo cp git-subtree.sh $$(git --exec-path)/git-subtree
+<<normalize-and-handle(name="load-emacs-file-preconfig", func="load-emacs-file")>>
 
-rebuild:
-|chmod +x ./wheee
-|./wheee --use-hash ${HASH} -H make
+<<normalize-and-handle(name="use-package-preconfig", func="use-package")>>
 
-switch:
-|chmod +x ./wheee
-|./wheee --use-hash ${HMASH} -H make --home-manager
-|./wheee --use-hash ${RMASH} -H make --home-manager
-
-pull:
-|git -C ~/<<username>> pull
-
-push:
-|git -C ~/<<username>> add .
-|-git -C ~/<<username>> commit --allow-empty-message -am ""
-|-git -C ~/<<username>> push
-
-tangle-all:
-|make -f ~/<<username>>/home/.emacs.d/makefile tangle-all
-
-push-emacs:
-|make -f ~/<<username>>/home/.emacs.d/makefile push
-
-emacs:
-|make -f ~/<<username>>/home/.emacs.d/makefile emacs
-
-emacs-test:
-|make -f ~/<<username>>/home/.emacs.d/makefile test
-
-supermacs:
-|make -f ~/<<username>>/home/.emacs.d/makefile supermacs
-
-libemacs:
-|make -f ~/<<username>>/home/.emacs.d/makefile libemacs
-
-super-push: tangle-all push push-emacs
+;; Adapted From: https://github.com/noctuid/general.el/blob/master/general.el#L2620
+(setq use-package-keywords
+    (cl-loop for item in use-package-keywords
+        if (eq item :commands)
+        collect :commands and
+        collect :init/defun and
+        collect :init/defun* and
+        collect :load-emacs-file-preconfig and
+        collect :use-package-preconfig
+        else
+        unless (memq item '(:init/defun
+                            :init/defun*
+                            :load-emacs-file-preconfig
+                            :use-package-preconfig))
+        collect item))
 #+end_src
 
-* previous projects
-** bakery
+** around config
 
-My pride and joy; based off of [[https://github.com/amoffat][Andrew Moffat's]] [[https://amoffat.github.io/sh/][sh]],
-this python module allows you to import shell commands as modules as well. For example:
+#+name: around-config
+#+begin_src emacs-lisp
+<<normalize-and-handle(name="config/defun", func="defun")>>
 
-# How does the code below work exactly, again? Revise it!
+<<normalize-and-handle(name="config/defun*", func="cl-defun")>>
 
-#+begin_src python
-<<20210601181755824433500>>
-<<20210601181800630609300>>
-<<20210601181804730771100>>
+<<normalize-and-handle(name="load-emacs-file-postconfig", func="load-emacs-file")>>
+
+<<normalize-and-handle(name="use-package-postconfig", func="use-package")>>
+
+(setq use-package-keywords
+    (cl-loop for item in use-package-keywords
+        if (eq item :load)
+        collect :load and
+        collect :config/defun and
+        collect :config/defun* and
+        collect :load-emacs-file-postconfig and
+        collect :use-package-postconfig
+        else
+        unless (memq item '(:config/defun
+                            :config/defun*
+                            :load-emacs-file-postconfig
+                            :use-package-postconfig))
+        collect item))
 #+end_src
 
-You might be thinking to yourself, "Cool!" And also, "...Wait what?"
+** tag
 
-*** breaking it down
+#+name: tag
+#+begin_src emacs-lisp
+<<normalize-and-handle(name="gsetq", func="alloy-setq")>>
 
------
+(setq use-package-keywords
+    (cl-loop for item in use-package-keywords
+        if (eq item :init)
+        collect :init and collect :gsetq
+        else
+        unless (eq item :gsetq)
+        collect item))
+<<normalize-and-handle(name="gadvice", func="tag-add-advice")>>
 
-#+call: hash() :exports none
+<<normalize-and-handle(name="gradvice", func="tag-remove-advice")>>
 
-#+RESULTS:
-: 20210601181755824433500
+(add-to-list 'use-package-keywords :gadvice t)
+(add-to-list 'use-package-keywords :gradvice t)
 
-#+name: 20210601181755824433500
-#+begin_src python
-from baker.y import git
+<<normalize-and-handle(name="postmaster", func="alloy-def")>>
+
+(setq use-package-keywords
+    (cl-loop for item in use-package-keywords
+        if (eq item :bind-keymap*)
+        collect :bind-keymap* and
+        collect :postmaster
+        else
+        unless (memq item '(:postmaster))
+        collect item))
+
+(with-eval-after-load 'tag
+    <<normalize-and-handle(name="grook", func="tag-remove-hook")>>
+
+    (setq use-package-keywords
+        (cl-loop for item in use-package-keywords
+            if (eq item :gfhook)
+            collect :gfhook and
+            collect :grook
+            else
+            unless (eq item :grook)
+            collect item)))
 #+end_src
 
-This will import the =git= utility from your path as a =bakery= object;
-note, however, that while the statement is importing =git= from =baker.y=,
-there are actually two submodules in play here: =baker= with a =y=,
-and =baker= with an =i=.
+** ex
 
-To facilitate the use of =git(C = [path]).status()=, the latter submodule must be used.
-This also prevents the use of something like =git()=, but, since that just shows the help text,
-one can simply use =git.help()= instead.
+#+name: ex
+#+begin_src emacs-lisp
+<<normalize-and-handle(name="evil-ex", func="evil-ex-define-cmd")>>
 
------
+(add-to-list 'use-package-keywords :evil-ex t)
 
-#+call: hash() :exports none
+<<normalize-and-handle(name="aiern-ex", func="aiern-ex-define-cmd")>>
 
-#+RESULTS:
-: 20210601181800630609300
+(add-to-list 'use-package-keywords :aiern-ex t)
 
-#+name: 20210601181800630609300
-#+begin_src python
-git.clone(
-    b = "master",
-    recurse_submodule = True,
-    "https://github.com/<<username>>/<<username>>",
-    "~/<<username>>",
-    _run = True,
-)
+<<normalize-and-handle(name="both-ex", func="meq/both-ex-define-cmd")>>
+
+(add-to-list 'use-package-keywords :both-ex t)
 #+end_src
-
------
-
-#+call: hash() :exports none
-
-#+RESULTS:
-: 20210601181804730771100
-
-#+name: 20210601181804730771100
-#+begin_src python
-print(git(C = "~/<<username>>").status())
-#+end_src
-
-*** want more information?
-
-Get it here! https://gitlab.com/picotech/bakery
-
-Also: eh heh heh... yeah... I like =gitlab's= grouping system... */sheepish grin/*
