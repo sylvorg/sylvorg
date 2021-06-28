@@ -9,147 +9,171 @@
 # User: https://stackoverflow.com/users/776405/whil
 #+startup: show3levels
 
-#+name: username
-#+begin_src text :exports none
-shadowrylander
-#+end_src
+* alamode
 
-#+name: hash-deprecated
-#+begin_src emacs-lisp :var name="" :exports none
-(md5 (concat (replace-regexp-in-string "/" "" (
-    org-format-outline-path (org-get-outline-path))) (
-        nth 4 (org-heading-components)) name))
-#+end_src
+#+name: cmf
+#+begin_src emacs-lisp :var map="" :var mode="" :var prefix="" :var short="" :exports none
+;; Adapted From:
+;; Answer: https://emacs.stackexchange.com/a/7381/31428
+;; User: https://emacs.stackexchange.com/users/719/adobe
+(format-spec "(defdeino+ toggles (:color blue)
+    (\"%s\" meq/toggle-%p \"%p\"))
+(defdeino+ all-keymaps (:color blue)
+    (\"%s\" (progn (setq all-keymaps-map '%m)
+    (meq/%p-show-top-level)) \"%p\"))
 
-#+name: hash
-#+begin_src emacs-lisp :exports none
-(format-time-string "%Y%m%d%H%M%S%N")
-#+end_src
-
-* makefile
-
-#+call: hash() :exports none
-
-#+RESULTS:
-: 20210601181725825830000
-
-#+name: 20210601181725825830000
-#+begin_src makefile :tangle makefile
-.RECIPEPREFIX := |
-.DEFAULT_GOAL := super-push
-
-init:
-|sudo cp git-subtree.sh $$(git --exec-path)/git-subtree
-
-rebuild:
-|chmod +x ./wheee
-|./wheee --use-hash ${HASH} -H make
-
-switch:
-|chmod +x ./wheee
-|./wheee --use-hash ${HMASH} -H make --home-manager
-|./wheee --use-hash ${RMASH} -H make --home-manager
-
-pull:
-|git -C ~/<<username>> pull
-
-push:
-|git -C ~/<<username>> add .
-|-git -C ~/<<username>> commit --allow-empty-message -am ""
-|-git -C ~/<<username>> push
-
-tangle-all:
-|make -f ~/<<username>>/home/.emacs.d/makefile tangle-all
-
-push-emacs:
-|make -f ~/<<username>>/home/.emacs.d/makefile push
-
-emacs:
-|make -f ~/<<username>>/home/.emacs.d/makefile emacs
-
-emacs-test:
-|make -f ~/<<username>>/home/.emacs.d/makefile test
-
-supermacs:
-|make -f ~/<<username>>/home/.emacs.d/makefile supermacs
-
-libemacs:
-|make -f ~/<<username>>/home/.emacs.d/makefile libemacs
-
-super-push: tangle-all push push-emacs
-#+end_src
-
-* previous projects
-** bakery
-
-My pride and joy; based off of [[https://github.com/amoffat][Andrew Moffat's]] [[https://amoffat.github.io/sh/][sh]],
-this python module allows you to import shell commands as modules as well. For example:
-
-# How does the code below work exactly, again? Revise it!
-
-#+begin_src python
-<<20210601181755824433500>>
-<<20210601181800630609300>>
-<<20210601181804730771100>>
-#+end_src
-
-You might be thinking to yourself, "Cool!" And also, "...Wait what?"
-
-*** breaking it down
-
------
-
-#+call: hash() :exports none
-
-#+RESULTS:
-: 20210601181755824433500
-
-#+name: 20210601181755824433500
-#+begin_src python
-from baker.y import git
-#+end_src
-
-This will import the =git= utility from your path as a =bakery= object;
-note, however, that while the statement is importing =git= from =baker.y=,
-there are actually two submodules in play here: =baker= with a =y=,
-and =baker= with an =i=.
-
-To facilitate the use of =git(C = [path]).status()=, the latter submodule must be used.
-This also prevents the use of something like =git()=, but, since that just shows the help text,
-one can simply use =git.help()= instead.
-
------
-
-#+call: hash() :exports none
-
-#+RESULTS:
-: 20210601181800630609300
-
-#+name: 20210601181800630609300
-#+begin_src python
-git.clone(
-    b = "master",
-    recurse_submodule = True,
-    "https://github.com/<<username>>/<<username>>",
-    "~/<<username>>",
-    _run = True,
+(hercules-def
+    :show-funs #'meq/%p-hercules-show
+    :hide-funs #'meq/%p-hercules-hide
+    :toggle-funs #'meq/%p-hercules-toggle
+    :keymap '%m
+    ;; :transient t
 )
+
+;;;###autoload
+(defun meq/%p-hercules-toggle nil (interactive))
+
+;;;###autoload
+(defun meq/%p-show-top-level nil (interactive)
+    (meq/which-key-show-top-level '%m))
+
+;;;###autoload
+(defun meq/toggle-%p nil (interactive)
+    (funcall 'meq/toggle-inner '%n \"%p\" (meq/fbatp %n) '%m))
+
+;;;###autoload
+(defun meq/toggle-%p-force nil (interactive)
+    (funcall 'meq/toggle-inner '%n \"%p\" (meq/fbatp %n) '%m nil t))
+
+;;;###autoload
+(defun meq/toggle-%p-hercules nil (interactive)
+    (funcall 'meq/toggle-inner '%n \"%p\" (meq/fbatp %n) '%m t))
+
+;;;###autoload
+(defun meq/toggle-%p-hercules-force nil (interactive)
+    (funcall 'meq/toggle-inner '%n \"%p\" (meq/fbatp %n) '%m t t))
+
+;;;###autoload
+(defun meq/%p-execute-with-current-bindings (&optional called-interactively) (interactive \"d\")
+    (funcall 'meq/execute-with-current-bindings-inner '%n \"%p\" (meq/fbatp %n) '%m nil called-interactively))
+
+;;;###autoload
+(defun meq/%p-hercules-execute-with-current-bindings (&optional called-interactively) (interactive \"d\")
+    (funcall 'meq/execute-with-current-bindings-inner '%n \"%p\" (meq/fbatp %n) '%m t called-interactively))
+
+    (add-to-list 'modal-modes '%n)
+    (add-to-list 'modal-prefixes \"%p\")" `((?m . ,map) (?n . ,mode) (?p . ,prefix) (?s . ,short)))
 #+end_src
 
------
+#+begin_src emacs-lisp :tangle alamode.el
+;;; alamode.el --- a simple package                     -*- lexical-binding: t; -*-
 
-#+call: hash() :exports none
+;; Copyright (C) 2021  Jeet Ray
 
-#+RESULTS:
-: 20210601181804730771100
+;; Author: Jeet Ray <aiern@protonmail.com>
+;; Keywords: lisp
+;; Version: 0.0.1
 
-#+name: 20210601181804730771100
-#+begin_src python
-print(git(C = "~/<<username>>").status())
+;; This program is free software; you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
+
+;; This program is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+
+;; You should have received a copy of the GNU General Public License
+;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+;;; Commentary:
+
+;; Put a description of the package here
+
+;;; Code:
+
+(require 'deino)
+(require 'meq)
+
+;; Adapted From: https://gitlab.com/jjzmajic/hercules.el/-/blob/master/hercules.el#L83
+;;;###autoload
+(defun meq/toggle-inner (mode prefix mode-on map &optional use-hercules force) (interactive)
+    (meq/disable-all-modal-modes)
+    (if mode-on
+        (when force (meq/which-key--show-popup map force))
+        (funcall mode 1)
+        (if use-hercules (ignore-errors (funcall (intern (concat "meq/" prefix "-hercules-show"))))
+            (meq/which-key-show-top-level map))
+        (setq current-modal-mode mode)
+        (setq last-modal-mode mode)))
+
+;; Adapted From: https://github.com/emacsorphanage/god-mode/blob/master/god-mode.el#L392
+;;;###autoload
+(defun meq/execute-with-current-bindings-inner (mode prefix mode-on map &optional use-hercules called-interactively)
+    (interactive "d")
+    (if called-interactively
+        (unless mode-on
+        (message (format "Switched to %s mode for the next command ..." prefix))
+        (letrec ((caller this-command)
+                (buffer (current-buffer))
+                (cleanup
+                    (lambda ()
+                    ;; Perform cleanup in original buffer even if the command
+                    ;; switched buffers.
+                    (if (buffer-live-p buffer)
+                        (with-current-buffer buffer
+                        (unwind-protect (meq/disable-all-modal-modes)
+                            (remove-hook 'post-command-hook post-hook)))
+                        (remove-hook 'post-command-hook post-hook)
+                        (when last-modal-mode (funcall last-modal-mode 1)))))
+                (kill-transient-map
+                    (set-transient-map
+                    map 'meq/god-prefix-command-p cleanup))
+                (post-hook
+                    (lambda ()
+                    (unless (and
+                            (eq this-command caller)
+                            ;; If we've entered the minibuffer, this implies
+                            ;; a non-prefix command was run, even if
+                            ;; `this-command' has not changed.  For example,
+                            ;; `execute-extended-command' behaves this way.
+                            (not (window-minibuffer-p)))
+                        (funcall kill-transient-map)))))
+            (add-hook 'post-command-hook post-hook)
+            ;; Pass the current prefix argument along to the next command.
+            (setq prefix-arg current-prefix-arg)
+            ;; Technically we don't need to activate %p mode since the
+            ;; transient keymap is already in place, but it's useful to provide
+            ;; a mode line lighter and run any hook functions the user has set
+            ;; up.  This could be made configurable in the future.
+            (funcall mode 1)
+            (when use-hercules (funcall (intern (concat "meq/" prefix "-hercules-show"))))))
+    (error "This function should only be called interactively")))
+
+<<cmf(map="aiern-normal-state-map", mode="aiern-mode", prefix="aiern", short="a")>>
+
+(with-eval-after-load 'ryo-modal
+    <<cmf(map="ryo-modal-mode-map", mode="ryo-modal-mode", prefix="ryo", short="r")>>)
+
+(with-eval-after-load 'evil
+    <<cmf(map="evil-normal-state-map", mode="evil-mode", prefix="evil", short="e")>>)
+
+(with-eval-after-load 'god-mode
+    <<cmf(map="global-map", mode="god-local-mode", prefix="god", short="g")>>)
+
+(with-eval-after-load 'xah-fly-keys
+    <<cmf(map="xah-fly-command-map", mode="xah-fly-keys", prefix="xah", short="x")>>)
+
+(with-eval-after-load 'objed
+    <<cmf(map="objed-map", mode="objed-mode", prefix="objed", short="o")>>)
+
+(with-eval-after-load 'kakoune
+    <<cmf(map="ryo-modal-mode-map", mode="ryo-modal-mode", prefix="kakoune", short="k")>>)
+
+(with-eval-after-load 'modalka
+    <<cmf(map="modalka-mode-map", mode="modalka-mode", prefix="modalka", short="m")>>)
+
+(provide 'alamode)
+;;; alamode.el ends here
 #+end_src
-
-*** want more information?
-
-Get it here! https://gitlab.com/picotech/bakery
-
-Also: eh heh heh... yeah... I like =gitlab's= grouping system... */sheepish grin/*
