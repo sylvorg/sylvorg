@@ -1,0 +1,48 @@
+[subtree "lib/aiern"]
+	url = aiern
+	path = lib/aiern
+	branch = master
+[subtree "lib/doom-aiern-modeline"]
+	url = doom-aiern-modeline
+	path = lib/doom-aiern-modeline
+	branch = master
+[subtree "lib/sorrow"]
+	url = sorrow
+	path = lib/sorrow
+	branch = master
+[subtree "lib/lode"]
+	url = lode
+	path = lib/lode
+	branch = main
+[subtree "lib/use-package-extras"]
+	url = use-package-extras
+	path = lib/use-package-extras
+	branch = main
+[subtree "lib/use-package-deino"]
+	url = use-package-deino
+	path = lib/use-package-deino
+	branch = main
+[subtree "lib/alamode"]
+	url = alamode
+	path = lib/alamode
+	branch = main
+[subtree "lib/meq"]
+	url = meq
+	path = lib/meq
+	branch = main
+[subtree "lib/emux"]
+	url = emux
+	path = lib/emux
+	branch = master
+[subtree "lib/deino"]
+	url = deino
+	path = lib/deino
+	branch = master
+[subtree "lib/aiern-god-state"]
+	url = aiern-god-state
+	path = lib/aiern-god-state
+	branch = master
+[subtree "lib/alloy"]
+	url = alloy
+	path = lib/alloy
+	branch = master

@@ -1,0 +1,105 @@
+;;; lode.el --- a simple package                     -*- lexical-binding: t; -*-
+
+;; Copyright (C) 2021  Jeet Ray
+
+;; Author: Jeet Ray <aiern@protonmail.com>
+;; Keywords: lisp
+;; Version: 0.0.1
+
+;; This program is free software; you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
+
+;; This program is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+
+;; You should have received a copy of the GNU General Public License
+;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+;;; Commentary:
+
+;; Put a description of the package here
+
+;;; Code:
+
+(require 'deino)
+(require 'alloy)
+(require 'dash)
+(require 'meq)
+
+;;;###autoload
+(defun lode* (parent tags key func hint &rest keychain)
+    (let* ((last-step (= (-count 'keywordp keychain) 1))
+            (carkey (meq/keyword-to-symbol-name (pop keychain)))
+            (last-name (concat (when parent (concat parent "/")) carkey))
+            (deino-name (concat "lodestar/" last-name))
+            (deino-funk (intern (concat
+                "defdeino"
+                (when (fboundp (intern (concat deino-name "/body"))) "+"))))
+            (last-list (if last-step `(,key ,func ,hint) 
+                `(,(meq/keyword-to-symbol-name (car keychain))
+                    ,(eval `(lode* ,last-name nil ,key ',func ,hint ,@keychain))))))
+
+        ;; Adapted From: https://github.com/abo-abo/deino/issues/164#issuecomment-136650511
+        (eval `(,deino-funk
+            ,(intern deino-name)
+            (:color blue)
+            ,last-list
+            ("`" nil "cancel")))
+        (when tags `(alloy-def ,@tags))))
+
+;;;###autoload
+(defun lodestar (key func hint &rest keychain) (interactive) (apply #'lode* nil nil key func hint keychain))
+(defun lodetags (tags key func hint &rest keychain) (interactive) (apply #'lode* nil tags key func hint keychain))
+
+;; Adapted From: https://github.com/noctuid/general.el/blob/master/general.el#L2708
+;;;###autoload
+(defun use-package-handler/:lodestar (name _keyword arglists rest state)
+"Use-package handler for :lodestar."
+(use-package-concat
+    (use-package-process-keywords name rest state)
+    `(,@(mapcar (lambda (arglist)
+                arglist
+                `(lodestar ,@arglist))
+                arglists))))
+
+;;;###autoload
+(defalias 'use-package-autoloads/:lodestar #'use-package-autoloads/:ghook)
+;;;###autoload
+(defalias 'use-package-normalize/:lodestar #'use-package-normalize/:ghook)
+
+;; Adapted From: https://github.com/noctuid/general.el/blob/master/general.el#L2708
+;;;###autoload
+(defun use-package-handler/:lodetags (name _keyword arglists rest state)
+"Use-package handler for :lodetags."
+(use-package-concat
+    (use-package-process-keywords name rest state)
+    `(,@(mapcar (lambda (arglist)
+                arglist
+                `(lodetags ,@arglist))
+                arglists))))
+
+;;;###autoload
+(defalias 'use-package-autoloads/:lodetags #'use-package-autoloads/:ghook)
+;;;###autoload
+(defalias 'use-package-normalize/:lodetags #'use-package-normalize/:ghook)
+
+;; Adapted From: https://github.com/noctuid/general.el/blob/master/general.el#L2554
+(setq use-package-keywords
+    ;; should go in the same location as :bind
+    ;; adding to end may not cause problems, but see issue #22
+    (cl-loop for item in use-package-keywords
+                if (eq item :bind-keymap*)
+                collect :bind-keymap* and
+                collect :lodestar and
+                collect :lodetags
+                else
+                ;; don't add duplicates
+                unless (memq item '(:lodestar :lodetags))
+                collect item))
+
+(provide 'lode)
+;;; lode.el ends here
