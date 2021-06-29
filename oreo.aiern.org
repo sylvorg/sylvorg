@@ -1,5 +1,5 @@
-#+setupfile: ./README.org
-#+include: ./README.org
+#+setupfile: home/.emacs.d/README.org
+#+includefile: home/.emacs.d/README.org
 
 This can be used with =GNU Stow= as well! :D
 

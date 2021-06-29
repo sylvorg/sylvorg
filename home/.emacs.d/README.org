@@ -14,6 +14,13 @@
 shadowrylander
 #+end_src
 
+#+name: hash-deprecated
+#+begin_src emacs-lisp :var name="" :exports none
+(md5 (concat (replace-regexp-in-string "/" "" (
+    org-format-outline-path (org-get-outline-path))) (
+        nth 4 (org-heading-components)) name))
+#+end_src
+
 #+name: hash
 #+begin_src emacs-lisp :exports none
 (format-time-string "%Y%m%d%H%M%S%N")

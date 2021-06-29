@@ -3,7 +3,7 @@
 # From: https://jasonstitt.com/gitignore-whitelisting-patterns
 !*/
 
-!home/.emacs.d
+!home/.emacs.d/**/**/*
 
 !*.org
 !**/**/*.org
