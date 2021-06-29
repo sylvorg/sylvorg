@@ -27,6 +27,7 @@
 
 (require 'hercules)
 (require 'naked)
+(require 'cl-lib)
 
 (defvar modal-modes nil)
 (defvar modal-prefixes (mapcar (lambda (mode) (interactive) (car (split-string (symbol-name mode) "-"))) modal-modes))
@@ -426,6 +427,12 @@ be ignored by `god-execute-with-current-bindings'."
                        negative-argument
                        universal-argument
                        universal-argument-more)))
+
+(defun meq/which-theme nil (interactive)
+    (when (member "--theme" command-line-args)
+        (load-theme (intern (concat
+            (nth (1+ (seq-position command-line-args "--theme")) command-line-args)
+            (if (member "--light" command-line-args) "-light" "-dark"))))))
 
 (with-eval-after-load 'aiern (with-eval-after-load 'evil (defun meq/both-ex-define-cmd (cmd function) (interactive)
     (evil-ex-define-cmd cmd function)

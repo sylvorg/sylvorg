@@ -5,7 +5,7 @@
 	url = git@github.com:shadowrylander/doom-aiern-modeline
 	fetch = +refs/heads/*:refs/remotes/doom-aiern-modeline/*
 [remote "alloy"]
-	url = git@github.com:shadowrylander/alloy
+	url = git@github.com:shadowrylander/alloy.git
 	fetch = +refs/heads/*:refs/remotes/alloy/*
 [remote "alamode"]
 	url = git@github.com:shadowrylander/alamode
@@ -29,11 +29,8 @@
 	url = git@github.com:shadowrylander/lode
 	fetch = +refs/heads/*:refs/remotes/lode/*
 [remote "meq"]
-	url = git@github.com:shadowrylander/meq
+	url = git@github.com:shadowrylander/meq.git
 	fetch = +refs/heads/*:refs/remotes/meq/*
 [remote "aiern-god-state"]
 	url = git@github.com:shadowrylander/aiern-god-state
 	fetch = +refs/heads/*:refs/remotes/aiern-god-state/*
-[remote "janus"]
-	url = git@github.com:shadowrylander/janus
-	fetch = +refs/heads/*:refs/remotes/janus/*

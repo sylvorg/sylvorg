@@ -26,7 +26,7 @@
 (setq custom-safe-themes t)
 
 ;; From: https://github.com/hartzell/straight.el/commit/882649137f73998d60741c7c8c993c7ebbe0f77a#diff-b335630551682c19a781afebcf4d07bf978fb1f8ac04c6bf87428ed5106870f5R1649
-(setq straight-disable-byte-compilation nil)
+(setq straight-disable-byte-compilation (member "--no-byte-compilation" command-line-args))
 (unless straight-disable-byte-compilation
     (byte-compile-file (concat user-emacs-directory "init.el") t)
     (byte-recompile-directory (concat user-emacs-directory "lib") nil t)

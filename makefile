@@ -41,10 +41,12 @@ test:
 |emacs ~/shadowrylander/damascus.aiern.org
 
 test-and-kill:
+|-emacsclient -s test -e "(kill-emacs)"
 |emacs ~/shadowrylander/damascus.aiern.org --bg-daemon=test
-|emacsclient -s test -e "(evil-quit t)"
+|emacsclient -s test -e "(kill-emacs)"
 
 emacs: setup test
 emacs-and-kill: setup test-and-kill
-supermacs: tangle-all emacs-and-kill emacs-and-kill emacs
+i-have-to-do-this-twice: emacs-and-kill emacs-and-kill
+supermax: tangle-all i-have-to-do-this-twice emacs
 libemacs: tangle-libs emacs-and-kill emacs

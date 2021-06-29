@@ -18,9 +18,9 @@
 
 ;; Adapted From: https://www.reddit.com/r/emacs/comments/caifq4/package_updates_with_straight/et99epi?utm_source=share&utm_medium=web2x&context=3
 ;; And: https://github.com/raxod502/straight.el#updating-recipe-repositories
-(straight-pull-all)
+(when (member "--update" command-line-args) (straight-pull-all)
 (straight-merge-all)
-(straight-freeze-versions)
+(straight-freeze-versions))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -264,7 +264,12 @@
 
         ;; (toggle-debug-on-error)
 
-        (load-theme 'dracula-purple-dark))
+        (unless (meq/which-theme) (cond
+            ((member "--purple" command-line-args) (load-theme 'dracula-purple-dark))
+            ((member "--orange" command-line-args) (load-theme 'dracula-orange-dark))
+            ((member "--red" command-line-args) (load-theme 'exo-ui-red-dark))
+            ((member "--flamingo" command-line-args) (load-theme 'herschel-flamingo-pink-dark))
+            (t (load-theme 'exo-ui-red-dark)))))
 
 ;; modal-modes
 
@@ -1014,7 +1019,7 @@
 
 
 ;; window manager
-(when (member "--exwm" argv) (use-package exwm :demand t
+(when (member "--exwm" command-line-args) (use-package exwm :demand t
     :config
         (require 'exwm-config)
         (exwm-config-default)
@@ -1040,3 +1045,6 @@
         :host github
         :repo "purcell/exec-path-from-shell"
         :branch "master"))
+
+
+(when (> (length command-line-args) 2) (find-file (car (last command-line-args))))
