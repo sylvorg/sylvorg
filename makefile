@@ -20,13 +20,16 @@ tangle: tangle-setup
 |yes yes | ~/.emacs.d/org-tangle ~/shadowrylander/*.aiern.org
 |yes yes | ~/.emacs.d/org-tangle ~/shadowrylander/README.org
 
-tangle-damascus: tangle-setup
+tangle-damascus: tangle-README
 |yes yes | ~/.emacs.d/org-tangle ~/shadowrylander/damascus.aiern.org
+
+tangle-README: tangle-setup
+|yes yes | ~/.emacs.d/org-tangle ~/shadowrylander/home/.emacs.d/README.org
 
 tangle-libs: tangle-setup
 |yes yes | find ~/shadowrylander/home/.emacs.d/lib -name README.org -exec ~/.emacs.d/org-tangle "{}" \;
 
-tangle-all: tangle tangle-libs
+tangle-all: tangle tangle-README tangle-libs
 
 setup: tangle-damascus copy
 
