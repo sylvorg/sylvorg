@@ -46,3 +46,7 @@
 	url = emacs
 	path = home/.emacs.d
 	branch = main
+[subtree "home/.emacs.d/lib/emux"]
+	url = emux
+	path = home/.emacs.d/lib/emux
+	branch = master
