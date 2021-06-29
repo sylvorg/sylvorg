@@ -1,0 +1,4 @@
+[subtree "home/.emacs.d"]
+	url = emacs
+	path = home/.emacs.d
+	branch = main

@@ -3,10 +3,8 @@
 
 This is used to hold larger files for =./oreo.aiern.org=.
 
-* home
-** .emacs.d
-*** lib
-**** simple+.el
+* lib
+** simple+.el
 
 #+call: hash() :exports none
 
@@ -609,7 +607,7 @@ the front of the kill ring, rather than being added to the list."
 ;;; simple+.el ends here
 #+end_src
 
-**** window+.el
+** window+.el
 
 #+call: hash() :exports none
 
@@ -905,7 +903,7 @@ and the buffer that is killed or buried is the one in that window."
 ;;; window+.el ends here
 #+end_src
 
-**** dired-details.el
+** dired-details.el
 
 #+call: hash() :exports none
 
@@ -1190,7 +1188,7 @@ hidden in this buffer."
 ;;; dired-details.el ends here
 #+end_src
 
-**** fringe.el
+** fringe.el
 
 #+call: hash() :exports none
 

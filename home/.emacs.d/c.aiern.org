@@ -3,10 +3,8 @@
 
 This is used to hold larger files for =./oreo.aiern.org=.
 
-* home
-** .emacs.d
-*** lib
-**** grep+.el
+* lib
+** grep+.el
 
 #+call: hash() :exports none
 
@@ -682,7 +680,7 @@ code \\([0-9]+\\)\\)?.*"
 ;;; grep+.el ends here
 #+end_src
 
-**** dired+.el
+** dired+.el
 
 #+call: hash() :exports none
 
@@ -16658,7 +16656,7 @@ If no one is selected, symmetric encryption will be performed.  "
 ;;; dired+.el ends here
 #+end_src
 
-**** dired-details+.el
+** dired-details+.el
 
 #+call: hash() :exports none
 
@@ -16902,7 +16900,7 @@ Otherwise, use the default state, as determined by
 ;;; dired-details+.el ends here
 #+end_src
 
-**** doremi-frm.el
+** doremi-frm.el
 
 #+call: hash() :exports none
 
@@ -19368,7 +19366,7 @@ FACE is a face symbol."
 ;;; doremi-frm.el ends here
 #+end_src
 
-**** facemenu+.el
+** facemenu+.el
 
 #+call: hash() :exports none
 
@@ -21231,7 +21229,7 @@ effect.  See `facemenu-remove-face-function'."
 ;;; facemenu+.el ends here
 #+end_src
 
-**** fit-frame.el
+** fit-frame.el
 
 #+call: hash() :exports none
 
@@ -22085,7 +22083,7 @@ FRAME is the frame to apply factor to."
 ;;; fit-frame.el ends here
 #+end_src
 
-**** frame-fns.el
+** frame-fns.el
 
 #+call: hash() :exports none
 
@@ -22408,7 +22406,7 @@ Terminates any keyboard macro executing, unless arg DO-NOT-TERMINATE non-nil."
 ;;; frame-fns.el ends here
 #+end_src
 
-**** frame+.el
+** frame+.el
 
 #+call: hash() :exports none
 
@@ -22612,7 +22610,7 @@ arguments."
 ;;; frame+.el ends here
 #+end_src
 
-**** info+.el
+** info+.el
 
 #+call: hash() :exports none
 
@@ -29175,7 +29173,7 @@ See `Info-bookmark-name-for-node' for the form of the bookmark name."
 #+end_src
 
 
-**** mouse+.el
+** mouse+.el
 
 #+call: hash() :exports none
 

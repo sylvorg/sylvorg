@@ -1,42 +1,30 @@
 .RECIPEPREFIX := |
 .DEFAULT_GOAL := super-push
 
+# Adapted From: https://www.systutorials.com/how-to-get-the-full-path-and-directory-of-a-makefile-itself/
+mkfilePath := $(abspath $(lastword $(MAKEFILE_LIST)))
+mkfileDir := $(dir $(mkfilePath))
+
 init:
 |sudo cp git-subtree.sh $$(git --exec-path)/git-subtree
 
-rebuild:
-|chmod +x ./wheee
-|./wheee --use-hash ${HASH} -H make
-
-switch:
-|chmod +x ./wheee
-|./wheee --use-hash ${HMASH} -H make --home-manager
-|./wheee --use-hash ${RMASH} -H make --home-manager
-
 pull:
-|git -C ~/shadowrylander pull
+|git -C $(mkfileDir) pull
+|git -C $(mkfileDir) subtree pull-all
 
 push:
-|git -C ~/shadowrylander add .
-|-git -C ~/shadowrylander commit --allow-empty-message -am ""
-|-git -C ~/shadowrylander push
+|git -C $(mkfileDir) add .
+|-git -C $(mkfileDir) commit --allow-empty-message -am ""
+|-git -C $(mkfileDir) push
+|git -C $(mkfileDir) subtree prune
+|-git -C $(mkfileDir) subtree push-all
 
-tangle-all:
-|make -f ~/shadowrylander/home/.emacs.d/makefile tangle-all
+tangle-setup:
+|chmod +x $(mkfileDir)/home/.emacs.d/org-tangle
 
-push-emacs:
-|make -f ~/shadowrylander/home/.emacs.d/makefile push
+tangle:
+|yes yes | $(mkfileDir)/home/.emacs.d/org-tangle $(mkfileDir)/*.aiern.org
+|yes yes | $(mkfileDir)/home/.emacs.d/org-tangle $(mkfileDir)/README.org
+|make -f $(mkfileDir)/home/.emacs.d/makefile tangle
 
-emacs:
-|make -f ~/shadowrylander/home/.emacs.d/makefile emacs
-
-emacs-test:
-|make -f ~/shadowrylander/home/.emacs.d/makefile test
-
-supermax:
-|make -f ~/shadowrylander/home/.emacs.d/makefile supermax
-
-libemacs:
-|make -f ~/shadowrylander/home/.emacs.d/makefile libemacs
-
-super-push: tangle-all push push-emacs
+super-push: tangle push

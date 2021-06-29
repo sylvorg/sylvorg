@@ -3,10 +3,8 @@
 
 This is used to hold larger files for =./oreo.aiern.org=.
 
-* home
-** .emacs.d
-*** lib
-**** faces+.el
+* lib
+** faces+.el
 
 #+call: hash() :exports none
 
@@ -242,7 +240,7 @@ as a face, leave it unmodified.  Value is FACE."
 ;;; faces+.el ends here
 #+end_src
 
-**** doremi.el
+** doremi.el
 
 #+call: hash() :exports none
 
@@ -850,7 +848,7 @@ MAX must be greater than min."
 ;;; doremi.el ends here
 #+end_src
 
-**** doremi-cmd.el
+** doremi-cmd.el
 
 #+call: hash() :exports none
 
@@ -1458,7 +1456,7 @@ WINDOW is selected.  WINDOW defaults to the selected window."
 ;;; doremi-cmd.el ends here
 #+end_src
 
-**** doremi-mac.el
+** doremi-mac.el
 
 #+call: hash() :exports none
 
@@ -1670,7 +1668,7 @@ INCREMENT, provided interactively by the prefix argument."
 ;;; doremi-mac.el ends here
 #+end_src
 
-**** ring+.el
+** ring+.el
 
 #+call: hash() :exports none
 
@@ -1836,7 +1834,7 @@ If SEQ is already a ring, return it."
 ;;; ring+.el ends here
 #+end_src
 
-**** hexrgb.el
+** hexrgb.el
 
 #+call: hash() :exports none
 
@@ -2831,7 +2829,7 @@ X must be between 0.0 and 1.0, or else an error is raised."
 ;;; hexrgb.el ends here
 #+end_src
 
-**** menu-bar+.el
+** menu-bar+.el
 
 #+call: hash() :exports none
 
@@ -4784,7 +4782,7 @@ setting the variable and displaying a status message (not MESSAGE)."
 ;;; menu-bar+.el ends here
 #+end_src
 
-**** setup-keys.el
+** setup-keys.el
 
 #+call: hash() :exports none
 
@@ -5807,7 +5805,7 @@ This has no effect unless you use library `misc-cmds.el'.")
 ;;; setup-keys.el ends here
 #+end_src
 
-**** thumb-frm.el
+** thumb-frm.el
 
 #+call: hash() :exports none
 
@@ -7021,7 +7019,7 @@ of window creation."
 ;;; thumb-frm.el ends here
 #+end_src
 
-**** zoom-frm.el
+** zoom-frm.el
 
 #+call: hash() :exports none
 
