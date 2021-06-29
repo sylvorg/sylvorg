@@ -1,6 +1,0 @@
-targets/
-.travis.yml
-.dir-locals.el
-Makefile
-README.md
-deino-test.el

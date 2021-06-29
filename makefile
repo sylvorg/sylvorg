@@ -2,11 +2,15 @@
 .DEFAULT_GOAL := emacs
 
 pull:
-|git -C ~/shadowrylander subtree pull-all
+|git -C ~/shadowrylander/home/.emacs.d pull
+|git -C ~/shadowrylander/home/.emacs.d subtree pull-all
 
 push:
-|git -C ~/shadowrylander subtree prune
-|-git -C ~/shadowrylander subtree push-all
+|git -C ~/shadowrylander/home/.emacs.d add .
+|-git -C ~/shadowrylander/home/.emacs.d commit --allow-empty-message -am ""
+|-git -C ~/shadowrylander/home/.emacs.d push
+|git -C ~/shadowrylander/home/.emacs.d subtree prune
+|-git -C ~/shadowrylander/home/.emacs.d subtree push-all
 
 copy:
 |rsync -avvczz ~/shadowrylander/home/.emacs.d/ ~/.emacs.d/
