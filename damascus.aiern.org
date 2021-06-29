@@ -8,6 +8,47 @@ which was written by [[https://emacs.stackexchange.com/users/2710/andrew-swann][
 
 * home
 ** .emacs.d
+*** .gitconfig
+
+#+begin_src conf :tangle (meq/tangle-path)
+[remote "aiern"]
+	url = git@github.com:shadowrylander/aiern
+	fetch = +refs/heads/*:refs/remotes/aiern/*
+[remote "doom-aiern-modeline"]
+	url = git@github.com:shadowrylander/doom-aiern-modeline
+	fetch = +refs/heads/*:refs/remotes/doom-aiern-modeline/*
+[remote "alloy"]
+	url = git@github.com:shadowrylander/alloy.git
+	fetch = +refs/heads/*:refs/remotes/alloy/*
+[remote "alamode"]
+	url = git@github.com:shadowrylander/alamode
+	fetch = +refs/heads/*:refs/remotes/alamode/*
+[remote "use-package-extras"]
+	url = git@github.com:shadowrylander/use-package-extras
+	fetch = +refs/heads/*:refs/remotes/use-package-extras/*
+[remote "emux"]
+	url = git@github.com:shadowrylander/emux
+	fetch = +refs/heads/*:refs/remotes/emux/*
+[remote "deino"]
+	url = git@github.com:shadowrylander/deino
+	fetch = +refs/heads/*:refs/remotes/deino/*
+[remote "use-package-deino"]
+	url = git@github.com:shadowrylander/use-package-deino
+	fetch = +refs/heads/*:refs/remotes/use-package-deino/*
+[remote "sorrow"]
+	url = git@github.com:shadowrylander/sorrow
+	fetch = +refs/heads/*:refs/remotes/sorrow/*
+[remote "lode"]
+	url = git@github.com:shadowrylander/lode
+	fetch = +refs/heads/*:refs/remotes/lode/*
+[remote "meq"]
+	url = git@github.com:shadowrylander/meq.git
+	fetch = +refs/heads/*:refs/remotes/meq/*
+[remote "aiern-god-state"]
+	url = git@github.com:shadowrylander/aiern-god-state
+	fetch = +refs/heads/*:refs/remotes/aiern-god-state/*
+#+end_src
+
 *** makefile
 
 #+call: hash() :exports none
@@ -60,12 +101,14 @@ test:
 |emacs ~/<<username>>/damascus.aiern.org
 
 test-and-kill:
+|-emacsclient -s test -e "(kill-emacs)"
 |emacs ~/<<username>>/damascus.aiern.org --bg-daemon=test
-|emacsclient -s test -e "(evil-quit t)"
+|emacsclient -s test -e "(kill-emacs)"
 
 emacs: setup test
 emacs-and-kill: setup test-and-kill
-supermacs: tangle-all emacs-and-kill emacs-and-kill emacs
+i-have-to-do-this-twice: emacs-and-kill emacs-and-kill
+supermax: tangle-all i-have-to-do-this-twice emacs
 libemacs: tangle-libs emacs-and-kill emacs
 #+end_src
 
@@ -151,7 +194,7 @@ Adapted From: https://github.com/hlissner/doom-emacs/blob/develop/early-init.el
 (setq custom-safe-themes t)
 
 ;; From: https://github.com/hartzell/straight.el/commit/882649137f73998d60741c7c8c993c7ebbe0f77a#diff-b335630551682c19a781afebcf4d07bf978fb1f8ac04c6bf87428ed5106870f5R1649
-(setq straight-disable-byte-compilation nil)
+(setq straight-disable-byte-compilation (member "--no-byte-compilation" command-line-args))
 (unless straight-disable-byte-compilation
     (byte-compile-file (concat user-emacs-directory "init.el") t)
     (byte-recompile-directory (concat user-emacs-directory "lib") nil t)
@@ -187,9 +230,9 @@ Adapted From: https://github.com/hlissner/doom-emacs/blob/develop/early-init.el
 
 ;; Adapted From: https://www.reddit.com/r/emacs/comments/caifq4/package_updates_with_straight/et99epi?utm_source=share&utm_medium=web2x&context=3
 ;; And: https://github.com/raxod502/straight.el#updating-recipe-repositories
-(straight-pull-all)
+(when (member "--update" command-line-args) (straight-pull-all)
 (straight-merge-all)
-(straight-freeze-versions)
+(straight-freeze-versions))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -257,6 +300,8 @@ Adapted From: https://github.com/hlissner/doom-emacs/blob/develop/early-init.el
 
 ;; system
 <<20210601225349590264700>>
+
+(when (> (length command-line-args) 2) (find-file (car (last command-line-args))))
 #+end_src
 
 **** use-package
@@ -1520,7 +1565,7 @@ Adapted From: https://tapoueh.org/blog/2009/09/escreen-integration/
 
 #+name: 20210601225348036290600
 #+begin_src emacs-lisp
-(when (member "--exwm" argv) (use-package exwm :demand t
+(when (member "--exwm" command-line-args) (use-package exwm :demand t
     :config
         (require 'exwm-config)
         (exwm-config-default)
@@ -1710,7 +1755,12 @@ Adapted from [[Ergoemacs' Emacs Lisp Code for Setting PATH and exec-path section
 
         ;; (toggle-debug-on-error)
 
-        (load-theme 'dracula-purple-dark))
+        (unless (meq/which-theme) (cond
+            ((member "--purple" command-line-args) (load-theme 'dracula-purple-dark))
+            ((member "--orange" command-line-args) (load-theme 'dracula-orange-dark))
+            ((member "--red" command-line-args) (load-theme 'exo-ui-red-dark))
+            ((member "--flamingo" command-line-args) (load-theme 'herschel-flamingo-pink-dark))
+            (t (load-theme 'exo-ui-red-dark)))))
 #+end_src
 
 *** org-tangle

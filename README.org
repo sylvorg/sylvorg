@@ -70,8 +70,8 @@ emacs:
 emacs-test:
 |make -f ~/<<username>>/home/.emacs.d/makefile test
 
-supermacs:
-|make -f ~/<<username>>/home/.emacs.d/makefile supermacs
+supermax:
+|make -f ~/<<username>>/home/.emacs.d/makefile supermax
 
 libemacs:
 |make -f ~/<<username>>/home/.emacs.d/makefile libemacs

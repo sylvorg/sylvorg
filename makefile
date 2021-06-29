@@ -33,8 +33,8 @@ emacs:
 emacs-test:
 |make -f ~/shadowrylander/home/.emacs.d/makefile test
 
-supermacs:
-|make -f ~/shadowrylander/home/.emacs.d/makefile supermacs
+supermax:
+|make -f ~/shadowrylander/home/.emacs.d/makefile supermax
 
 libemacs:
 |make -f ~/shadowrylander/home/.emacs.d/makefile libemacs
