@@ -1,0 +1,36 @@
+[remote "aiern"]
+	url = git@github.com:shadowrylander/aiern
+	fetch = +refs/heads/*:refs/remotes/aiern/*
+[remote "doom-aiern-modeline"]
+	url = git@github.com:shadowrylander/doom-aiern-modeline
+	fetch = +refs/heads/*:refs/remotes/doom-aiern-modeline/*
+[remote "alloy"]
+	url = git@github.com:shadowrylander/alloy.git
+	fetch = +refs/heads/*:refs/remotes/alloy/*
+[remote "alamode"]
+	url = git@github.com:shadowrylander/alamode
+	fetch = +refs/heads/*:refs/remotes/alamode/*
+[remote "use-package-extras"]
+	url = git@github.com:shadowrylander/use-package-extras
+	fetch = +refs/heads/*:refs/remotes/use-package-extras/*
+[remote "emux"]
+	url = git@github.com:shadowrylander/emux
+	fetch = +refs/heads/*:refs/remotes/emux/*
+[remote "deino"]
+	url = git@github.com:shadowrylander/deino
+	fetch = +refs/heads/*:refs/remotes/deino/*
+[remote "use-package-deino"]
+	url = git@github.com:shadowrylander/use-package-deino
+	fetch = +refs/heads/*:refs/remotes/use-package-deino/*
+[remote "sorrow"]
+	url = git@github.com:shadowrylander/sorrow
+	fetch = +refs/heads/*:refs/remotes/sorrow/*
+[remote "lode"]
+	url = git@github.com:shadowrylander/lode
+	fetch = +refs/heads/*:refs/remotes/lode/*
+[remote "meq"]
+	url = git@github.com:shadowrylander/meq.git
+	fetch = +refs/heads/*:refs/remotes/meq/*
+[remote "aiern-god-state"]
+	url = git@github.com:shadowrylander/aiern-god-state
+	fetch = +refs/heads/*:refs/remotes/aiern-god-state/*
