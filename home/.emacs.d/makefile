@@ -5,11 +5,14 @@
 mkfilePath := $(abspath $(lastword $(MAKEFILE_LIST)))
 mkfileDir := $(dir $(mkfilePath))
 
-pull:
+init:
+|sudo cp $(mkfileDir)/git-subtree $$(git --exec-path)/
+
+pull: init
 |git -C $(mkfileDir) pull
 |git -C $(mkfileDir) subtree pull-all
 
-push:
+push: init
 |git -C $(mkfileDir) add .
 |-git -C $(mkfileDir) commit --allow-empty-message -am ""
 |-git -C $(mkfileDir) push
@@ -20,7 +23,11 @@ tangle-setup:
 |chmod +x $(mkfileDir)/org-tangle
 
 tangle: tangle-setup
-|yes yes | fd . $(mkfileDir) -HIe org -E $(mkfileDir)/yankpad.org -x $(mkfileDir)/org-tangle
+|-ln -sf $$(which fdfind) ~/.local/bin/fd
+|yes yes | fd . $(mkfileDir) \
+    -HIe org \
+    -E $(mkfileDir)/yankpad.org \
+    -x $(mkfileDir)/org-tangle
 
 test:
 |emacs $(mkfileDir)/testing.aiern.org

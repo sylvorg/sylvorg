@@ -4,15 +4,16 @@
 # Adapted From: https://www.systutorials.com/how-to-get-the-full-path-and-directory-of-a-makefile-itself/
 mkfilePath := $(abspath $(lastword $(MAKEFILE_LIST)))
 mkfileDir := $(dir $(mkfilePath))
+emkFile := $(mkfileDir)/home/.emacs.d/makefile
 
 init:
-|sudo cp git-subtree.sh $$(git --exec-path)/git-subtree
+|make -f $(emkFile) init
 
-pull:
+pull: init
 |git -C $(mkfileDir) pull
 |git -C $(mkfileDir) subtree pull-all
 
-push:
+push: init
 |git -C $(mkfileDir) add .
 |-git -C $(mkfileDir) commit --allow-empty-message -am ""
 |-git -C $(mkfileDir) push
@@ -20,11 +21,16 @@ push:
 |-git -C $(mkfileDir) subtree push-all
 
 tangle-setup:
-|chmod +x $(mkfileDir)/home/.emacs.d/org-tangle
+|make -f $(emkFile) tangle-setup
 
-tangle:
-|yes yes | $(mkfileDir)/home/.emacs.d/org-tangle $(mkfileDir)/*.aiern.org
-|yes yes | $(mkfileDir)/home/.emacs.d/org-tangle $(mkfileDir)/README.org
-|make -f $(mkfileDir)/home/.emacs.d/makefile tangle
+tangle: tangle-setup
+|@-ln -sf $$(which fdfind &> /dev/null) ~/.local/bin/fd
+|yes yes | fd . $(mkfileDir) \
+    -HIe org \
+    -E $(mkfileDir)/home/.emacs.d \
+    -x $(mkfileDir)/home/.emacs.d/org-tangle
 
-super-push: tangle push
+tangle-with-emacs: tangle
+|make -f $(emkFile) tangle
+
+super-push: tangle-with-emacs push
