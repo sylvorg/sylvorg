@@ -1,5 +1,5 @@
 #+setupfile: home/.emacs.d/README.org
-#+includefile: home/.emacs.d/README.org
+#+include: home/.emacs.d/README.org
 
 This is used to hold larger files for =./oreo.aiern.org=.
 

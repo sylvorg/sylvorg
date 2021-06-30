@@ -133,6 +133,7 @@ trees with the :notangle: tag."
         (_ (error "Unknown option or file: %s" arg)))))
 
   (dolist (file srcs)
+    (message (format "\n\nNow tangling %s:\n" file))
     (let ((backup (make-temp-file (file-name-base file) nil ".backup.org")))
       (unwind-protect
           ;; Prevent slow hooks from interfering
@@ -141,9 +142,11 @@ trees with the :notangle: tag."
             ;; changes to the current file, which would be imposing on the user.
             (copy-file file backup t)
             (with-current-buffer (find-file-noselect file)
+
               ;; Tangling doesn't expand #+INCLUDE directives, so we do it
               ;; ourselves, since includes are so useful for literate configs!
               ;; (org-export-expand-include-keyword)
+
               (org-babel-tangle nil nil lang)))
         (ignore-errors (copy-file backup file t))
         (ignore-errors (delete-file backup)))))
