@@ -6,7 +6,7 @@ mkfilePath := $(abspath $(lastword $(MAKEFILE_LIST)))
 mkfileDir := $(dir $(mkfilePath))
 
 init:
-|sudo cp $(mkfileDir)/git-subtree $$(git --exec-path)/
+|-sudo cp $(mkfileDir)/git-subtree $$(git --exec-path)/
 
 pull: init
 |git -C $(mkfileDir) pull

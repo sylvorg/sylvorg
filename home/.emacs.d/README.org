@@ -89,7 +89,7 @@ mkfilePath := $(abspath $(lastword $(MAKEFILE_LIST)))
 mkfileDir := $(dir $(mkfilePath))
 
 init:
-|sudo cp $(mkfileDir)/git-subtree $$(git --exec-path)/
+|-sudo cp $(mkfileDir)/git-subtree $$(git --exec-path)/
 
 pull: init
 |git -C $(mkfileDir) pull
@@ -1772,7 +1772,8 @@ Adapted from [[Ergoemacs' Emacs Lisp Code for Setting PATH and exec-path section
             ((member "--red" command-line-args) (load-theme 'exo-ui-red-dark))
             ((member "--flamingo" command-line-args) (load-theme 'herschel-flamingo-pink-dark))
             ((member "--blue" command-line-args) (load-theme 'st-giles-blue-dark))
-            (t (load-theme 'ghostfreak-green-dark)))))
+            ((member "--lio" command-line-args) (load-theme 'lio-fotia-dark))
+            (t (load-theme 'lio-fotia-dark)))))
 #+end_src
 
 * org-tangle

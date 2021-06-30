@@ -270,7 +270,8 @@
             ((member "--red" command-line-args) (load-theme 'exo-ui-red-dark))
             ((member "--flamingo" command-line-args) (load-theme 'herschel-flamingo-pink-dark))
             ((member "--blue" command-line-args) (load-theme 'st-giles-blue-dark))
-            (t (load-theme 'ghostfreak-green-dark)))))
+            ((member "--lio" command-line-args) (load-theme 'lio-fotia-dark))
+            (t (load-theme 'lio-fotia-dark)))))
 
 ;; modal-modes
 
