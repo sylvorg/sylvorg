@@ -1,5 +1,4 @@
-#+setupfile: home/.emacs.d/README.org
-#+include: home/.emacs.d/README.org
+#+setupfile: ~/.emacs.d/README.org
 
 This can be used with =GNU Stow= as well! :D
 
@@ -4234,6 +4233,8 @@ with builtins; let
             };
         };
 
+        targets.genericLinux.enable = !nixos;
+
         home = let
             persistence = {
                 ${
@@ -4741,7 +4742,7 @@ direnv = {
 ".direnvrc".source = "${homeDirectory}/${primary.user}/home/.direnvrc";
 #+end_src
 
-* wheee
+* wheee.py
 
 #+call: hash() :exports none
 
@@ -4767,7 +4768,7 @@ parser.add_argument("-d", "--dry-run", action="store_true")
 parser.add_argument("-m", "--home-manager", action="store_true")
 parser.add_argument("-i", "--install", action="store_true")
 parser.add_argument("-H", "--host", required=True)
-parser.add_argument("-u", "--user", default="root")
+parser.add_argument("-u", "--user", default=os.environ["USER"])
 args, unknown = parser.parse_known_args(argv[1:])
 
 homeManager = args.home_manager or args.file
@@ -4838,7 +4839,7 @@ if not args.dry_run:
         run(command(getHash()), shell = True)
 #+end_src
 
-* bootstrap
+* bootstrap.py
 
 #+call: hash() :exports none
 
