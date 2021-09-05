@@ -1,0 +1,88 @@
+[subtree "siluam/alamode"]
+	url = alamode
+	path = siluam/alamode
+	branch = main
+[subtree "siluam/use-package-extras"]
+	url = use-package-extras
+	path = siluam/use-package-extras
+	branch = main
+[subtree "siluam/use-package-deino"]
+	url = use-package-deino
+	path = siluam/use-package-deino
+	branch = main
+[subtree "siluam/lode"]
+	url = lode
+	path = siluam/lode
+	branch = main
+[subtree "siluam/meq"]
+	url = meq
+	path = siluam/meq
+	branch = main
+[subtree "siluam/janus"]
+	url = janus
+	path = siluam/janus
+	branch = main
+[subtree "siluam/titan"]
+	url = titan
+	path = siluam/titan
+	branch = main
+[subtree "siluam/fell"]
+	url = fell
+	path = siluam/fell
+	branch = main
+[subtree "siluam/doc"]
+	url = doc
+	path = siluam/doc
+	branch = main
+[subtree "siluam/cosmog"]
+	url = cosmog
+	path = siluam/cosmog
+	branch = main
+[subtree "siluam/uru"]
+	url = uru
+	path = siluam/uru
+	branch = main
+[subtree "siluam/prime"]
+	url = prime
+	path = siluam/prime
+	branch = main
+[subtree "siluam/meta"]
+	url = meta
+	path = siluam/meta
+	branch = main
+[subtree "siluam/riot"]
+	url = riot
+	path = siluam/riot
+	branch = main
+[subtree "siluam/aiern"]
+	url = aiern
+	path = siluam/aiern
+	branch = master
+[subtree "siluam/doom-aiern-modeline"]
+	url = doom-aiern-modeline
+	path = siluam/doom-aiern-modeline
+	branch = master
+[subtree "siluam/alloy"]
+	url = alloy
+	path = siluam/alloy
+	branch = master
+[subtree "siluam/deino"]
+	url = deino
+	path = siluam/deino
+	branch = master
+[subtree "siluam/sorrow"]
+	url = sorrow
+	path = siluam/sorrow
+	branch = master
+[subtree "siluam/aiern-god-state"]
+	url = aiern-god-state
+	path = siluam/aiern-god-state
+	branch = master
+[subtree "siluam/cosmoem"]
+	url = cosmoem
+	path = siluam/cosmoem
+	branch = master
+[subtree "siluam/evil-evilified-state"]
+	url = evil-evilified-state
+	path = siluam/evil-evilified-state
+	branch = master

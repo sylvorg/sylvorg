@@ -1,0 +1,69 @@
+* 0.15.0
+** New Features
+
+*** defdeino
+
+**** New :base-map option in body plist
+In case your deino conflicts with el:deino-base-map, you can now override it.
+
+Example:
+#+begin_src elisp
+(defdeino deino-numbers (:base-map (make-sparse-keymap))
+  "test"
+  ("0" (message "zero"))
+  ("1" (message "one")))
+#+end_src
+See [[https://github.com/abo-abo/deino/issues/285][#285]].
+
+**** Make no docstring equivalent to :hint nil
+Example:
+#+begin_src elisp
+(defdeino deino-clock (:color blue)
+  ("q" nil "quit" :column "Clock")
+  ("c" org-clock-cancel "cancel" :color pink :column "Do")
+  ("d" org-clock-display "display")
+  ("e" org-clock-modify-effort-estimate "effort")
+  ("i" org-clock-in "in")
+  ("j" org-clock-goto "jump")
+  ("o" org-clock-out "out")
+  ("r" org-clock-report "report"))
+#+end_src
+See [[https://github.com/abo-abo/deino/issues/291][#291]].
+
+**** Declare /params and /docstring
+See [[https://github.com/abo-abo/deino/issues/185][#185]].
+
+**** Sexp hints are now supported for :columns
+Example
+#+begin_src elisp
+(defdeino deino-test ()
+  "Test"
+  ("j" next-line (format-time-string "%H:%M:%S" (current-time)) :column "One")
+  ("k" previous-line (format-time-string "%H:%M:%S" (current-time)))
+  ("l" backward-char "back" :column "Two"))
+#+end_src
+See [[https://github.com/abo-abo/deino/issues/311][#311]].
+
+
+*** defdeino+
+New macro. Allows to add heads to an existing deino.
+
+Example:
+#+begin_src elisp
+(defdeino deino-extendable ()
+  "extendable"
+  ("j" next-line "down"))
+
+(defdeino+ deino-extendable ()
+  ("k" previous-line "up"))
+#+end_src
+See [[https://github.com/abo-abo/deino/issues/185][#185]].
+
+*** el:deino-hint-display-type
+Customize what to use to display the hint:
+- el:message
+- el:lv-message
+- posframe
+
+el:deino-lv is now obsolete.
+See [[https://github.com/abo-abo/deino/issues/317][#317]].

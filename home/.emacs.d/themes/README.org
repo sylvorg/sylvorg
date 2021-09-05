@@ -1,0 +1,90 @@
+* Screenshots
+** dracula-purple-light-theme.el
+
+[[https://github.com/shadowrylander/.emacs.d/blob/main/themes/screenshots/dracula-purple-light.png]]
+[[https://themer.dev/?colors.dark.shade0=%23222222&colors.dark.shade7=%23ab5dee&colors.light.shade0=%23ab5dee&colors.light.shade7=%23222222&activeColorSet=dark][Get the theme here!]]
+
+** dracula-purple-dark-theme.el
+
+[[https://github.com/shadowrylander/.emacs.d/blob/main/themes/screenshots/dracula-purple-dark.png]]
+[[https://themer.dev/?colors.dark.shade0=%23222222&colors.dark.shade7=%23ab5dee&colors.light.shade0=%23ab5dee&colors.light.shade7=%23222222&activeColorSet=dark][Get the theme here!]]
+
+** dracula-orange-light-theme.el
+
+[[https://github.com/shadowrylander/.emacs.d/blob/main/themes/screenshots/dracula-orange-light.png]]
+[[https://themer.dev/?colors.dark.shade0=%23222222&colors.dark.shade7=%23ffb86c&colors.light.shade0=%23ffb86c&colors.light.shade7=%23222222&activeColorSet=dark][Get the theme here!]]
+
+** dracula-orange-dark-theme.el
+
+[[https://github.com/shadowrylander/.emacs.d/blob/main/themes/screenshots/dracula-orange-dark.png]]
+[[https://themer.dev/?colors.dark.shade0=%23222222&colors.dark.shade7=%23ffb86c&colors.light.shade0=%23ffb86c&colors.light.shade7=%23222222&activeColorSet=dark][Get the theme here!]]
+
+** herschel-flamingo-pink-light-theme.el
+
+[[https://github.com/shadowrylander/.emacs.d/blob/main/themes/screenshots/herschel-flamingo-pink-light.png]]
+[[https://themer.dev/?colors.dark.shade0=%23222222&colors.dark.shade7=%23fca78e&colors.light.shade0=%23fca78e&colors.light.shade7=%23222222&activeColorSet=dark][Get the theme here!]]
+
+** herschel-flamingo-pink-dark-theme.el
+
+[[https://github.com/shadowrylander/.emacs.d/blob/main/themes/screenshots/herschel-flamingo-pink-dark.png]]
+[[https://themer.dev/?colors.dark.shade0=%23222222&colors.dark.shade7=%23fca78e&colors.light.shade0=%23fca78e&colors.light.shade7=%23222222&activeColorSet=dark][Get the theme here!]]
+
+** exo-ui-red-light-theme.el
+
+[[https://github.com/shadowrylander/.emacs.d/blob/main/themes/screenshots/exo-ui-red-light.png]]
+[[https://themer.dev/?colors.dark.shade0=%23222222&colors.dark.shade7=%23ff5156&colors.light.shade0=%23ff5156&colors.light.shade7=%23222222&activeColorSet=dark][Get the theme here!]]
+
+** exo-ui-red-dark-theme.el
+
+[[https://github.com/shadowrylander/.emacs.d/blob/main/themes/screenshots/exo-ui-red-dark.png]]
+[[https://themer.dev/?colors.dark.shade0=%23222222&colors.dark.shade7=%23ff5156&colors.light.shade0=%23ff5156&colors.light.shade7=%23222222&activeColorSet=dark][Get the theme here!]]
+
+** st-giles-blue-light-theme.el
+
+[[https://github.com/shadowrylander/.emacs.d/blob/main/themes/screenshots/st-giles-blue-light.png]]
+[[https://themer.dev/?colors.dark.shade0=%23222222&colors.dark.shade7=%23599ec4&colors.light.shade0=%23599ec4&colors.light.shade7=%23222222&activeColorSet=dark][Get the theme here!]]
+
+** st-giles-blue-dark-theme.el
+
+[[https://github.com/shadowrylander/.emacs.d/blob/main/themes/screenshots/st-giles-blue-dark.png]]
+[[https://themer.dev/?colors.dark.shade0=%23222222&colors.dark.shade7=%23599ec4&colors.light.shade0=%23599ec4&colors.light.shade7=%23222222&activeColorSet=dark][Get the theme here!]]
+
+** ghostfreak-green-light-theme.el
+
+[[https://github.com/shadowrylander/.emacs.d/blob/main/themes/screenshots/ghostfreak-green-light.png]]
+[[https://themer.dev/?colors.dark.shade0=%23222222&colors.dark.shade7=%23E3FFC5&colors.light.shade0=%23E3FFC5&colors.light.shade7=%23222222&activeColorSet=dark][Get the theme here!]]
+
+** ghostfreak-green-dark-theme.el
+
+[[https://github.com/shadowrylander/.emacs.d/blob/main/themes/screenshots/ghostfreak-green-dark.png]]
+[[https://themer.dev/?colors.dark.shade0=%23222222&colors.dark.shade7=%23E3FFC5&colors.light.shade0=%23E3FFC5&colors.light.shade7=%23222222&activeColorSet=dark][Get the theme here!]]
+
+** lio-fotia-light-theme.el
+
+[[https://github.com/shadowrylander/.emacs.d/blob/main/themes/screenshots/lio-fotia-light.png]]
+[[https://themer.dev/?colors.dark.shade0=%23A06088&colors.dark.shade7=%23C8E0A8&colors.light.shade0=%23C8E0A8&colors.light.shade7=%23A06088&activeColorSet=dark][Get the theme here!]]
+
+** lio-fotia-dark-theme.el
+
+[[https://github.com/shadowrylander/.emacs.d/blob/main/themes/screenshots/lio-fotia-dark.png]]
+[[https://themer.dev/?colors.dark.shade0=%23A06088&colors.dark.shade7=%23C8E0A8&colors.light.shade0=%23C8E0A8&colors.light.shade7=%23A06088&activeColorSet=dark][Get the theme here!]]
+
+** flamingo-pink-purple-light-theme.el
+
+[[https://github.com/shadowrylander/.emacs.d/blob/main/themes/screenshots/flamingo-pink-purple-light.png]]
+[[https://themer.dev/?colors.dark.shade0=%23ab5dee&colors.dark.shade7=%23fca78e&colors.light.shade0=%23fca78e&colors.light.shade7=%23ab5dee&activeColorSet=dark][Get the theme here!]]
+
+** flamingo-pink-purple-dark-theme.el
+
+[[https://github.com/shadowrylander/.emacs.d/blob/main/themes/screenshots/flamingo-pink-purple-dark.png]]
+[[https://themer.dev/?colors.dark.shade0=%23ab5dee&colors.dark.shade7=%23fca78e&colors.light.shade0=%23fca78e&colors.light.shade7=%23ab5dee&activeColorSet=dark][Get the theme here!]]
+
+** orange-purple-light-theme.el
+
+[[https://github.com/shadowrylander/.emacs.d/blob/main/themes/screenshots/orange-purple-light.png]]
+[[https://themer.dev/?colors.dark.shade0=%23ab5dee&colors.dark.shade7=%23ffb86c&colors.light.shade0=%23fca78e&colors.light.shade7=%23ab5dee&activeColorSet=dark][Get the theme here!]]
+
+** orange-purple-dark-theme.el
+
+[[https://github.com/shadowrylander/.emacs.d/blob/main/themes/screenshots/orange-purple-dark.png]]
+[[https://themer.dev/?colors.dark.shade0=%23ab5dee&colors.dark.shade7=%23ffb86c&colors.light.shade0=%23fca78e&colors.light.shade7=%23ab5dee&activeColorSet=dark][Get the theme here!]]

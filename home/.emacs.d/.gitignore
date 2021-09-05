@@ -1,0 +1,24 @@
+*
+
+# From: https://jasonstitt.com/gitignore-whitelisting-patterns
+!*/
+
+!**/**/*.org
+!**/**/README.*
+!**/**/custom.el
+!**/**/makefile
+!**/**/*.mk
+!**/**/*.git*
+
+!/siluam/**/**
+!/themes/screenshots/**/**
+
+!/org-tangle.sh
+!/borg.gif
+!/git-subtree
+
+**/**/README.el
+**/**/README.elc
+**/**/.local
+/lib
+/epkgs

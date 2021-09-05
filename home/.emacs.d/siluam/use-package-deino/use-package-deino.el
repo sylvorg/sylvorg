@@ -1,0 +1,112 @@
+;;; use-package-deino.el --- a simple package                     -*- lexical-binding: t; -*-
+
+;; Copyright (C) 2021  Jeet Ray
+
+;; Author: Jeet Ray <aiern@protonmail.com>
+;; Keywords: lisp
+;; Version: 0.0.1
+
+;; This program is free software; you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
+
+;; This program is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+
+;; You should have received a copy of the GNU General Public License
+;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+;;; Commentary:
+
+;; Primarily adapted from https://gitlab.com/to1ne/use-package-hydra/-/blob/master/use-package-hydra.el
+
+;;; Code:
+
+(require 'use-package-core)
+(require 'use-package-hydra)
+
+;;;###autoload
+(defalias 'use-package-normalize/:hydra+ 'use-package-normalize/:hydra
+  "Normalize for the definition of one or more plus hydras.")
+
+;;;###autoload
+(defun use-package-handler/:hydra+ (name keyword args rest state)
+  "Generate defhydra+ with NAME for `:hydra+' KEYWORD.
+ARGS, REST, and STATE are prepared by `use-package-normalize/:hydra+'."
+  (use-package-concat
+   (mapcar #'(lambda (def) `(defhydra+ ,@def)) args)
+   (use-package-process-keywords name rest state)))
+
+(add-to-list 'use-package-keywords :hydra+ t)
+
+;;;###autoload
+(defalias 'use-package-normalize/:deino 'use-package-normalize/:hydra
+  "Normalize for the definition of one or more deinos.")
+
+;;;###autoload
+(defun use-package-handler/:deino (name keyword args rest state)
+  "Generate defdeino with NAME for `:deino' KEYWORD.
+ARGS, REST, and STATE are prepared by `use-package-normalize/:deino'."
+  (use-package-concat
+   (mapcar #'(lambda (def) `(defdeino ,@def)) args)
+   (use-package-process-keywords name rest state)))
+
+(add-to-list 'use-package-keywords :deino t)
+
+;;;###autoload
+(defalias 'use-package-normalize/:deino+ 'use-package-normalize/:hydra
+  "Normalize for the definition of one or more plus deinos.")
+
+;;;###autoload
+(defun use-package-handler/:deino+ (name keyword args rest state)
+  "Generate defdeino+ with NAME for `:deino+' KEYWORD.
+ARGS, REST, and STATE are prepared by `use-package-normalize/:deino+'."
+  (use-package-concat
+   (mapcar #'(lambda (def) `(defdeino+ ,@def)) args)
+   (use-package-process-keywords name rest state)))
+
+(add-to-list 'use-package-keywords :deino+ t)
+
+;;;###autoload
+(defalias 'use-package-normalize/:deinor+ 'use-package-normalize/:hydra
+  "Normalize for the definition of one or more plus deinos.")
+
+;;;###autoload
+(defun use-package-handler/:deinor+ (name keyword args rest state)
+  "Generate defdeino+ with NAME for `:deinor+' KEYWORD.
+ARGS, REST, and STATE are prepared by `use-package-normalize/:deinor+'."
+  (use-package-concat
+   (mapcar #'(lambda (def) `(defdeinor+ ,@def)) args)
+   (use-package-process-keywords name rest state)))
+
+(add-to-list 'use-package-keywords :deinor+ t)
+
+;; Adapted From: https://github.com/jwiegley/use-package/blob/master/use-package-core.el#L1153
+;;;###autoload
+(defalias 'use-package-normalize/:cosmoem 'use-package-normalize-forms)
+
+;;;###autoload
+(defun use-package-handler/:cosmoem (name keyword args rest state)
+  (use-package-concat
+   (mapcar #'(lambda (def) `(cosmoem-def ,@def)) args)
+   (use-package-process-keywords name rest state)))
+
+(add-to-list 'use-package-keywords :cosmoem t)
+
+;; Adapted From: https://github.com/jwiegley/use-package/blob/master/use-package-core.el#L1153
+;;;###autoload
+(defalias 'use-package-normalize/:hercules 'use-package-normalize-forms)
+
+;;;###autoload
+(defun use-package-handler/:hercules (name keyword args rest state)
+  (use-package-concat
+   (mapcar #'(lambda (def) `(hercules-def ,@def)) args)
+   (use-package-process-keywords name rest state)))
+
+(add-to-list 'use-package-keywords :hercules t)
+
+(provide 'use-package-deino)
+;;; use-package-deino.el ends here

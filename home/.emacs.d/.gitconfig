@@ -1,0 +1,69 @@
+[remote "aiern"]
+    url = git@github.com:shadowrylander/aiern
+    fetch = +refs/heads/*:refs/remotes/aiern/*
+[remote "doom-aiern-modeline"]
+    url = git@github.com:shadowrylander/doom-aiern-modeline
+    fetch = +refs/heads/*:refs/remotes/doom-aiern-modeline/*
+[remote "alloy"]
+    url = git@github.com:shadowrylander/alloy.git
+    fetch = +refs/heads/*:refs/remotes/alloy/*
+[remote "alamode"]
+    url = git@github.com:shadowrylander/alamode
+    fetch = +refs/heads/*:refs/remotes/alamode/*
+[remote "use-package-extras"]
+    url = git@github.com:shadowrylander/use-package-extras
+    fetch = +refs/heads/*:refs/remotes/use-package-extras/*
+[remote "deino"]
+    url = git@github.com:shadowrylander/deino
+    fetch = +refs/heads/*:refs/remotes/deino/*
+[remote "use-package-deino"]
+    url = git@github.com:shadowrylander/use-package-deino
+    fetch = +refs/heads/*:refs/remotes/use-package-deino/*
+[remote "sorrow"]
+    url = git@github.com:shadowrylander/sorrow
+    fetch = +refs/heads/*:refs/remotes/sorrow/*
+[remote "lode"]
+    url = git@github.com:shadowrylander/lode
+    fetch = +refs/heads/*:refs/remotes/lode/*
+[remote "meq"]
+    url = git@github.com:shadowrylander/meq.git
+    fetch = +refs/heads/*:refs/remotes/meq/*
+[remote "aiern-god-state"]
+    url = git@github.com:shadowrylander/aiern-god-state
+    fetch = +refs/heads/*:refs/remotes/aiern-god-state/*
+[remote "janus"]
+    url = git@github.com:shadowrylander/janus
+    fetch = +refs/heads/*:refs/remotes/janus/*
+[remote "titan"]
+    url = git@github.com:shadowrylander/titan
+    fetch = +refs/heads/*:refs/remotes/titan/*
+[remote "fell"]
+    url = git@github.com:shadowrylander/fell
+    fetch = +refs/heads/*:refs/remotes/fell/*
+[remote "doc"]
+    url = git@github.com:shadowrylander/doc
+    fetch = +refs/heads/*:refs/remotes/doc/*
+[remote "cosmoem"]
+    url = git@gitlab.com:shadowrylander/cosmoem
+    fetch = +refs/heads/*:refs/remotes/cosmoem/*
+[remote "cosmog"]
+    url = git@github.com:shadowrylander/cosmog
+    fetch = +refs/heads/*:refs/remotes/cosmog/*
+[remote "prime"]
+    url = git@github.com:shadowrylander/prime
+    fetch = +refs/heads/*:refs/remotes/prime/*
+[remote "uru"]
+    url = git@github.com:shadowrylander/uru
+    fetch = +refs/heads/*:refs/remotes/uru/*
+[remote "meta"]
+    url = git@github.com:shadowrylander/meta
+    fetch = +refs/heads/*:refs/remotes/meta/*
+[remote "riot"]
+    url = git@github.com:shadowrylander/riot
+    fetch = +refs/heads/*:refs/remotes/riot/*
+[remote "evil-evilified-state"]
+    url = git@github.com:shadowrylander/evil-evilified-state
+    fetch = +refs/heads/*:refs/remotes/evil-evilified-state/*
+[remote "helm-ido-like-guide"]
+    url = git@github.com:shadowrylander/helm-ido-like-guide
+    fetch = +refs/heads/*:refs/remotes/helm-ido-like-guide/*
