@@ -1,0 +1,609 @@
+#+setupfile: home/.emacs.d/README.org
+#+include: home/.emacs.d/README.org
+
+This is used to hold larger files for =./oreo.aiern.org=.
+
+* system
+** etc
+*** nixos
+**** overlays
+***** _kataContainers.nix
+
+#+call: hash() :exports none
+
+#+RESULTS:
+: 20210601220251522853900
+
+#+name: 20210601220251522853900
+#+begin_src nix :tangle (meq/tangle-path)
+{ stdenv, buildGoPackage, fetchFromGitHub, fetchurl, pkgconfig, libseccomp, go
+, qemu }:
+
+let
+  version = "1.11.2";
+
+  # prepare source to have a structure of GOPATH
+  setSourceRoot = ''
+    mkdir -p "go/src/$(dirname "$goPackagePath")"
+    cp -R source "go/src/$goPackagePath"
+    export sourceRoot="go/src/$goPackagePath"
+  '';
+
+  # default make flags, set GOPATH, GOCACHE and install prefix
+  makeFlags = [
+    "GOPATH=$(NIX_BUILD_TOP)/go"
+    "GOCACHE=$(TMPDIR)/go-cache"
+    "PREFIX=$(out)"
+  ];
+
+  # default meta
+  meta = with stdenv.lib; {
+    homepage = "https://katacontainers.io/";
+    license = licenses.asl20;
+    maintainers = with maintainers; [ offline ];
+    platforms = platforms.linux;
+  };
+
+  agent = stdenv.mkDerivation {
+    pname = "kata-agent";
+    inherit version;
+
+    src = fetchFromGitHub {
+      owner = "kata-containers";
+      repo = "agent";
+      rev = version;
+      sha256 = "6Zr7qwBuidJmKdZL2VGmRlKthWletdc0fRS5kA54CHM=";
+    };
+
+    goPackagePath = "github.com/kata-containers/agent";
+
+    inherit setSourceRoot;
+
+    nativeBuildInputs = [ pkgconfig go ];
+    buildInputs = [ libseccomp ];
+
+    makeFlags = makeFlags ++ [
+      "UNIT_DIR=$(out)/lib/systemd/system"
+      "SECCOMP=yes"
+    ];
+
+    meta = meta // {
+      description = "Kata Containers version 1.x agent";
+    };
+  };
+
+  ksm-throttler = stdenv.mkDerivation {
+    pname = "kata-ksm-throttler";
+    inherit version;
+
+    src = fetchFromGitHub {
+      owner = "kata-containers";
+      repo = "ksm-throttler";
+      rev = version;
+      sha256 = "l+3pMjsfxU8170JKslhqv7PbaU3ROSQoscGQNbNh3+k=";
+    };
+
+    goPackagePath = "github.com/kata-containers/ksm-throttler";
+
+    nativeBuildInputs = [ go ];
+
+    inherit setSourceRoot makeFlags;
+
+    meta = meta // {
+      description = "Kata Containers KSM throttling daemon";
+    };
+  };
+
+  proxy = stdenv.mkDerivation {
+    pname = "kata-proxy";
+    inherit version;
+
+    src = fetchFromGitHub {
+      owner = "kata-containers";
+      repo = "proxy";
+      rev = version;
+      sha256 = "M2WaODisDPcpSc5AaMJEWI6MiF8Q1Iz/R6HzqFycOC8=";
+    };
+
+    goPackagePath = "github.com/kata-containers/proxy";
+
+    nativeBuildInputs = [ go ];
+
+    inherit setSourceRoot makeFlags;
+
+    meta = meta // {
+      description = "Kata Containers version 1.x proxy";
+    };
+  };
+
+  shim = stdenv.mkDerivation {
+    pname = "kata-shim";
+    inherit version;
+
+    src = fetchFromGitHub {
+      owner = "kata-containers";
+      repo = "shim";
+      rev = version;
+      sha256 = "sQHGCQ1Vowd6Zvm0wrN5Y2lEPzySkE1xlBt7tn3NppU=";
+    };
+
+    inherit setSourceRoot makeFlags;
+
+    goPackagePath = "github.com/kata-containers/shim";
+
+    nativeBuildInputs = [ go ];
+
+    meta = meta // {
+      description = "Kata Containers version 1.x shim";
+    };
+  };
+
+  runtime = stdenv.mkDerivation {
+    pname = "kata-runtime";
+    inherit version;
+
+    src = fetchFromGitHub {
+      owner = "kata-containers";
+      repo = "runtime";
+      rev = version;
+      sha256 = "TsXkkENZhH/p2SA4ytsWTiY5SJX+9FxUiX1o/v9RObo=";
+    };
+
+    goPackagePath = "github.com/kata-containers/runtime";
+
+    nativeBuildInputs = [ go ];
+
+    inherit setSourceRoot;
+
+    makeFlags = makeFlags ++ [
+      "SKIP_GO_VERSION_CHECK=true"
+    ];
+
+    patchPhase = ''
+      substituteInPlace Makefile --replace '-i -o' '-o'
+    '';
+
+    meta = meta // {
+      description = "Kata Containers version 1.x runtime";
+    };
+  };
+
+  images = stdenv.mkDerivation {
+    pname = "kata-container-images";
+    inherit version;
+
+    src = fetchurl {
+      url =
+        if stdenv.isx86_64
+        then "https://github.com/kata-containers/runtime/releases/download/${version}/kata-static-${version}-x86_64.tar.xz"
+        else throw "unsupported platform ${stdenv.system}";
+      sha256 = "ai9n/Kb4llAqazuot1GMq/8my0RI4PUpy+/kA5kJdY8=";
+    };
+
+    installPhase = ''
+      install -Dm644 -t "$out/share/kata-containers/" \
+        kata/share/kata-containers/vmlinux-* \
+        kata/share/kata-containers/vmlinuz-*
+      install -Dm644 -t "$out/share/kata-containers/" \
+        kata/share/kata-containers/config-*
+      install -Dm644 -t "$out/share/kata-containers/" \
+        kata/share/kata-containers/kata-containers*.img
+
+      cd "$out/share/kata-containers/"
+      ln -s vmlinux-[0-9].[0-9]* vmlinux.container
+      ln -s vmlinuz-[0-9].[0-9]* vmlinuz.container
+    '';
+
+    meta = meta // {
+      description = "Kata Containers version 1.x images";
+    };
+  };
+
+  runtime-qemu = stdenv.lib.overrideDerivation runtime (p: {
+    makeFlags = p.makeFlags ++ [
+      "SHIMPATH=${shim}/libexec/kata-containers/kata-shim"
+      "PROXYPATH=${proxy}/libexec/kata-containers/kata-proxy"
+      "QEMUBINDIR=${qemu}/bin"
+      "INITRDPATH=${images}/share/kata-containers/kata-containers-initrd.img"
+      "KERNELDIR=${images}/share/kata-containers"
+    ];
+  });
+
+in {
+  inherit agent ksm-throttler proxy shim runtime images runtime-qemu;
+}
+#+end_src
+**** patches
+***** BACKPORT-Linux-5.8-compat-__vmalloc.patch
+
+#+call: hash() :exports none
+
+#+RESULTS:
+: 20210601220256333844600
+
+#+name: 20210601220256333844600
+#+begin_src diff :tangle (meq/tangle-path)
+From 6cc95288ccea12ad7b67b2b5b3997dfad8e5b5c9 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Michael=20Niew=C3=B6hner?=
+ <c0d3z3r0@users.noreply.github.com>
+Date: Tue, 9 Jun 2020 01:32:02 +0200
+Subject: [PATCH] BACKPORT: Linux 5.8 compat: __vmalloc()
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+The `pgprot` argument has been removed from `__vmalloc` in Linux 5.8,
+being `PAGE_KERNEL` always now [1].
+
+Detect this during configure and define a wrapper for older kernels.
+
+[1] https://git.kernel.org/pub/scm/linux/kernel/git/next/linux-next.git/commit/mm/vmalloc.c?h=next-20200605&id=88dca4ca5a93d2c09e5bbc6a62fbfc3af83c4fca
+
+Reviewed-by: Brian Behlendorf <behlendorf1@llnl.gov>
+Co-authored-by: Sebastian Gottschall <s.gottschall@dd-wrt.com>
+Co-authored-by: Michael Niewöhner <foss@mniewoehner.de>
+Signed-off-by: Sebastian Gottschall <s.gottschall@dd-wrt.com>
+Signed-off-by: Michael Niewöhner <foss@mniewoehner.de>
+Closes #10422
+---
+ config/kernel-kmem.m4       | 26 ++++++++++++++++++++++++++
+ config/kernel.m4            |  2 ++
+ include/spl/sys/kmem.h      |  9 +++++++++
+ module/spl/spl-kmem-cache.c |  4 ++--
+ module/spl/spl-kmem.c       |  9 ++++-----
+ 5 files changed, 43 insertions(+), 7 deletions(-)
+
+diff --git a/config/kernel-kmem.m4 b/config/kernel-kmem.m4
+index cc055e530..f1c0d2412 100644
+--- a/config/kernel-kmem.m4
++++ b/config/kernel-kmem.m4
+@@ -56,3 +56,29 @@ AC_DEFUN([SPL_AC_DEBUG_KMEM_TRACKING], [
+    AC_MSG_CHECKING([whether detailed kmem tracking is enabled])
+    AC_MSG_RESULT([$enable_debug_kmem_tracking])
+ ])
++
++dnl #
++dnl # 5.8 API,
++dnl # __vmalloc PAGE_KERNEL removal
++dnl #
++AC_DEFUN([ZFS_AC_KERNEL_SRC_VMALLOC_PAGE_KERNEL], [
++   ZFS_LINUX_TEST_SRC([__vmalloc], [
++       #include <linux/mm.h>
++       #include <linux/vmalloc.h>
++   ],[
++       void *p __attribute__ ((unused));
++
++       p = __vmalloc(0, GFP_KERNEL, PAGE_KERNEL);
++   ])
++])
++
++AC_DEFUN([ZFS_AC_KERNEL_VMALLOC_PAGE_KERNEL], [
++   AC_MSG_CHECKING([whether __vmalloc(ptr, flags, pageflags) is available])
++   ZFS_LINUX_TEST_RESULT([__vmalloc], [
++       AC_MSG_RESULT(yes)
++       AC_DEFINE(HAVE_VMALLOC_PAGE_KERNEL, 1, [__vmalloc page flags exists])
++   ],[
++       AC_MSG_RESULT(no)
++   ])
++])
++-
+diff --git a/config/kernel.m4 b/config/kernel.m4
+index b67fcef8c..23edfdcd8 100644
+--- a/config/kernel.m4
++++ b/config/kernel.m4
+@@ -45,6 +45,7 @@ AC_DEFUN([ZFS_AC_KERNEL_TEST_SRC], [
+    ZFS_AC_KERNEL_SRC_SCHED
+    ZFS_AC_KERNEL_SRC_USLEEP_RANGE
+    ZFS_AC_KERNEL_SRC_KMEM_CACHE
++   ZFS_AC_KERNEL_SRC_VMALLOC_PAGE_KERNEL
+    ZFS_AC_KERNEL_SRC_WAIT
+    ZFS_AC_KERNEL_SRC_INODE_TIMES
+    ZFS_AC_KERNEL_SRC_INODE_LOCK
+@@ -163,6 +164,7 @@ AC_DEFUN([ZFS_AC_KERNEL_TEST_RESULT], [
+    ZFS_AC_KERNEL_SCHED
+    ZFS_AC_KERNEL_USLEEP_RANGE
+    ZFS_AC_KERNEL_KMEM_CACHE
++   ZFS_AC_KERNEL_VMALLOC_PAGE_KERNEL
+    ZFS_AC_KERNEL_WAIT
+    ZFS_AC_KERNEL_INODE_TIMES
+    ZFS_AC_KERNEL_INODE_LOCK
+diff --git a/include/spl/sys/kmem.h b/include/spl/sys/kmem.h
+index 72d3a7765..ca15bfe7f 100644
+--- a/include/spl/sys/kmem.h
++++ b/include/spl/sys/kmem.h
+@@ -169,6 +169,15 @@ extern void *spl_kmem_alloc(size_t sz, int fl, const char *func, int line);
+ extern void *spl_kmem_zalloc(size_t sz, int fl, const char *func, int line);
+ extern void spl_kmem_free(const void *ptr, size_t sz);
+ 
++/*
++ * 5.8 API change, pgprot_t argument removed.
++ */
++#ifdef HAVE_VMALLOC_PAGE_KERNEL
++#define    spl_vmalloc(size, flags)    __vmalloc(size, flags, PAGE_KERNEL)
++#else
++#define    spl_vmalloc(size, flags)    __vmalloc(size, flags)
++#endif
++
+ /*
+  * The following functions are only available for internal use.
+  */
+diff --git a/module/spl/spl-kmem-cache.c b/module/spl/spl-kmem-cache.c
+index d71b4b348..4866b2993 100644
+--- a/module/spl/spl-kmem-cache.c
++++ b/module/spl/spl-kmem-cache.c
+@@ -203,7 +203,7 @@ kv_alloc(spl_kmem_cache_t *skc, int size, int flags)
+        ASSERT(ISP2(size));
+        ptr = (void *)__get_free_pages(lflags, get_order(size));
+    } else {
+-       ptr = __vmalloc(size, lflags | __GFP_HIGHMEM, PAGE_KERNEL);
++       ptr = spl_vmalloc(size, lflags | __GFP_HIGHMEM);
+    }
+ 
+    /* Resulting allocated memory will be page aligned */
+@@ -1242,7 +1242,7 @@ spl_cache_grow(spl_kmem_cache_t *skc, int flags, void **obj)
+     * allocation.
+     *
+     * However, this can't be applied to KVM_VMEM due to a bug that
+-    * __vmalloc() doesn't honor gfp flags in page table allocation.
++    * spl_vmalloc() doesn't honor gfp flags in page table allocation.
+     */
+    if (!(skc->skc_flags & KMC_VMEM)) {
+        rc = __spl_cache_grow(skc, flags | KM_NOSLEEP);
+diff --git a/module/spl/spl-kmem.c b/module/spl/spl-kmem.c
+index cee69ad43..ca1fc145f 100644
+--- a/module/spl/spl-kmem.c
++++ b/module/spl/spl-kmem.c
+@@ -172,16 +172,15 @@ spl_kmem_alloc_impl(size_t size, int flags, int node)
+         * kmem_zalloc() callers.
+         *
+         * For vmem_alloc() and vmem_zalloc() callers it is permissible
+-        * to use __vmalloc().  However, in general use of __vmalloc()
+-        * is strongly discouraged because a global lock must be
+-        * acquired.  Contention on this lock can significantly
++        * to use spl_vmalloc().  However, in general use of
++        * spl_vmalloc() is strongly discouraged because a global lock
++        * must be acquired.  Contention on this lock can significantly
+         * impact performance so frequently manipulating the virtual
+         * address space is strongly discouraged.
+         */
+        if ((size > spl_kmem_alloc_max) || use_vmem) {
+            if (flags & KM_VMEM) {
+-               ptr = __vmalloc(size, lflags | __GFP_HIGHMEM,
+-                   PAGE_KERNEL);
++               ptr = spl_vmalloc(size, lflags | __GFP_HIGHMEM);
+            } else {
+                return (NULL);
+            }
+-- 
+2.25.1
+#+end_src
+
+***** 0110-initialize-ata-before-graphics.patch
+
+#+call: hash() :exports none
+
+#+RESULTS:
+: 20210601220259152365700
+
+#+name: 20210601220259152365700
+#+begin_src diff :tangle (meq/tangle-path)
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Arjan van de Ven <arjan@linux.intel.com>
+Date: Thu, 2 Jun 2016 23:36:32 -0500
+Subject: [PATCH] initialize ata before graphics
+
+ATA init is the long pole in the boot process, and its asynchronous.
+move the graphics init after it so that ata and graphics initialize
+in parallel
+---
+ drivers/Makefile | 15 ++++++++-------
+ 1 file changed, 8 insertions(+), 7 deletions(-)
+
+diff --git a/drivers/Makefile b/drivers/Makefile
+index c0cd1b9..af1e2fb 100644
+--- a/drivers/Makefile
++++ b/drivers/Makefile
+@@ -59,15 +59,8 @@ obj-y                += char/
+ # iommu/ comes before gpu as gpu are using iommu controllers
+ obj-y              += iommu/
+ 
+-# gpu/ comes after char for AGP vs DRM startup and after iommu
+-obj-y              += gpu/
+-
+ obj-$(CONFIG_CONNECTOR)        += connector/
+ 
+-# i810fb and intelfb depend on char/agp/
+-obj-$(CONFIG_FB_I810)           += video/fbdev/i810/
+-obj-$(CONFIG_FB_INTEL)          += video/fbdev/intelfb/
+-
+ obj-$(CONFIG_PARPORT)      += parport/
+ obj-$(CONFIG_NVM)      += lightnvm/
+ obj-y              += base/ block/ misc/ mfd/ nfc/
+@@ -80,6 +73,14 @@ obj-$(CONFIG_IDE)        += ide/
+ obj-y              += scsi/
+ obj-y              += nvme/
+ obj-$(CONFIG_ATA)      += ata/
++
++# gpu/ comes after char for AGP vs DRM startup and after iommu
++obj-y              += gpu/
++
++# i810fb and intelfb depend on char/agp/
++obj-$(CONFIG_FB_I810)           += video/fbdev/i810/
++obj-$(CONFIG_FB_INTEL)          += video/fbdev/intelfb/
++
+ obj-$(CONFIG_TARGET_CORE)  += target/
+ obj-$(CONFIG_MTD)      += mtd/
+ obj-$(CONFIG_SPI)      += spi/
+-- 
+https://clearlinux.org
+#+end_src
+
+***** export_kernel_fpu_functions_5_3.patch
+
+#+call: hash() :exports none
+
+#+RESULTS:
+: 20210601220310375924300
+
+#+name: 20210601220310375924300
+#+begin_src diff :tangle (meq/tangle-path)
+From 1e010beda2896bdf3082fb37a3e49f8ce20e04d8 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?J=C3=B6rg=20Thalheim?= <joerg@thalheim.io>
+Date: Thu, 2 May 2019 05:28:08 +0100
+Subject: [PATCH] x86/fpu: Export kernel_fpu_{begin,end}() with
+ EXPORT_SYMBOL_GPL
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+We need these symbols in zfs as the fpu implementation breaks userspace:
+
+https://github.com/zfsonlinux/zfs/issues/9346
+Signed-off-by: Jörg Thalheim <joerg@thalheim.io>
+---
+ arch/x86/kernel/fpu/core.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/arch/x86/kernel/fpu/core.c b/arch/x86/kernel/fpu/core.c
+index 12c70840980e..352538b3bb5d 100644
+--- a/arch/x86/kernel/fpu/core.c
++++ b/arch/x86/kernel/fpu/core.c
+@@ -102,7 +102,7 @@ void kernel_fpu_begin(void)
+    }
+    __cpu_invalidate_fpregs_state();
+ }
+-EXPORT_SYMBOL_GPL(kernel_fpu_begin);
++EXPORT_SYMBOL(kernel_fpu_begin);
+ 
+ void kernel_fpu_end(void)
+ {
+@@ -111,7 +111,7 @@ void kernel_fpu_end(void)
+    this_cpu_write(in_kernel_fpu, false);
+    preempt_enable();
+ }
+-EXPORT_SYMBOL_GPL(kernel_fpu_end);
++EXPORT_SYMBOL(kernel_fpu_end);
+ 
+ /*
+  * Save the FPU state (mark it for reload if necessary):
+-- 
+2.23.0
+#+end_src
+
+***** fetchpypi.patch
+
+#+call: hash() :exports none
+
+#+RESULTS:
+: 20210601220312384825300
+
+#+name: 20210601220312384825300
+#+begin_src diff :tangle (meq/tangle-path)
+diff --git a/fetchpypi.nix b/fetchpypi.nix
+index e60c9df..df50c0d 100644
+--- a/fetchpypi.nix
++++ b/fetchpypi.nix
+@@ -24,5 +24,5 @@ in makeOverridable( {format ? "setuptools", sha256 ? "", hash ? "", ... } @attrs
+   let
+     url = computeUrl (builtins.removeAttrs attrs ["sha256" "hash"]) ;
+   in fetchurl {
+-    inherit url sha256 hash;
++    inherit url sha256;
+   })
+#+end_src
+
+***** fetchurl.patch
+
+#+call: hash() :exports none
+
+#+RESULTS:
+: 20210601220314090550500
+
+#+name: 20210601220314090550500
+#+begin_src diff :tangle (meq/tangle-path)
+--- a/pkgs/build-support/fetchurl/boot.nix
++++ b/pkgs/build-support/fetchurl/boot.nix
+@@ -6,7 +6,8 @@ let mirrors = import ./mirrors.nix; in
+ , urls ? []
+ , sha256
+ , name ? baseNameOf (toString url)
+-}:
++, ...
++} @ args:
+ 
+ import <nix/fetchurl.nix> {
+   inherit system sha256 name;
+diff --git a/pkgs/build-support/fetchzip/default.nix b/pkgs/build-support/fetchzip/default.nix
+index c61df8ceb00..d973837f0d3 100644
+--- a/pkgs/build-support/fetchzip/default.nix
++++ b/pkgs/build-support/fetchzip/default.nix
+@@ -14,7 +14,8 @@
+ , name ? "source"
+ , ... } @ args:
+ 
+-(fetchurl ({
++let
++ x = (fetchurl ({
+   inherit name;
+ 
+   recursiveHash = true;
+@@ -46,7 +47,11 @@
+       mv "$unpackDir" "$out"
+     '') #*/
+     + extraPostFetch;
+-} // removeAttrs args [ "stripRoot" "extraPostFetch" ])).overrideAttrs (x: {
++  } // removeAttrs args [ "stripRoot" "extraPostFetch" ]));
++
++in
++  x // {
++    # .overrideAttrs (x: {
+   # Hackety-hack: we actually need unzip hooks, too
+   nativeBuildInputs = x.nativeBuildInputs ++ [ unzip ];
+-})
++}
+#+end_src
+
+***** grub_zfs.patch
+
+#+call: hash() :exports none
+
+#+RESULTS:
+: 20210601220315818369600
+
+#+name: 20210601220315818369600
+#+begin_src diff :tangle (meq/tangle-path)
+--- a/grub-core/fs/zfs/zfs.c
++++ b/grub-core/fs/zfs/zfs.c
+@@ -285,6 +285,7 @@ static const char *spa_feature_names[] = {
+   "com.delphix:embedded_data",
+   "com.delphix:extensible_dataset",
+   "org.open-zfs:large_blocks",
++  "org.zfsonlinux:large_dnode",
+   NULL
+ };
+#+end_src
+
+***** set_power_mgmt.patch
+
+#+call: hash() :exports none
+
+#+RESULTS:
+: 20210601220319524781000
+
+#+name: 20210601220319524781000
+#+begin_src diff :tangle (meq/tangle-path)
+--- a/net/wireless/nl80211.c    2019-07-08 00:41:56.000000000 +0200
++++ b/net/wireless/nl80211.c    2020-02-05 19:30:26.352718504 +0100
+@@ -10517,10 +10520,7 @@
+    if (!rdev->ops->set_power_mgmt)
+        return -EOPNOTSUPP;
+ 
+-   state = (ps_state == NL80211_PS_ENABLED) ? true : false;
+-
+-   if (state == wdev->ps)
+-       return 0;
++   state = false;
+ 
+    err = rdev_set_power_mgmt(rdev, dev, state, wdev->ps_timeout);
+    if (!err)
+#+end_src
