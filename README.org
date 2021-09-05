@@ -36,11 +36,10 @@ tangle-setup:
 |make -f $(emkFile) tangle-setup
 
 tangle: tangle-setup
-|@-ln -sf $$(which fdfind &> /dev/null) ~/.local/bin/fd
 |yes yes | fd . $(mkfileDir) \
     -HIe org \
-    -E $(mkfileDir)/home/.emacs.d \
-    -x $(mkfileDir)/home/.emacs.d/org-tangle
+    -E .emacs.d \
+    -x $(mkfileDir)/home/.emacs.d/backup-tangle
 
 tangle-with-emacs: tangle
 |make -f $(emkFile) tangle

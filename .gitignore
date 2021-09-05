@@ -23,6 +23,12 @@
 !*.git*
 !**/**/*.git*
 
+!screenshots
+!**/**/screenshots
+
+!siluam
+!**/**/siluam
+
 !bootstrap
 !**/**/bootstrap
 
@@ -31,6 +37,9 @@
 
 !org-tangle
 !**/**/org-tangle
+
+!wtt
+!**/**/wtt
 
 !peru.yaml
 !**/**/peru.yaml
