@@ -1,12 +1,12 @@
 {
     description = "";
     inputs = {
-         = {
-            url = "github://master";
+        shadowrylander = {
+            url = "github:shadowrylander/shadowrylander/master";
             flake = false;
         };
         wip-pinebook-pro = {
-            url = "github:/wip-pinebook-pro/master";
+            url = "github:shadowrylander/wip-pinebook-pro/master";
             flake = false;
         };
         home-manager' = {

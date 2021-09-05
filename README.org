@@ -39,7 +39,7 @@ tangle: tangle-setup
 |yes yes | fd . $(mkfileDir) \
     -HIe org \
     -E .emacs.d \
-    -x $(mkfileDir)/home/.emacs.d/backup-tangle
+    -x $(mkfileDir)/home/.emacs.d/backup-tangle.sh
 
 tangle-with-emacs: tangle
 |make -f $(emkFile) tangle

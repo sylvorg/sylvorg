@@ -43,7 +43,7 @@ if len(sys.argv) == 1:
 
 args = parser.parse_args()
 
-resources = f'{os.environ["HOME"]}//system/etc/nixos/config'
+resources = f'{os.environ["HOME"]}/shadowrylander/system/etc/nixos/config'
 
 try:
     if args.subcommand == "create":
@@ -166,7 +166,7 @@ try:
             
             users = json.loads('''
                 {
-                    "primary": "",
+                    "primary": "shadowrylander",
                     "secondary": "frost",
                     "nightingale": "curtis"
                 }
@@ -378,7 +378,7 @@ try:
             
             users = json.loads('''
                 {
-                    "primary": "",
+                    "primary": "shadowrylander",
                     "secondary": "frost",
                     "nightingale": "curtis"
                 }
@@ -533,7 +533,7 @@ try:
             
             users = json.loads('''
                 {
-                    "primary": "",
+                    "primary": "shadowrylander",
                     "secondary": "frost",
                     "nightingale": "curtis"
                 }
@@ -740,7 +740,7 @@ try:
             
             users = json.loads('''
                 {
-                    "primary": "",
+                    "primary": "shadowrylander",
                     "secondary": "frost",
                     "nightingale": "curtis"
                 }
@@ -869,7 +869,7 @@ if args.move:
 
 if args.rsync:
     run("nix-env -iA nixos.rsync", shell = True)
-    run("rsync -avvczz ~//system/ /mnt/", shell = True)
+    run("rsync -avvczz ~/shadowrylander/system/ /mnt/", shell = True)
 
 if args.install:
     run("nixos-install --show-trace", shell = True)
