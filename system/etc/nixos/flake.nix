@@ -174,8 +174,10 @@
         };
         all' = {
             inherit sources make;
-            type = attrs.types;
-            device = attrs.devices;
+            # type = attrs.type;
+            type = [ "def" ];
+            # device = attrs.devices;
+            device = [ "def" ];
             nixpkgs = prepkgs.j.nixpkgset;
             channel = prepkgs.j.channels;
             host = attrs.hosts;
@@ -215,7 +217,7 @@
             vars = {
                 extraListSets = {
                     user = attrs.allUsers;
-                } // (genAttrs attrs.home-manager-integer-defaults (attr: range 0 1));
+                } // (genAttrs (attrNames attrs.home-manager-integer-defaults) (attr: range 0 1));
             };
         } // all';
 

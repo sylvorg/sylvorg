@@ -1,5 +1,4 @@
-#+setupfile: home/.emacs.d/README.org
-#+include: home/.emacs.d/README.org
+#+setupfile: ~/.emacs.d/README.org
 
 This can be used with =GNU Stow= as well! :D
 
@@ -590,8 +589,10 @@ pkgs = let configBase = { inherit stc; ignoredAttrs = [ "host" ];}; in j.get (co
         };
         all' = {
             inherit sources make;
-            type = attrs.types;
-            device = attrs.devices;
+            # type = attrs.type;
+            type = [ "def" ];
+            # device = attrs.devices;
+            device = [ "def" ];
             nixpkgs = prepkgs.j.nixpkgset;
             channel = prepkgs.j.channels;
             host = attrs.hosts;
@@ -631,7 +632,7 @@ pkgs = let configBase = { inherit stc; ignoredAttrs = [ "host" ];}; in j.get (co
             vars = {
                 extraListSets = {
                     user = attrs.allUsers;
-                } // (genAttrs attrs.home-manager-integer-defaults (attr: range 0 1));
+                } // (genAttrs (attrNames attrs.home-manager-integer-defaults) (attr: range 0 1));
             };
         } // all';
 
@@ -929,6 +930,8 @@ lib: with builtins; with lib; rec {
         // home-manager-integer-defaults
         // { user = "root"; };
     home-manager-stc = attrNames home-manager-default-stc;
+    all-default-stc = default-stc // home-manager-default-stc;
+    all-stc = attrNames all-default-stc;
 }
 #+end_src
 
@@ -955,7 +958,7 @@ rec {
         map toString (attrValues (removeAttrs stc ignoredAttrs))
     ) set;
 
-    hostName = { stc, ... }: substring 0 61 (hashString "sha512" (concatStrings (
+    hostName = { stc ? preattrs.default-stc, ... }: substring 0 61 (hashString "sha512" (concatStrings (
         map toString (attrValues stc)
     )));
 
@@ -3975,13 +3978,9 @@ Invoke-Expression (&starship init powershell)
 
 #+name: 20210601185836015744100
 #+begin_src emacs-lisp :var oc=""
-(format-spec "
-    with builtins;
-    with (getFlake \"/etc/nixos\");
-    with lib;
-    with j;
-let stc = legacyPackages.hostName.${getEnv \"HOSTNAME\"};
-in getAttrFromPath (attrValues stc) legacyPackages.%o" `((?o . ,oc)))
+(format-spec "with builtins; with (getFlake \"/etc/nixos\"); with lib; with j;
+let stc = legacyPackages.hostName.${getEnv \"HOSTNAME\"} or default-stc;
+in get { inherit stc; set = legacyPackages.%o; }" `((?o . ,oc)))
 #+end_src
 
 #+call: hash() :exports none
@@ -4030,21 +4029,15 @@ in getAttrFromPath (attrValues stc) legacyPackages.%o" `((?o . ,oc)))
 #+name: 20210601185842088170000
 #+begin_src nix
 sources' = (getFlake "/etc/nixos/flakes/home").inputs;
-inherit (flake) all;
 
 fromAll = category: get {
     set = all.${category};
-    stc = removeAttrs (
-        attrNames attrs.home-manager-integer-defaults
-    ) stc;
+    inherit stc;
+    ignoredAttrs = attrs.home-manager-stc ++ (toList "host");
 };
 pkgs = fromAll "pkgs";
-overlays = fromAll "overlays";
+# overlays = fromAll "overlays";
 config = fromAll "config";
-
-integer-default-truths = mapAttrs (
-    n: v: v == 1
-) (filterAttrs (n: v: isInt v) stc);
 
 primary = {
     user = attrs.users.primary;
@@ -4185,20 +4178,24 @@ hash = user: j.hostName { stc = stc // { inherit user; }; };
 with builtins; let
     base = { stc, all, flake, ... }:
         with builtins;
-        with lib;
+        with flake.lib;
         with j;
         with stc;
-        with integer-default-truths;
+        with mapAttrs (
+                n: v: v == 1
+            ) (filterAttrs (n: v: isInt v) stc);
     let
         <<20210601185842088170000>>
     in rec {
-        inherit lib;
-        nixpkgs = { inherit (stc) system; inherit overlays config; };
+        inherit (flake) lib;
+        nixpkgs = { inherit (stc) system; inherit
+                                            # overlays
+                                            config; };
         fonts.fontconfig.enable = mkForce true;
-        imports = [ "${sources.impermanence}/home-manager.nix" ];
+        imports = [ "${all.sources.impermanence-flake}/home-manager.nix" ];
         useUserPackages = true;
         useGlobalPkgs = true;
-        backupFileExtension = "bak";
+        # backupFileExtension = "bak";
         verbose = true;
 
         # TODO
@@ -4234,12 +4231,10 @@ with builtins; let
             };
         };
 
+        targets.genericLinux.enable = !nixos;
+
         home = let
-            persistence = {
-                ${
-                    myIf.knull (nixos && zfs) "persistence"
-                } = attrs.persistence.home { inherit user; };
-            };
+            persistence.${myIf.knull (nixos && zfs) "persistence"} = attrs.persistence.home { inherit user; };
 
             seqList = [
 
@@ -4258,7 +4253,7 @@ with builtins; let
                         (let source = "/persist/home/root/${primary.user}"; in foldToSet [
                             (myIf.set (user == "root") (attrs.link "/" "${source}/system"))
                             (attrs.link homeDirectory "${source}/home")
-                            {
+                            ({
                                 "${primary.user}".source = source;
                                 ${myIf.knull (user == "root") "/usr/local/etc/doas.conf"}.text = ''
                                     permit keepenv :wheel
@@ -4266,7 +4261,7 @@ with builtins; let
                                 '';
                             })
                             <<20210601213425809120100>>
-                        ]
+                        ])
                     ]
                     (map withLink (attrValues links))
                 ]));
@@ -4276,12 +4271,12 @@ with builtins; let
     };
 
     flake = getFlake "/etc/nixos";
-    inherit (flake) all;
+    all = flake.legacyPackages;
 
-in with lib; with j; forAllSystems' {
+in with flake.lib; with j; forAllSystems' {
     inherit all;
     func = base;
-    inherit extraListSets;
+    inherit (all.vars) extraListSets;
     inheritance = { inherit all flake; };
 }
 #+end_src
@@ -4741,7 +4736,7 @@ direnv = {
 ".direnvrc".source = "${homeDirectory}/${primary.user}/home/.direnvrc";
 #+end_src
 
-* wheee
+* wheee.py
 
 #+call: hash() :exports none
 
@@ -4767,7 +4762,7 @@ parser.add_argument("-d", "--dry-run", action="store_true")
 parser.add_argument("-m", "--home-manager", action="store_true")
 parser.add_argument("-i", "--install", action="store_true")
 parser.add_argument("-H", "--host", required=True)
-parser.add_argument("-u", "--user", default="root")
+parser.add_argument("-u", "--user", default=os.environ["USER"])
 args, unknown = parser.parse_known_args(argv[1:])
 
 homeManager = args.home_manager or args.file
@@ -4806,7 +4801,8 @@ flake = lambda _hash: f'--flake "{args.directory}#{_hash}"' if args.flake else (
 if homeManager:
     command = lambda _hash: f'''home-manager {args.command} \
     --option build-use-substitutes true \
-    --option substitute true {flake(_hash)}'''
+    --option substitute true {flake(_hash)} \
+    --show-trace'''
 elif args.install:
     # command = lambda _hash: f'nixos-install --impure --show-trace {flake(_hash)}'
     command = lambda _hash: f'''nix build \
@@ -4838,7 +4834,7 @@ if not args.dry_run:
         run(command(getHash()), shell = True)
 #+end_src
 
-* bootstrap
+* bootstrap.py
 
 #+call: hash() :exports none
 

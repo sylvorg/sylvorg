@@ -4,7 +4,7 @@
 # Adapted From: https://www.systutorials.com/how-to-get-the-full-path-and-directory-of-a-makefile-itself/
 mkfilePath := $(abspath $(lastword $(MAKEFILE_LIST)))
 mkfileDir := $(dir $(mkfilePath))
-emkFile := $(mkfileDir)/home/.emacs.d/makefile
+emkFile := ~/.emacs.d/makefile
 
 init:
 |make -f $(emkFile) init
@@ -26,10 +26,9 @@ tangle-setup:
 tangle: tangle-setup
 |yes yes | fd . $(mkfileDir) \
     -HIe org \
-    -E .emacs.d \
-    -x $(mkfileDir)/home/.emacs.d/backup-tangle.sh
+    -x ~/.emacs.d/backup-tangle.sh
+|fd . $(mkfileDir) \
+    -HId 1 -e py \
+    -x chmod +x
 
-tangle-with-emacs: tangle
-|make -f $(emkFile) tangle
-
-super-push: tangle-with-emacs push
+super-push: tangle push

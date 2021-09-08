@@ -1,5 +1,4 @@
-#+setupfile: home/.emacs.d/README.org
-#+include: home/.emacs.d/README.org
+#+setupfile: ~/.emacs.d/README.org
 
 This is used to supplement =./oreo.aiern.org=.
 
