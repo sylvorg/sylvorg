@@ -1,0 +1,4 @@
+[submodule "home/.emacs.d"]
+	path = home/.emacs.d
+	url = https://github.com/shadowrylander/.emacs.d
+	pushurl = git@github.com:shadowrylander/.emacs.d
