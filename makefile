@@ -4,26 +4,42 @@
 # Adapted From: https://www.systutorials.com/how-to-get-the-full-path-and-directory-of-a-makefile-itself/
 mkfilePath := $(abspath $(lastword $(MAKEFILE_LIST)))
 mkfileDir := $(dir $(mkfilePath))
-emkFile := home/.emacs.d/makefile
+emkDir := home/.emacs.d/
+emkFile := $(emkDir)/makefile
+emkMake := make -f $(emkFile)
 
 init:
-|make -f $(emkFile) init
+|$(emkMake) init
+|-git -C $(mkfileDir) config include.path "$(mkfileDir)/.gitconfig"
 
-pull: init
+subinit:
+|$(emkMake) subinit
+|git -C $(mkfileDir) submodule update --init --depth 1 --recursive
+|git -C $(mkfileDir) submodule sync
+
+pull: init subinit
+|$(emkMake) pull
 |git -C $(mkfileDir) pull
-|git -C $(mkfileDir) subtree pull-all
 
-push: init
+add: init
+|$(emkMake) add
 |git -C $(mkfileDir) add .
+
+commit: init
+|$(emkMake) commit
 |-git -C $(mkfileDir) commit --allow-empty-message -am ""
+
+cammit: add commit
+
+push: cammit
+|$(emkMake) push
 |-git -C $(mkfileDir) push
-|git -C $(mkfileDir) subtree prune
-|-git -C $(mkfileDir) subtree push-all
 
 tangle-setup:
-|make -f $(emkFile) tangle-setup
+|$(emkMake) tangle-setup
 
-tangle: tangle-setup
+tangle:
+|$(emkMake) tangle
 |yes yes | fd . $(mkfileDir) \
     -HIe org \
     -E home/.emacs.d \
@@ -32,4 +48,8 @@ tangle: tangle-setup
     -HId 1 -e py \
     -x chmod +x
 
+emacs:
+|$(emkMake) emacs
+emacs-nw:
+|$(emkMake) emacs-nw
 super-push: tangle push
