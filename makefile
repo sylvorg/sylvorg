@@ -13,9 +13,9 @@ init:
 |-git -C $(mkfileDir) config include.path "$(mkfileDir)/.gitconfig"
 
 subinit:
-|$(emkMake) subinit
 |git -C $(mkfileDir) submodule update --init --depth 1 --recursive
 |git -C $(mkfileDir) submodule sync
+|$(emkMake) subinit
 
 pull: init subinit
 |$(emkMake) pull
