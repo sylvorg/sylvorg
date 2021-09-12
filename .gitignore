@@ -3,8 +3,6 @@
 # From: https://jasonstitt.com/gitignore-whitelisting-patterns
 !*/
 
-!home/.emacs.d/**/**/*
-
 !*.org
 !**/**/*.org
 
@@ -37,11 +35,5 @@
 
 !org-tangle
 !**/**/org-tangle
-
-!wtt
-!**/**/wtt
-
-!peru.yaml
-!**/**/peru.yaml
 
 !LICENSE

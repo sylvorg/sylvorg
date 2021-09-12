@@ -3,11 +3,11 @@
     "home-manager'": {
       "flake": false,
       "locked": {
-        "lastModified": 1623343236,
-        "narHash": "sha256-Cl/0/WW3AWjkO7gphw9FqUr4P7T98KKyFCX3Vxv22Sk=",
+        "lastModified": 1630890028,
+        "narHash": "sha256-Q2ZuK0QQiSdgei68a6wV1FDPmBkR6M0apFjQrWsv8FY=",
         "owner": "nix-community",
         "repo": "home-manager",
-        "rev": "666eee4f72979b0ebbd2e065a3846d7a8a16895c",
+        "rev": "5e46262cb1fa888f6f46a675cc2806a23ba9625c",
         "type": "github"
       },
       "original": {
@@ -43,11 +43,11 @@
     "shadowrylander": {
       "flake": false,
       "locked": {
-        "lastModified": 1623514740,
-        "narHash": "sha256-atHywY6m8/f/7cWN2ETmxv/dNy9dSxVlt4SZEozGrJ4=",
+        "lastModified": 1630898041,
+        "narHash": "sha256-DRPH5yrqmMoJxtO22IwqZ2Lrs8A/23GjTGA2tygRqdM=",
         "owner": "shadowrylander",
         "repo": "shadowrylander",
-        "rev": "23a81340564ef87566965c1d78021ee6569b0911",
+        "rev": "204a9b433e175bffe3a0b7390419d5394f28295b",
         "type": "github"
       },
       "original": {
@@ -60,11 +60,11 @@
     "wip-pinebook-pro": {
       "flake": false,
       "locked": {
-        "lastModified": 1623155225,
-        "narHash": "sha256-fKlZ+NApYjR/afHymbU7/k1hDbnQ1KoTNwabHe/Ags0=",
+        "lastModified": 1623887631,
+        "narHash": "sha256-lEqsHSlqRze888fujHqHfpz84Zy2Tsuw9agUEkCVPwc=",
         "owner": "shadowrylander",
         "repo": "wip-pinebook-pro",
-        "rev": "36806761994ed3bae08fb537367493ca568c1171",
+        "rev": "ddc2b1135dd3188c2aa7acfce03abf3ecfce69d0",
         "type": "github"
       },
       "original": {

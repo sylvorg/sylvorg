@@ -1,4 +1,5 @@
-#+setupfile: ~/.emacs.d/README.org
+#+setupfile: home/.emacs.d/settings.org
+#+include: home/.emacs.d/settings.org
 
 This can be used with =GNU Stow= as well! :D
 
@@ -928,8 +929,10 @@ lib: with builtins; with lib; rec {
     home-manager-integer-defaults = { nixos = 1; };
     home-manager-default-stc = default-stc
         // home-manager-integer-defaults
-        // { user = "root"; };
+        // { user = getEnv "USER"; };
     home-manager-stc = attrNames home-manager-default-stc;
+    home-manager-default-without-default-stc = home-manager-integer-defaults // { user = getEnv "USER"; };
+    home-manager-without-default-stc = attrNames home-manager-default-without-default-stc;
     all-default-stc = default-stc // home-manager-default-stc;
     all-stc = attrNames all-default-stc;
 }
@@ -958,9 +961,13 @@ rec {
         map toString (attrValues (removeAttrs stc ignoredAttrs))
     ) set;
 
-    hostName = { stc ? preattrs.default-stc, ... }: substring 0 61 (hashString "sha512" (concatStrings (
+    # hostName = { stc ? preattrs.default-stc, ... }: substring 0 61 (hashString "sha512" (concatStrings (
+    #     map toString (attrValues stc)
+    # )));
+
+    hostName = { stc ? preattrs.default-stc, ... }: concatStrings (
         map toString (attrValues stc)
-    )));
+    );
 
     forAllSystems' = {
         func,
@@ -2615,7 +2622,8 @@ in flatten [
     ]
     [
         # (final: prev: { nix = sources.nix.packages.${system}.nix; })
-        (final: prev: { nix = (import sources.nix).packages.${system}.nix; })
+        # (final: prev: { nix = (import sources.nix).packages.${system}.nix; })
+        (final: prev: { nix = prev.nixUnstable; })
         (final: prev: { niv = (import sources.niv {}).niv; })
         (final: prev: { emacs-nox = final.emacsGit-nox; })
     ]
@@ -2628,6 +2636,9 @@ in flatten [
                 prev.callPackage ./_kataContainers.nix {}
             );
         })
+    ]
+    [
+        (final: prev: { go = prev.go_1_15; })
     ]
     (
         let
@@ -2680,7 +2691,9 @@ in flatten [
 
 #+name: 20210601185111589161600
 #+begin_src nix
-let pkgsets' = { unstable = [ "git" "go" "webkitgtk" ]; };
+let pkgsets' = {
+    unstable = [ "git" "webkitgtk" ];
+};
 in flatten (mapAttrsToList (
     channel': pkglist: map (
         pkg: [(final: prev: {
@@ -3077,10 +3090,10 @@ inputs@{
     lib,
     sources,
     stc,
-    config,
     ...
 } : with lib; with j; with stc; let
-    inherit (config.vars) minimal terminal;
+    minimal = stc.minimal == 1;
+    terminal = stc.terminal == 1;
     inherit (attrs) versions;
     neither = !(minimal || terminal);
     mkifnt = myIf.drv (!terminal) pkgs.hello;
@@ -3157,7 +3170,7 @@ in with pkgs; [
     shellcheck
     silver-searcher
     snapper
-    spacevim
+    # spacevim
     libguestfs
     (myIf.drv (!elem system [ "aarch64-linux" ]) pkgs.hello qemu_xen_4_10-light)
     starship
@@ -3218,10 +3231,10 @@ in with pkgs; [
 # ]) ++ (with pkgs.j.pkgset.20-09."emacs${versions.emacs}Packages"; [
 #     (mkifnm exwm)
 ]) ++ (with pkgs."python${versions.python}Packages"; [
-    (myIf.drv (!elem system [ "aarch64-linux" ]) pkgs.hello pyls-black)
-    (mkifnm jupyter)
+    # (myIf.drv (!elem system [ "aarch64-linux" ]) pkgs.hello pyls-black)
+    # (mkifnm jupyter)
     # nixpkgs
-    poetry
+    # poetry
 ]) ++ (with pkgs.gitAndTools; [
     # git-annex
     git-extras
@@ -3260,7 +3273,7 @@ in [
     (myIf.drv (pkgs ? duf) pkgs.hello (getAttr "duf" pkgs))
     (myIf.drv (pkgs ? gitoxide) pkgs.hello (getAttr "gitoxide" pkgs))
     (myIf.drv (pkgs ? glances) pkgs.hello (getAttr "glances" pkgs))
-    (myIf.drv (pkgs ? nixos-shell) pkgs.hello (getAttr "nixos-shell" pkgs))
+    # (myIf.drv (pkgs ? nixos-shell) pkgs.hello (getAttr "nixos-shell" pkgs))
     (myIf.drv (pkgs ? obsidian && !neither) pkgs.hello (getAttr "obsidian" pkgs))
     (myIf.drv (pkgs ? yubikey-agent) pkgs.hello (getAttr "yubikey-agent" pkgs))
     (myIf.drv ((!elem system [ "aarch64-linux" ]) && (pkgs ? zenith)) pkgs.hello (getAttr "zenith" pkgs))
@@ -3561,7 +3574,7 @@ aliases["deploy"] = _deploy
 #+name: 20210601185430439244600
 #+begin_src nix
 zsh = let zedFile = file: let
-    grml = "${sources.grml}/etc/zsh/${file}";
+    grml = "${all.sources.grml}/etc/zsh/${file}";
 in myIf.empty (pathExists grml) (readFile grml); in {
     enable = true;
     enableAutosuggestions = true;
@@ -3815,7 +3828,7 @@ Monokai_Soda
 
 #+name: 20210601185517894186800
 #+begin_src nix
-".config/kitty/theme.conf".source = sources.kittyThemes + "/themes/<<338a3b4e851f416dd70aa64a977efb96>>.conf";
+".config/kitty/theme.conf".source = all.sources.kittyThemes + "/themes/<<338a3b4e851f416dd70aa64a977efb96>>.conf";
 #+end_src
 
 **** kitty.conf
@@ -4033,10 +4046,10 @@ sources' = (getFlake "/etc/nixos/flakes/home").inputs;
 fromAll = category: get {
     set = all.${category};
     inherit stc;
-    ignoredAttrs = attrs.home-manager-stc ++ (toList "host");
+    ignoredAttrs = attrs.home-manager-without-default-stc ++ (toList "host");
 };
 pkgs = fromAll "pkgs";
-# overlays = fromAll "overlays";
+overlays = fromAll "overlays";
 config = fromAll "config";
 
 primary = {
@@ -4145,9 +4158,9 @@ hash = user: j.hostName { stc = stc // { inherit user; }; };
 ({
     <<20210601185906086312300>>
 })
-({
+(
     <<20210601185931858588700>>
-})
+)
 ({
     <<20210601185939558599100>>
 })
@@ -4189,32 +4202,33 @@ with builtins; let
     in rec {
         inherit (flake) lib;
         nixpkgs = { inherit (stc) system; inherit
-                                            # overlays
+                                            overlays
                                             config; };
         fonts.fontconfig.enable = mkForce true;
         imports = [ "${all.sources.impermanence-flake}/home-manager.nix" ];
-        useUserPackages = true;
-        useGlobalPkgs = true;
+        # useUserPackages = true;
+        # useGlobalPkgs = true;
         # backupFileExtension = "bak";
-        verbose = true;
+        # verbose = true;
 
         # TODO
-        sharedModules = [
-            {  }
-        ];
+        # sharedModules = [
+        #     {  }
+        # ];
 
-        extraSpecialArgs = flake.legacyPackages.make.specialArgs { inherit stc; };
+        # extraSpecialArgs = flake.legacyPackages.make.specialArgs { inherit stc; };
 
         programs = foldToSet (map (set: mapAttrs (
             n: v: baseOptions // v
         ) set) (flatten [
             [
-                {
-                    home-manager = {
-                        enable = true;
-                        path = sources.home-manager.outPath;
-                    };
-                }
+                # {
+                #     home-manager = {
+                #         enable = true;
+                #         path = all.sources.home-manager-flake.outPath;
+                #     };
+                # }
+                { go.enable = true; }
                 <<20210601185843559082700>>
             ]
         ]));
@@ -4227,7 +4241,7 @@ with builtins; let
             };
             emacs = {
                 enable = true;
-                package = if (programs ? emacs) then programs.emacs.package else pkgs.emacsGcc;
+                # package = if (programs ? emacs) then programs.emacs.package else pkgs.emacsGcc;
             };
         };
 
@@ -4244,7 +4258,10 @@ with builtins; let
             ];
 
         in sequence seqList (foldToSet [{
-                packages = import ../../etc/nixos/packages.nix { inherit stc lib pkgs; };
+                packages = import ../../../system/etc/nixos/packages.nix {
+                    inherit stc lib pkgs;
+                    inherit (all) sources;
+                };
                 file = foldToSet (map (set: mapAttrs (
                     n: v: { force = true; } // v
                 ) set) (flatten [
@@ -4278,7 +4295,7 @@ in with flake.lib; with j; forAllSystems' {
     func = base;
     inherit (all.vars) extraListSets;
     inheritance = { inherit all flake; };
-}
+} // { test = base { stc = attrs.all-default-stc; inherit all flake; }; }
 #+end_src
 
 *** nix
@@ -4366,11 +4383,11 @@ eval (starship init elvish)
 #+name: 20210601185906086312300
 #+begin_src nix
 ".config/nvim" = {
-    source = sources.spacevim;
+    source = all.sources.spacevim;
     recursive = true;
 };
 ".vim" = {
-    source = sources.spacevim;
+    source = all.sources.spacevim;
     recursive = true;
 };
 ".SpaceVim.d/init.toml".source = "${homeDirectory}/${primary.user}/home/.SpaceVim.d/init.toml";
@@ -4480,8 +4497,8 @@ git = {
 
 #+name: 20210601185923733355900
 #+begin_src nix
-".gitignore".text = "${homeDirectory}/${primary.user}/home/.gitignore";
-".gitattributes".text = "${homeDirectory}/${primary.user}/home/.gitattributes";
+# ".gitignore".source = "${homeDirectory}/${primary.user}/home/.gitignore";
+# ".gitattributes".source = "${homeDirectory}/${primary.user}/home/.gitattributes";
 #+end_src
 
 ** .gitignore
@@ -4573,7 +4590,7 @@ mercurial = {
 #+begin_src nix
 emacs = {
     enable = true;
-    package = pkgs.emacsGcc;
+    # package = pkgs.emacsGcc;
     overrides = final: prev: {
         magit-delta = super.magit-delta.overrideAttrs (eprev: {
             buildInputs = eprev.buildInputs ++ [ pkgs.git ];
@@ -4593,7 +4610,10 @@ emacs = {
 
 #+name: 20210601185931858588700
 #+begin_src nix
-".emacs.d".source = "${homeDirectory}/${primary.user}/home/.emacs.d";
+# TODO: Maybe convert this into my own recursive function as opposed to home-manager's?
+let dir = "${homeDirectory}/${primary.user}/home/.emacs.d"; in foldToSet (map (name: {
+    ".emacs.d/${name}".source = "${dir}/${name}";
+}) (listNames { inherit dir; }))
 #+end_src
 
 ** .xinitrc
@@ -4605,7 +4625,7 @@ emacs = {
 
 #+name: 
 #+begin_src shell :tangle (meq/tangle-path)
-exec emacs --exwm
+exec emacs
 #+end_src
 
 #+call: hash() :exports none
@@ -4714,7 +4734,7 @@ direnv = {
     enable = true;
     enableBashIntegration = true;
     enableFishIntegration = true;
-    enableNixDirenvIntegration = true;
+    nix-direnv.enable = true;
     enableZshIntegration = true;
     stdlib = ''
         use_flake() {
@@ -5370,3 +5390,15 @@ run(snapshot_command, shell = True)
 <<20210601190023576455900>>
 
 #+end_src
+
+# * 
+
+# #+call: hash() :exports none
+
+# #+RESULTS:
+# : 
+
+# #+name: 
+# #+begin_src python
+
+# #+end_src
