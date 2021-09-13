@@ -7,16 +7,16 @@ mkfileDir := $(dir $(mkfilePath))
 emkDir := home/.emacs.d/
 emkFile := $(emkDir)/makefile
 emkMake := make -f $(emkFile)
+makefly := make -f $(mkfileDir)/makefly
 
 init: pre-init tangle
+|$(makefly) pre-init
+|$(emkMake) pre-init
 
 pre-init:
 |git -C $(mkfileDir) submodule add --depth 1 -f https://github.com/shadowrylander/settings.git
 |git -C $(mkfileDir)/settings checkout main
 |-git -C $(mkfileDir) config include.path "$(mkfileDir)/.gitconfig"
-|git -C $(mkfileDir) submodule add --depth 1 -f https://github.com/shadowrylander/.emacs.d.git home/.emacs.d
-|git -C $(mkfileDir)/home/.emacs.d checkout main
-|$(emkMake) pre-init
 
 tangle-setup:
 |$(emkMake) tangle-setup
@@ -31,20 +31,20 @@ tangle:
     -HId 1 -e py \
     -x chmod +x
 
-subinit: 
+subinit: init
 |$(emkMake) subinit
 |git -C $(mkfileDir) submodule update --init --depth 1 --recursive
 |git -C $(mkfileDir) submodule sync
 
-pull: init subinit
+pull: subinit
 |$(emkMake) pull
 |git -C $(mkfileDir) pull
 
-add: init
+add: pre-init
 |$(emkMake) add
 |git -C $(mkfileDir) add .
 
-commit: init
+commit: pre-init
 |$(emkMake) commit
 |-git -C $(mkfileDir) commit --allow-empty-message -am ""
 
