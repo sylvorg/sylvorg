@@ -1,4 +1,5 @@
-#+setupfile: home/.emacs.d/README.org
+#+setupfile: ./settings/README.org
+#+include: ./settings/README.org
 
 * makefile
 
@@ -19,14 +20,31 @@ emkDir := home/.emacs.d/
 emkFile := $(emkDir)/makefile
 emkMake := make -f $(emkFile)
 
-init:
-|$(emkMake) init
-|-git -C $(mkfileDir) config include.path "$(mkfileDir)/.gitconfig"
+init: pre-init tangle
 
-subinit:
+pre-init:
+|git -C $(mkfileDir) submodule add --depth 1 -f https://github.com/shadowrylander/settings.git
+|-git -C $(mkfileDir) config include.path "$(mkfileDir)/.gitconfig"
+|git -C $(mkfileDir) submodule add --depth 1 -f https://github.com/shadowrylander/.emacs.d.git home/.emacs.d
+|$(emkMake) pre-init
+
+tangle-setup:
+|$(emkMake) tangle-setup
+
+tangle:
+|$(emkMake) tangle
+|yes yes | fd . $(mkfileDir) \
+    -HIe org \
+    -E home/.emacs.d \
+    -x home/.emacs.d/backup-tangle.sh
+|fd . $(mkfileDir) \
+    -HId 1 -e py \
+    -x chmod +x
+
+subinit: 
+|$(emkMake) subinit
 |git -C $(mkfileDir) submodule update --init --depth 1 --recursive
 |git -C $(mkfileDir) submodule sync
-|$(emkMake) subinit
 
 pull: init subinit
 |$(emkMake) pull
@@ -45,19 +63,6 @@ cammit: add commit
 push: cammit
 |$(emkMake) push
 |-git -C $(mkfileDir) push
-
-tangle-setup:
-|$(emkMake) tangle-setup
-
-tangle:
-|$(emkMake) tangle
-|yes yes | fd . $(mkfileDir) \
-    -HIe org \
-    -E home/.emacs.d \
-    -x home/.emacs.d/backup-tangle.sh
-|fd . $(mkfileDir) \
-    -HId 1 -e py \
-    -x chmod +x
 
 emacs:
 |$(emkMake) emacs

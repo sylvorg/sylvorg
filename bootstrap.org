@@ -1,2 +1,2 @@
-#+setupfile: home/.emacs.d/settings.org
-#+include: home/.emacs.d/settings.org
+#+setupfile: ./settings/README.org
+#+include: ./settings/README.org
