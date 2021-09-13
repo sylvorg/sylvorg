@@ -24,8 +24,10 @@ init: pre-init tangle
 
 pre-init:
 |git -C $(mkfileDir) submodule add --depth 1 -f https://github.com/shadowrylander/settings.git
+|git -C $(mkfileDir)/settings checkout main
 |-git -C $(mkfileDir) config include.path "$(mkfileDir)/.gitconfig"
 |git -C $(mkfileDir) submodule add --depth 1 -f https://github.com/shadowrylander/.emacs.d.git home/.emacs.d
+|git -C $(mkfileDir)/home/.emacs.d checkout main
 |$(emkMake) pre-init
 
 tangle-setup:
