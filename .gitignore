@@ -5,7 +5,6 @@
 
 !**/**/*.org
 !**/**/README.*
-!**/**/custom.el
 !**/**/makefile
 !**/**/*.lock
 !**/**/*.dep
@@ -18,9 +17,5 @@
 !/themes/screenshots/**/**
 
 !/LICENSE
-!/org-tangle.sh
-!/borg.gif
-!/nebby.webp
-!/git-subtree
 
 **/**/README.el

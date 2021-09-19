@@ -4611,7 +4611,7 @@ emacs = {
 #+name: 20210601185931858588700
 #+begin_src nix
 # TODO: Maybe convert this into my own recursive function as opposed to home-manager's?
-let dir = "${homeDirectory}/${primary.user}/home/.emacs.d"; in foldToSet (map (name: {
+let dir = "${homeDirectory}/${primary.user}/home/siluam"; in foldToSet (map (name: {
     ".emacs.d/${name}".source = "${dir}/${name}";
 }) (listNames { inherit dir; }))
 #+end_src
