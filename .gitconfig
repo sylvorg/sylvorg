@@ -1,0 +1,4 @@
+[remote "settings"]
+	url = https://github.com/shadowrylander/settings.git
+	fetch = +refs/heads/main:refs/remotes/origin/main
+	pushurl = git@github.com:shadowrylander/settings.git

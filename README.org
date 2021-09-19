@@ -1,6 +1,15 @@
 #+setupfile: ./settings/README.org
 #+include: ./settings/README.org
 
+* .gitconfig
+
+#+begin_src conf :tangle (meq/tangle-path)
+[remote "settings"]
+	url = https://github.com/<<username>>/settings.git
+	fetch = +refs/heads/main:refs/remotes/origin/main
+	pushurl = git@github.com:<<username>>/settings.git
+#+end_src
+
 * makefly.mk
 
 #+begin_src makefile :tangle (meq/tangle-path)
