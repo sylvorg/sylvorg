@@ -9,7 +9,8 @@
 
 (let* ((file (cond
                 ((file-exists-p "~/.emacs.d/settings/README.org") "~/.emacs.d/settings/README.org")
-                ((file-exists-p "home/.emacs.d/settings/README.org") "home/.emacs.d/settings/README.org"))))
+                ((file-exists-p "home/.emacs.d/settings/README.org") "home/.emacs.d/settings/README.org")
+                ((file-exists-p "settings/README.org") "settings/README.org"))))
     (when file (org-babel-lob-ingest file)))
 
 (defun meq/get-header nil (interactive)
