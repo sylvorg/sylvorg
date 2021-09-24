@@ -412,7 +412,7 @@ Taken from [[https://github.com/NixOS/nixos-hardware/tree/master/microsoft/hyper
         boot.extraModprobeConfig = mkAfter '' options ipts singletouch=y '';
         powerManagement.resumeCommands = mkAfter '' modprobe ipts_surface singletouch=y '';
         services.surface-dtx-daemon.detach = mkForce ''
-            #!/usr/bin/env xonsh
+            #!/usr/bin/env sh
             for usb in $(ls /dev/disk/by-id).split("\n"):
                 if usb and usb[:4] == "usb-":
                     for mnt in $(mount).split("\n"):
@@ -4202,7 +4202,7 @@ with builtins; let
     in rec {
         inherit (flake) lib;
         nixpkgs = { inherit (stc) system; inherit
-                                            overlays
+                                            # overlays
                                             config; };
         fonts.fontconfig.enable = mkForce true;
         imports = [ "${all.sources.impermanence-flake}/home-manager.nix" ];
@@ -4611,7 +4611,7 @@ emacs = {
 #+name: 20210601185931858588700
 #+begin_src nix
 # TODO: Maybe convert this into my own recursive function as opposed to home-manager's?
-let dir = "${homeDirectory}/${primary.user}/home/siluam"; in foldToSet (map (name: {
+let dir = "${homeDirectory}/${primary.user}/home/.emacs.d"; in foldToSet (map (name: {
     ".emacs.d/${name}".source = "${dir}/${name}";
 }) (listNames { inherit dir; }))
 #+end_src

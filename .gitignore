@@ -13,8 +13,7 @@
 !**/**/flake.nix
 !**/**/bootstrap.py
 
-!/siluam/**/**
-!/themes/screenshots/**/**
+!/settings/**/**
 
 !/LICENSE
 

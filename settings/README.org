@@ -9,14 +9,14 @@
 The tangle functions are adapted from [[https://emacs.stackexchange.com/a/29884/31428][this answer on the emacs Stack Exchange]],
 which was written by [[https://emacs.stackexchange.com/users/2710/andrew-swann][Andrew Swann]].
 
-* org-tangle.sh
+* org-tangle.ps1
 :PROPERTIES:
 :header-args:emacs-lisp+: :comments none
 :END:
 
 Adapted from: https://github.com/hlissner/doom-emacs/blob/develop/bin/org-tangle
 
-#+begin_src emacs-lisp :tangle (meq/tangle-path) :shebang "#!/usr/bin/env sh"
+#+begin_src emacs-lisp :tangle (meq/tangle-path) :shebang "#!/usr/bin/env pwsh"
 ":"; exec emacs --quick --script "$0" -- "$@" # -*- mode: emacs-lisp; lexical-binding: t; -*-
 
 (setq org-confirm-babel-evaluate nil)
@@ -199,7 +199,7 @@ trees with the :notangle: tag."
 (load (concat (getenv "HOME") "/.emacs.d/early-init.el"))
 (meq/up markdown-mode :mode ("\\.md\\'")
     :use-package-postconfig (yasnippet)
-    :upnsd-preconfig (titan :custom (meq/var/titan-snippets-dir (meq/ued-siluam "titan" "snippets"))))
+    :upnsd-preconfig (titan :custom (meq/var/titan-snippets-dir (meq/ued-lib "titan" "snippets"))))
 #+end_src
 
 * wtt-post
@@ -215,41 +215,41 @@ trees with the :notangle: tag."
 (save-buffer)
 #+end_src
 
-* wtt.sh
+* wtt.ps1
 :PROPERTIES:
 :header-args:emacs-lisp+: :comments none
 :END:
 
-#+begin_src emacs-lisp :tangle (meq/tangle-path) :shebang "#!/usr/bin/env sh"
+#+begin_src emacs-lisp :tangle (meq/tangle-path) :shebang "#!/usr/bin/env pwsh"
 ":"; exec emacs --quick --script "$0" -- "$@" # -*- mode: emacs-lisp; lexical-binding: t; -*-
 (princ (format-time-string "%Y%m%d%H%M%S%N")) (terpri)
 #+end_src
 
-* wtt.fell.sh
+* wtt.fell.ps1
 :PROPERTIES:
 :header-args:emacs-lisp+: :comments none
 :END:
 
-#+begin_src emacs-lisp :tangle (meq/tangle-path) :shebang "#!/usr/bin/env sh"
+#+begin_src emacs-lisp :tangle (meq/tangle-path) :shebang "#!/usr/bin/env pwsh"
 ":"; exec emacs --quick --script "$0" -- "$@" # -*- mode: emacs-lisp; lexical-binding: t; -*-
 <<20210821132334835661400>>
 (meq/upnsd fell
-    :custom (meq/var/fell-snippets-dir (meq/ued-siluam "fell" "snippets"))
+    :custom (meq/var/fell-snippets-dir (meq/ued-lib "fell" "snippets"))
     :mode ("\\.fell\\.md\\'" . fell-markdown-mode))
 (find-file (concat (meq/timestamp) ".fell.md"))
 <<20210821140509092087900>>
 #+end_src
 
-* wtt.doc.sh
+* wtt.doc.ps1
 :PROPERTIES:
 :header-args:emacs-lisp+: :comments none
 :END:
 
-#+begin_src emacs-lisp :tangle (meq/tangle-path) :shebang "#!/usr/bin/env sh"
+#+begin_src emacs-lisp :tangle (meq/tangle-path) :shebang "#!/usr/bin/env pwsh"
 ":"; exec emacs --quick --script "$0" -- "$@" # -*- mode: emacs-lisp; lexical-binding: t; -*-
 <<20210821132334835661400>>
 (meq/upnsd doc
-    :custom (meq/var/doc-snippets-dir (meq/ued-siluam "doc" "snippets"))
+    :custom (meq/var/doc-snippets-dir (meq/ued-lib "doc" "snippets"))
     :mode ("\\.doc\\.md\\'" . doc-markdown-mode))
 (find-file (concat (meq/timestamp) ".doc.md"))
 <<20210821140509092087900>>

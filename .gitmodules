@@ -1,3 +1,6 @@
-[submodule "home/siluam"]
-	path = home/siluam
+[submodule ".emacs.d"]
+	path = .emacs.d
+	url = https://github.com/shadowrylander/.emacs.d.git
+[submodule "home/.emacs.d"]
+	path = home/.emacs.d
 	url = https://github.com/shadowrylander/siluam.git

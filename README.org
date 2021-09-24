@@ -10,19 +10,6 @@
 	pushurl = git@github.com:<<username>>/settings.git
 #+end_src
 
-* makefly.mk
-
-#+begin_src makefile :tangle (meq/tangle-path)
-.RECIPEPREFIX := |
-.DEFAULT_GOAL := pre-init
-
-pre-init:
-|git -C $(mkfileDir) submodule add --depth 1 -f https://github.com/<<username>>/.emacs.d.git home/.emacs.d
-|git -C $(mkfileDir)/home/.emacs.d checkout main
-|git -C $(mkfileDir) submodule add --depth 1 -f https://github.com/<<username>>/siluam.git home/siluam
-|git -C $(mkfileDir)/home/siluam checkout main
-#+end_src
-
 * makefile
 
 #+call: hash() :exports none
@@ -41,16 +28,16 @@ mkfileDir := $(dir $(mkfilePath))
 emkDir := home/siluam/
 emkFile := $(emkDir)/makefile
 emkMake := make -f $(emkFile)
-makefly := make -f $(mkfileDir)/makefly.mk
 
 init: pre-init tangle
-|$(makefly) pre-init
 |$(emkMake) pre-init
 
 pre-init:
-|git -C $(mkfileDir) submodule add --depth 1 -f https://github.com/shadowrylander/settings.git
-|git -C $(mkfileDir)/settings checkout main
 |-git -C $(mkfileDir) config include.path "$(mkfileDir)/.gitconfig"
+|git -C $(mkfileDir) submodule add --depth 1 -f https://github.com/<<username>>/.emacs.d.git
+|git -C $(mkfileDir)/.emacs.d checkout main
+|git -C $(mkfileDir) submodule add --depth 1 -f https://github.com/<<username>>/siluam.git home/.emacs.d
+|git -C $(mkfileDir)/home/.emacs.d checkout main
 
 tangle-setup:
 |$(emkMake) tangle-setup
@@ -59,11 +46,14 @@ tangle:
 |$(emkMake) tangle
 |yes yes | fd . $(mkfileDir) \
     -HIe org \
-    -E home/siluam \
+    -E .emacs.d \
     -E home/.emacs.d \
-    -x settings/backup-tangle.sh
+    -x settings/backup-tangle.ps1
 |fd . $(mkfileDir) \
-    -HId 1 -e py \
+    -HId 1 -e sh \
+    -x chmod +x
+|fd . $(mkfileDir) \
+    -HId 1 -e ps1 \
     -x chmod +x
 
 subinit: init
