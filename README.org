@@ -48,12 +48,9 @@ tangle:
     -HIe org \
     -E .emacs.d \
     -E home/.emacs.d \
-    -x settings/backup-tangle.ps1
+    -x settings/backup-tangle.sh
 |fd . $(mkfileDir) \
     -HId 1 -e sh \
-    -x chmod +x
-|fd . $(mkfileDir) \
-    -HId 1 -e ps1 \
     -x chmod +x
 
 subinit: init
