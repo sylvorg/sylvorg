@@ -1,24 +1,10 @@
-#+setupfile: ./settings/README.org
+#+setupfile: ./settings/TANGLE.org
 #+include: ./settings/README.org
 
 This can be used with =GNU Stow= as well! :D
 
 The tangle functions are adapted from [[https://emacs.stackexchange.com/a/29884/31428][this answer on the emacs Stack Exchange]],
 which was written by [[https://emacs.stackexchange.com/users/2710/andrew-swann][Andrew Swann]].
-
-* .config
-** yadm
-*** bootstrap
-
-#+call: hash() :exports none
-
-#+RESULTS:
-: 20210601184651836098700
-
-#+name: 20210601184651836098700
-#+begin_src sh :tangle (meq/tangle-path) :shebang "#!/usr/bin/env bash"
-
-#+end_src
 
 * system
 ** etc
@@ -1238,6 +1224,7 @@ rec {
                 ".vscode-oss"
                 ".vscode"
                 ".yubico"
+                ".z"
                 "Documents"
                 "Downloads"
                 "etc"
@@ -2638,7 +2625,11 @@ in flatten [
         })
     ]
     [
-        (final: prev: { go = prev.go_1_15; })
+        (final: prev: {
+            extra-container = let
+                pkgSrc = sources.extraContainer;
+            in pkgs.callPackage pkgSrc { inherit pkgSrc; };
+        })
     ]
     (
         let
@@ -2701,174 +2692,6 @@ in flatten (mapAttrsToList (
         })]
     ) pkglist
 ) pkgsets')
-#+end_src
-
-***** _mach-nix
-
-#+call: hash() :exports none
-
-#+RESULTS:
-: 20210601185113382242300
-
-#+name: 20210601185113382242300
-#+begin_src nix
-{
-  sources ? (builtins.getFlake "${./.}/.."),
-  pkgs ? (import sources.nixpkgs {}),
-  mach-nix ? (import sources.mach-nix { inherit pkgs; python = "python39"; }),
-  ...
-}
-#+end_src
-
-#+call: hash() :exports none
-
-#+RESULTS:
-: 20210601185114873837100
-
-#+name: 20210601185114873837100
-#+begin_src nix
-packagesExtra = [
-    # "https://github.com/psf/requests/tarball/v2.22.0"
-    (mach-nix.buildPythonPackage { src = sources.nanite; })      
-    "https://files.pythonhosted.org/packages/bc/ab/c49f97516f78c2b0cacb4f45873abc4ca9872942a9c4c19ded8052c8edda/python-wifi-0.6.1.tar.bz2"
-];
-#+end_src
-
-#+call: hash() :exports none
-
-#+RESULTS:
-: 20210601185116284142400
-
-#+name: 20210601185116284142400
-#+begin_src nix
-providers._defaults = "conda-forge,conda,wheel,sdist,nixpkgs";
-#+end_src
-
-#+call: hash() :exports none
-
-#+RESULTS:
-: 20210601185118202517300
-
-#+name: 20210601185118202517300
-#+begin_src emacs-lisp :var pkg="" :var version="" :var pythonPackages=""
-(format-spec "
-    newPkgs = machnixPy.nixpkgs;
-    pythonPackages = newPkgs.python%v.pkgs;
-    %p_py_%v = newPkgs.%p.override {
-        %q = newPkgs.python%vPackages;
-    };
-    %p_with_pkgs = %p_py_%v.overrideAttrs (oa: {
-        version = \"master\";
-        src = sources.%p;
-        inherit pythonPath;
-    });
-    finalOverlay = self: super: { %p = %p_with_pkgs; };
-in finalOverlay" `((?p . ,pkg) (?q . ,pythonPackages) (?v . ,version)))
-#+end_src
-
-****** qtile.nix
-
-#+call: hash() :exports none
-
-#+RESULTS:
-: 20210601185125138787100
-
-#+name: 20210601185125138787100
-#+begin_src nix :tangle (meq/tangle-path)
-<<20210601185113382242300>>:
-
-with builtins; let
-
-    # build a mach-nix python env
-    machnixPy = mach-nix.mkPython {
-        <<20210601185114873837100>>
-        requirements = ''
-        cairocffi
-        iwlib
-        '';
-        _.iwlib.buildInputs.add = [ pkgs.wirelesstools ];
-        <<20210601185116284142400>>
-        providers.cairocffi = "wheel,sdist";
-    };
-
-    pythonPath =
-        oa.pythonPath
-        ++ machnixPy.selectPkgs pythonPackages
-        ++ (with pythonPackages; [
-            # From https://github.com/NixOS/nixpkgs/issues/45038
-            dateutil
-            dbus-python
-            keyring
-            mpd2
-            psutil
-            pyxdg
-            pygobject3
-            nixpkgs
-        ]);
-
-<<20210601185118202517300(pkg="qtile", version="39", pythonPackages="python37Packages")>>
-#+end_src
-
-****** xonsh.nix
-
-#+call: hash() :exports none
-
-#+RESULTS:
-: 20210601185127082738200
-
-#+name: 20210601185127082738200
-#+begin_src nix :tangle (meq/tangle-path)
-<<20210601185113382242300>>:
-
-with builtins; let
-    # build a mach-nix python env
-    machnixPy = mach-nix.mkPython {
-        <<20210601185114873837100>>
-        requirements = ''
-        # add requirements here
-        # jedi
-        borgmatic
-        dephell
-        ply
-        prompt_toolkit
-        pygments
-        pipx
-        yubico-client
-        ansible
-
-        # add xontribs here
-        # xonsh-direnv
-        # xonsh-docker-tabcomplete
-        # xonsh-vox-tabcomplete
-        # xontrib-prompt-bar
-        # xontrib-ssh-agent
-        xonsh-autoxsh
-        xontrib-autojump
-        xontrib-fzf-widgets
-        xontrib-kitty
-        xontrib-pipeliner
-        xontrib-powerline2
-        xontrib-prompt-vi-mode
-        xontrib-readable-traceback
-        xontrib-schedule
-        xontrib-z
-        '';
-        <<20210601185116284142400>>
-    };
-
-    pythonPath =
-        (oa.pythonPath or [])
-        ++ machnixPy.selectPkgs pythonPackages
-        ++ (with pythonPackages; [
-            ply
-            prompt_toolkit
-            pygments
-            pipx
-            yubico-client
-            nixpkgs
-        ]);
-
-<<20210601185118202517300(pkg="xonsh", version="39", pythonPackages="python3Packages")>>
 #+end_src
 
 ***** default.nix
@@ -3099,186 +2922,7 @@ inputs@{
     mkifnt = myIf.drv (!terminal) pkgs.hello;
     mkifn = myIf.drv neither pkgs.hello;
     mkifnm = myIf.drv (!minimal) pkgs.hello;
-    extra-container = let pkgSrc = sources.extraContainer; in pkgs.callPackage pkgSrc { inherit pkgSrc; };
-in with pkgs; [
-    autojump
-    acpilight
-    (myIf.drv (!elem system [ "aarch64-linux" ]) pkgs.hello appimage-run)
-    (myIf.drv (!elem system [ "aarch64-linux" ]) pkgs.hello appimagekit)
-    assh
-    autossh
-    bat
-    bc
-    # bcachefs-tools
-    btrfs-progs
-    byobu
-    cascadia-code
-    copyq
-    coreutils
-    ctop
-    curl
-    darling-dmg
-    ddar
-    diskus
-    dos2unix
-    elvish
-    entr
-    exa
-    exfat
-    fasd
-    fd
-    fff
-    ffmpeg
-    ffmpeg
-    figlet
-    filet
-    fzf
-    gcc
-    git
-    git-crypt
-    git-fire
-    git-lfs
-    gotop
-    gptfdisk
-    inetutils
-    libffi
-    lolcat
-    lorri
-    micro
-    mkpasswd
-    monkeysphere
-    mosh
-    mtr
-    neo-cowsay
-    neovim
-    niv
-    nix-direnv
-    nixops
-    nnn
-    nox
-    ntfs3g
-    pandoc
-    par2cmdline
-    parted
-    peru
-    pfetch
-    pmutils
-    ranger
-    ripgrep
-    rsync
-    sd
-    shellcheck
-    silver-searcher
-    snapper
-    # spacevim
-    libguestfs
-    (myIf.drv (!elem system [ "aarch64-linux" ]) pkgs.hello qemu_xen_4_10-light)
-    starship
-    sysstat
-    thefuck
-    # thermald
-    tmux
-    tmuxp
-    tree
-    udftools
-    uutils-coreutils
-    vagrant
-    vim
-    wget
-    win-qemu
-    wtf
-    xclip
-    (myIf.drv (!elem system [ "aarch64-linux" ]) pkgs.hello xenPackages.xen_4_10-light)
-    xz
-    yadm
-    yubico-pam
-    yubico-piv-tool
-    yubikey-manager
-    yubikey-personalization
-    yubioath-desktop
-] ++ (map mkifn [
-    gnome3.gnome-boxes
-    gnome3.gnome-tweaks
-    google-chrome
-    google-chrome-beta
-    google-chrome-dev
-    vivaldi
-    vivaldi-ffmpeg-codecs
-    vivaldi-widevine
-    vscodium
-]) ++ (map mkifnm [
-    extra-container
-    # haskellPackages.hocker
-    refind
-]) ++ (map mkifnt [
-    alacritty
-    atom
-    (myIf.drv (!elem system [ "aarch64-linux" ]) pkgs.hello etcher)
-    firefox
-    gnome3.gnome-disk-utility
-    gparted
-    keybase-gui
-    kitty
-    libsForQt5.qtstyleplugin-kvantum
-    shadowfox
-    vlc
-    vscode
-    # woeusb
-    xclip
-    xfce.thunar
-    yubikey-manager-qt
-    yubikey-personalization-gui
-# ]) ++ (with pkgs.j.pkgset.20-09."emacs${versions.emacs}Packages"; [
-#     (mkifnm exwm)
-]) ++ (with pkgs."python${versions.python}Packages"; [
-    # (myIf.drv (!elem system [ "aarch64-linux" ]) pkgs.hello pyls-black)
-    # (mkifnm jupyter)
-    # nixpkgs
-    # poetry
-]) ++ (with pkgs.gitAndTools; [
-    # git-annex
-    git-extras
-    git-hub
-    gitflow
-    gh
-    hub
-    lab
-]) ++ (map (npp: mkifnm pkgs."nix-prefetch-${npp}") [
-    "github"
-    "docker"
-    "scripts"
-]) ++ (with pkgs.nur.repos; [
-    # (mkifnt onny.foliate)
-]) ++ [
-    # For emacs
-
-    # org-roam
-    sqlite
-
-    # org-md-export-to-markdown
-    nodePackages.prettier
-] ++ (let
-    p = "python${versions.python}Packages";
-in [
-    (getAttr "black" (
-        if (pkgs ? black) then pkgs else pkgs."${p}"
-    ))
-
-    (myIf.drv (
-        (pkgs ? black-macchiato) || (pkgs."${p}" ? black-macchiato)
-    ) pkgs.hello (getAttr "black-macchiato" (
-        if (pkgs ? black-macchiato) then pkgs else pkgs."${p}"
-    )))
-
-    (myIf.drv (pkgs ? duf) pkgs.hello (getAttr "duf" pkgs))
-    (myIf.drv (pkgs ? gitoxide) pkgs.hello (getAttr "gitoxide" pkgs))
-    (myIf.drv (pkgs ? glances) pkgs.hello (getAttr "glances" pkgs))
-    # (myIf.drv (pkgs ? nixos-shell) pkgs.hello (getAttr "nixos-shell" pkgs))
-    (myIf.drv (pkgs ? obsidian && !neither) pkgs.hello (getAttr "obsidian" pkgs))
-    (myIf.drv (pkgs ? yubikey-agent) pkgs.hello (getAttr "yubikey-agent" pkgs))
-    (myIf.drv ((!elem system [ "aarch64-linux" ]) && (pkgs ? zenith)) pkgs.hello (getAttr "zenith" pkgs))
-    (myIf.drv (pkgs."${p}" ? pipx) pkgs.hello (getAttr "pipx" pkgs."${p}"))
-])
+in with pkgs; [ emacsGcc yadm ]
 #+end_src
 
 **** platforms
@@ -3467,103 +3111,6 @@ in
 #+end_src
 
 * home
-** .gitattributes
-
-#+call: hash() :exports none
-
-#+RESULTS:
-: 20210601185410274391500
-
-#+name: 20210601185410274391500
-#+begin_src gitattributes :tangle (meq/tangle-path)
-<<20210601214257298335500>>
-#+end_src
-
-** .xonsh.d
-*** fzf_tmux_dir_file.sh
-
-#+call: hash() :exports none
-
-#+RESULTS:
-: 20210601185418661581700
-
-#+name: 20210601185418661581700
-#+begin_src sh :tangle (meq/tangle-path)
-echo $(find "$1" | fzf-tmux)
-#+end_src
-
-*** fzf_tmux_pkg.sh
-
-#+call: hash() :exports none
-
-#+RESULTS:
-: 20210601185421600244400
-
-#+name: 20210601185421600244400
-#+begin_src sh :tangle (meq/tangle-path)
-echo $(dpkg --get-selections | fzf-tmux)
-#+end_src
-
-** .xonshrc
-
-#+call: hash() :exports none
-
-#+RESULTS:
-: 20210601185424827789400
-
-#+name: 20210601185424827789400
-#+begin_src xonsh :tangle (meq/tangle-path)
-<<20210601214242951916200>>
-#+end_src
-
-#+call: hash() :exports none
-
-#+RESULTS:
-: 20210601185427358430600
-
-#+name: 20210601185427358430600
-#+begin_src nix
-".xonshrc".text = let
-    python_ver = concatStringsSep "." (stringToCharacters attrs.versions.python);
-    Channel = toCapital channel;
-in with attrs.commands; ''
-homeManager = True
-
-<<20210601185424827789400>>
-'' + (myIf.empty nixos ''
-
-<<20210601185428842611300>>
-'');
-#+end_src
-
-*** nixos
-
-#+call: hash() :exports none
-
-#+RESULTS:
-: 20210601185428842611300
-
-#+name: 20210601185428842611300
-#+begin_src xonsh
-#################
-# NixOS ${Channel}
-#################
-
-aliases["rebuild"] = lambda args, stdin=None: $(${rebuild} @(args) -p ${host})
-aliases["install"] = lambda args, stdin=None: $(${install})
-
-# TODO: Revise this
-def _deploy(args, stdin=None):
-    sudo nixops create /etc/nixos/nixops/home.nix -d home
-    sudo nixops set-args --arg hostName ${get {
-        set = all.hostName;
-        stc = (filterAttrs (n: v: elem n j.attrs.stc) stc) // { inherit (stc) host; };
-    }} -d home
-    if "all" in args:
-        sudo nixops deploy -d home
-aliases["deploy"] = _deploy
-#+end_src
-
 ** zsh
 
 #+call: hash() :exports none
@@ -4417,40 +3964,6 @@ eval (starship init elvish)
 #+name: 20210601185909239055500
 #+begin_src vimrc :tangle (meq/tangle-path)
 <<20210601214241093346900>>
-#+end_src
-
-** makefile
-
-#+call: hash() :exports none
-
-#+RESULTS:
-: 20210601185910773859000
-
-#+name: 20210601185910773859000
-#+begin_src text
-scop/bash-completion ~/<<username>>/resources/bashCompletions
-xero/figlet-fonts ~/<<username>>/resources/xeroFigletFonts
-grml/grml-etc-core ~/<<username>>/resources/grml
-SpaceVim/SpaceVim ~/<<username>>/home/.vim
-dexpota/kitty-themes ~/<<username>>/resources/kittyThemes
-aleclearmind/nested-tmux ~/<<username>>/resources/aleclearmind
-gpakosz/.tmux ~/<<username>>/resources/oh-my-tmux
-powerline/powerline ~/<<username>>/resources/powerline
-tmux-plugins/tpm ~/<<username>>/resources/tpm
-#+end_src
-
-#+call: hash() :exports none
-
-#+RESULTS:
-: 20210601185912312833700
-
-#+name: 20210601185912312833700
-#+begin_src makefile :tangle (meq/tangle-path)
-.RECIPEPREFIX := |
-
-init:
-|-git clone --recurse-submodule https://github.com/<<20210601185910773859000>>
-|-ln -sf home/.vim ~/<<username>>/home/.config/nvim
 #+end_src
 
 ** git

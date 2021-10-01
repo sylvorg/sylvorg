@@ -4,3 +4,33 @@
 [submodule "home/.emacs.d"]
 	path = home/.emacs.d
 	url = https://github.com/shadowrylander/siluam.git
+[submodule "home/resources/bashCompletions"]
+	path = home/resources/bashCompletions
+	url = https://github.com/scop/bash-completion.git
+[submodule "home/resources/xeroFigletFonts"]
+	path = home/resources/xeroFigletFonts
+	url = https://github.com/xero/figlet-fonts.git
+[submodule "home/resources/grml"]
+	path = home/resources/grml
+	url = https://github.com/grml/grml-etc-core.git
+[submodule "home/resources/kittyThemes"]
+	path = home/resources/kittyThemes
+	url = https://github.com/dexpota/kitty-themes.git
+[submodule "home/resources/aleclearmind"]
+	path = home/resources/aleclearmind
+	url = https://github.com/aleclearmind/nested-tmux.git
+[submodule "home/resources/oh-my-tmux"]
+	path = home/resources/oh-my-tmux
+	url = https://github.com/gpakosz/.tmux.git
+[submodule "home/resources/powerline"]
+	path = home/resources/powerline
+	url = https://github.com/powerline/powerline.git
+[submodule "home/resources/tpm"]
+	path = home/resources/tpm
+	url = https://github.com/tmux-plugins/tpm.git
+[submodule "home/.vim"]
+	path = home/.vim
+	url = https://github.com/SpaceVim/SpaceVim.git
+[submodule "home/.config/neovim"]
+	path = home/.config/neovim
+	url = https://github.com/SpaceVim/SpaceVim.git

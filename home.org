@@ -1,3 +1,14 @@
+#+setupfile: ./settings/README.org
+#+include: ./settings/README.org
+
+* home
+** .gitattributes
+
+The LFS filter are from both
+[[https://raw.githubusercontent.com/sindresorhus/binary-extensions/main/binary-extensions.json][here]] and
+[[https://rehansaeed.com/gitattributes-best-practices/#final-form][here]]:
+
+#+begin_src gitattributes :tangle (meq/tangle-path)
 *.sec filter=git-crypt diff=git-crypt
 id_* filter=git-crypt diff=git-crypt
 .gnupg/** filter=git-crypt diff=git-crypt
@@ -262,3 +273,295 @@ id_* filter=git-crypt diff=git-crypt
 *.z filter=lfs diff=lfs merge=lfs -text
 *.zip filter=lfs diff=lfs merge=lfs -text
 *.zipx filter=lfs diff=lfs merge=lfs -text
+#+end_src
+
+** .xonsh.d
+*** fzfdf.sh
+
+#+begin_src sh :tangle (meq/tangle-path) :shebang "#!/usr/bin/env sh"
+if [ -z "$1" ]; then echo $(fd | fzf-tmux) || echo $(fd . "$1" | fzf-tmux); fi
+#+end_src
+
+** .xonshrc
+:PROPERTIES:
+:header-args:xonsh+: :noweb-ref .xonshrc
+:END:
+
+#+begin_src xonsh :noweb-ref no :tangle (meq/tangle-path)
+<<.xonshrc>>
+#+end_src
+
+*** imports
+
+#+begin_src xonsh
+from sys import path as sys_path
+from datetime import datetime
+from nanite import fullpath as fp
+from os import path as os_path, sep as os_sep, getcwd
+from inspect import getsourcefile
+#+end_src
+
+*** setup
+
+#+begin_src xonsh
+# Note that type hints cannot be used
+
+tmux attach 2> /dev/null
+# pfetch
+
+python_ver = "3.9"
+home = fp("~")
+xeroFigletFonts = fp("~/resources/xeroFigletFonts")
+
+# figlet -d @(xeroFigletFonts) -f smisome1.flf "Hello!" | lolcat
+#+end_src
+
+*** environment
+
+#+begin_src xonsh
+$AUTO_CD = True
+$AUTO_PUSHD = True
+$AUTO_SUGGEST = True
+$AUTO_SUGGEST_IN_COMPLETIONS = True
+$BASH_COMPLETIONS += [ fp("~/resources/bashCompletions") ]
+$COMPLETION_IN_THREAD = True
+$COMPLETIONS_CONFIRM = True
+$DOTGLOB = True
+$FUZZY_PATH_COMPLETION = True
+$MOUSE_SUPPORT = True
+$PRETTY_PRINT_RESULTS = True
+$PROMPT_TOOLKIT_COLOR_DEPTH = "DEPTH_24_BIT"
+$SHELL_TYPE = "prompt_toolkit"
+$UPDATE_COMPLETIONS_ON_KEYPRESS = True
+$UPDATE_OS_ENVIRON = True
+$VI_MODE = True
+$XONSH_AUTOPAIR = True
+$XONSH_CACHE_EVERYTHING = True
+
+# This enumerates all history files when set to true
+$XONSH_DEBUG = False
+
+$XONSH_SHOW_TRACEBACK = True
+
+# Xonsh Prompt
+$PROMPT_FIELDS["prompt_end"] = "Wheee! 😹 "
+# $PROMPT = "{BOLD_#E5004D}{env_name} {BOLD_#FF4081}{prompt_end}"
+# $PROMPT = lambda: $(starship prompt)
+execx($(starship init xonsh))
+$RIGHT_PROMPT = "{BOLD_#E5004D} {prompt_end}{BOLD_#FC9F71} || {BOLD_#E5004D} {user}@{hostname} "
+# $BOTTOM_TOOLBAR = $RIGHT_PROMPT
+
+# Path
+sys_path.insert(0, "")
+extra_paths = [
+    f"{home}/.nimble/bin",
+    f"{home}/go/bin",
+    "/usr/lib/node_modules",
+]
+$PATH += extra_paths
+
+# Shell
+# $EDITOR = "emacsclient --socket-name=spacemacsd -t"
+$EDITOR = "vim"
+$TERM = "xterm-kitty"
+$GPG_TTY=$(tty)
+
+# Etc
+# $DIRENV_WARN_TIMEOUT = "100y"
+$LESSOPEN = "| /usr/share/source-highlight/src-hilite-lesspipe.sh %s"
+$LESS = " -R "
+
+# Linuxbrew
+# $LINUXBREWHOME = "/home/linuxbrew/.linuxbrew"
+# $PATH.append("$LINUXBREWHOME/bin")
+# $MANPATH = ["$LINUXBREWHOME/man"]
+# $PKG_CONFIG_PATH = ["$LINUXBREWHOME/lib64/pkgconfig", "$LINUXBREWHOME/lib/pkgconfig"]
+# $LD_LIBRARY_PATH = ["$LINUXBREWHOME/lib64", "$LINUXBREWHOME/lib"]
+#+end_src
+
+*** functions
+
+#+begin_src xonsh
+def _yadm(args, stdin=None):
+    if args[0] == "edit":
+        vim @(fp(f"{args[1]}##template"))
+    else:
+        # From https://github.com/xonsh/xonsh/issues/3159#issuecomment-500364622
+        $(which -s yadm) @(args)
+
+def _mdg(args, stdin=None):
+    mkdir -p @(args)
+    cd @(args[0])
+
+# quick opening files with vim
+def _fasdv(args, stdin=None):
+    fasd -fe vim @(args)
+
+# quick opening files with emacs
+def _fasde(args, stdin=None):
+    fasd -fe 'emacsclient --socket-name=damascus -t' @(args)
+
+def hgsetup(args, stdin=None):
+    hg bookmark master
+    hg checkout master
+    hg add .hgignore
+    hg ci -m .hgignore
+    hg ci -Am @(args)
+    hg push
+
+def _alacritty_change_themes(args, stdin=None):
+    _alc = "alacritty"
+    _alc_theme = fullpath(
+        config_dir,
+        _alc,
+        "themes",
+        args[0]+".yaml"
+    )
+    _alc_config = fullpath(
+        "~",
+        ".config",
+        _alc,
+        _alc+".yml"
+    )
+    rsync @(_alc_theme) @(_alc_config)
+
+def _compile(args, stdin=None):
+    clear
+    name = args.pop(0)
+    g++ @(name + ".cpp")
+    ./a.out @(name) @(args)
+
+def _compile_only(args, stdin=None):
+    g++ @(args[0] + ".cpp")
+
+def _compile_header(args, stdin=None):
+    g++ @(args[0] + ".h")
+
+def _compile_link(args, stdin=None):
+    for arg in args:
+        g++ @(arg + ".cpp") -c
+    args = [arg + ".o" for arg in args]
+    g++ @(args) -o a.out
+
+def _direnv_allow(args, stdin=None):
+    if args:
+        for argument in args:
+            direnv allow @(argument)
+    else:
+        direnv allow
+
+def _la(args, stdin=None):
+    if "-t" in args:
+        args = list(args)
+        args.remove("-t")
+        exa -laT @(args)
+    else:
+        exa -la @(args)
+
+def _evim(args, stdin=None):
+    emacsclient --socket-name=damascus -t @(args)
+
+def _git(args, stdin=None):
+    $(which -s hub) @(args)
+
+def _ssh(args, stdin=None):
+    $(which -s assh) wrapper ssh @(args)
+
+def _cdi(args, stdin=None):
+    output = $(sh @(fzfdf) @(args))
+    cd @(output.strip("\n"))
+#+end_src
+
+*** xontribs
+
+#+begin_src xonsh
+# xontrib load autojump
+# xontrib load coreutils
+# xontrib load docker_tabcomplete
+# xontrib load schedule
+# xontrib load ssh_agent
+# xontrib load vox_tabcomplete
+
+xontrib load abbrevs
+xontrib load autoxsh
+xontrib load bashisms
+xontrib load direnv
+xontrib load fzf-widgets
+xontrib load kitty
+xontrib load pipeliner
+xontrib load readable-traceback
+xontrib load sh
+xontrib load vox
+xontrib load whole_word_jumping
+xontrib load xlsd
+xontrib load zoxide
+
+# Jedi was what was causing the python function completions
+# instead of the path completions
+# xontrib load jedi
+#+end_src
+
+*** base
+
+#+begin_src xonsh
+# byobu attach -t <<username>> &> /dev/null
+
+if getcwd() == "/":
+    cd ~
+
+xtras = fp(home, ".xonsh.d")
+fzfdf = fp(xtras, "fzfdf.sh")
+
+# source @(fp(xtras, "passwords.xsh"))
+source-zsh $(fasd --init auto)
+# source-zsh @(fp(home, ".nix-profile", "etc", "profile.d", "hm-session-vars.sh"))
+
+# vox create base -p $(which @(f"python{python_ver}")) 2> /dev/null
+# vox enter base 2> /dev/null
+
+# aliases["act"] = _alacritty_change_themes
+aliases["evim"] = _evim
+# aliases["hgsetup"] = hgsetup
+aliases["-"] = "pushd"
+aliases[".."] = "cd .."
+aliases["."] = "la ."
+aliases["ba"] = "byobu attach"
+aliases["bd"] = "byobu detach"
+aliases["bda"] = "byobu detach-client -a"
+aliases["c"] = "clear"
+aliases["compile-header"] = _compile_header
+aliases["compile-link"] = _compile_link
+aliases["compile-only"] = _compile_only
+aliases["compile"] = _compile
+aliases["da"] = _direnv_allow
+aliases["emd"] = "emacs --bg-daemon=damascus"
+aliases["kemd"] = "emacsclient --socket-name=damascus -e '(kill-emacs)'"
+aliases["la"] = _la
+aliases["md"] = lambda args, stdin=None: $(mkdir -p @(args))
+aliases["mdg"] = _mdg
+aliases["mosh"] = lambda args, stdin=None: $($(which -s mosh) --experimental-remote-ip=remote @(args))
+aliases["n"] = "exit"
+aliases["remd"] = "emacsclient --socket-name=damascus -e '(kill-emacs)' && emacs --bg-daemon=damascus"
+# aliases["ssh"] = _ssh
+aliases["ve"] = lambda args, stdin=None: $(vox enter @(args)) if args else $(vox exit)
+aliases["yadm"] = _yadm
+aliases["git"] = _git
+aliases["xpip"] = lambda args, stdin=None: $(pipx inject --force --include-deps xonsh @(args))
+aliases["s"] = "source ~/.xonshrc"
+aliases["cdi"] = _cdi
+
+# fasd aliases
+aliases["o"] = lambda args, stdin=None: $(fasd -ae xdg-open @(args)) # quick opening files with xdg-open
+aliases["v"] = _fasdv # quick opening files with vim
+aliases["e"] = _fasde # quick opening files with emacs
+
+_fzf_df_alias = "..."
+def _fzf(args, stdin=True):
+    args = list(args)
+    dir_file = $(sh @(fzfdf) @(fp(args.pop(0)))).rstrip()
+    if args[0] == _fzf_df_alias:
+        _fzf([dir_file] + args[1::])
+    else:
+        @(args) @(dir_file)
+aliases[_fzf_df_alias] = _fzf
+#+end_src

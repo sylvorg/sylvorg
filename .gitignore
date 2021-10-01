@@ -18,3 +18,7 @@
 !/LICENSE
 
 **/**/README.el
+
+/home/resources
+/home/.vim
+/home/.config/neovim

@@ -1,22 +1,4 @@
-#+property: header-args -n -r -l "[{(<%s>)}]" :tangle-mode (identity 0444) :noweb yes :mkdirp yes :noweb-sep "\n\n\n"
-#+property: header-args:emacs-lisp :comments both
-
-# Adapted From:
-# Answer: https://stackoverflow.com/a/65232183/10827766
-# User: https://stackoverflow.com/users/776405/whil
-#+startup: show3levels
-
-The tangle functions are adapted from [[https://emacs.stackexchange.com/a/29884/31428][this answer on the emacs Stack Exchange]],
-which was written by [[https://emacs.stackexchange.com/users/2710/andrew-swann][Andrew Swann]].
-
-* org-tangle.sh
-:PROPERTIES:
-:header-args:emacs-lisp+: :comments none
-:END:
-
-Adapted from: https://github.com/hlissner/doom-emacs/blob/develop/bin/org-tangle
-
-#+begin_src emacs-lisp :tangle (meq/tangle-path) :shebang "#!/usr/bin/env sh"
+#!/usr/bin/env sh
 ":"; exec emacs --quick --script "$0" -- "$@" # -*- mode: emacs-lisp; lexical-binding: t; -*-
 
 (setq org-confirm-babel-evaluate nil)
@@ -25,7 +7,20 @@ Adapted from: https://github.com/hlissner/doom-emacs/blob/develop/bin/org-tangle
 (require 'ox)
 (require 'ob-tangle)
 
-<<20210601225401786848500>>
+(let* ((file (cond
+                ((file-exists-p "~/.emacs.d/settings/README.org") "~/.emacs.d/settings/README.org")
+                ((file-exists-p "home/.emacs.d/settings/README.org") "home/.emacs.d/settings/README.org")
+                ((file-exists-p "settings/README.org") "settings/README.org"))))
+    (when file (org-babel-lob-ingest file)))
+
+(defun meq/get-header nil (interactive)
+    (nth 4 (org-heading-components)))
+(defun meq/tangle-path nil (interactive)
+    (string-remove-prefix "/" (concat
+        (org-format-outline-path (org-get-outline-path)) "/"
+            (meq/get-header))))
+(defun meq/get-theme-from-header nil (interactive)
+    (string-remove-suffix "-theme.el" (meq/get-header)))
 
 (defun usage ()
   (with-temp-buffer
@@ -157,123 +152,3 @@ trees with the :notangle: tag."
         (ignore-errors (copy-file backup file t))
         (ignore-errors (delete-file backup)))))
   (kill-emacs 0))
-#+end_src
-
-* org-tangle-functions.el
-:PROPERTIES:
-:header-args:emacs-lisp+: :comments none
-:END:
-
-#+call: hash() :exports none
-
-#+RESULTS:
-: 20210601225401786848500
-
-#+name: 20210601225401786848500
-#+begin_src emacs-lisp :tangle (meq/tangle-path)
-(let* ((file (cond
-                ((file-exists-p "~/.emacs.d/settings/README.org") "~/.emacs.d/settings/README.org")
-                ((file-exists-p "home/.emacs.d/settings/README.org") "home/.emacs.d/settings/README.org")
-                ((file-exists-p "settings/README.org") "settings/README.org"))))
-    (when file (org-babel-lob-ingest file)))
-
-(defun meq/get-header nil (interactive)
-    (nth 4 (org-heading-components)))
-(defun meq/tangle-path nil (interactive)
-    (string-remove-prefix "/" (concat
-        (org-format-outline-path (org-get-outline-path)) "/"
-            (meq/get-header))))
-(defun meq/get-theme-from-header nil (interactive)
-    (string-remove-suffix "-theme.el" (meq/get-header)))
-#+end_src
-
-* wtt-pre
-
-#+call: hash() :exports none
-
-#+RESULTS:
-: 20210821132334835661400
-
-#+name: 20210821132334835661400
-#+begin_src emacs-lisp
-(load (concat (getenv "HOME") "/.emacs.d/early-init.el"))
-(meq/up markdown-mode :mode ("\\.md\\'")
-    :use-package-postconfig (yasnippet)
-    :upnsd-preconfig (titan :custom (meq/var/titan-snippets-dir (meq/ued-lib "titan" "snippets"))))
-#+end_src
-
-* wtt-post
-
-#+call: hash() :exports none
-
-#+RESULTS:
-: 20210821140509092087900
-
-#+name: 20210821140509092087900
-#+begin_src emacs-lisp
-(meq/insert-snippet "markdown titan template")
-(save-buffer)
-#+end_src
-
-* wtt.sh
-:PROPERTIES:
-:header-args:emacs-lisp+: :comments none
-:END:
-
-#+begin_src emacs-lisp :tangle (meq/tangle-path) :shebang "#!/usr/bin/env sh"
-":"; exec emacs --quick --script "$0" -- "$@" # -*- mode: emacs-lisp; lexical-binding: t; -*-
-(princ (format-time-string "%Y%m%d%H%M%S%N")) (terpri)
-#+end_src
-
-* wtt.fell.sh
-:PROPERTIES:
-:header-args:emacs-lisp+: :comments none
-:END:
-
-#+begin_src emacs-lisp :tangle (meq/tangle-path) :shebang "#!/usr/bin/env sh"
-":"; exec emacs --quick --script "$0" -- "$@" # -*- mode: emacs-lisp; lexical-binding: t; -*-
-<<20210821132334835661400>>
-(meq/upnsd fell
-    :custom (meq/var/fell-snippets-dir (meq/ued-lib "fell" "snippets"))
-    :mode ("\\.fell\\.md\\'" . fell-markdown-mode))
-(find-file (concat (meq/timestamp) ".fell.md"))
-<<20210821140509092087900>>
-#+end_src
-
-* wtt.doc.sh
-:PROPERTIES:
-:header-args:emacs-lisp+: :comments none
-:END:
-
-#+begin_src emacs-lisp :tangle (meq/tangle-path) :shebang "#!/usr/bin/env sh"
-":"; exec emacs --quick --script "$0" -- "$@" # -*- mode: emacs-lisp; lexical-binding: t; -*-
-<<20210821132334835661400>>
-(meq/upnsd doc
-    :custom (meq/var/doc-snippets-dir (meq/ued-lib "doc" "snippets"))
-    :mode ("\\.doc\\.md\\'" . doc-markdown-mode))
-(find-file (concat (meq/timestamp) ".doc.md"))
-<<20210821140509092087900>>
-#+end_src
-
-* Addendum
-
-These are just a few blocks I use regularly in my ~org~ files, whether in ~noweb~, naming, or otherwise:
-
-#+name: username
-#+begin_src text
-shadowrylander
-#+end_src
-
-# Adapted From: https://www.reddit.com/r/emacs/comments/4o9f0e/anyone_have_disabled_parts_of_their_config_being/d4apjey?utm_source=share&utm_medium=web2x&context=3
-
-#+name: hash-deprecated
-#+begin_src emacs-lisp :var name="" :tangle no
-(md5 (concat (replace-regexp-in-string "/" "" (
-    org-format-outline-path (org-get-outline-path))) (
-        nth 4 (org-heading-components)) name))
-#+end_src
-
-#+name: hash
-#+begin_src emacs-lisp :tangle no
-(format-time-string "%Y%m%d%H%M%S%N")
-#+end_src
