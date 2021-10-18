@@ -1,0 +1,162 @@
+#+setupfile: ./settings/README.org
+#+include: ./settings/README.org
+
+* .gitconfig
+
+#+begin_src conf :tangle (meq/tangle-path)
+[remote "settings"]
+	url = https://github.com/<<username>>/settings.git
+	fetch = +refs/heads/main:refs/remotes/origin/main
+	pushurl = git@github.com:<<username>>/settings.git
+#+end_src
+
+* makefile
+
+#+call: hash() :exports none
+
+#+RESULTS:
+: 20210601181725825830000
+
+#+name: 20210601181725825830000
+#+begin_src makefile :tangle (meq/tangle-path)
+.RECIPEPREFIX := |
+.DEFAULT_GOAL := super-push
+
+# Adapted From: https://www.systutorials.com/how-to-get-the-full-path-and-directory-of-a-makefile-itself/
+mkfilePath := $(abspath $(lastword $(MAKEFILE_LIST)))
+mkfileDir := $(dir $(mkfilePath))
+emkDir := home/.emacs.d/
+emkFile := $(emkDir)/makefile
+emkMake := make -f $(emkFile)
+
+init: pre-init tangle
+|$(emkMake) pre-init
+
+pre-init:
+|-git -C $(mkfileDir) config include.path "$(mkfileDir)/.gitconfig"
+|git -C $(mkfileDir) submodule add --depth 1 -f https://github.com/<<username>>/.emacs.d.git
+|git -C $(mkfileDir) submodule add --depth 1 -f https://github.com/<<username>>/siluam.git home/.emacs.d
+
+tangle-setup:
+|$(emkMake) tangle-setup
+
+tangle:
+|$(emkMake) tangle
+|yes yes | fd . $(mkfileDir) \
+    -HIe org \
+    -E .emacs.d \
+    -E home/.emacs.d \
+    -x settings/backup-tangle.sh
+|fd . $(mkfileDir) \
+    -HId 1 -e sh \
+    -x chmod +x
+
+subinit: init
+|$(emkMake) subinit
+
+|-git rm -rf --cached home/resources home/.vim home/.config/neovim
+|git -C $(mkfileDir) submodule sync --recursive
+
+# Adapted From:
+# Answer: https://stackoverflow.com/a/56621295/10827766
+# User: https://stackoverflow.com/users/1600536/alim-giray-aytar
+|git -C $(mkfileDir) submodule update --force --init --depth 1 --recursive --remote
+
+|git -C $(mkfileDir) submodule sync --recursive
+|-git rm -rf --cached home/resources
+
+pull: subinit
+|git -C $(mkfileDir) pull
+
+add: pre-init
+|git -C $(mkfileDir) add .
+
+commit: pre-init
+|-git -C $(mkfileDir) commit --allow-empty-message -am ""
+
+cammit: add commit
+
+push: cammit
+|-git -C $(mkfileDir) push
+
+emacs:
+|$(emkMake) emacs
+emacs-nw:
+|$(emkMake) emacs-nw
+super-push: tangle push
+#+end_src
+
+* previous projects
+** bakery
+
+My pride and joy; based off of [[https://github.com/amoffat][Andrew Moffat's]] [[https://amoffat.github.io/sh/][sh]],
+this python module allows you to import shell commands as modules as well. For example:
+
+# How does the code below work exactly, again? Revise it!
+
+#+begin_src python
+<<20210601181755824433500>>
+<<20210601181800630609300>>
+<<20210601181804730771100>>
+#+end_src
+
+You might be thinking to yourself, "Cool!" And also, "...Wait what?"
+
+*** breaking it down
+
+-----
+
+#+call: hash() :exports none
+
+#+RESULTS:
+: 20210601181755824433500
+
+#+name: 20210601181755824433500
+#+begin_src python
+from baker.y import git
+#+end_src
+
+This will import the =git= utility from your path as a =bakery= object;
+note, however, that while the statement is importing =git= from =baker.y=,
+there are actually two submodules in play here: =baker= with a =y=,
+and =baker= with an =i=.
+
+To facilitate the use of =git(C = [path]).status()=, the latter submodule must be used.
+This also prevents the use of something like =git()=, but, since that just shows the help text,
+one can simply use =git.help()= instead.
+
+-----
+
+#+call: hash() :exports none
+
+#+RESULTS:
+: 20210601181800630609300
+
+#+name: 20210601181800630609300
+#+begin_src python
+git.clone(
+    b = "master",
+    recurse_submodule = True,
+    "https://github.com/<<username>>/<<username>>",
+    "~/<<username>>",
+    _run = True,
+)
+#+end_src
+
+-----
+
+#+call: hash() :exports none
+
+#+RESULTS:
+: 20210601181804730771100
+
+#+name: 20210601181804730771100
+#+begin_src python
+print(git(C = "~/<<username>>").status())
+#+end_src
+
+*** want more information?
+
+Get it here! https://gitlab.com/picotech/bakery
+
+Also: eh heh heh... yeah... I like =gitlab's= grouping system... */sheepish grin/*
