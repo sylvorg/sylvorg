@@ -1,0 +1,24 @@
+*
+
+# From: https://jasonstitt.com/gitignore-whitelisting-patterns
+!*/
+
+# !**/**/*.org
+# !**/**/README.*
+# !**/**/makefile
+# !**/**/*.lock
+# !**/**/*.dep
+# !**/**/*.mk
+# !**/**/*.git*
+# !**/**/flake.nix
+# !**/**/bootstrap.py
+
+# !/settings/**/**
+
+# !/LICENSE
+
+# **/**/README.el
+
+# /home/resources
+# /home/.vim
+# /home/.config/neovim
