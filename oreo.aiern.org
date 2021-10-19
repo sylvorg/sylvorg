@@ -5638,26 +5638,6 @@ temp
 #+end_src
 
 #+begin_src gitignore
-*
-
-# From: https://jasonstitt.com/gitignore-whitelisting-patterns
-!*/
-
-# !**/**/*.org
-# !**/**/README.*
-# !**/**/makefile
-# !**/**/*.lock
-# !**/**/*.dep
-# !**/**/*.mk
-# !**/**/*.git*
-# !**/**/flake.nix
-# !**/**/bootstrap.py
-
-# !/settings/**/**
-
-# !/LICENSE
-
-# **/**/README.el
 #+end_src
 
 * .hgignore
