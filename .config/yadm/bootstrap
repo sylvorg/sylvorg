@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-git -C ~/.local/share/yadm/repo.git submodule update --force --init --depth 1 --recursive --remote
+git -C ~/.local/share/yadm/repo.git submodule update --force --init --depth 1 --recursive
 git -C ~/.emacs.d remote set-url --push origin git@github.com:shadowrylander/.emacs.d.git
 curl -L https://nixos.org/nix/install | sh
 . ~/.nix-profile/etc/profile.d/nix.sh
