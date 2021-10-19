@@ -1,0 +1,36 @@
+[submodule ".emacs.d"]
+	path = .emacs.d
+	url = https://github.com/shadowrylander/.emacs.d.git
+[submodule "resources/bashCompletions"]
+	path = resources/bashCompletions
+	url = https://github.com/scop/bash-completion.git
+[submodule "resources/xeroFigletFonts"]
+	path = resources/xeroFigletFonts
+	url = https://github.com/xero/figlet-fonts.git
+[submodule "resources/grml"]
+	path = resources/grml
+	url = https://github.com/grml/grml-etc-core.git
+[submodule "resources/kittyThemes"]
+	path = resources/kittyThemes
+	url = https://github.com/dexpota/kitty-themes.git
+[submodule "resources/aleclearmind"]
+	path = resources/aleclearmind
+	url = https://github.com/aleclearmind/nested-tmux.git
+[submodule "resources/oh-my-tmux"]
+	path = resources/oh-my-tmux
+	url = https://github.com/gpakosz/.tmux.git
+[submodule "resources/powerline"]
+	path = resources/powerline
+	url = https://github.com/powerline/powerline.git
+[submodule "resources/tpm"]
+	path = resources/tpm
+	url = https://github.com/tmux-plugins/tpm.git
+[submodule ".vim"]
+	path = .vim
+	url = https://github.com/SpaceVim/SpaceVim.git
+[submodule ".config/neovim"]
+	path = .config/neovim
+	url = https://github.com/SpaceVim/SpaceVim.git
+[submodule "resources/nix-direnv"]
+	path = resources/nix-direnv
+	url = https://github.com/nix-community/nix-direnv.git
