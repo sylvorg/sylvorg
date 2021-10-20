@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 export GIT_SSL_NO_VERIFY=1
-git -C ~/.config/yadm/repo.git submodule update --force --init --depth 1 --recursive
+[[ -f "~/yadm" ]] && COMMAND=~/yadm || COMMAND=yadm
+$COMMAND submodule update --force --init --depth 1 --recursive --remote
 git -C ~/.emacs.d remote set-url --push origin git@github.com:shadowrylander/.emacs.d.git
 curl -L https://nixos.org/nix/install | sh
 . ~/.nix-profile/etc/profile.d/nix.sh
@@ -9,3 +10,8 @@ nix-channel --update
 nix-env -iA master.nixUnstable master.emacs master.gnumake master.fd master.cmake master.sqlite master.libtool
 # ~/settings/org-tangle.sh ~
 # make -f ~/.emacs.d/makefile bootstrap
+echo
+echo "Run this now: "
+echo
+echo "        . ~/.nix-profile/etc/profile.d/nix.sh"
+echo
