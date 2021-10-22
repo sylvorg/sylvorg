@@ -1,15 +1,32 @@
 #!/usr/bin/env bash
-export GIT_SSL_NO_VERIFY=1
-[[ -f "$HOME/yadm" ]] && COMMAND=~/yadm || COMMAND=yadm
-$COMMAND submodule update --force --init --depth 1 --recursive --remote
-git -C ~/.emacs.d remote set-url --push origin git@github.com:shadowrylander/.emacs.d.git
 curl -L https://nixos.org/nix/install | sh
 . ~/.nix-profile/etc/profile.d/nix.sh
 nix-channel --add https://github.com/nixos/nixpkgs/archive/master.tar.gz master
 nix-channel --update
-nix-env -iA master.nixUnstable master.emacs master.gnumake master.fd master.cmake master.sqlite master.libtool master.yadm
+nix-env -iA master.nixUnstable \
+            master.emacs \
+            master.gnumake \
+            master.fd \
+            master.cmake \
+            master.sqlite \
+            master.libtool \
+            master.yadm \
+            master.keybase \
+            master.kbfs
+
+
+
+export GIT_SSL_NO_VERIFY=1
+[[ -f "$HOME/yadm" ]] && COMMAND=~/yadm || COMMAND=yadm
+$COMMAND submodule update --force --init --depth 1 --recursive --remote
+$COMMAND remote set-url --push origin git@github.com:shadowrylander/shadowrylander.git
+
+git -C ~/.emacs.d remote set-url --push origin git@github.com:shadowrylander/.emacs.d.git
+
 ~/settings/org-tangle.sh ~/oreo.aiern.org
+
 make -f ~/.emacs.d/makefile bootstrap
+
 echo
 echo "Run this now: "
 echo
