@@ -20,7 +20,13 @@ echo
 echo "        $(~/wtt.sh)"
 echo
 
-keybase login
+# From: https://stackoverflow.com/a/3980713/10827766
+stty -echo
+printf "Password: "
+read paperkey
+stty echo
+printf "\n"
+keybase oneshot -u shadowrylander --paperkey $paperkey
 
 export GIT_SSL_NO_VERIFY=1
 [[ -f "$HOME/yadm" ]] && COMMAND=~/yadm || COMMAND=yadm
@@ -32,6 +38,8 @@ git -C ~/.emacs.d remote set-url --push origin git@github.com:shadowrylander/.em
 ~/settings/org-tangle.sh ~/oreo.aiern.org
 
 make -f ~/.emacs.d/makefile bootstrap
+
+keybase logout
 
 echo
 echo "Run this now: "
