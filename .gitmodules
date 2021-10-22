@@ -34,3 +34,9 @@
 [submodule "resources/nix-direnv"]
 	path = resources/nix-direnv
 	url = https://github.com/nix-community/nix-direnv.git
+[submodule "settings"]
+	path = settings
+	url = https://github.com/shadowrylander/settings.git
+[submodule "git-subtree"]
+	path = git-subtree
+	url = https://github.com/shadowrylander/git-subtree.git

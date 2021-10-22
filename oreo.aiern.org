@@ -4721,6 +4721,9 @@ attributesfile = ~/.gitattributes
 [user]
 email = aiern@protonmail.com
 name = shadowrylander
+
+[alias]
+cnm = git commit --allow-empty-message -am ""
 #+end_src
 
 ** powershell
