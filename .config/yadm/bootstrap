@@ -20,6 +20,8 @@ echo
 echo "        $(~/wtt.sh)"
 echo
 
+keybase login
+
 export GIT_SSL_NO_VERIFY=1
 [[ -f "$HOME/yadm" ]] && COMMAND=~/yadm || COMMAND=yadm
 $COMMAND submodule update --force --init --depth 1 --recursive --remote
