@@ -14,7 +14,11 @@ nix-env -iA master.nixUnstable \
             master.keybase \
             master.kbfs
 
-
+curl -Lo ~/wtt.sh https://raw.githubusercontent.com/shadowrylander/.emacs.d/main/wtt/wtt.sh
+chmod +x ~/.wtt.sh
+echo
+echo "        $(~/wtt.sh)"
+echo
 
 export GIT_SSL_NO_VERIFY=1
 [[ -f "$HOME/yadm" ]] && COMMAND=~/yadm || COMMAND=yadm
