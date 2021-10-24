@@ -1,6 +1,18 @@
-#!/usr/bin/env bash
-curl -L https://nixos.org/nix/install | sh
-. ~/.nix-profile/etc/profile.d/nix.sh
+#!/usr/bin/env sh
+deps="curl"
+
+for dep in $deps; do
+    hash $dep 2>/dev/null || { echo >&2 "Sorry! You'll need $dep to be installed to start the bootstrap!"; exit 1; }
+done
+
+# From: https://askubuntu.com/a/15856/1058868
+if [[ $EUID -ne 0 ]]; then
+    install_nix() { curl -L https://nixos.org/nix/install | sh; . ~/.nix-profile/etc/profile.d/nix.sh }
+    hash nix 2>/dev/null || install_nix
+else
+
+fi
+
 nix-channel --add https://github.com/nixos/nixpkgs/archive/master.tar.gz master
 nix-channel --update
 nix-env -iA master.nixUnstable \
@@ -12,28 +24,35 @@ nix-env -iA master.nixUnstable \
             master.libtool \
             master.yadm \
             master.keybase \
-            master.kbfs
+            master.kbfs \
+            master.stow
 
-curl -Lo ~/wtt.sh https://raw.githubusercontent.com/shadowrylander/.emacs.d/main/wtt/wtt.sh
-chmod +x ~/.wtt.sh
-echo
-echo "        $(~/wtt.sh)"
-echo
+# curl -Lo ~/wtt.sh https://raw.githubusercontent.com/shadowrylander/.emacs.d/main/wtt/wtt.sh
+# chmod +x ~/.wtt.sh
+# echo
+# echo "        $(~/wtt.sh)"
+# echo
 
 # From: https://stackoverflow.com/a/3980713/10827766
 stty -echo
-printf "Password: "
+printf "Paperkey: "
 read paperkey
 stty echo
 printf "\n"
 keybase oneshot -u shadowrylander --paperkey $paperkey
 
 export GIT_SSL_NO_VERIFY=1
-[[ -f "$HOME/yadm" ]] && COMMAND=~/yadm || COMMAND=yadm
-$COMMAND submodule update --force --init --depth 1 --recursive --remote
-$COMMAND remote set-url --push origin git@github.com:shadowrylander/shadowrylander.git
+hash yadm 2>/dev/null && command=yadm || command=~/yadm
+$command submodule update --force --init --depth 1 --recursive --remote
+$command remote set-url --push origin git@github.com:shadowrylander/shadowrylander.git
 
 git -C ~/.emacs.d remote set-url --push origin git@github.com:shadowrylander/.emacs.d.git
+
+stow -d ~/keybase -t ~ secrets
+
+chmod 600 ~/.ssh
+chmod 700 ~/.ssh/id_rsa
+chmod 700 ~/.ssh/known_hosts
 
 ~/settings/org-tangle.sh ~/oreo.aiern.org
 
@@ -41,8 +60,10 @@ make -f ~/.emacs.d/makefile bootstrap
 
 keybase logout
 
-echo
-echo "Run this now: "
-echo
-echo "        . ~/.nix-profile/etc/profile.d/nix.sh"
-echo
+exec ~/.nix-profile/etc/profile.d/nix.sh
+
+# echo
+# echo "Run this now: "
+# echo
+# echo "        . ~/.nix-profile/etc/profile.d/nix.sh"
+# echo

@@ -5,6 +5,49 @@ The tangle functions are adapted from [[https://emacs.stackexchange.com/a/29884/
 which was written by [[https://emacs.stackexchange.com/users/2710/andrew-swann][Andrew Swann]].
 
 * etc
+** apk
+*** repositories
+:PROPERTIES:
+:header-args:text+: :noweb-ref repositories
+:END:
+
+#+begin_src text :noweb-ref no :tangle (meq/tangle-path)
+<<repositories>>
+#+end_src
+
+#+begin_src text
+http://postmarketos.brixit.nl/postmarketos/master
+https://dl-cdn.alpinelinux.org/alpine/v3.13/main
+https://dl-cdn.alpinelinux.org/alpine/v3.13/community
+#+end_src
+
+*** keys
+**** build.postmarketos.org.rsa.pub
+:PROPERTIES:
+:header-args:text+: :noweb-ref build.postmarketos.org.rsa.pub
+:END:
+
+#+begin_src text :noweb-ref no :tangle (meq/tangle-path)
+<<build.postmarketos.org.rsa.pub>>
+#+end_src
+
+#+begin_src text
+-----BEGIN PUBLIC KEY-----
+MIICIjANBgkqhkiG9w0BAQEFAAOCAg8AMIICCgKCAgEAlXE4h6kp8aCzn6BjuOnz
+Z1lcFSY+WRZ2vGUb5hEZ+YG75xYZW+yELr8P8+HSUrpBXF/HTQYKH/cNJc5zmOny
+EsmcZskIYB0qgZPg02GXBV8VfjL+Es+y166g14IH2YKkdfplqHYVpCmnkmaZXQZu
+ZAOEL2hyuzTAYYFhCZWHYYgdWfpnKDDlVcnw1Q3/LhADBlN63CW0UMWc5oJ7MwlY
+SKriM60cHvER1YD5bdbGG/JTBFnB4djliLtvRNp+w3emwHmDhFmnYITN2WOHbYpV
+P+RIfzq0IP978sKGJmd0RPuwl2ruifBYikm/F79Ko8lT2gVE40B7wqbInIGquTr1
+deERIr47jcPRGl+01Svm0SxbXD1/zBNjo4wvMsZEW7Te689mFjxsXHnD7OEUQqh/
+D1DhbnKJwpKwClYOi/aVDyGJunqavSR0QYPqN3nP+uXdBC4wuLI9gRS/yXNaxpMy
+9AKwlD3uUhKzmJMJIu3L1/TH/vY9M5xZ2lnFduTZmL/X/4sjhyTb1ycFwU9UIY4C
+u2CP/YLqiiquokgzpRfYwJyOP4quBVRC46Tejx5PzTCvnhro7LAzDoS756iBv9E/
+2oxwC5VafGSChO+N8SyEBy532Gs+rcZDwUE7M9Y1GbQHW3ALMTwxstWqZ3GKWKd1
+Cw6JQoywUhR09tFwQrYZao0CAwEAAQ==
+-----END PUBLIC KEY-----
+#+end_src
+
 ** nixos
 *** patches
 **** BACKPORT-Linux-5.8-compat-__vmalloc.patch
@@ -3416,14 +3459,8 @@ in
 ** nix
 *** nix.conf
 
-#+call: hash() :exports none
-
-#+RESULTS:
-: 20210601185401285170600
-
-#+name: 20210601185401285170600
 #+begin_src nix :tangle (meq/tangle-path)
-<<20210601185855166479800>>
+<<20211023232853007053400>>
 #+end_src
 
 ** zsh
@@ -3438,7 +3475,7 @@ in
 #+begin_src emacs-lisp
 (concat
     (let
-        ((file "./resources/grml/etc/zsh/keephack"))
+        ((file "~/resources/grml/etc/zsh/keephack"))
         (if
             (file-directory-p file)
             (insert-file-contents file)
@@ -4641,6 +4678,12 @@ aliases[_fzf_df_alias] = _fzf
 :header-args:conf+: :noweb-ref nix.conf
 :END:
 
+#+call: hash() :exports none
+
+#+RESULTS:
+: 20211023232853007053400
+
+#+name: 20211023232853007053400
 #+begin_src conf :noweb-ref no :tangle (meq/tangle-path)
 <<nix.conf>>
 #+end_src
@@ -4715,15 +4758,18 @@ eval $(starship init ion)
 
 #+begin_src conf
 [core]
-excludesfile = ~/.globalignore
-attributesfile = ~/.gitattributes
+    excludesfile = ~/.globalignore
+    attributesfile = ~/.gitattributes
 
 [user]
-email = aiern@protonmail.com
-name = shadowrylander
+    email = aiern@protonmail.com
+    name = shadowrylander
 
 [alias]
-cnm = git commit --allow-empty-message -am ""
+    cnm = git commit --allow-empty-message -am ""
+
+[protocol "keybase"]
+	allow = always
 #+end_src
 
 ** powershell
@@ -5509,19 +5555,42 @@ session_name: default
 
 * .bashrc
 :PROPERTIES:
-:header-args:sh+: :noweb-ref .bashrc
+:header-args:bash+: :noweb-ref .bashrc
 :END:
 
-#+begin_src sh :noweb-ref no :tangle (meq/tangle-path)
+#+begin_src bash :noweb-ref no :tangle (meq/tangle-path)
 <<.bashrc>>
 #+end_src
 
-#+begin_src sh
+#+begin_src bash
+. ~/.nix-profile/etc/profile.d/nix.sh
 alias c=clear
 alias n=exit
-alias sb=source ~/.bashrc
+alias s=source ~/.bashrc
 eval "$(direnv hook bash)"
 eval "$(starship init bash)"
+
+# Created by `pipx` on 2021-10-22 03:35:31
+PATH="$PATH:/home/shadowrylander/.local/bin"
+#+end_src
+
+* .profile
+:PROPERTIES:
+:header-args:sh+: :noweb-ref .profile
+:END:
+
+#+begin_src sh :noweb-ref no :tangle (meq/tangle-path)
+<<.profile>>
+#+end_src
+
+#+begin_src sh
+. ~/.nix-profile/etc/profile.d/nix.sh
+alias c=clear
+alias n=exit
+# alias s=source ~/.profile
+
+# Created by `pipx` on 2021-10-22 03:35:31
+PATH="$PATH:/home/shadowrylander/.local/bin"
 #+end_src
 
 * .elvish
@@ -5722,4 +5791,17 @@ eval "$(direnv hook zsh)"
 #+begin_src zsh
 source ~/resources/grml/etc/zsh/zlogin
 eval "$(direnv hook zsh)"
+#+end_src
+
+* .stow-global-ignore
+:PROPERTIES:
+:header-args:conf+: :noweb-ref .stow-global-ignore
+:END:
+
+#+begin_src conf :noweb-ref no :tangle (meq/tangle-path)
+<<.stow-global-ignore>>
+#+end_src
+
+#+begin_src conf
+\.git
 #+end_src

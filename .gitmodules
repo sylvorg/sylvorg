@@ -40,3 +40,6 @@
 [submodule "git-subtree"]
 	path = git-subtree
 	url = https://github.com/shadowrylander/git-subtree.git
+[submodule "keybase/secrets"]
+	path = keybase/secrets
+	url = keybase://private/shadowrylander/secrets
