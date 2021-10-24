@@ -9,23 +9,21 @@ done
 if [[ $EUID -ne 0 ]]; then
     install_nix() { curl -L https://nixos.org/nix/install | sh; . ~/.nix-profile/etc/profile.d/nix.sh }
     hash nix 2>/dev/null || install_nix
-else
-
+    nix-channel --add https://github.com/nixos/nixpkgs/archive/master.tar.gz master
+    nix-channel --update
+    nix-env -iA master.nixUnstable \
+                master.emacs \
+                master.gnumake \
+                master.fd \
+                master.cmake \
+                master.sqlite \
+                master.libtool \
+                master.yadm \
+                master.keybase \
+                master.kbfs \
+                master.stow \
+                master.man
 fi
-
-nix-channel --add https://github.com/nixos/nixpkgs/archive/master.tar.gz master
-nix-channel --update
-nix-env -iA master.nixUnstable \
-            master.emacs \
-            master.gnumake \
-            master.fd \
-            master.cmake \
-            master.sqlite \
-            master.libtool \
-            master.yadm \
-            master.keybase \
-            master.kbfs \
-            master.stow
 
 # curl -Lo ~/wtt.sh https://raw.githubusercontent.com/shadowrylander/.emacs.d/main/wtt/wtt.sh
 # chmod +x ~/.wtt.sh
@@ -41,22 +39,39 @@ stty echo
 printf "\n"
 keybase oneshot -u shadowrylander --paperkey $paperkey
 
-export GIT_SSL_NO_VERIFY=1
-hash yadm 2>/dev/null && command=yadm || command=~/yadm
-$command submodule update --force --init --depth 1 --recursive --remote
+# From: https://askubuntu.com/a/15856/1058868
+if [[ $EUID -ne 0 ]]; then
+    hash yadm 2>/dev/null && command=yadm || command=~/yadm
+else
+    hash yadm 2>/dev/null && precommand=yadm || {
+        precommand=/root/yadm
+        curl -fLo $precommand https://github.com/TheLocehiliosan/yadm/raw/master/yadm
+        chmod +x $precommand
+    }
+    command = sudo $precommand -Y /root/.config/yadm/repo.git -C /
+fi
+
+GIT_SSL_NO_VERIFY=1 $command submodule update --force --init --depth 1 --recursive --remote
 $command remote set-url --push origin git@github.com:shadowrylander/shadowrylander.git
 
-git -C ~/.emacs.d remote set-url --push origin git@github.com:shadowrylander/.emacs.d.git
+# From: https://askubuntu.com/a/15856/1058868
+if [[ $EUID -ne 0 ]]; then
+    git -C ~/.emacs.d remote set-url --push origin git@github.com:shadowrylander/.emacs.d.git
 
-stow -d ~/keybase -t ~ secrets
+    stow -d ~/keybase -t ~ secrets
 
-chmod 600 ~/.ssh
-chmod 700 ~/.ssh/id_rsa
-chmod 700 ~/.ssh/known_hosts
+    chmod 600 ~/.ssh
+    chmod 700 ~/.ssh/id_rsa
+    chmod 700 ~/.ssh/known_hosts
 
-~/settings/org-tangle.sh ~/oreo.aiern.org
+    chmod +x ~/settings/org-tangle.sh
+    ~/settings/org-tangle.sh ~/oreo.aiern.org
 
-make -f ~/.emacs.d/makefile bootstrap
+    make -f ~/.emacs.d/makefile bootstrap
+else
+    chmod +x /settings/org-tangle.sh
+    /settings/org-tangle.sh /oreo.aiern.org
+fi
 
 keybase logout
 
