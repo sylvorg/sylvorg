@@ -36,8 +36,6 @@ if [[ $(uname -a) == *Android* ]]; then
     make -f ~/.emacs.d/makefile bootstrap
 
     keybase logout
-
-    exec ~/.nix-profile/etc/profile.d/nix.sh
 else
     deps="curl"
 
