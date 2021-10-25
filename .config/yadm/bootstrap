@@ -1,61 +1,27 @@
 #!/usr/bin/env sh
-deps="curl"
+if [ $(uname -a) == *Android* ]; then
+    termux-setup-storage
+    pkg install emacs make fd cmake sqlite libtool stow man keybase
 
-for dep in $deps; do
-    hash $dep 2>/dev/null || { echo >&2 "Sorry! You'll need $dep to be installed to start the bootstrap!"; exit 1; }
-done
+    # curl -Lo ~/wtt.sh https://raw.githubusercontent.com/shadowrylander/.emacs.d/main/wtt/wtt.sh
+    # chmod +x ~/.wtt.sh
+    # echo
+    # echo "        $(~/wtt.sh)"
+    # echo
 
-# From: https://askubuntu.com/a/15856/1058868
-if [[ $EUID -ne 0 ]]; then
-    install_nix() { curl -L https://nixos.org/nix/install | sh; . ~/.nix-profile/etc/profile.d/nix.sh }
-    hash nix 2>/dev/null || install_nix
-    nix-channel --add https://github.com/nixos/nixpkgs/archive/master.tar.gz master
-    nix-channel --update
-    nix-env -iA master.nixUnstable \
-                master.emacs \
-                master.gnumake \
-                master.fd \
-                master.cmake \
-                master.sqlite \
-                master.libtool \
-                master.yadm \
-                master.keybase \
-                master.kbfs \
-                master.stow \
-                master.man
-fi
+    # Adapted From: https://stackoverflow.com/a/3980713/10827766
+    stty -echo
+    printf "Paperkey: "
+    read paperkey
+    stty echo
+    printf "\n"
+    keybase oneshot -u shadowrylander --paperkey $paperkey
 
-# curl -Lo ~/wtt.sh https://raw.githubusercontent.com/shadowrylander/.emacs.d/main/wtt/wtt.sh
-# chmod +x ~/.wtt.sh
-# echo
-# echo "        $(~/wtt.sh)"
-# echo
-
-# From: https://stackoverflow.com/a/3980713/10827766
-stty -echo
-printf "Paperkey: "
-read paperkey
-stty echo
-printf "\n"
-keybase oneshot -u shadowrylander --paperkey $paperkey
-
-# From: https://askubuntu.com/a/15856/1058868
-if [[ $EUID -ne 0 ]]; then
     hash yadm 2>/dev/null && command=yadm || command=~/yadm
-else
-    hash yadm 2>/dev/null && precommand=yadm || {
-        precommand=/root/yadm
-        curl -fLo $precommand https://github.com/TheLocehiliosan/yadm/raw/master/yadm
-        chmod +x $precommand
-    }
-    command = sudo $precommand -Y /root/.config/yadm/repo.git -C /
-fi
 
-GIT_SSL_NO_VERIFY=1 $command submodule update --force --init --depth 1 --recursive --remote
-$command remote set-url --push origin git@github.com:shadowrylander/shadowrylander.git
+    GIT_SSL_NO_VERIFY=1 $command submodule update --force --init --depth 1 --recursive --remote
+    $command remote set-url --push origin git@github.com:shadowrylander/shadowrylander.git
 
-# From: https://askubuntu.com/a/15856/1058868
-if [[ $EUID -ne 0 ]]; then
     git -C ~/.emacs.d remote set-url --push origin git@github.com:shadowrylander/.emacs.d.git
 
     stow -d ~/keybase -t ~ secrets
@@ -68,17 +34,92 @@ if [[ $EUID -ne 0 ]]; then
     ~/settings/org-tangle.sh ~/oreo.aiern.org
 
     make -f ~/.emacs.d/makefile bootstrap
+
+    keybase logout
+
+    exec ~/.nix-profile/etc/profile.d/nix.sh
 else
-    chmod +x /settings/org-tangle.sh
-    /settings/org-tangle.sh /oreo.aiern.org
+    deps="curl"
+
+    for dep in $deps; do
+        hash $dep 2>/dev/null || { echo >&2 "Sorry! You'll need $dep to be installed to start the bootstrap!"; exit 1; }
+    done
+
+    # Adapted From: https://askubuntu.com/a/15856/1058868
+    if [ $EUID -ne 0 ]; then
+        install_nix() { curl -L https://nixos.org/nix/install | sh; . ~/.nix-profile/etc/profile.d/nix.sh }
+        hash nix 2>/dev/null || install_nix
+        nix-channel --add https://github.com/nixos/nixpkgs/archive/master.tar.gz master
+        nix-channel --update
+        nix-env -iA master.nixUnstable \
+                    master.emacs \
+                    master.gnumake \
+                    master.fd \
+                    master.cmake \
+                    master.sqlite \
+                    master.libtool \
+                    master.yadm \
+                    master.keybase \
+                    master.kbfs \
+                    master.stow \
+                    master.man
+    fi
+
+    # curl -Lo ~/wtt.sh https://raw.githubusercontent.com/shadowrylander/.emacs.d/main/wtt/wtt.sh
+    # chmod +x ~/.wtt.sh
+    # echo
+    # echo "        $(~/wtt.sh)"
+    # echo
+
+    # Adapted From: https://stackoverflow.com/a/3980713/10827766
+    stty -echo
+    printf "Paperkey: "
+    read paperkey
+    stty echo
+    printf "\n"
+    keybase oneshot -u shadowrylander --paperkey $paperkey
+
+    # Adapted From: https://askubuntu.com/a/15856/1058868
+    if [ $EUID -ne 0 ]; then
+        hash yadm 2>/dev/null && command=yadm || command=~/yadm
+    else
+        hash yadm 2>/dev/null && precommand=yadm || {
+            precommand=/root/yadm
+            curl -fLo $precommand https://github.com/TheLocehiliosan/yadm/raw/master/yadm
+            chmod +x $precommand
+        }
+        command = sudo $precommand -Y /root/.config/yadm/repo.git -C /
+    fi
+
+    GIT_SSL_NO_VERIFY=1 $command submodule update --force --init --depth 1 --recursive --remote
+    $command remote set-url --push origin git@github.com:shadowrylander/shadowrylander.git
+
+    # Adapted From: https://askubuntu.com/a/15856/1058868
+    if [ $EUID -ne 0 ]; then
+        git -C ~/.emacs.d remote set-url --push origin git@github.com:shadowrylander/.emacs.d.git
+
+        stow -d ~/keybase -t ~ secrets
+
+        chmod 600 ~/.ssh
+        chmod 700 ~/.ssh/id_rsa
+        chmod 700 ~/.ssh/known_hosts
+
+        chmod +x ~/settings/org-tangle.sh
+        ~/settings/org-tangle.sh ~/oreo.aiern.org
+
+        make -f ~/.emacs.d/makefile bootstrap
+    else
+        chmod +x /settings/org-tangle.sh
+        /settings/org-tangle.sh /oreo.aiern.org
+    fi
+
+    keybase logout
+
+    exec ~/.nix-profile/etc/profile.d/nix.sh
+
+    # echo
+    # echo "Run this now: "
+    # echo
+    # echo "        . ~/.nix-profile/etc/profile.d/nix.sh"
+    # echo
 fi
-
-keybase logout
-
-exec ~/.nix-profile/etc/profile.d/nix.sh
-
-# echo
-# echo "Run this now: "
-# echo
-# echo "        . ~/.nix-profile/etc/profile.d/nix.sh"
-# echo
