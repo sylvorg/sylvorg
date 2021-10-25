@@ -5124,13 +5124,13 @@ name = "lang#nix"
     repo = "tssm/fairyfloss.vim"
     merged = true
 
-[[custom_plugins]]
-    repo = "co1ncidence/mountaineer.vim"
-    merged = true
+# [[custom_plugins]]
+#     repo = "co1ncidence/mountaineer.vim"
+#     merged = true
 
-[[custom_plugins]]
-    repo = "co1ncidence/gunmetal.vim"
-    merged = true
+# [[custom_plugins]]
+#     repo = "co1ncidence/gunmetal.vim"
+#     merged = true
 
 [[custom_plugins]]
     repo = "megantiu/true.vim"
@@ -5147,9 +5147,9 @@ name = "lang#nix"
     repo = "tpope/vim-eunuch"
     merged = true
 
-[[custom_plugins]]
-    repo = "johannesthyssen/vim-signit"
-    merged = true
+# [[custom_plugins]]
+#     repo = "johannesthyssen/vim-signit"
+#     merged = true
 
 [[custom_plugins]]
     repo = "jupyter-vim/jupyter-vim"
