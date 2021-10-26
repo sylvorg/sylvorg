@@ -5566,7 +5566,7 @@ session_name: default
 . ~/.nix-profile/etc/profile.d/nix.sh
 alias c=clear
 alias n=exit
-alias adam=sudo yadm -Y /root/.config/yadm/repo.git -C /
+alias adam="sudo yadm -Y /root/.config/yadm/repo.git -C /"
 alias s=source ~/.bashrc
 eval "$(direnv hook bash)"
 eval "$(starship init bash)"
@@ -5588,7 +5588,7 @@ PATH="$PATH:/home/shadowrylander/.local/bin"
 . ~/.nix-profile/etc/profile.d/nix.sh
 alias c=clear
 alias n=exit
-alias adam=sudo yadm -Y /root/.config/yadm/repo.git -C /
+alias adam="sudo yadm -Y /root/.config/yadm/repo.git -C /"
 # alias s=source ~/.profile
 
 # Created by `pipx` on 2021-10-22 03:35:31
