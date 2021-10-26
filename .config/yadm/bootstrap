@@ -21,7 +21,7 @@ if [[ $(uname -a) == *Android* ]]; then
 
     # From: https://github.com/keybase/client/issues/9292#issuecomment-465554906
     git config --global --add protocol.keybase.allow always
-    GIT_ALLOW_PROTOCOL=keybase GIT_SSL_NO_VERIFY=1 $command submodule update --force --init --depth 1 --recursive --remote
+    GIT_SSL_NO_VERIFY=1 $command submodule update --force --init --depth 1 --recursive --remote
     $command remote set-url --push origin git@github.com:shadowrylander/shadowrylander.git
 
     git -C ~/.emacs.d remote set-url --push origin git@github.com:shadowrylander/.emacs.d.git
@@ -93,7 +93,7 @@ else
 
     # From: https://github.com/keybase/client/issues/9292#issuecomment-465554906
     git config --global --add protocol.keybase.allow always
-    GIT_ALLOW_PROTOCOL=keybase GIT_SSL_NO_VERIFY=1 $command submodule update --force --init --depth 1 --recursive --remote
+    GIT_SSL_NO_VERIFY=1 $command submodule update --force --init --depth 1 --recursive --remote
     $command remote set-url --push origin git@github.com:shadowrylander/shadowrylander.git
 
     # Adapted From: https://askubuntu.com/a/15856/1058868
