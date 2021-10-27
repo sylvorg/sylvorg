@@ -23,21 +23,25 @@ if [[ $(uname -a) == *Android* ]]; then
     git config --global --add protocol.keybase.allow always
     GIT_SSL_NO_VERIFY=1 $command submodule update --force --init --depth 1 --recursive --remote
     $command remote set-url --push origin git@github.com:shadowrylander/shadowrylander.git
+    $command config include.path "~/.gitconfig"
 
     termux-reload-settings
 
     git -C ~/.emacs.d remote set-url --push origin git@github.com:shadowrylander/.emacs.d.git
+    git -C ~/.emacs.d config include.path "~/.emacs.d/.gitconfig"
 
     stow -d ~/keybase -t ~ secrets
 
     chmod 700 ~/.ssh
-    chmod 600 ~/.ssh/id_rsa
-    chmod 600 ~/.ssh/known_hosts
+    chmod 600 ~/.ssh/id_rsa ~/.ssh/known_hosts
 
     chmod +x ~/settings/org-tangle.sh
     ~/settings/org-tangle.sh ~/oreo.aiern.org
 
     make -f ~/.emacs.d/makefile bootstrap
+
+    ln -s $(which xonsh) /data/data/com.termux/files/usr/bin/xonsh
+    chsh -s xonsh
 
     keybase logout
 else
@@ -105,8 +109,7 @@ else
         stow -d ~/keybase -t ~ secrets
 
         chmod 700 ~/.ssh
-        chmod 600 ~/.ssh/id_rsa
-        chmod 600 ~/.ssh/known_hosts
+        chmod 600 ~/.ssh/id_rsa ~/.ssh/known_hosts
 
         chmod +x ~/settings/org-tangle.sh
         ~/settings/org-tangle.sh ~/oreo.aiern.org
@@ -116,6 +119,8 @@ else
         chmod +x /settings/org-tangle.sh
         /settings/org-tangle.sh /oreo.aiern.org
     fi
+
+    # chsh -s 
 
     keybase logout
 

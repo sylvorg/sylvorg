@@ -5041,20 +5041,20 @@ wmname = "LG3D"
 
 #+name: 20210601185836015744100
 #+begin_src emacs-lisp :var oc=""
-(format-spec "with builtins; with (getFlake \"~/etc/nixos\"); with lib; with j;
+(format-spec "with builtins; with (getFlake \"${getEnv \"HOME\"}/etc/nixos\"); with lib; with j;
 let stc = legacyPackages.hostName.${getEnv \"HOSTNAME\"} or default-stc;
 in get { inherit stc; set = legacyPackages.%o; }" `((?o . ,oc)))
 #+end_src
 
 **** overlays.nix
 
-#+begin_src nix :tangle (meq/tangle-path)
+#+begin_src nix
 <<20210601185836015744100(oc="overlays")>>
 #+end_src
 
 **** config.nix
 
-#+begin_src nix :tangle (meq/tangle-path)
+#+begin_src nix
 <<20210601185836015744100(oc="config")>>
 #+end_src
 
@@ -5739,6 +5739,8 @@ temp
 #+begin_src zsh
 source ~/resources/grml/etc/zsh/zshrc
 eval "$(direnv hook zsh)"
+prompt off
+eval "$(starship init zsh)"
 #+end_src
 
 * .zshenv

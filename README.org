@@ -11,70 +11,46 @@
 #+name: 20210601181725825830000
 #+begin_src makefile :tangle (meq/tangle-path)
 .RECIPEPREFIX := |
-.DEFAULT_GOAL := super-push
+.DEFAULT_GOAL := push
 
 # Adapted From: https://www.systutorials.com/how-to-get-the-full-path-and-directory-of-a-makefile-itself/
 mkfilePath := $(abspath $(lastword $(MAKEFILE_LIST)))
 mkfileDir := $(dir $(mkfilePath))
-emkDir := home/.emacs.d/
+emkDir := ~/.emacs.d/
 emkFile := $(emkDir)/makefile
 emkMake := make -f $(emkFile)
 
-init: pre-init tangle
-|$(emkMake) pre-init
+oreo:
+|yes yes | $(mkfileDir)/settings/org-tangle.sh oreo.aiern.org
 
-pre-init:
-|-git -C $(mkfileDir) config include.path "$(mkfileDir)/.gitconfig"
-|git -C $(mkfileDir) submodule add --depth 1 -f https://github.com/<<username>>/.emacs.d.git
-|git -C $(mkfileDir) submodule add --depth 1 -f https://github.com/<<username>>/siluam.git home/.emacs.d
+README:
+|yes yes | $(mkfileDir)/settings/org-tangle.sh README.org
 
-tangle-setup:
-|$(emkMake) tangle-setup
+both: oreo README
 
-tangle:
+tangle: both
 |$(emkMake) tangle
-|yes yes | fd . $(mkfileDir) \
-    -HIe org \
-    -E .emacs.d \
-    -E home/.emacs.d \
-    -x settings/backup-tangle.sh
 |fd . $(mkfileDir) \
     -HId 1 -e sh \
     -x chmod +x
 
-subinit: init
+subinit:
 |$(emkMake) subinit
-
-|-git rm -rf --cached home/resources home/.vim home/.config/neovim
-|git -C $(mkfileDir) submodule sync --recursive
-
-# Adapted From:
-# Answer: https://stackoverflow.com/a/56621295/10827766
-# User: https://stackoverflow.com/users/1600536/alim-giray-aytar
-|git -C $(mkfileDir) submodule update --force --init --depth 1 --recursive --remote
-
-|git -C $(mkfileDir) submodule sync --recursive
-|-git rm -rf --cached home/resources
+|yadm submodule sync --recursive
 
 pull: subinit
-|git -C $(mkfileDir) pull
+|yadm pull
 
-add: pre-init
-|git -C $(mkfileDir) add .
+commit: tangle
+|-yadm commit --allow-empty-message -am ""
 
-commit: pre-init
-|-git -C $(mkfileDir) commit --allow-empty-message -am ""
-
-cammit: add commit
-
-push: cammit
-|-git -C $(mkfileDir) push
+push: commit
+|-yadm push
 
 emacs:
 |$(emkMake) emacs
 emacs-nw:
 |$(emkMake) emacs-nw
-super-push: tangle push
 
 stow:
 |-chmod 700 ~/.ssh
@@ -82,8 +58,7 @@ stow:
 |-rm ~/.ssh/id_rsa ~/.ssh/known_hosts
 |stow -d ~/keybase -t ~ secrets
 |chmod 700 ~/.ssh
-|chmod 600 ~/.ssh/id_rsa
-|chmod 600 ~/.ssh/known_hosts
+|chmod 600 ~/.ssh/id_rsa ~/.ssh/known_hosts
 #+end_src
 
 * previous projects
