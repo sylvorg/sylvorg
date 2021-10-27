@@ -24,13 +24,15 @@ if [[ $(uname -a) == *Android* ]]; then
     GIT_SSL_NO_VERIFY=1 $command submodule update --force --init --depth 1 --recursive --remote
     $command remote set-url --push origin git@github.com:shadowrylander/shadowrylander.git
 
+    termux-reload-settings
+
     git -C ~/.emacs.d remote set-url --push origin git@github.com:shadowrylander/.emacs.d.git
 
     stow -d ~/keybase -t ~ secrets
 
-    chmod 600 ~/.ssh
-    chmod 700 ~/.ssh/id_rsa
-    chmod 700 ~/.ssh/known_hosts
+    chmod 700 ~/.ssh
+    chmod 600 ~/.ssh/id_rsa
+    chmod 600 ~/.ssh/known_hosts
 
     chmod +x ~/settings/org-tangle.sh
     ~/settings/org-tangle.sh ~/oreo.aiern.org
@@ -102,9 +104,9 @@ else
 
         stow -d ~/keybase -t ~ secrets
 
-        chmod 600 ~/.ssh
-        chmod 700 ~/.ssh/id_rsa
-        chmod 700 ~/.ssh/known_hosts
+        chmod 700 ~/.ssh
+        chmod 600 ~/.ssh/id_rsa
+        chmod 600 ~/.ssh/known_hosts
 
         chmod +x ~/settings/org-tangle.sh
         ~/settings/org-tangle.sh ~/oreo.aiern.org

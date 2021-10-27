@@ -84,6 +84,14 @@ emacs:
 emacs-nw:
 |$(emkMake) emacs-nw
 super-push: tangle push
+
+stow:
+|git -C ~/keybase/secrets pull
+|rm ~/.ssh/id_rsa ~/.ssh/known_hosts
+|stow -d ~/keybase -t ~ secrets
+|chmod 700 ~/.ssh
+|chmod 600 ~/.ssh/id_rsa
+|chmod 600 ~/.ssh/known_hosts
 #+end_src
 
 * previous projects
