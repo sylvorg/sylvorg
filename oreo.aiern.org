@@ -4797,9 +4797,12 @@ Invoke-Expression (&starship init powershell)
 #+end_src
 
 #+begin_src fish
-alias sf=source ~/.config/fish/config.fish
-alias n=exit
-alias c=clear
+source ~/resources/nix-env.fish/conf.d/nix-env.fish
+cd ~/resources/bass
+make install &>/dev/null
+cd -
+<<20211028011434584909200>>
+alias s=source ~/.config/fish/config.fish
 direnv hook fish | source
 starship init fish | source
 #+end_src
@@ -5553,28 +5556,6 @@ run "./resources/tpm/tpm"
 session_name: default
 #+end_src
 
-* .bashrc
-:PROPERTIES:
-:header-args:bash+: :noweb-ref .bashrc
-:END:
-
-#+begin_src bash :noweb-ref no :tangle (meq/tangle-path)
-<<.bashrc>>
-#+end_src
-
-#+begin_src bash
-. ~/.nix-profile/etc/profile.d/nix.sh
-alias c=clear
-alias n=exit
-alias adam="sudo yadm -Y /root/.config/yadm/repo.git -C /"
-alias s=source ~/.bashrc
-eval "$(direnv hook bash)"
-eval "$(starship init bash)"
-
-# Created by `pipx` on 2021-10-22 03:35:31
-PATH="$PATH:/home/shadowrylander/.local/bin"
-#+end_src
-
 * .profile
 :PROPERTIES:
 :header-args:sh+: :noweb-ref .profile
@@ -5584,15 +5565,76 @@ PATH="$PATH:/home/shadowrylander/.local/bin"
 <<.profile>>
 #+end_src
 
+#+call: hash() :exports none
+
+#+RESULTS:
+: 20211028011626543493400
+
+#+name: 20211028011626543493400
 #+begin_src sh
 . ~/.nix-profile/etc/profile.d/nix.sh
-alias c=clear
-alias n=exit
-alias adam="sudo yadm -Y /root/.config/yadm/repo.git -C /"
-# alias s=source ~/.profile
+#+end_src
 
+#+call: hash() :exports none
+
+#+RESULTS:
+: 20211028011434584909200
+
+#+name: 20211028011434584909200
+#+begin_src sh
+cd ~
+alias c="clear"
+alias n="exit"
+alias adam="sudo yadm -Y /root/.config/yadm/repo.git -C /"
+#+end_src
+
+#+call: hash() :exports none
+
+#+RESULTS:
+: 20211028011441477114800
+
+#+name: 20211028011441477114800
+#+begin_src sh
 # Created by `pipx` on 2021-10-22 03:35:31
 PATH="$PATH:/home/shadowrylander/.local/bin"
+#+end_src
+
+#+call: hash() :exports none
+
+#+RESULTS:
+: 20211027212551212534800
+
+#+name: 20211027212551212534800
+#+begin_src sh :noweb-ref no
+<<20211028011626543493400>>
+<<20211028011434584909200>>
+<<20211028011441477114800>>
+#+end_src
+
+#+begin_src sh
+alias s="source ~/.profile"
+#+end_src
+
+* .bashrc
+:PROPERTIES:
+:header-args:bash+: :noweb-ref .bashrc
+:END:
+
+#+begin_src bash :noweb-ref no :tangle (meq/tangle-path)
+<<.bashrc>>
+#+end_src
+
+#+call: hash() :exports none
+
+#+RESULTS:
+: 20211027212836251792500
+
+#+name: 20211027212836251792500
+#+begin_src bash
+<<20211027212551212534800>>
+alias s="source ~/.bashrc"
+eval "$(direnv hook bash)"
+eval "$(starship init bash)"
 #+end_src
 
 * .elvish
@@ -5738,6 +5780,8 @@ temp
 
 #+begin_src zsh
 source ~/resources/grml/etc/zsh/zshrc
+<<20211027212551212534800>>
+alias s="source ~/.zshrc"
 eval "$(direnv hook zsh)"
 prompt off
 eval "$(starship init zsh)"

@@ -1,5 +1,5 @@
 .RECIPEPREFIX := |
-.DEFAULT_GOAL := push
+.DEFAULT_GOAL := tangle
 
 # Adapted From: https://www.systutorials.com/how-to-get-the-full-path-and-directory-of-a-makefile-itself/
 mkfilePath := $(abspath $(lastword $(MAKEFILE_LIST)))
@@ -17,10 +17,12 @@ README:
 both: oreo README
 
 tangle: both
-|$(emkMake) tangle
 |fd . $(mkfileDir) \
     -HId 1 -e sh \
     -x chmod +x
+
+tangle-emacs:
+|$(emkMake) tangle
 
 subinit:
 |$(emkMake) subinit

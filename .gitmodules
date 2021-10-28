@@ -43,3 +43,9 @@
 [submodule "keybase/secrets"]
 	path = keybase/secrets
 	url = keybase://private/shadowrylander/secrets
+[submodule "resources/bass"]
+	path = resources/bass
+	url = https://github.com/edc/bass.git
+[submodule "resources/nix-env.fish"]
+	path = resources/nix-env.fish
+	url = https://github.com/lilyball/nix-env.fish.git

@@ -101,10 +101,12 @@ else
     git config --global --add protocol.keybase.allow always
     GIT_SSL_NO_VERIFY=1 $command submodule update --force --init --depth 1 --recursive --remote
     $command remote set-url --push origin git@github.com:shadowrylander/shadowrylander.git
+    $command config include.path "~/.gitconfig"
 
     # Adapted From: https://askubuntu.com/a/15856/1058868
     if [[ $EUID -ne 0 ]]; then
         git -C ~/.emacs.d remote set-url --push origin git@github.com:shadowrylander/.emacs.d.git
+        git -C ~/.emacs.d config include.path "~/.emacs.d/.gitconfig"
 
         stow -d ~/keybase -t ~ secrets
 
@@ -120,7 +122,7 @@ else
         /settings/org-tangle.sh /oreo.aiern.org
     fi
 
-    # chsh -s 
+    # chsh -s zsh
 
     keybase logout
 
