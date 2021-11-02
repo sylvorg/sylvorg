@@ -11,6 +11,3 @@
 
 [protocol "keybase"]
 	allow = always
-
-[commit]
-    allowEmptyMessage = true

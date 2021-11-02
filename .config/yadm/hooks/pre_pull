@@ -1,2 +1,2 @@
 #!/usr/bin/env bash
-make -f ~/makefile subinit
+make -f $YADM_HOOK_WORK/makefile subinit

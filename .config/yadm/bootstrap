@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+chmod +x ~/run_keybase
 if [[ $(uname -a) == *Android* ]]; then
     termux-setup-storage
     pkg install emacs make fd cmake sqlite libtool stow man keybase

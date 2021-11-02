@@ -4,7 +4,7 @@
 # Adapted From: https://www.systutorials.com/how-to-get-the-full-path-and-directory-of-a-makefile-itself/
 mkfilePath := $(abspath $(lastword $(MAKEFILE_LIST)))
 mkfileDir := $(dir $(mkfilePath))
-emkDir := ~/.emacs.d/
+emkDir := $(mkfileDir)/.emacs.d/
 emkFile := $(emkDir)/makefile
 emkMake := make -f $(emkFile)
 
@@ -36,7 +36,8 @@ emacs-nw:
 stow: SHELL := /usr/bin/env xonsh
 stow:
 |-chmod 700 $(mkfileDir)/.ssh
-|keybase login
+|chmod +x $(mkfileDir)/run_keybase
+|$(mkfileDir)/run_keybase login
 |git -C $(mkfileDir)/keybase/secrets pull
 |-for f in $$(ls -a $(mkfileDir)/keybase/secrets/.ssh).split(): \
     rm $(mkfileDir)/.ssh/@(f)
