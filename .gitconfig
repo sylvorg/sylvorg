@@ -1,0 +1,16 @@
+[core]
+    excludesfile = ~/.globalignore
+    attributesfile = ~/.gitattributes
+
+[user]
+    email = aiern@protonmail.com
+    name = shadowrylander
+
+[alias]
+    cnm = commit --allow-empty-message -am ""
+
+[protocol "keybase"]
+	allow = always
+
+[commit]
+    allowEmptyMessage = true

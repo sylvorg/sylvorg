@@ -49,3 +49,12 @@
 [submodule "resources/nix-env.fish"]
 	path = resources/nix-env.fish
 	url = https://github.com/lilyball/nix-env.fish.git
+[submodule ".asdf"]
+	path = .asdf
+	url = https://github.com/asdf-vm/asdf.git
+[submodule "sylveon"]
+	path = sylveon
+	url = https://github.com/shadowrylander/sylveon.git
+[submodule "sylvorg"]
+	path = sylvorg
+	url = keybase://private/shadowrylander/cc

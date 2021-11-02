@@ -8,13 +8,11 @@ emkDir := ~/.emacs.d/
 emkFile := $(emkDir)/makefile
 emkMake := make -f $(emkFile)
 
-oreo:
-|yes yes | $(mkfileDir)/settings/org-tangle.sh oreo.aiern.org
-
 README:
-|yes yes | $(mkfileDir)/settings/org-tangle.sh README.org
+|yes yes | $(mkfileDir)/settings/org-tangle.sh $(mkfileDir)/README.org
 
-both: oreo README
+both: README
+|yes yes | $(mkfileDir)/settings/org-tangle.sh $(mkfileDir)/oreo.aiern.org
 
 tangle: both
 |fd . $(mkfileDir) \
@@ -24,28 +22,24 @@ tangle: both
 tangle-emacs:
 |$(emkMake) tangle
 
+tangle-all: tangle tangle-emacs
+
 subinit:
 |$(emkMake) subinit
 |yadm submodule sync --recursive
-
-pull: subinit
-|yadm pull
-
-commit: tangle
-|-yadm commit --allow-empty-message -am ""
-
-push: commit
-|-yadm push
 
 emacs:
 |$(emkMake) emacs
 emacs-nw:
 |$(emkMake) emacs-nw
 
+stow: SHELL := /usr/bin/env xonsh
 stow:
-|-chmod 700 ~/.ssh
-|git -C ~/keybase/secrets pull
-|-rm ~/.ssh/id_rsa ~/.ssh/known_hosts
-|stow -d ~/keybase -t ~ secrets
-|chmod 700 ~/.ssh
-|chmod 600 ~/.ssh/id_rsa ~/.ssh/known_hosts
+|-chmod 700 $(mkfileDir)/.ssh
+|keybase login
+|git -C $(mkfileDir)/keybase/secrets pull
+|-for f in $$(ls -a $(mkfileDir)/keybase/secrets/.ssh).split(): \
+    rm $(mkfileDir)/.ssh/@(f)
+|stow -d $(mkfileDir)/keybase -t $(mkfileDir) secrets
+|chmod 700 $(mkfileDir)/.ssh
+|chmod 600 $(mkfileDir)/.ssh/*

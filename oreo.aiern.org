@@ -4618,8 +4618,8 @@ xtras = fp(home, ".xonsh.d")
 fzfdf = fp(xtras, "fzfdf.sh")
 
 # source @(fp(xtras, "passwords.xsh"))
-source-zsh $(fasd --init auto)
-# source-zsh @(fp(home, ".nix-profile", "etc", "profile.d", "hm-session-vars.sh"))
+source-bash $(fasd --init auto)
+source-bash $HOME/.asdf/asdf.sh
 
 # vox create base -p $(which @(f"python{python_ver}")) 2> /dev/null
 # vox enter base 2> /dev/null
@@ -4672,6 +4672,162 @@ aliases[_fzf_df_alias] = _fzf
 #+end_src
 
 * .config
+** yadm
+*** bootstrap
+:PROPERTIES:
+:header-args:bash+: :noweb-ref bootstrap
+:END:
+
+#+begin_src bash :noweb-ref no :tangle (meq/tangle-path) :shebang "#!/usr/bin/env bash"
+<<bootstrap>>
+#+end_src
+
+#+begin_src bash
+chmod +x ~/run_keybase
+if [[ $(uname -a) == *Android* ]]; then
+    termux-setup-storage
+    pkg install emacs make fd cmake sqlite libtool stow man keybase
+
+    # Adapted From: https://stackoverflow.com/a/3980713/10827766
+    stty -echo
+    printf "Paperkey: "
+    read paperkey
+    stty echo
+    printf "\n"
+    echo $paperkey | keybase oneshot -u shadowrylander
+
+    hash yadm 2>/dev/null && command=yadm || command=~/yadm
+
+    GIT_SSL_NO_VERIFY=1 $command submodule update --force --init --depth 1 --recursive --remote
+    $command remote set-url --push origin git@github.com:shadowrylander/shadowrylander.git
+    $command config include.path "~/.gitconfig"
+
+    termux-reload-settings
+
+    git -C ~/.emacs.d remote set-url --push origin git@github.com:shadowrylander/.emacs.d.git
+    git -C ~/.emacs.d config include.path "~/.emacs.d/.gitconfig"
+
+    stow -d ~/keybase -t ~ secrets
+
+    chmod 700 ~/.ssh
+    chmod 600 ~/.ssh/id_rsa ~/.ssh/known_hosts
+
+    chmod +x ~/settings/org-tangle.sh
+    ~/settings/org-tangle.sh ~/oreo.aiern.org
+
+    make -f ~/.emacs.d/makefile bootstrap
+
+    ln -s $(which xonsh) /data/data/com.termux/files/usr/bin/xonsh
+    chsh -s xonsh
+
+    keybase logout
+else
+    deps="curl"
+
+    for dep in $deps; do
+        hash $dep 2>/dev/null || { echo >&2 "Sorry! You'll need $dep to be installed to start the bootstrap!"; exit 1; }
+    done
+
+    # Adapted From: https://askubuntu.com/a/15856/1058868
+    if [[ $EUID -ne 0 ]]; then
+        install_nix() { curl -L https://nixos.org/nix/install | sh; . ~/.nix-profile/etc/profile.d/nix.sh; }
+        hash nix 2>/dev/null || install_nix
+        nix-channel --add https://github.com/nixos/nixpkgs/archive/master.tar.gz master
+        nix-channel --update
+        nix-env -iA master.nixUnstable \
+                    master.emacs \
+                    master.gnumake \
+                    master.fd \
+                    master.cmake \
+                    master.sqlite \
+                    master.libtool \
+                    master.yadm \
+                    master.keybase \
+                    master.kbfs \
+                    master.stow \
+                    master.man
+    fi
+
+    # Adapted From: https://stackoverflow.com/a/3980713/10827766
+    stty -echo
+    printf "Paperkey: "
+    read paperkey
+    stty echo
+    printf "\n"
+    echo $paperkey | keybase oneshot -u shadowrylander
+
+    # Adapted From: https://askubuntu.com/a/15856/1058868
+    if [[ $EUID -ne 0 ]]; then
+        hash yadm 2>/dev/null && command=yadm || command=~/yadm
+    else
+        hash yadm 2>/dev/null && precommand=yadm || {
+            precommand=/root/yadm
+            curl -fLo $precommand https://github.com/TheLocehiliosan/yadm/raw/master/yadm
+            chmod +x $precommand
+        }
+        command = sudo $precommand -Y /root/.config/yadm/repo.git -C /
+    fi
+
+    # From: https://github.com/keybase/client/issues/9292#issuecomment-465554906
+    git config --global --add protocol.keybase.allow always
+    GIT_SSL_NO_VERIFY=1 $command submodule update --force --init --depth 1 --recursive --remote
+    $command remote set-url --push origin git@github.com:shadowrylander/shadowrylander.git
+    $command config include.path "~/.gitconfig"
+
+    # Adapted From: https://askubuntu.com/a/15856/1058868
+    if [[ $EUID -ne 0 ]]; then
+        git -C ~/.emacs.d remote set-url --push origin git@github.com:shadowrylander/.emacs.d.git
+        git -C ~/.emacs.d config include.path "~/.emacs.d/.gitconfig"
+
+        stow -d ~/keybase -t ~ secrets
+
+        chmod 700 ~/.ssh
+        chmod 600 ~/.ssh/id_rsa ~/.ssh/known_hosts
+
+        chmod +x ~/settings/org-tangle.sh
+        ~/settings/org-tangle.sh ~/oreo.aiern.org
+
+        make -f ~/.emacs.d/makefile bootstrap
+    else
+        chmod +x /settings/org-tangle.sh
+        /settings/org-tangle.sh /oreo.aiern.org
+    fi
+
+    # chsh -s zsh
+
+    keybase logout
+
+    exec ~/.nix-profile/etc/profile.d/nix.sh
+fi
+#+end_src
+
+*** hooks
+**** pre_commit
+:PROPERTIES:
+:header-args:bash+: :noweb-ref pre_commit
+:END:
+
+#+begin_src bash :noweb-ref no :tangle (meq/tangle-path) :shebang "#!/usr/bin/env bash"
+<<pre_commit>>
+#+end_src
+
+#+begin_src bash
+make -f ~/makefile tangle
+#+end_src
+
+**** pre_pull
+:PROPERTIES:
+:header-args:bash+: :noweb-ref pre_pull
+:END:
+
+#+begin_src bash :noweb-ref no :tangle (meq/tangle-path) :shebang "#!/usr/bin/env bash"
+<<pre_pull>>
+#+end_src
+
+#+begin_src bash
+make -f ~/makefile subinit
+#+end_src
+
 ** nix
 *** nix.conf
 :PROPERTIES:
@@ -4766,7 +4922,7 @@ eval $(starship init ion)
     name = shadowrylander
 
 [alias]
-    cnm = git commit --allow-empty-message -am ""
+    cnm = commit --allow-empty-message -am ""
 
 [protocol "keybase"]
 	allow = always
@@ -4798,6 +4954,7 @@ Invoke-Expression (&starship init powershell)
 
 #+begin_src fish
 source ~/resources/nix-env.fish/conf.d/nix-env.fish
+source ~/.asdf/asdf.fish
 cd ~/resources/bass
 make install &>/dev/null
 cd -
@@ -5573,6 +5730,8 @@ session_name: default
 #+name: 20211028011626543493400
 #+begin_src sh
 . ~/.nix-profile/etc/profile.d/nix.sh
+. $HOME/.asdf/asdf.sh
+. $(fasd --init auto)
 #+end_src
 
 #+call: hash() :exports none
@@ -5955,4 +6114,293 @@ eval "$(direnv hook zsh)"
 # ctrl-space-workaround = true
 
 allow-external-apps = true
+#+end_src
+
+* run_keybase
+:PROPERTIES:
+:header-args:bash+: :noweb-ref run_keybase
+:END:
+
+# From: https://github.com/keybase/client/blob/master/packaging/linux/run_keybase
+
+#+begin_src bash :noweb-ref no :tangle (meq/tangle-path) :shebang "#!/usr/bin/env bash"
+<<run_keybase>>
+#+end_src
+
+#+begin_src bash
+set -e -u -o pipefail
+
+# This is the script responsible for launching keybase on boot on Linux. A
+# .desktop file will be created by the service on first launch in
+# ~/.config/autostart/ to invoke this script.
+
+systemd_stop_if_active() {
+    service="$1";
+    if command -v systemctl &> /dev/null && systemctl --user is-active -q "$service"; then
+        systemctl --user stop "$service"
+    fi
+}
+
+# This works no matter how the services were started, because our
+# Restart=on-failure systemd unit configuration won't restart after SIGTERM.
+kill_all() {
+  # systemd will restart services if they failed to stop cleanly, so do this explicitly
+  # first to make the rest of a function a no-op.
+  if [ "$KEYBASE_KILL" = "1" ]; then
+      systemd_stop_if_active "keybase"
+      systemd_stop_if_active "kbfs"
+      systemd_stop_if_active "keybase.gui"
+      systemd_stop_if_active "keybase-redirector"
+  fi
+
+  # Only stop main Electron process; others have additional flags after the process name
+  # Child Electron processes will be stopped by main process' handler
+  if main_electron_pids="$(pgrep 'Keybase$')"; then
+      # intentionally splitting pids
+      # shellcheck disable=SC2046
+      kill $(echo "$main_electron_pids" | xargs) &> /dev/null && echo Shutting down Keybase GUI...
+  fi
+
+  # mountdir may be empty on the initial install, so don't try to unmount in that case.
+  if mountdir="$(keybase config get --direct --bare mountdir 2> /dev/null)" && [ -n "$mountdir" ]; then
+	  # Redundant in newer kbfsfuses, which catches SIGTERM and unmounts before exiting.
+	  fusermount -uz "$mountdir" &> /dev/null && echo Unmounting "$mountdir"...
+  fi
+
+  killall kbfsfuse &> /dev/null && echo Unmounting and shutting down kbfsfuse...
+  killall keybase &> /dev/null && echo Shutting down keybase service...
+
+  # Only shut down redirector when stopping, but not for restarts.
+  if [ "$KEYBASE_KILL" = "1" ]; then
+      pkill -f keybase-redirector &> /dev/null && echo Shutting down keybase redirector...
+  fi
+}
+
+start_systemd() {
+  echo Starting via systemd...
+
+  # Reload possibly-updated unit files.
+  # This occurs in post-install, but only if it's actually packaged
+  # and the user was already running Keybase.
+  systemd_errmsg="Failed to load systemd units. If systemd is not supported, please 'export KEYBASE_SYSTEMD=0' before running this command."
+  systemctl --user daemon-reload || echo "$systemd_errmsg"
+
+  # We don't want to persist this, so don't store it in the env file.
+  # This is unset right after start in the unit file so subsequent direct
+  # systemctl calls don't have it set.
+  systemctl --user set-environment "KEYBASE_AUTOSTART=$KEYBASE_AUTOSTART"
+
+  # The keybase.gui.service unit has keybase.service as dependencies, so we
+  # don't have to list them here. But including them lets us report an error if
+  # they fail to start. Also prefer `restart` to `start` so that we don't race
+  # against the service shutting down.  kbfs.service will attempt to start the
+  # redirector, but it isn't an error if it fails to start, which happens if it
+  # is disabled.
+  systemctl --user restart keybase.service
+
+  [ "$KEYBASE_NO_KBFS" == "1" ] || systemctl --user restart kbfs.service
+  gui_fail_help="Failed to launch GUI. Pass -g to prevent startup if on a machine without a graphical display."
+  [ "$KEYBASE_NO_GUI" == "1" ] || systemctl --user restart keybase.gui.service || echo "$gui_fail_help"
+}
+
+run_redirector_in_background() {
+  if ! keybase --use-root-config-file config get --direct --assert-false --assert-ok-on-nil disable-root-redirector &> /dev/null; then
+    return 0
+  fi
+  redirector_log="$logdir/keybase.redirector.log"
+  # An older version of post_install.sh could have made a redirector log
+  # here that's owned by root.  If we can't write to it, then just nuke it
+  # and overwrite.
+  if [ -e "$redirector_log" ] && [ ! -w "$redirector_log" ]; then
+    rm -f "$redirector_log"
+  fi
+  echo Starting the redirector...
+  # We need nohup so the redirector doesn't terminate on shell exit,
+  # but it isn't necessary for keybase/kbfs/gui which autofork.
+  nohup keybase-redirector /keybase >> "$redirector_log" 2>&1 &
+}
+
+start_background() {
+  echo Launching keybase service...
+
+  # We set the --auto-forked flag here so that updated clients that try to
+  # restart this service will know to re-fork it themselves. That's all it does.
+  keybase --debug --use-default-log-file service --auto-forked &>> "$logdir/keybase.start.log" &
+
+  if [ "$KEYBASE_NO_KBFS" != "1" ]; then
+      run_redirector_in_background
+      echo Starting KBFS...
+
+      # The only time kbfsfuse -log-to-file prints to stdout is if the mount
+      # fails. So, if it does fail, because the directory does not exist, or
+      # has invalid permissions, the user will be notified on the command line
+      # after running `run_keybase`, but otherwise stdout will not be cluttered
+      # with other various log messages.
+      ( kbfsfuse -debug -log-to-file | tee "$logdir/keybase.start.log" ) &
+  fi
+
+  if [ "$KEYBASE_NO_GUI" != "1" ]; then
+      # For system tray icon due to an upstream Electron issue:
+      # https://github.com/electron/electron/issues/10887.
+      # Also exported in systemd keybase.gui unit explicitly.
+      export XDG_CURRENT_DESKTOP=Unity
+      export KEYBASE_AUTOSTART="$KEYBASE_AUTOSTART"
+
+      echo Launching Keybase GUI...
+      gui_log="$logdir/Keybase.app.log"
+      "$KEYBASE" &>> "$gui_log" &
+  fi
+}
+
+# Warn if the keybase binary path is unexpected, possibly due to a conflicting
+# binary from the Node client. Can silence with KEYBASE_PATH_WARNING=0.
+warn_if_weird_path() {
+    if [ "${KEYBASE_PATH_WARNING:-}" = "0" ] ; then
+        return
+    fi
+    if [ "$(command -v keybase)" != "/usr/bin/keybase" ] ; then
+        echo "WARNING: Expected the keybase executable to be /usr/bin/keybase, but it's"
+        echo "         $(command -v keybase) instead. Do you have multiple versions installed?"
+        echo "         Export KEYBASE_PATH_WARNING=0 to silence this warning."
+    fi
+}
+
+show_cryptosquirrel() {
+  if n_colors="$(tput colors 2> /dev/null)" && [ "$n_colors" -gt 2 ]; then
+      [ "${KEYBASE_NO_SQUIRREL:-}" != "1" ] && cat /opt/keybase/crypto_squirrel.txt
+  fi
+}
+
+warn_if_exists_and_unwritable() {
+  if ! [ -e "$1" ] || [ -w "$1" ]; then
+      return
+  fi
+  echo "WARNING: Cannot write to $1. Did you previously run 'run_keybase' with sudo?"
+  echo "         Keybase does not need root privileges to run."
+  echo "         Permissions can be restored by running 'sudo chown -R $(whoami):$(whoami) $1',"
+  echo "         after which 'run_keybase' can be run again."
+}
+
+init() {
+  logdir="${XDG_CACHE_HOME:-$HOME/.cache}/keybase"
+  runtime_dir="${XDG_RUNTIME_DIR:-$HOME/.config}/keybase"
+
+  warn_if_exists_and_unwritable "$logdir"
+  warn_if_exists_and_unwritable "$runtime_dir"
+  warn_if_exists_and_unwritable "$HOME/.config"
+  warn_if_exists_and_unwritable "$HOME/.local/share/keybase/keybase.leveldb"
+  warn_if_exists_and_unwritable "$HOME/.config/keybase"
+  warn_if_exists_and_unwritable "$HOME/.config/keybase/gui_config.json"
+  warn_if_exists_and_unwritable "$HOME/.cache/keybase"
+
+  # Cannot do in go due to background processes being piped to log in bash
+  mkdir -p "$logdir"
+
+  # Cannot do in go due to flock using a file in this directory
+  mkdir -p "$runtime_dir"
+
+  keybase ctl init
+
+  # Remove legacy envfiles; now stored in config directory by ctl init
+  rm -f "$runtime_dir/keybase.env" "$runtime_dir/keybase.kbfs.env" "$runtime_dir/keybase.gui.env"
+
+  # Allow distributions to change the location of the gui as long as it's in PATH.
+  if command -v Keybase &> /dev/null; then
+      KEYBASE=Keybase
+  else
+      KEYBASE=/opt/keybase/Keybase
+  fi
+}
+
+check_for_url_scheme_or_saltpack_file_launch() {
+  # We set a URL scheme handler on our .desktop file, and since that file
+  # points to this script, that's what gets called with URL links. We can
+  # differentiate between a normal run_keybase invocation and a URL launch
+  # by checking argv.
+  #
+  # We also have a .saltpack MIME type registration, so double clicking on
+  # a saltpack file will also cause run_keybase to receive a $1 argument
+  # of a filename to open.
+
+  # If Keybase is already running, then pass it the link and exit.
+  if [[ $# -eq 1 && "$1" =~ ^(/|web\+|keybase).* ]]; then
+      if pgrep -u "$USER" -f 'Keybase$' &> /dev/null; then
+          "$KEYBASE" "$1" &
+          exit
+      fi
+  fi
+
+  # Since we didn't exit, fall through to a normal startup.
+}
+
+startup_all() {
+  # There is a race condition where if we try to start the keybase service before
+  # the previous process has died, we might fail to lock the pid file and error
+  # out. Avoid this by waiting for the lock file to be free, on systems with flock
+  # installed.
+  lockfile="$runtime_dir/keybased.pid"
+  if command -v flock &> /dev/null && [ -e "$lockfile" ] ; then
+    flock "$lockfile" true
+  fi
+
+  warn_if_weird_path
+
+  if keybase ctl wants-systemd &> /dev/null; then
+      start_systemd
+  else
+      start_background
+  fi
+
+  echo 'run_keybase: Success!'
+
+  show_cryptosquirrel
+}
+
+usage() {
+  echo "Usage: run_keybase [-afghk]"
+  echo "Starts the Keybase service, KBFS, and the GUI."
+  echo "If services are already running, they will be restarted."
+  echo ""
+  echo "Options can also be controlled by setting related environment variables to 1"
+  echo "  -a  keep the GUI minimized in system tray after startup (env KEYBASE_AUTOSTART=1)"
+  echo "  -f  do not start KBFS (env KEYBASE_NO_KBFS=1)"
+  echo "  -g  do not start the gui (env KEYBASE_NO_GUI=1)"
+  echo "  -h  print this help text"
+  echo "  -k  shut down all Keybase services (env KEYBASE_KILL=1)"
+}
+
+KEYBASE_NO_GUI="${KEYBASE_NO_GUI:-0}"
+KEYBASE_NO_KBFS="${KEYBASE_NO_KBFS:-0}"
+KEYBASE_AUTOSTART="${KEYBASE_AUTOSTART:-0}"
+KEYBASE_KILL="${KEYBASE_KILL:-0}"
+
+# NOTE: Make sure to update the Linux User Guide doc if you change this!
+#   http://keybase.io/docs/linux-user-guide
+while getopts "afghk" flag; do
+    case $flag in
+        a) KEYBASE_AUTOSTART=1;;
+        f) KEYBASE_NO_KBFS=1;;
+        g) KEYBASE_NO_GUI=1;;
+        h) usage; exit 0;;
+        k) KEYBASE_KILL=1;;
+        ?) usage; exit 1;;
+    esac
+done
+
+init
+
+# Exit early if run caused by a URL scheme invocation and Keybase is already
+# running; otherwise fall through to start Keybase.
+check_for_url_scheme_or_saltpack_file_launch "$@"
+
+# Always stop any running services. With systemd, we could've decided to just
+# `start` services and no-op if they're already running, however:
+# 1) We still need to handle the case where services started outside systemd
+#    are currently running, and making that totally reliable is tricky.
+# 2) Users have come to expect that run_keybase will restart everything, and
+#    we tell them to do it after updates.
+kill_all
+if [ "$KEYBASE_KILL" = "0" ]; then
+    startup_all
+fi
 #+end_src

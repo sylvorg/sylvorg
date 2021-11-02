@@ -3,12 +3,6 @@ if [[ $(uname -a) == *Android* ]]; then
     termux-setup-storage
     pkg install emacs make fd cmake sqlite libtool stow man keybase
 
-    # curl -Lo ~/wtt.sh https://raw.githubusercontent.com/shadowrylander/.emacs.d/main/wtt/wtt.sh
-    # chmod +x ~/.wtt.sh
-    # echo
-    # echo "        $(~/wtt.sh)"
-    # echo
-
     # Adapted From: https://stackoverflow.com/a/3980713/10827766
     stty -echo
     printf "Paperkey: "
@@ -19,8 +13,6 @@ if [[ $(uname -a) == *Android* ]]; then
 
     hash yadm 2>/dev/null && command=yadm || command=~/yadm
 
-    # From: https://github.com/keybase/client/issues/9292#issuecomment-465554906
-    git config --global --add protocol.keybase.allow always
     GIT_SSL_NO_VERIFY=1 $command submodule update --force --init --depth 1 --recursive --remote
     $command remote set-url --push origin git@github.com:shadowrylander/shadowrylander.git
     $command config include.path "~/.gitconfig"
@@ -70,12 +62,6 @@ else
                     master.stow \
                     master.man
     fi
-
-    # curl -Lo ~/wtt.sh https://raw.githubusercontent.com/shadowrylander/.emacs.d/main/wtt/wtt.sh
-    # chmod +x ~/.wtt.sh
-    # echo
-    # echo "        $(~/wtt.sh)"
-    # echo
 
     # Adapted From: https://stackoverflow.com/a/3980713/10827766
     stty -echo
@@ -127,10 +113,4 @@ else
     keybase logout
 
     exec ~/.nix-profile/etc/profile.d/nix.sh
-
-    # echo
-    # echo "Run this now: "
-    # echo
-    # echo "        . ~/.nix-profile/etc/profile.d/nix.sh"
-    # echo
 fi
