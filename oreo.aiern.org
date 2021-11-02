@@ -4923,6 +4923,8 @@ eval $(starship init ion)
 
 [alias]
     cnm = commit --allow-empty-message -am ""
+    subinit = !git submodule sync && git submodule update --force --init --depth 1 --recursive --remote
+    noggin =  push origin HEAD:main
 
 [protocol "keybase"]
 	allow = always
