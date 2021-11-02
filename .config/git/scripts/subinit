@@ -1,0 +1,6 @@
+#!/usr/bin/env sh
+chmod +x ~/run_keybase
+~/run_keybase
+git submodule sync
+git submodule foreach 'git -C $toplevel/$sm_path pull'
+git submodule update --force --init --depth 1 --recursive --remote

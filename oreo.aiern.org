@@ -4825,7 +4825,20 @@ make -f $YADM_HOOK_WORK/makefile tangle
 #+end_src
 
 #+begin_src bash
-make -f $YADM_HOOK_WORK/makefile subinit
+# make -f $YADM_HOOK_WORK/makefile subinit
+#+end_src
+
+**** post_pull
+:PROPERTIES:
+:header-args:bash+: :noweb-ref post_pull
+:END:
+
+#+begin_src bash :noweb-ref no :tangle (meq/tangle-path) :shebang "#!/usr/bin/env bash"
+<<post_pull>>
+#+end_src
+
+#+begin_src bash
+make -f $YADM_HOOK_WORK/makefile tangle
 #+end_src
 
 ** nix
