@@ -4812,7 +4812,7 @@ fi
 #+end_src
 
 #+begin_src bash
-make -f ~/makefile tangle
+make -f $YADM_HOOK_WORK/makefile tangle
 #+end_src
 
 **** pre_pull
@@ -4825,7 +4825,7 @@ make -f ~/makefile tangle
 #+end_src
 
 #+begin_src bash
-make -f ~/makefile subinit
+make -f $YADM_HOOK_WORK/makefile subinit
 #+end_src
 
 ** nix
