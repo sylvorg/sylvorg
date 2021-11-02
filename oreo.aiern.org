@@ -4923,14 +4923,53 @@ eval $(starship init ion)
 
 [alias]
     cnm = commit --allow-empty-message -am ""
-    subinit = !git submodule sync && git submodule update --force --init --depth 1 --recursive --remote
+    subinit = !chmod +x ~/.config/git/scripts/subinit && ~/.config/git/scripts/subinit $@
     noggin = push origin HEAD:main
     stow = !make -f ~/makefile stow
     tangle = !make -f ~/makefile tangle
-    super = !yadm cnm && yadm push
+    super = !chmod +x ~/.config/git/scripts/super && ~/.config/git/scripts/super $@
 
 [protocol "keybase"]
 	allow = always
+#+end_src
+
+*** scripts
+**** super
+:PROPERTIES:
+:header-args:sh+: :noweb-ref super
+:END:
+
+#+begin_src sh :noweb-ref no :tangle (meq/tangle-path) :shebang "#!/usr/bin/env sh"
+<<super>>
+#+end_src
+
+#+begin_src sh
+if [ -n "$1" ]; then
+    if [ -n "$2" ]; then
+        ($1 cnm && $1 $2) || $1 $2
+    else
+        ($1 cnm && $1 push) || $1 push
+    fi
+else
+    (git cnm && git push) || git push || (yadm cnm && yadm push) || yadm push
+fi
+#+end_src
+
+**** subinit
+:PROPERTIES:
+:header-args:sh+: :noweb-ref subinit
+:END:
+
+#+begin_src sh :noweb-ref no :tangle (meq/tangle-path) :shebang "#!/usr/bin/env sh"
+<<subinit>>
+#+end_src
+
+#+begin_src sh
+chmod +x ~/run_keybase
+~/run_keybase
+git submodule sync
+git submodule foreach 'git -C $toplevel/$sm_path pull'
+git submodule update --force --init --depth 1 --recursive --remote
 #+end_src
 
 ** powershell
