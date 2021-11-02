@@ -57,4 +57,4 @@
 	url = https://github.com/shadowrylander/sylveon.git
 [submodule "sylvorg"]
 	path = sylvorg
-	url = keybase://private/shadowrylander/cc
+	url = keybase://private/shadowrylander/sylvorg
