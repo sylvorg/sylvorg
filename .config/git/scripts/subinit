@@ -4,7 +4,7 @@ gys () {
     $1 submodule foreach 'git -C $toplevel/$sm_path pull || :'
     $1 submodule foreach 'git -C $toplevel/$sm_path stash || :'
     $1 submodule update --init --depth 1 --recursive --remote
-    $1 submodule foreach 'git -C $toplevel/$sm_path merge -X ours $(git -C $toplevel/$sm_path rev-parse --abbrev-ref HEAD) && git -C $toplevel/$sm_path stash apply || :'
+    $1 submodule foreach 'git -C $toplevel/$sm_path merge -s ours $(git -C $toplevel/$sm_path rev-parse --abbrev-ref HEAD) && git -C $toplevel/$sm_path stash apply || :'
 }
 if [[ -n "$1" ]]; then
     if [[ "$1" == "yadm" ]]; then yadm keybase; fi
