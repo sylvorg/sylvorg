@@ -4983,22 +4983,11 @@ fi
 
 #+begin_src bash
 gys () {
-    $1 submodule sync;
-    $1 submodule foreach 'git -C $toplevel/$sm_path pull || :';
-    $1 submodule foreach 'git -C $toplevel/$sm_path stash || :';
-    $1 submodule update --init --depth 1 --recursive --remote;
-    $1 submodule foreach 'git -C $toplevel/$sm_path add . || :';
-    $1 submodule foreach 'git -C $toplevel/$sm_path cnm || :';
-
-    # Adapted From:
-    # Answer: https://stackoverflow.com/a/1315213/10827766
-    # User: https://stackoverflow.com/users/41861/adrian-pronk
-    $1 submodule foreach 'GIT_TOPLEVEL=$toplevel GIT_SM_PATH=$sm_path unset toplevel && unset sm_path && git -C $GIT_TOPLEVEL/$GIT_SM_PATH submodule foreach '\''git -C $toplevel/$sm_path add . || :'\'' || :';
-    $1 submodule foreach 'GIT_TOPLEVEL=$toplevel GIT_SM_PATH=$sm_path unset toplevel && unset sm_path && git -C $GIT_TOPLEVEL/$GIT_SM_PATH submodule foreach '\''git -C $toplevel/$sm_path cnm || :'\'' || :';
-
-    $1 submodule foreach 'git -C $toplevel/$sm_path add . || :';
-    $1 submodule foreach 'git -C $toplevel/$sm_path cnm || :';
-    $1 submodule foreach 'git -C $toplevel/$sm_path stash branch $(git wtt) || :';
+    $1 submodule sync
+    $1 submodule foreach 'git -C $toplevel/$sm_path pull || :'
+    $1 submodule foreach 'git -C $toplevel/$sm_path stash || :'
+    $1 submodule update --init --depth 1 --recursive --remote
+    $1 submodule foreach 'git -C $toplevel/$sm_path merge -X ours $(git -C $toplevel/$sm_path rev-parse --abbrev-ref HEAD) && git -C $toplevel/$sm_path stash apply || :'
 }
 if [[ -n "$1" ]]; then
     if [[ "$1" == "yadm" ]]; then yadm keybase; fi
