@@ -4462,6 +4462,7 @@ extra_paths = [
     f"{home}/.nimble/bin",
     f"{home}/go/bin",
     "/usr/lib/node_modules",
+    f"{home}/.local/bin",
 ]
 $PATH += extra_paths
 
@@ -4654,6 +4655,7 @@ aliases["git"] = _git
 aliases["xpip"] = lambda args, stdin=None: $(pipx inject --force --include-deps xonsh @(args))
 aliases["s"] = "source ~/.xonshrc"
 aliases["cdi"] = _cdi
+aliases["adam"] = lambda args, stdin=None: $(sudo yadm -Y /root/.config/yadm/repo.git -C / @(args))
 
 # fasd aliases
 aliases["o"] = lambda args, stdin=None: $(fasd -ae xdg-open @(args)) # quick opening files with xdg-open
@@ -5833,8 +5835,7 @@ alias adam="sudo yadm -Y /root/.config/yadm/repo.git -C /"
 
 #+name: 20211028011441477114800
 #+begin_src sh
-# Created by `pipx` on 2021-10-22 03:35:31
-PATH="$PATH:/home/shadowrylander/.local/bin"
+PATH="$PATH:$HOME/.local/bin"
 #+end_src
 
 #+call: hash() :exports none
