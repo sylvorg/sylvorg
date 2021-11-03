@@ -3,7 +3,9 @@ gys () {
     $1 submodule sync;
     $1 submodule foreach 'git -C $toplevel/$sm_path pull || :';
     $1 submodule foreach 'git -C $toplevel/$sm_path stash || :';
-    $1 submodule update --force --init --depth 1 --recursive --remote;
+    $1 submodule update --init --depth 1 --recursive --remote;
+    $1 submodule foreach 'git -C $toplevel/$sm_path add . || :';
+    $1 submodule foreach 'git -C $toplevel/$sm_path cnm || :';
 
     # Adapted From:
     # Answer: https://stackoverflow.com/a/1315213/10827766
