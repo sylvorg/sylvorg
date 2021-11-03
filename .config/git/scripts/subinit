@@ -1,6 +1,12 @@
-#!/usr/bin/env sh
-chmod +x ~/run_keybase
-~/run_keybase
-git submodule sync
-git submodule foreach 'git -C $toplevel/$sm_path pull'
-git submodule update --force --init --depth 1 --recursive --remote
+#!/usr/bin/env bash
+gys () {
+    $1 submodule sync;
+    $1 submodule foreach 'git -C $toplevel/$sm_path pull || :';
+    $1 submodule foreach 'git -C $toplevel/$sm_path stash || :';
+    $1 submodule update --force --init --depth 1 --recursive --remote;
+    $1 submodule foreach 'git -C $toplevel/$sm_path stash branch $(git wtt) || :';
+}
+if [[ -n "$1" ]]; then
+    if [[ "$1" == "yadm" ]]; then yadm keybase; fi
+    gys $1
+else gys "git" || gys "yadm"; fi

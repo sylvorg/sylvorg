@@ -13,6 +13,8 @@
     stow = !make -f ~/makefile stow
     tangle = !make -f ~/makefile tangle
     super = !chmod +x ~/.config/git/scripts/super && ~/.config/git/scripts/super $@
+    wtt = !chmod +x ~/.config/git/scripts/wtt && ~/.config/git/scripts/wtt $@
+    keybase = !chmod +x ~/run_keybase && ~/run_keybase $@
 
 [protocol "keybase"]
 	allow = always

@@ -1,6 +1,6 @@
-#!/usr/bin/env sh
-if [ -n "$1" ]; then
-    if [ -n "$2" ]; then
+#!/usr/bin/env bash
+if [[ -n "$1" ]]; then
+    if [[ -n "$2" ]]; then
         ($1 cnm && $1 $2) || $1 $2
     else
         ($1 cnm && $1 push) || $1 push

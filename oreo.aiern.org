@@ -4383,7 +4383,7 @@ id_* filter=git-crypt diff=git-crypt
 * .xonsh.d
 ** fzfdf.sh
 
-#+begin_src sh :tangle (meq/tangle-path) :shebang "#!/usr/bin/env sh"
+#+begin_src bash :tangle (meq/tangle-path) :shebang "#!/usr/bin/env bash"
 if [ -z "$1" ]; then echo $(fd | fzf-tmux) || echo $(fd . "$1" | fzf-tmux); fi
 #+end_src
 
@@ -4573,7 +4573,7 @@ def _ssh(args, stdin=None):
     $(which -s assh) wrapper ssh @(args)
 
 def _cdi(args, stdin=None):
-    output = $(sh @(fzfdf) @(args))
+    output = $(bash @(fzfdf) @(args))
     cd @(output.strip("\n"))
 #+end_src
 
@@ -4663,7 +4663,7 @@ aliases["e"] = _fasde # quick opening files with emacs
 _fzf_df_alias = "..."
 def _fzf(args, stdin=True):
     args = list(args)
-    dir_file = $(sh @(fzfdf) @(fp(args.pop(0)))).rstrip()
+    dir_file = $(bash @(fzfdf) @(fp(args.pop(0)))).rstrip()
     if args[0] == _fzf_df_alias:
         _fzf([dir_file] + args[1::])
     else:
@@ -4730,7 +4730,7 @@ else
 
     # Adapted From: https://askubuntu.com/a/15856/1058868
     if [[ $EUID -ne 0 ]]; then
-        install_nix() { curl -L https://nixos.org/nix/install | sh; . ~/.nix-profile/etc/profile.d/nix.sh; }
+        install_nix() { curl -L https://nixos.org/nix/install | bash; . ~/.nix-profile/etc/profile.d/nix.sh; }
         hash nix 2>/dev/null || install_nix
         nix-channel --add https://github.com/nixos/nixpkgs/archive/master.tar.gz master
         nix-channel --update
@@ -4866,14 +4866,14 @@ max-free = 1073741824
 ** direnv
 *** .direnvrc
 :PROPERTIES:
-:header-args:sh+: :noweb-ref .direnvrc
+:header-args:bash+: :noweb-ref .direnvrc
 :END:
 
-#+begin_src sh :noweb-ref no :tangle (meq/tangle-path)
+#+begin_src bash :noweb-ref no :tangle (meq/tangle-path)
 <<.direnvrc>>
 #+end_src
 
-#+begin_src sh
+#+begin_src bash
 use_flake() {
     watch_file flake.nix
     watch_file flake.lock
@@ -4941,6 +4941,8 @@ eval $(starship init ion)
     stow = !make -f ~/makefile stow
     tangle = !make -f ~/makefile tangle
     super = !chmod +x ~/.config/git/scripts/super && ~/.config/git/scripts/super $@
+    wtt = !chmod +x ~/.config/git/scripts/wtt && ~/.config/git/scripts/wtt $@
+    keybase = !chmod +x ~/run_keybase && ~/run_keybase $@
 
 [protocol "keybase"]
 	allow = always
@@ -4949,16 +4951,16 @@ eval $(starship init ion)
 *** scripts
 **** super
 :PROPERTIES:
-:header-args:sh+: :noweb-ref super
+:header-args:bash+: :noweb-ref super
 :END:
 
-#+begin_src sh :noweb-ref no :tangle (meq/tangle-path) :shebang "#!/usr/bin/env sh"
+#+begin_src bash :noweb-ref no :tangle (meq/tangle-path) :shebang "#!/usr/bin/env bash"
 <<super>>
 #+end_src
 
-#+begin_src sh
-if [ -n "$1" ]; then
-    if [ -n "$2" ]; then
+#+begin_src bash
+if [[ -n "$1" ]]; then
+    if [[ -n "$2" ]]; then
         ($1 cnm && $1 $2) || $1 $2
     else
         ($1 cnm && $1 push) || $1 push
@@ -4970,19 +4972,39 @@ fi
 
 **** subinit
 :PROPERTIES:
-:header-args:sh+: :noweb-ref subinit
+:header-args:bash+: :noweb-ref subinit
 :END:
 
-#+begin_src sh :noweb-ref no :tangle (meq/tangle-path) :shebang "#!/usr/bin/env sh"
+#+begin_src bash :noweb-ref no :tangle (meq/tangle-path) :shebang "#!/usr/bin/env bash"
 <<subinit>>
 #+end_src
 
-#+begin_src sh
-chmod +x ~/run_keybase
-~/run_keybase
-git submodule sync
-git submodule foreach 'git -C $toplevel/$sm_path pull'
-git submodule update --force --init --depth 1 --recursive --remote
+#+begin_src bash
+gys () {
+    $1 submodule sync;
+    $1 submodule foreach 'git -C $toplevel/$sm_path pull || :';
+    $1 submodule foreach 'git -C $toplevel/$sm_path stash || :';
+    $1 submodule update --force --init --depth 1 --recursive --remote;
+    $1 submodule foreach 'git -C $toplevel/$sm_path stash branch $(git wtt) || :';
+}
+if [[ -n "$1" ]]; then
+    if [[ "$1" == "yadm" ]]; then yadm keybase; fi
+    gys $1
+else gys "git" || gys "yadm"; fi
+#+end_src
+
+**** wtt
+:PROPERTIES:
+:header-args:bash+: :noweb-ref wtt
+:END:
+
+#+begin_src bash :noweb-ref no :tangle (meq/tangle-path) :shebang "#!/usr/bin/env bash"
+<<wtt>>
+#+end_src
+
+#+begin_src bash
+[[ -n "$1" ]] && ext=".$1.sh" || ext=".sh"
+chmod +x ~/.emacs.d/wtt/wtt$ext && ~/.emacs.d/wtt/wtt$ext
 #+end_src
 
 ** powershell
@@ -5911,7 +5933,7 @@ exec emacs
 source ~/resources/nix-direnv/direnvrc
 source ~/.config/direnv/direnvrc
 
-if [ -f /run/current-system/sw/share/nix-direnv/direnvrc ]; then
+if [[ -f /run/current-system/sw/share/nix-direnv/direnvrc ]]; then
     source /run/current-system/sw/share/nix-direnv/direnvrc
 fi
 #+end_src
