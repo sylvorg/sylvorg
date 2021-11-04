@@ -1,5 +1,6 @@
 #!/usr/bin/env xonsh
-import git, os, sys
+import os, sys
+from addict import Dict
 currentDir = os.getcwd()
 for line in $(yadm --help).split("\n"):
     if "yadm's Git repository" in line:
@@ -13,11 +14,21 @@ yadmRootDir = $(git -C @(yadmRepoDir) rev-parse --show-toplevel).strip()
 if len(sys.argv) > 1:
     command = sys.argv[1]
 else:
-    command = "yadm" if yadmRootDir == currentDir else "git"
+    command = "yadm" if yadmRootDir == currentDir else f"git -C {currentDir}".split()
 repoDir = yadmRepoDir if command == "yadm" else currentDir
-repo = git.Repo(repoDir)
-git -C @(currentDir) pull
-with repo.config_reader() as reader:
-    for submodule in repo.submodules:
-        if not os.path.exists(os.path.join(currentDir, submodule.path)):
-            git -C @(currentDir) submodule add --depth 1 @(submodule.url) @(submodule.path)
+_submodules = [line.strip() for line in $(cat .gitmodules).split("\n") if line]
+submodule = None
+submodules = Dict()
+for line in _submodules:
+    if '[submodule "' in line:
+        submodule = line.split('"')[1]
+        submodules[submodule] = Dict()
+    elif not submodule:
+        pass
+    else:
+        splitLine = line.split(" = ")
+        submodules[submodule][splitLine[0]] = splitLine[1]
+
+for submodule, subdict in submodules:
+    if not os.path.exists(os.path.join(currentDir, subdict.path)):
+        @(command) submodule add --depth 1 @(subdict.url) @(subdict.path) --name @(submodule)
