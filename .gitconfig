@@ -15,6 +15,7 @@
     super = !chmod +x ~/.config/git/scripts/super && ~/.config/git/scripts/super $@
     wtt = !chmod +x ~/.config/git/scripts/wtt && ~/.config/git/scripts/wtt $@
     keybase = !chmod +x ~/run_keybase && ~/run_keybase $@
+    sylveon = !git -C ~/sylveon subinit
 
 [protocol "keybase"]
 	allow = always
