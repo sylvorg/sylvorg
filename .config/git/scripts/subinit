@@ -51,4 +51,5 @@ for submodule, subdict in submodules.items():
     # User: https://stackoverflow.com/users/1434495/flair
     if (os.path.exists(subpath) and (not any(os.scandir(subpath)))) or (not os.path.exists(subpath)):
 
+        rm -rf @(subpath)
         @(command) submodule add --force --depth 1 @(subdict.url) @(subdict.path)
