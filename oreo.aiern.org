@@ -5030,8 +5030,14 @@ for line in _submodules:
         submodules[submodule][splitLine[0]] = splitLine[1]
 
 for submodule, subdict in submodules.items():
-    if not os.path.exists(os.path.join(currentDir, subdict.path)):
-        @(command) submodule add --depth 1 @(subdict.url) @(subdict.path) --name @(submodule)
+    subpath = os.path.join(currentDir, subdict.path)
+    
+    # Adapted From:
+    # Answer: https://stackoverflow.com/a/66481406/10827766
+    # User: https://stackoverflow.com/users/1434495/flair
+    if (os.path.exists(subpath) and (not any(os.scandir(subpath)))) or (not os.path.exists(subpath)):
+
+        @(command) submodule add --force --depth 1 @(subdict.url) @(subdict.path) --name @(submodule)
 #+end_src
 
 **** wtt
