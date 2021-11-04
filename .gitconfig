@@ -17,6 +17,7 @@
     wtt = !chmod +x ~/.config/git/scripts/wtt && ~/.config/git/scripts/wtt $@
     keybase = !chmod +x ~/run_keybase && ~/run_keybase $@
     sylveon = !git -C ~/sylveon subinit
+    bootstrap = !make -f ~/.emacs.d/makefile bootstrap
 
 [protocol "keybase"]
 	allow = always

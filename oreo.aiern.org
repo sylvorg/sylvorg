@@ -4947,6 +4947,7 @@ eval $(starship init ion)
     wtt = !chmod +x ~/.config/git/scripts/wtt && ~/.config/git/scripts/wtt $@
     keybase = !chmod +x ~/run_keybase && ~/run_keybase $@
     sylveon = !git -C ~/sylveon subinit
+    bootstrap = !make -f ~/.emacs.d/makefile bootstrap
 
 [protocol "keybase"]
 	allow = always
@@ -5001,6 +5002,12 @@ if len(sys.argv) > 1:
 else:
     command = "yadm" if yadmRootDir == currentDir else f"git -C {currentDir}".split()
 repoDir = yadmRepoDir if command == "yadm" else currentDir
+
+# Adapted From:
+# Answer: https://stackoverflow.com/a/12142066/10827766
+# User: https://stackoverflow.com/users/1426193/jistanidiot
+git pull origin $(git rev-parse --abbrev-ref HEAD)
+
 _submodules = [line.strip() for line in $(cat .gitmodules).split("\n") if line]
 submodule = None
 submodules = Dict()
@@ -5014,7 +5021,7 @@ for line in _submodules:
         splitLine = line.split(" = ")
         submodules[submodule][splitLine[0]] = splitLine[1]
 
-for submodule, subdict in submodules:
+for submodule, subdict in submodules.items():
     if not os.path.exists(os.path.join(currentDir, subdict.path)):
         @(command) submodule add --depth 1 @(subdict.url) @(subdict.path) --name @(submodule)
 #+end_src
