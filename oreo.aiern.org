@@ -4999,14 +4999,22 @@ yadmRootDir = $(git -C @(yadmRepoDir) rev-parse --show-toplevel).strip()
 
 if len(sys.argv) > 1:
     command = sys.argv[1]
+    repoDir = yadmRepoDir if command == "yadm" else currentDir
 else:
-    command = "yadm" if yadmRootDir == currentDir else f"git -C {currentDir}".split()
-repoDir = yadmRepoDir if command == "yadm" else currentDir
+    if yadmRootDir == currentDir:
+        repoDir = yadmRepoDir
+        command = "yadm"
+    else:
+        repoDir = currentDir
+        command = f"git -C {currentDir}".split()
 
 # Adapted From:
 # Answer: https://stackoverflow.com/a/12142066/10827766
 # User: https://stackoverflow.com/users/1426193/jistanidiot
-git pull origin $(git rev-parse --abbrev-ref HEAD)
+currentBranch = $(@(command) rev-parse --abbrev-ref HEAD).strip()
+mainBranch = "main" if currentBranch == "HEAD" else currentBranch
+masterBranch = "master" if currentBranch == "HEAD" else currentBranch
+git pull origin @(mainBranch) || git pull origin @(masterBranch)
 
 _submodules = [line.strip() for line in $(cat .gitmodules).split("\n") if line]
 submodule = None
