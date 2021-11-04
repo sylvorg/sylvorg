@@ -5001,6 +5001,7 @@ else:
     command = "yadm" if yadmRootDir == currentDir else "git"
 repoDir = yadmRepoDir if command == "yadm" else currentDir
 repo = git.Repo(repoDir)
+repo.remotes.origin.pull()
 with repo.config_reader() as reader:
     for submodule in repo.submodules:
         if not os.path.exists(os.path.join(currentDir, submodule.path)):
