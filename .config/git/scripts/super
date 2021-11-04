@@ -6,5 +6,5 @@ if [[ -n "$1" ]]; then
         ($1 cnm && $1 push) || $1 push
     fi
 else
-    (git cnm && git push) || git push || (yadm cnm && yadm push) || yadm push
+    (git cnm && git push) || git push || (git cnm && git noggin) || git noggin || (yadm cnm && yadm push) || yadm push
 fi
