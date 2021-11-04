@@ -5003,8 +5003,8 @@ repoDir = yadmRepoDir if command == "yadm" else currentDir
 repo = git.Repo(repoDir)
 with repo.config_reader() as reader:
     for submodule in repo.submodules:
-        if not os.path.exists(os.path.join(currentDir, m.path)):
-            git -C @(currentDir) submodule add --depth 1 @(m.url) @(m.path)
+        if not os.path.exists(os.path.join(currentDir, submodule.path)):
+            git -C @(currentDir) submodule add --depth 1 @(submodule.url) @(submodule.path)
 #+end_src
 
 **** wtt
