@@ -5006,7 +5006,7 @@ else:
         command = "yadm"
     else:
         repoDir = currentDir
-        command = f"git -C {currentDir}".split()
+        command = f"git -C {repoDir}".split()
 
 # Adapted From:
 # Answer: https://stackoverflow.com/a/12142066/10827766
@@ -5037,7 +5037,7 @@ for submodule, subdict in submodules.items():
     # User: https://stackoverflow.com/users/1434495/flair
     if (os.path.exists(subpath) and (not any(os.scandir(subpath)))) or (not os.path.exists(subpath)):
 
-        @(command) submodule add --force --depth 1 @(subdict.url) @(subdict.path) --name @(submodule)
+        @(command) submodule add --force --depth 1 @(subdict.url) @(subdict.path)
 #+end_src
 
 **** wtt
