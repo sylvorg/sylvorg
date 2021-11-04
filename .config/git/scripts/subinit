@@ -1,12 +1,23 @@
-#!/usr/bin/env bash
-gys () {
-    $1 submodule sync
-    $1 submodule foreach 'git -C $toplevel/$sm_path pull || :'
-    $1 submodule foreach 'git -C $toplevel/$sm_path stash || :'
-    $1 submodule update --init --depth 1 --recursive --remote
-    $1 submodule foreach 'git -C $toplevel/$sm_path stash apply && git -C $toplevel/$sm_path merge -s ours $(git -C $toplevel/$sm_path rev-parse --abbrev-ref HEAD) || :'
-}
-if [[ -n "$1" ]]; then
-    if [[ "$1" == "yadm" ]]; then yadm keybase; fi
-    gys $1
-else gys "git" || gys "yadm"; fi
+#!/usr/bin/env xonsh
+import git, os, sys
+currentDir = os.getcwd()
+for line in $(yadm --help).split("\n"):
+    if "yadm's Git repository" in line:
+        yadmRepoDir = os.path.expandvars(line.split()[0].strip())
+
+# Adapted From:
+# Answer: https://stackoverflow.com/a/957978/10827766
+# User: https://stackoverflow.com/users/10738/baudtack
+yadmRootDir = $(git -C @(yadmRepoDir) rev-parse --show-toplevel).strip()
+
+if len(sys.argv) > 1:
+    command = sys.argv[1]
+else:
+    command = "yadm" if yadmRootDir == currentDir else "git"
+print(yadmRepoDir, yadmRootDir, currentDir, command)
+repoDir = yadmRepoDir if command == "yadm" else currentDir
+repo = git.Repo(repoDir)
+with repo.config_reader() as reader:
+    for submodule in repo.submodules:
+        if not os.path.exists(os.path.join(currentDir, m.path)):
+            git -C @(currentDir) submodule add --depth 1 @(m.url) @(m.path)
