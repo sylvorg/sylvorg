@@ -14,7 +14,6 @@ if len(sys.argv) > 1:
     command = sys.argv[1]
 else:
     command = "yadm" if yadmRootDir == currentDir else "git"
-print(yadmRepoDir, yadmRootDir, currentDir, command)
 repoDir = yadmRepoDir if command == "yadm" else currentDir
 repo = git.Repo(repoDir)
 with repo.config_reader() as reader:

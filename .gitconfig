@@ -1,6 +1,7 @@
 [core]
     excludesfile = ~/.globalignore
     attributesfile = ~/.gitattributes
+    fileMode = false
 
 [user]
     email = aiern@protonmail.com
