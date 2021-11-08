@@ -4488,24 +4488,9 @@ $LESS = " -R "
 ** functions
 
 #+begin_src xonsh
-def _yadm(args, stdin=None):
-    if args[0] == "edit":
-        vim @(fp(f"{args[1]}##template"))
-    else:
-        # From https://github.com/xonsh/xonsh/issues/3159#issuecomment-500364622
-        $(which -s yadm) @(args)
-
 def _mdg(args, stdin=None):
     mkdir -p @(args)
     cd @(args[0])
-
-# quick opening files with vim
-def _fasdv(args, stdin=None):
-    fasd -fe vim @(args)
-
-# quick opening files with emacs
-def _fasde(args, stdin=None):
-    fasd -fe 'emacsclient --socket-name=damascus -t' @(args)
 
 def hgsetup(args, stdin=None):
     hg bookmark master
@@ -4564,15 +4549,6 @@ def _la(args, stdin=None):
     else:
         exa -la @(args)
 
-def _evim(args, stdin=None):
-    emacsclient --socket-name=damascus -t @(args)
-
-def _git(args, stdin=None):
-    $(which -s hub) @(args)
-
-def _ssh(args, stdin=None):
-    $(which -s assh) wrapper ssh @(args)
-
 def _cdi(args, stdin=None):
     output = $(bash @(fzfdf) @(args))
     cd @(output.strip("\n"))
@@ -4626,7 +4602,7 @@ source-bash $HOME/.asdf/asdf.sh
 # vox enter base 2> /dev/null
 
 # aliases["act"] = _alacritty_change_themes
-aliases["evim"] = _evim
+aliases["evim"] = lambda args, stdin=None: $($(which -s emacsclient) --socket-name=damascus -t @(args))
 # aliases["hgsetup"] = hgsetup
 aliases["-"] = "pushd"
 aliases[".."] = "cd .."
@@ -4648,19 +4624,22 @@ aliases["mdg"] = _mdg
 aliases["mosh"] = lambda args, stdin=None: $($(which -s mosh) --experimental-remote-ip=remote @(args))
 aliases["n"] = "exit"
 aliases["remd"] = "emacsclient --socket-name=damascus -e '(kill-emacs)' && emacs --bg-daemon=damascus"
-# aliases["ssh"] = _ssh
+aliases["ssh"] = lambda args, stdin=None: $($(which -s assh) wrapper ssh @(args))
 aliases["ve"] = lambda args, stdin=None: $(vox enter @(args)) if args else $(vox exit)
-aliases["yadm"] = _yadm
-aliases["git"] = _git
+aliases["git"] = lambda args, stdin=None: $($(which -s hub) @(args))
 aliases["xpip"] = lambda args, stdin=None: $(pipx inject --force --include-deps xonsh @(args))
 aliases["s"] = "source ~/.xonshrc"
 aliases["cdi"] = _cdi
-aliases["adam"] = lambda args, stdin=None: $(sudo yadm -Y /root/.config/yadm/repo.git -C / @(args))
+aliases["adam"] = lambda args, stdin=None: $(sudo $(which -s yadm) -Y /root/.config/yadm/repo.git -C / @(args))
 
 # fasd aliases
 aliases["o"] = lambda args, stdin=None: $(fasd -ae xdg-open @(args)) # quick opening files with xdg-open
-aliases["v"] = _fasdv # quick opening files with vim
-aliases["e"] = _fasde # quick opening files with emacs
+
+# quick opening files with vim
+aliases["v"] = lambda args, stdin=None: $($(which -s fasd) -fe $(which -s vim) @(args))
+
+# quick opening files with emacs
+aliases["e"] = lambda args, stdin=None: $($(which -s fasd) -fe '$(which -s emacsclient) --socket-name=damascus -t' @(args))
 
 _fzf_df_alias = "..."
 def _fzf(args, stdin=True):
@@ -5872,6 +5851,7 @@ cd ~
 alias c="clear"
 alias n="exit"
 alias adam="sudo yadm -Y /root/.config/yadm/repo.git -C /"
+alias ssh="assh wrapper ssh --"
 #+end_src
 
 #+call: hash() :exports none
