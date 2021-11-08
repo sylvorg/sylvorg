@@ -4919,7 +4919,7 @@ eval $(starship init ion)
 [alias]
     cnm = commit --allow-empty-message -am ""
     subinit = !chmod +x ~/.config/git/scripts/subinit && ~/.config/git/scripts/subinit $@
-    noggin = push origin HEAD:main
+    noggin = !chmod +x ~/.config/git/scripts/noggin && ~/.config/git/scripts/noggin $@
     stow = !make -f ~/makefile stow
     tangle = !make -f ~/makefile tangle
     super = !chmod +x ~/.config/git/scripts/super && ~/.config/git/scripts/super $@
@@ -4933,6 +4933,19 @@ eval $(starship init ion)
 #+end_src
 
 *** scripts
+**** noggin
+:PROPERTIES:
+:header-args:bash+: :noweb-ref noggin
+:END:
+
+#+begin_src bash :noweb-ref no :tangle (meq/tangle-path) :shebang "#!/usr/bin/env bash"
+<<noggin>>
+#+end_src
+
+#+begin_src bash
+git push origin HEAD:main || git push origin HEAD:master
+#+end_src
+
 **** super
 :PROPERTIES:
 :header-args:bash+: :noweb-ref super
