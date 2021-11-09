@@ -9,7 +9,7 @@
 
 [alias]
     cnm = commit --allow-empty-message -am ""
-    subinit = !chmod +x ~/.config/git/scripts/subinit && ~/.config/git/scripts/subinit $@
+    subinit = !black -l 65 ~/.config/git/scripts/subinit && chmod +x ~/.config/git/scripts/subinit && ~/.config/git/scripts/subinit $@
     noggin = !chmod +x ~/.config/git/scripts/noggin && ~/.config/git/scripts/noggin $@
     stow = !make -f ~/makefile stow
     tangle = !make -f ~/makefile tangle

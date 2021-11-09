@@ -490,34 +490,8 @@ index c61df8ceb00..d973837f0d3 100644
             url = "github:<<username>>/wip-pinebook-pro/master";
             flake = false;
         };
-        home-manager' = {
-            url = "github:nix-community/home-manager";
-            flake = false;
-        };
         impermanence = {
             url = "github:nix-community/impermanence";
-            flake = false;
-        };
-    };
-    outputs = { self, ... }: {  };
-}
-#+end_src
-
-**** home
-***** flake.nix
-
-#+call: hash() :exports none
-
-#+RESULTS:
-: 20210601184754536351000
-
-#+name: 20210601184754536351000
-#+begin_src nix :tangle (meq/tangle-path)
-{
-    description = "";
-    inputs = {
-        bass = {
-            url = "github:edc/bass";
             flake = false;
         };
     };
@@ -950,7 +924,6 @@ pkgs = let configBase = { inherit stc; ignoredAttrs = [ "host" ];}; in j.get (co
                         if (pathExists path) then path else {})
                 ])
                 (with sources; [
-                    home-manager-flake.nixosModules.home-manager
                     agenix.nixosModules.age
                     impermanence-flake.nixosModules.impermanence
                 ])
@@ -1009,11 +982,7 @@ pkgs = let configBase = { inherit stc; ignoredAttrs = [ "host" ];}; in j.get (co
                 func = j.hostName;
                 inherit (all.vars) extraListSets;
             };
-            vars = {
-                extraListSets = {
-                    user = attrs.allUsers;
-                } // (genAttrs (attrNames attrs.home-manager-integer-defaults) (attr: range 0 1));
-            };
+            vars.extraListSets = { user = attrs.allUsers; };
         } // all';
 
         overlays =  j.get { stc = attrs.default-stc; set = all.overlays; };
@@ -1100,11 +1069,6 @@ pkgs = let configBase = { inherit stc; ignoredAttrs = [ "host" ];}; in j.get (co
 
 #+name: 20210601184900737083000
 #+begin_src nix
-home-manager-flake = {
-    url = "github:nix-community/home-manager/master";
-    inputs.nixpkgs.follows = "nixpkgs";
-};
-
 impermanence-flake = {
     url = "github:nix-community/impermanence/master";
     inputs.nixpkgs.follows = "nixpkgs";
@@ -1305,15 +1269,6 @@ lib: with builtins; with lib; rec {
         channel = "pkgs";
     };
     stc = attrNames default-stc;
-    home-manager-integer-defaults = { nixos = 1; };
-    home-manager-default-stc = default-stc
-        // home-manager-integer-defaults
-        // { user = getEnv "USER"; };
-    home-manager-stc = attrNames home-manager-default-stc;
-    home-manager-default-without-default-stc = home-manager-integer-defaults // { user = getEnv "USER"; };
-    home-manager-without-default-stc = attrNames home-manager-default-without-default-stc;
-    all-default-stc = default-stc // home-manager-default-stc;
-    all-stc = attrNames all-default-stc;
 }
 #+end_src
 
@@ -2191,23 +2146,6 @@ and in the NixOS manual (accessible by running ‘nixos-help’).
         pulseaudio.enable = true;
     };
     sound.enable = true;
-}
-#+end_src
-
-**** home.nix
-
-#+call: hash() :exports none
-
-#+RESULTS:
-: 20210601185029141785800
-
-#+name: 20210601185029141785800
-#+begin_src nix :tangle (meq/tangle-path)
-{ config, lib, ... }: with builtins; with lib; with j; {
-    # home-manager.users = let
-    #     stc = {}
-    #     inherit (config.vars) nixos zfs;
-    # in listToAttrs (map (user: nameValuePair user (import /root/.config/nixpkgs/home.nix nixos zfs stc)) attrs.allUsers);
 }
 #+end_src
 
@@ -3485,19 +3423,13 @@ in
 # From: https://www.draketo.de/light/english/minimal-example-for-literate-programming-noweb-emacs-org-mode
 # From: https://emacs.stackexchange.com/questions/47474/setting-variable-for-org-mode-html-export
 
-#+call: hash() :exports none
-
-#+RESULTS:
-: 20210601185408210445400
-
-#+name: 20210601185408210445400
 #+begin_src sh :tangle (meq/tangle-path)
 <<20210601185403002625400()>>
 #+end_src
 
 * wheee.py
 
-#+begin_src python :tangle (meq/tangle-path) :shebang "#!/usr/bin/env python3.9"
+#+begin_src python :tangle (meq/tangle-path) :shebang "#!/usr/bin/env python3.10"
 import argparse
 import os
 from sys import argv
@@ -3578,7 +3510,7 @@ if not args.dry_run:
 
 * bootstrap.py
 
-#+begin_src python :tangle (meq/tangle-path) :shebang "#!/usr/bin/env python3.9"
+#+begin_src python :tangle (meq/tangle-path) :shebang "#!/usr/bin/env python3.10"
 import argparse
 import json
 import os
@@ -3626,10 +3558,6 @@ if args.rsync:
 if args.install:
     run("nixos-install --show-trace", shell = True)
 
-# TODO
-if args.home_manager:
-    pass
-
 # TODO: Also include a one-stop-install, mounting, generating, copying, etc. all in one go
 if args.all:
     pass
@@ -3670,7 +3598,6 @@ parser.add_argument("-m", "--move", action="store_true")
 parser.add_argument("-l", "--link", action="store_true")
 parser.add_argument("-r", "--rsync", action="store_true")
 parser.add_argument("-i", "--install", action="store_true")
-parser.add_argument("-H", "--home-manager", action="store_true")
 parser.add_argument("-a", "--all", action="store_true")
 
 # Adapted From:
@@ -3833,16 +3760,22 @@ dnix.write("}")
     "reserved": {  },
     "system": {
         "datasets": {
-            "home": { "datasets": { "root": { "mountpoint": "/root" }}},
+            "home": { "datasets": {
+                "root": { "mountpoint": "/root" },
+                "<<username>>": { "datasets": {
+                    "oreo": { "options": [ "snapdir=visible" ] },
+                    "syvlorg": { "options": [ "snapdir=visible" ] }
+                }}
+            }},
             "nix": {  },
             "persist": {
-                "datasets": {
-                    "cache": {
-                        "datasets": { "root": {  }},
-                        "options": [ "sync=disabled" ]
-                    },
-                    "home": { "datasets": { "root": {  }}}
-                }
+                // "datasets": {
+                //     "cache": {
+                //         "datasets": { "root": {  }},
+                //         "options": [ "sync=disabled" ]
+                //     },
+                //     "home": { "datasets": { "root": {  }}}
+                // }
             },
             "root": {  },
             "tmp": { "options": [ "sync=disabled" ] },
@@ -3884,40 +3817,40 @@ dsd = datasets[s][d]
 
 datasets[args.Pool] = {
     "datasets": {
-        "b": {
-            "datasets": {
-                "a": dd,
-                "cc": { "options": snapDir },
-                "cl": dd,
-                "cj": { "datasets": {
-                    "cc": { "options": extraCopies },
-                    "m": { "options": snapDir }
-                }},
-                "eb": { "options": extraCopies },
-                "oreo": { "option": snapDir },
-                "p": { "options": snapDir }
-            },
-        },
-        "borg": { "datasets": { "cache": { "options": cache }}},
+        # "b": {
+        #     "datasets": {
+        #         "a": dd,
+        #         "cc": { "options": snapDir },
+        #         "cl": dd,
+        #         "cj": { "datasets": {
+        #             "cc": { "options": extraCopies },
+        #             "m": { "options": snapDir }
+        #         }},
+        #         "eb": { "options": extraCopies },
+        #         "oreo": { "options": snapDir },
+        #         "p": { "options": snapDir }
+        #     },
+        # },
+        # "borg": { "datasets": { "cache": { "options": cache }}},
         "jails": { "datasets": { "base": dd}},
-        "las": {
-            "datasets": {
-                "dreadnought": ddd,
-                "redstone": ddd,
-                "sinnoh": ddd
-            }
-        },
-        "y": dd,
-        "z": dd
+        # "las": {
+        #     "datasets": {
+        #         "dreadnought": ddd,
+        #         "redstone": ddd,
+        #         "sinnoh": ddd
+        #     }
+        # },
+        # "y": dd,
+        # "z": dd
     },
     "options": [ ml ]
 }
 
 <<20210601185958834005400>>
 
-for backup in (las := datasets[args.Pool][d]["las"][d]).keys():
-    for zz in [ "zpax", "zsyncs" ]:
-        las[backup][d][zz] = dd
+# for backup in (las := datasets[args.Pool][d]["las"][d]).keys():
+#     for zz in [ "zpax", "zsyncs" ]:
+#         las[backup][d][zz] = dd
 
 <<20210601190011469159700>>
 #+end_src
@@ -3990,7 +3923,8 @@ if args.swap:
 #+name: 20210601190021157022400
 #+begin_src python
 snapDir = [ "snapdir=visible" ]
-extraCopies = snapDir + [ f"copies={2 if args.encrypted else 3}" ]
+# extraCopies = snapDir + [ f"copies={2 if args.encrypted else 3}" ]
+extraCopies = snapDir + [ "copies=3" ]
 cache = [ "sync=disabled" ]
 ml = "mountpoint=legacy"
 dd = {  }
@@ -4653,6 +4587,291 @@ aliases[_fzf_df_alias] = _fzf
 #+end_src
 
 * .config
+** borgmatic
+
+#+name: borgmatic-ls
+#+begin_src emacs-lisp :var repo=""
+;; Adapted From:
+;; Answer: https://emacs.stackexchange.com/a/7381/31428
+;; User: https://emacs.stackexchange.com/users/719/adobe
+(format-spec "    one_file_system: false
+    numeric_owner: false
+    atime: true
+    ctime: true
+    birthtime: true
+    read_special: true
+    bsd_flags: true
+    files_cache: ctime,size,inode
+    local_path: borg
+    remote_path: borg1
+    exclude_caches: true
+    exclude_nodump: true
+
+storage:
+    checkpoint_interval: 300
+    compression: zstd,22
+    ssh_command: assh wrapper ssh --
+    archive_name_format: \"borgmatic-%r-{now:%%Y%%m%%dT%%H%%M%%S%%f}\"
+    relocated_repo_access_is_ok: true
+    unknown_unencrypted_repo_access_is_ok: true" `((?r . ,repo)))
+#+end_src
+
+#+name: borgmatic-rc
+#+begin_src emacs-lisp :var repo=""
+;; Adapted From:
+;; Answer: https://emacs.stackexchange.com/a/7381/31428
+;; User: https://emacs.stackexchange.com/users/719/adobe
+(format-spec "retention:
+    keep_within: 6H
+    keep_secondly: 60
+    keep_minutely: 60
+    keep_hourly: 24
+    keep_daily: 7
+    keep_weekly: 4
+    keep_monthly: 6
+    keep_yearly: 4
+    prefix: \"borgmatic-%r-\"
+
+consistency:
+    checks:
+        - repository
+        - data
+        - extract
+    prefix: \"borgmatic-%r-\"" `((?r . ,repo)))
+#+end_src
+
+*** sylvorg.yaml
+:PROPERTIES:
+:header-args:yaml+: :noweb-ref sylvorg.yaml
+:END:
+
+#+begin_src yaml :noweb-ref no :tangle (meq/tangle-path)
+<<sylvorg.yaml>>
+#+end_src
+
+#+begin_src yaml
+location:
+    source_directories:
+        - ~/sylvorg
+    repositories:
+        - 9237@usw-s009.rsync.net:/data1/home/9237/{fqdn}-sylvorg
+<<borgmatic-ls(repo="sylvorg")>>
+
+    # Additional options to pass directly to particular Borg
+    # commands, handy for Borg options that borgmatic does not yet
+    # support natively. Note that borgmatic does not perform any
+    # validation on these options. Running borgmatic with
+    # "--verbosity 2" shows the exact Borg command-line
+    # invocation.
+    # extra_borg_options:
+        # Extra command-line options to pass to "borg init".
+        # init: --make-parent-dirs
+
+        # Extra command-line options to pass to "borg prune".
+        # prune: --save-space
+
+        # Extra command-line options to pass to "borg create".
+        # create: --no-files-cache
+
+        # Extra command-line options to pass to "borg check".
+        # check: --save-space
+
+<<borgmatic-rc(repo="sylvorg")>>
+
+# Shell commands, scripts, or integrations to execute at various
+# points during a borgmatic run. IMPORTANT: All provided commands and
+# scripts are executed with user permissions of borgmatic. Do not
+# forget to set secure permissions on this configuration file (chmod
+# 0600) as well as on any script called from a hook (chmod 0700) to
+# prevent potential shell injection or privilege escalation.
+# hooks:
+    # List of one or more shell commands or scripts to execute
+    # before creating a backup, run once per configuration file.
+    # before_backup:
+        # - echo "Starting a backup."
+
+    # List of one or more shell commands or scripts to execute
+    # before pruning, run once per configuration file.
+    # before_prune:
+        # - echo "Starting pruning."
+
+    # List of one or more shell commands or scripts to execute
+    # before consistency checks, run once per configuration file.
+    # before_check:
+        # - echo "Starting checks."
+
+    # List of one or more shell commands or scripts to execute
+    # before extracting a backup, run once per configuration file.
+    # before_extract:
+        # - echo "Starting extracting."
+
+    # List of one or more shell commands or scripts to execute
+    # after creating a backup, run once per configuration file.
+    # after_backup:
+        # - echo "Finished a backup."
+
+    # List of one or more shell commands or scripts to execute
+    # after pruning, run once per configuration file.
+    # after_prune:
+        # - echo "Finished pruning."
+
+    # List of one or more shell commands or scripts to execute
+    # after consistency checks, run once per configuration file.
+    # after_check:
+        # - echo "Finished checks."
+
+    # List of one or more shell commands or scripts to execute
+    # after extracting a backup, run once per configuration file.
+    # after_extract:
+        # - echo "Finished extracting."
+
+    # List of one or more shell commands or scripts to execute
+    # when an exception occurs during a "prune", "create", or
+    # "check" action or an associated before/after hook.
+    # on_error:
+        # - echo "Error during prune/create/check."
+
+    # List of one or more shell commands or scripts to execute
+    # before running all actions (if one of them is "create").
+    # These are collected from all configuration files and then
+    # run once before all of them (prior to all actions).
+    # before_everything:
+        # - echo "Starting actions."
+
+    # List of one or more shell commands or scripts to execute
+    # after running all actions (if one of them is "create").
+    # These are collected from all configuration files and then
+    # run once after all of them (after any action).
+    # after_everything:
+        # - echo "Completed actions."
+
+    # Healthchecks ping URL or UUID to notify when a backup
+    # begins, ends, or errors. Create an account at
+    # https://healthchecks.io if you'd like to use this service.
+    # See borgmatic monitoring documentation for details.
+    healthchecks: https://hc-ping.com/adb8d488-812a-4edd-b262-6068556264ab
+
+    # Umask used when executing hooks. Defaults to the umask that
+    # borgmatic is run with.
+    # umask: 0077
+#+end_src
+
+*** oreo.yaml
+:PROPERTIES:
+:header-args:yaml+: :noweb-ref oreo.yaml
+:END:
+
+#+begin_src yaml :noweb-ref no :tangle (meq/tangle-path)
+<<oreo.yaml>>
+#+end_src
+
+#+begin_src yaml
+location:
+    source_directories:
+        - ~/oreo
+    repositories:
+        - 9237@usw-s009.rsync.net:/data1/home/9237/{fqdn}-oreo
+<<borgmatic-ls(repo="oreo")>>
+
+    # Additional options to pass directly to particular Borg
+    # commands, handy for Borg options that borgmatic does not yet
+    # support natively. Note that borgmatic does not perform any
+    # validation on these options. Running borgmatic with
+    # "--verbosity 2" shows the exact Borg command-line
+    # invocation.
+    # extra_borg_options:
+        # Extra command-line options to pass to "borg init".
+        # init: --make-parent-dirs
+
+        # Extra command-line options to pass to "borg prune".
+        # prune: --save-space
+
+        # Extra command-line options to pass to "borg create".
+        # create: --no-files-cache
+
+        # Extra command-line options to pass to "borg check".
+        # check: --save-space
+
+<<borgmatic-rc(repo="oreo")>>
+
+# Shell commands, scripts, or integrations to execute at various
+# points during a borgmatic run. IMPORTANT: All provided commands and
+# scripts are executed with user permissions of borgmatic. Do not
+# forget to set secure permissions on this configuration file (chmod
+# 0600) as well as on any script called from a hook (chmod 0700) to
+# prevent potential shell injection or privilege escalation.
+# hooks:
+    # List of one or more shell commands or scripts to execute
+    # before creating a backup, run once per configuration file.
+    # before_backup:
+        # - echo "Starting a backup."
+
+    # List of one or more shell commands or scripts to execute
+    # before pruning, run once per configuration file.
+    # before_prune:
+        # - echo "Starting pruning."
+
+    # List of one or more shell commands or scripts to execute
+    # before consistency checks, run once per configuration file.
+    # before_check:
+        # - echo "Starting checks."
+
+    # List of one or more shell commands or scripts to execute
+    # before extracting a backup, run once per configuration file.
+    # before_extract:
+        # - echo "Starting extracting."
+
+    # List of one or more shell commands or scripts to execute
+    # after creating a backup, run once per configuration file.
+    # after_backup:
+        # - echo "Finished a backup."
+
+    # List of one or more shell commands or scripts to execute
+    # after pruning, run once per configuration file.
+    # after_prune:
+        # - echo "Finished pruning."
+
+    # List of one or more shell commands or scripts to execute
+    # after consistency checks, run once per configuration file.
+    # after_check:
+        # - echo "Finished checks."
+
+    # List of one or more shell commands or scripts to execute
+    # after extracting a backup, run once per configuration file.
+    # after_extract:
+        # - echo "Finished extracting."
+
+    # List of one or more shell commands or scripts to execute
+    # when an exception occurs during a "prune", "create", or
+    # "check" action or an associated before/after hook.
+    # on_error:
+        # - echo "Error during prune/create/check."
+
+    # List of one or more shell commands or scripts to execute
+    # before running all actions (if one of them is "create").
+    # These are collected from all configuration files and then
+    # run once before all of them (prior to all actions).
+    # before_everything:
+        # - echo "Starting actions."
+
+    # List of one or more shell commands or scripts to execute
+    # after running all actions (if one of them is "create").
+    # These are collected from all configuration files and then
+    # run once after all of them (after any action).
+    # after_everything:
+        # - echo "Completed actions."
+
+    # Healthchecks ping URL or UUID to notify when a backup
+    # begins, ends, or errors. Create an account at
+    # https://healthchecks.io if you'd like to use this service.
+    # See borgmatic monitoring documentation for details.
+    healthchecks: https://hc-ping.com/adb8d488-812a-4edd-b262-6068556264ab
+
+    # Umask used when executing hooks. Defaults to the umask that
+    # borgmatic is run with.
+    # umask: 0077
+#+end_src
+
 ** yadm
 *** bootstrap
 :PROPERTIES:
@@ -4918,7 +5137,7 @@ eval $(starship init ion)
 
 [alias]
     cnm = commit --allow-empty-message -am ""
-    subinit = !chmod +x ~/.config/git/scripts/subinit && ~/.config/git/scripts/subinit $@
+    subinit = !black -l 65 ~/.config/git/scripts/subinit && chmod +x ~/.config/git/scripts/subinit && ~/.config/git/scripts/subinit $@
     noggin = !chmod +x ~/.config/git/scripts/noggin && ~/.config/git/scripts/noggin $@
     stow = !make -f ~/makefile stow
     tangle = !make -f ~/makefile tangle

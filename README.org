@@ -1,14 +1,55 @@
 #+setupfile: ./settings/README.org
 #+include: ./settings/README.org
 
+* mscripts
+** stow
+
+#+begin_src xonsh :tangle (meq/tangle-path) :shebang "#!/usr/bin/env xonsh"
+import fuckit, os
+from sys import argv
+chmod 700 @(os.path.join(argv[1], ".ssh")) &> /dev/null
+chmod +x @(os.path.join(argv[1], "run_keybase"))
+@$(os.path.join(argv[1], "run_keybase"))
+git -C @(os.path.join(argv[1], "keybase", "secrets")) pull
+with fuckit:
+    for f in $(ls -a @(os.path.join(argv[1], "keybase", "secrets", ".ssh"))).split():
+        if f not in [ ".", ".." ]:
+            rm @(os.path.join(argv[1], ".ssh", f))
+stow -d @(os.path.join(argv[1], "keybase")) -t @(argv[1]) secrets
+chmod 700 @(os.path.join(argv[1], ".ssh"))
+chmod 600 @(os.path.join(argv[1], ".ssh", "*"))
+#+end_src
+
+** tangle
+
+#+begin_src xonsh :tangle (meq/tangle-path) :shebang "#!/usr/bin/env xonsh"
+import os
+from sys import argv
+
+def runFd(dir, ext, cmd, recursive = True):
+    try:
+        if isinstance(ext, str): raise TypeError
+        else: iter(ext)
+    except TypeError: newExt = "-e " + ext
+    else:
+        newExt = ""
+        for e in ext: newExt += f" -e {e}"
+    if recursive:
+        fd . @(dir) -HI @(newExt) -x @(cmd)
+    else:
+        fd . @(dir) -HId 1 @(newExt) -x @(cmd)
+
+runFd(argv[1], "sh", "chmod +x", 1)
+runFd(argv[1], "py", "black -l 65", 1)
+for d in [
+    ".config"
+]:
+    runFd(os.path.join(argv[1], d), "sh", "chmod +x")
+    runFd(os.path.join(argv[1], d), "py", "black -l 65")
+#+end_src
+
 * makefile
 
-#+call: hash() :exports none
-
-#+RESULTS:
-: 20210601181725825830000
-
-#+name: 20210601181725825830000
 #+begin_src makefile :tangle (meq/tangle-path)
 .RECIPEPREFIX := |
 .DEFAULT_GOAL := tangle
@@ -27,9 +68,8 @@ both: README
 |yes yes | $(mkfileDir)/settings/org-tangle.sh $(mkfileDir)/oreo.aiern.org
 
 tangle: both
-|fd . $(mkfileDir) \
-    -HId 1 -e sh \
-    -x chmod +x
+|chmod +x $(mkfileDir)/mscripts/tangle
+|$(mkfileDir)/mscripts/tangle $(mkfileDir)
 
 tangle-emacs:
 |$(emkMake) tangle
@@ -45,17 +85,9 @@ emacs:
 emacs-nw:
 |$(emkMake) emacs-nw
 
-stow: SHELL := /usr/bin/env xonsh
 stow:
-|-chmod 700 $(mkfileDir)/.ssh
-|chmod +x $(mkfileDir)/run_keybase
-|$(mkfileDir)/run_keybase login
-|git -C $(mkfileDir)/keybase/secrets pull
-|-for f in $$(ls -a $(mkfileDir)/keybase/secrets/.ssh).split(): \
-    rm $(mkfileDir)/.ssh/@(f)
-|stow -d $(mkfileDir)/keybase -t $(mkfileDir) secrets
-|chmod 700 $(mkfileDir)/.ssh
-|chmod 600 $(mkfileDir)/.ssh/*
+|chmod +x $(mkfileDir)/mscripts/stow
+|$(mkfileDir)/mscripts/stow $(mkfileDir)
 #+end_src
 
 * previous projects

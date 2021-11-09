@@ -15,9 +15,8 @@ both: README
 |yes yes | $(mkfileDir)/settings/org-tangle.sh $(mkfileDir)/oreo.aiern.org
 
 tangle: both
-|fd . $(mkfileDir) \
-    -HId 1 -e sh \
-    -x chmod +x
+|chmod +x $(mkfileDir)/mscripts/tangle
+|$(mkfileDir)/mscripts/tangle $(mkfileDir)
 
 tangle-emacs:
 |$(emkMake) tangle
@@ -33,14 +32,6 @@ emacs:
 emacs-nw:
 |$(emkMake) emacs-nw
 
-stow: SHELL := /usr/bin/env xonsh
 stow:
-|-chmod 700 $(mkfileDir)/.ssh
-|chmod +x $(mkfileDir)/run_keybase
-|$(mkfileDir)/run_keybase login
-|git -C $(mkfileDir)/keybase/secrets pull
-|-for f in $$(ls -a $(mkfileDir)/keybase/secrets/.ssh).split(): \
-    rm $(mkfileDir)/.ssh/@(f)
-|stow -d $(mkfileDir)/keybase -t $(mkfileDir) secrets
-|chmod 700 $(mkfileDir)/.ssh
-|chmod 600 $(mkfileDir)/.ssh/*
+|chmod +x $(mkfileDir)/mscripts/stow
+|$(mkfileDir)/mscripts/stow $(mkfileDir)
