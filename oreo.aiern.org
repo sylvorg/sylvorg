@@ -1087,59 +1087,6 @@ hlissner = {
 nixpkgs.url = "github:NixOS/nixpkgs/master";
 #+end_src
 
-***** tmux
-
-#+call: hash() :exports none
-
-#+RESULTS:
-: 20210601184903047234700
-
-#+name: 20210601184903047234700
-#+begin_src nix
-<<ff(name="aleclearmind", ur="aleclearmind/nested-tmux")>>
-<<ff(name="oh-my-tmux", ur="gpakosz/.tmux")>>
-<<ff(name="powerline", ur="powerline/powerline")>>
-<<ff(name="tpm", ur="tmux-plugins/tpm")>>
-#+end_src
-
-***** editors
-
-#+call: hash() :exports none
-
-#+RESULTS:
-: 20210601184907763806400
-
-#+name: 20210601184907763806400
-#+begin_src nix
-<<ff(name="spacevim", ur="spacevim/spacevim")>>
-#+end_src
-
-***** shell
-
-#+call: hash() :exports none
-
-#+RESULTS:
-: 20210601184909601517300
-
-#+name: 20210601184909601517300
-#+begin_src nix
-<<ff(name="bashCompletions", ur="scop/bash-completion")>>
-<<ff(name="grml", ur="grml/grml-etc-core")>>
-#+end_src
-
-***** terminal
-
-#+call: hash() :exports none
-
-#+RESULTS:
-: 20210601184911358827500
-
-#+name: 20210601184911358827500
-#+begin_src nix
-<<ff(name="kittyThemes", ur="dexpota/kitty-themes")>>
-<<ff(name="xeroFigletFonts", ur="xero/figlet-fonts")>>
-#+end_src
-
 ***** nixos
 
 #+call: hash() :exports none
@@ -1167,10 +1114,10 @@ xanmodV5104Cacule = {
     url = "github:xanmod/linux/5.10.4-xanmod1-cacule";
     flake = false;
 };
-xanmodV5914Cacule = {
-    url = "github:xanmod/linux/5.9.14-xanmod1-cacule";
-    flake = false;
-};
+# xanmodV5914Cacule = {
+#     url = "github:xanmod/linux/5.9.14-xanmod1-cacule";
+#     flake = false;
+# };
 #+end_src
 
 *** lib
@@ -3194,7 +3141,7 @@ map (ver: let
         <<ff(name="flake-compat", ur="edolstra/flake-compat/master")>>
         <<ff(name="emacs", ur="nix-community/emacs-overlay/master")>>
         nur.url = "github:nix-community/nur/master";
-        mach-nix.url = "github:davhau/mach-nix/master";
+        # mach-nix.url = "github:davhau/mach-nix/master";
         <<ff(name="mozilla", ur="mozilla/nixpkgs-mozilla/master")>>
         nanite = {
             url = "git+https://gitlab.com/picotech/nanotech/nanite.git";
@@ -3204,7 +3151,7 @@ map (ver: let
         nix.url = "github:nixos/nix/master";
         <<ff(name="qtile", ur="qtile/qtile/master")>>
         <<ff(name="xonsh", ur="xonsh/xonsh/main")>>
-        <<ff(name="wip-pinebook-pro", ur="<<username>>/wip-pinebook-pro/master")>>
+        <<ff(name="wip-pinebook-pro", ur="shadowrylander/wip-pinebook-pro/master")>>
         nixpkgs.url = "github:nixos/nixpkgs/master";
         nixpkgs-20-03.url = "github:nixos/nixpkgs/nixos-20.03";
         nixpkgs-20-03-small.url = "github:nixos/nixpkgs/nixos-20.03-small";
@@ -3539,7 +3486,7 @@ if args.generate:
 
 if args.rsync:
     run("nix-env -iA master.rsync", shell = True)
-    run("rsync -avvczz ~/<<username>>/ /mnt/", shell = True)
+    run("rsync -avvczz --exclude /.git ~/<<username>>/ /mnt/", shell = True)
 
 if args.install:
     run("nixos-install --show-trace", shell = True)
