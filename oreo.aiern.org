@@ -415,6 +415,8 @@ index c61df8ceb00..d973837f0d3 100644
     imports = flatten [
         (imprelib.list { dir = ./.; })
         (imprelib.list { dir = ../../config; ignores = [ "datasets" ]; })
+        ../../configuration.nix
+        ../../hardware-configuration.nix
     ];
 #+end_src
 
@@ -426,12 +428,6 @@ index c61df8ceb00..d973837f0d3 100644
 **** dross
 ***** default.nix
 
-#+call: hash() :exports none
-
-#+RESULTS:
-: 20210601184730035302100
-
-#+name: 20210601184730035302100
 #+begin_src nix :tangle (meq/tangle-path)
 <<20210601184724193852200>>
     config.networking.hostId = <<hostId()>>;
@@ -441,12 +437,6 @@ index c61df8ceb00..d973837f0d3 100644
 **** sandshrew
 ***** default.nix
 
-#+call: hash() :exports none
-
-#+RESULTS:
-: 20210601184744001979300
-
-#+name: 20210601184744001979300
 #+begin_src nix :tangle (meq/tangle-path)
 <<20210601184724193852200>>
     config.networking.hostId = <<hostId()>>;
@@ -456,12 +446,15 @@ index c61df8ceb00..d973837f0d3 100644
 **** yggdrasil
 ***** default.nix
 
-#+call: hash() :exports none
+#+begin_src nix :tangle (meq/tangle-path)
+<<20210601184724193852200>>
+    config.networking.hostId = <<hostId()>>;
+}
+#+end_src
 
-#+RESULTS:
-: 20210601184747964016700
+**** siluam
+***** default.nix
 
-#+name: 20210601184747964016700
 #+begin_src nix :tangle (meq/tangle-path)
 <<20210601184724193852200>>
     config.networking.hostId = <<hostId()>>;
@@ -3544,13 +3537,8 @@ if args.subcommand == "mount":
 if args.generate:
     run("nixos-generate-config --root /mnt", shell = True)
 
-if args.move:
-    run("mkdir -p /mnt/etc/nixos/config", shell = True)
-    run("mv /mnt/etc/nixos/{,config/}configuration.nix", shell = True)
-    run("mv /mnt/etc/nixos/{,config/}hardware-configuration.nix", shell = True)
-
 if args.rsync:
-    run("nix-env -iA nixos.rsync", shell = True)
+    run("nix-env -iA master.rsync", shell = True)
     run("rsync -avvczz ~/<<username>>/ /mnt/", shell = True)
 
 if args.install:
@@ -3592,7 +3580,6 @@ update.add_argument("-p", "--pool", action="store_true")
 update.add_argument("-f", "--files", action="store_true")
 
 parser.add_argument("-g", "--generate", action="store_true")
-parser.add_argument("-m", "--move", action="store_true")
 parser.add_argument("-l", "--link", action="store_true")
 parser.add_argument("-r", "--rsync", action="store_true")
 parser.add_argument("-i", "--install", action="store_true")
@@ -3753,24 +3740,26 @@ dnix.write("}")
 #+begin_src json
 {
     "base": {  },
-    "hold": {  },
     "omniverse": {  },
     "reserved": {  },
     "<<username>>": { "datasets": {
-        "oreo": { "mountpoint": "/home/<<username>>/oreo", "options": [ "snapdir=visible" ] },
-        "syvlorg": { "mountpoint": "/home/<<username>>/syvlorg", "options": [ "snapdir=visible" ] }}},
+            "oreo": { "mountpoint": "/home/<<username>>/oreo", "options": [ "snapdir=visible" ] },
+            "sylveon": { "mountpoint": "/home/<<username>>/sylveon", "options": [ "snapdir=visible" ] },
+            "sylvorg": { "mountpoint": "/home/<<username>>/sylvorg", "options": [ "snapdir=visible" ] },
+            "syvlorg": { "mountpoint": "/home/<<username>>/syvlorg", "options": [ "snapdir=visible" ] }},
+        "options": [ "mountpoint=legacy" ]},
     "system": {
         "datasets": {
             "home": { "datasets": { "root": { "mountpoint": "/root" }}},
             "nix": {  },
             "persist": {
-                // "datasets": {
-                //     "cache": {
-                //         "datasets": { "root": {  }},
-                //         "options": [ "sync=disabled" ]
-                //     },
-                //     "home": { "datasets": { "root": {  }}}
-                // }
+                "datasets": {
+                    "cache": {
+                        "datasets": { "root": {  }},
+                        "options": [ "sync=disabled" ]
+                    },
+                    "home": { "datasets": { "root": {  }}}
+                }
             },
             "root": {  },
             "tmp": { "options": [ "sync=disabled" ] },
