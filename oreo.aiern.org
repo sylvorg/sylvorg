@@ -3211,7 +3211,7 @@ map (ver: let
         nix.url = "github:nixos/nix/master";
         <<ff(name="qtile", ur="qtile/qtile/master")>>
         <<ff(name="xonsh", ur="xonsh/xonsh/main")>>
-        <<ff(name="wip-pinebook-pro", ur="shadowrylander/wip-pinebook-pro/master")>>
+        <<ff(name="wip-pinebook-pro", ur="<<username>>/wip-pinebook-pro/master")>>
         nixpkgs.url = "github:nixos/nixpkgs/master";
         nixpkgs-20-03.url = "github:nixos/nixpkgs/nixos-20.03";
         nixpkgs-20-03-small.url = "github:nixos/nixpkgs/nixos-20.03-small";
@@ -3448,8 +3448,6 @@ parser.add_argument("-i", "--install", action="store_true")
 parser.add_argument("-H", "--host", required=True)
 args, unknown = parser.parse_known_args(argv[1:])
 
-homeManager = args.home_manager or args.file
-
 def grouper(iterable, n, fillvalue=None):
     "Collect data into fixed-length chunks or blocks"
     # grouper('ABCDEFG', 3, 'x') --> ABC DEF Gxx"
@@ -3462,7 +3460,7 @@ unknown = dict(grouper(unknown, 2, ""))
 
 unknown["host"] = args.host
 
-commandPre = f"nix-instantiate --read-write-mode --show-trace --eval -E 'let j = import " + os.path.dirname(os.path.realpath(argv[0])) + "/system/etc/nixos/lib {  }; in j.hostName"
+commandPre = f"nix-instantiate --read-write-mode --show-trace --eval -E 'let j = import " + os.path.dirname(os.path.realpath(argv[0])) + "/etc/nixos/lib {  }; in j.hostName"
 
 commandSet = "{ stc = j.attrs.default-stc // " + " { "
 for k, v in unknown.items():
@@ -3519,7 +3517,7 @@ from subprocess import run, DEVNULL, STDOUT
 
 <<20210601190005804224800>>
 
-resources = f'{os.environ["HOME"]}/<<username>>/system/etc/nixos/config'
+resources = f'{os.environ["HOME"]}/<<username>>/etc/nixos/config'
 
 try:
     if args.subcommand == "create":
@@ -3553,7 +3551,7 @@ if args.move:
 
 if args.rsync:
     run("nix-env -iA nixos.rsync", shell = True)
-    run("rsync -avvczz ~/<<username>>/system/ /mnt/", shell = True)
+    run("rsync -avvczz ~/<<username>>/ /mnt/", shell = True)
 
 if args.install:
     run("nixos-install --show-trace", shell = True)
@@ -3758,15 +3756,12 @@ dnix.write("}")
     "hold": {  },
     "omniverse": {  },
     "reserved": {  },
+    "<<username>>": { "datasets": {
+        "oreo": { "mountpoint": "/home/<<username>>/oreo", "options": [ "snapdir=visible" ] },
+        "syvlorg": { "mountpoint": "/home/<<username>>/syvlorg", "options": [ "snapdir=visible" ] }}},
     "system": {
         "datasets": {
-            "home": { "datasets": {
-                "root": { "mountpoint": "/root" },
-                "<<username>>": { "datasets": {
-                    "oreo": { "options": [ "snapdir=visible" ] },
-                    "syvlorg": { "options": [ "snapdir=visible" ] }
-                }}
-            }},
+            "home": { "datasets": { "root": { "mountpoint": "/root" }}},
             "nix": {  },
             "persist": {
                 // "datasets": {
@@ -4894,17 +4889,19 @@ if [[ $(uname -a) == *Android* ]]; then
     read paperkey
     stty echo
     printf "\n"
-    echo $paperkey | keybase oneshot -u shadowrylander
+    echo $paperkey | keybase oneshot -u <<username>>
 
     hash yadm 2>/dev/null && command=yadm || command=~/yadm
 
     GIT_SSL_NO_VERIFY=1 $command submodule update --init --depth 1 --recursive --remote
-    $command remote set-url --push origin git@github.com:shadowrylander/shadowrylander.git
+    $command submodule foreach 'git -C $toplevel/$sm_path checkout main || git -C $toplevel/$sm_path checkout master || :'
+    git clone --depth 1 git@github.com:<<username>>/<<username>>.git ~/<<username>>
+    $command remote set-url --push origin git@github.com:<<username>>/<<username>>.git
     $command config include.path "~/.gitconfig"
 
     termux-reload-settings
 
-    git -C ~/.emacs.d remote set-url --push origin git@github.com:shadowrylander/.emacs.d.git
+    git -C ~/.emacs.d remote set-url --push origin git@github.com:<<username>>/.emacs.d.git
     git -C ~/.emacs.d config include.path "~/.emacs.d/.gitconfig"
 
     stow -d ~/keybase -t ~ secrets
@@ -4954,7 +4951,7 @@ else
     read paperkey
     stty echo
     printf "\n"
-    echo $paperkey | keybase oneshot -u shadowrylander
+    echo $paperkey | keybase oneshot -u <<username>>
 
     # Adapted From: https://askubuntu.com/a/15856/1058868
     if [[ $EUID -ne 0 ]]; then
@@ -4971,12 +4968,13 @@ else
     # From: https://github.com/keybase/client/issues/9292#issuecomment-465554906
     git config --global --add protocol.keybase.allow always
     GIT_SSL_NO_VERIFY=1 $command submodule update --init --depth 1 --recursive --remote
-    $command remote set-url --push origin git@github.com:shadowrylander/shadowrylander.git
+    $command submodule foreach 'git -C $toplevel/$sm_path checkout main || git -C $toplevel/$sm_path checkout master || :'
+    $command remote set-url --push origin git@github.com:<<username>>/<<username>>.git
     $command config include.path "~/.gitconfig"
 
     # Adapted From: https://askubuntu.com/a/15856/1058868
     if [[ $EUID -ne 0 ]]; then
-        git -C ~/.emacs.d remote set-url --push origin git@github.com:shadowrylander/.emacs.d.git
+        git -C ~/.emacs.d remote set-url --push origin git@github.com:<<username>>/.emacs.d.git
         git -C ~/.emacs.d config include.path "~/.emacs.d/.gitconfig"
 
         stow -d ~/keybase -t ~ secrets
@@ -5133,7 +5131,7 @@ eval $(starship init ion)
 
 [user]
     email = aiern@protonmail.com
-    name = shadowrylander
+    name = <<username>>
 
 [alias]
     cnm = commit --allow-empty-message -am ""
