@@ -3141,7 +3141,7 @@ map (ver: let
         <<ff(name="flake-compat", ur="edolstra/flake-compat/master")>>
         <<ff(name="emacs", ur="nix-community/emacs-overlay/master")>>
         nur.url = "github:nix-community/nur/master";
-        # mach-nix.url = "github:davhau/mach-nix/master";
+        mach-nix.url = "github:davhau/mach-nix/master";
         <<ff(name="mozilla", ur="mozilla/nixpkgs-mozilla/master")>>
         nanite = {
             url = "git+https://gitlab.com/picotech/nanotech/nanite.git";
