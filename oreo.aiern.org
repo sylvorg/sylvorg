@@ -1114,10 +1114,10 @@ xanmodV5104Cacule = {
     url = "github:xanmod/linux/5.10.4-xanmod1-cacule";
     flake = false;
 };
-# xanmodV5914Cacule = {
-#     url = "github:xanmod/linux/5.9.14-xanmod1-cacule";
-#     flake = false;
-# };
+xanmodV5914Cacule = {
+    url = "github:xanmod/linux/5.9.14-xanmod1-cacule";
+    flake = false;
+};
 #+end_src
 
 *** lib
@@ -3486,7 +3486,7 @@ if args.generate:
 
 if args.rsync:
     run("nix-env -iA master.rsync", shell = True)
-    run("rsync -avvczz --exclude /.git ~/<<username>>/ /mnt/", shell = True)
+    run("rsync -avvczz ~/<<username>>/ /mnt/", shell = True)
 
 if args.install:
     run("nixos-install --show-trace", shell = True)
