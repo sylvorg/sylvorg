@@ -8,6 +8,15 @@ emkDir := $(mkfileDir)/.emacs.d/
 emkFile := $(emkDir)/makefile
 emkMake := make -f $(emkFile)
 
+bootstrap:
+|nix-channel --add https://github.com/nixos/nixpkgs/archive/master/nixpkgs.tar.gz master
+|nix-channel --update
+|nix-env -iA master.emacs master.python310
+|git -C $(mkfileDir)/shadowrylander/settings checkout main
+|$(mkfileDir)/shadowrylander/settings/org-tangle.sh oreo.aiern.org README.org
+|chmod +x $(mkfileDir)/shadowrylander/wheee.py $(mkfileDir)/shadowrylander/bootstrap.py
+|git clone https://github.com/shadowrylander/shadowrylander $(mkfileDir)/shadowrylander/shadowrylander
+
 README:
 |yes yes | $(mkfileDir)/settings/org-tangle.sh $(mkfileDir)/README.org
 
