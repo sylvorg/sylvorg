@@ -3861,8 +3861,8 @@ if not os.path.isdir("/<<username>>/tmp"):
 if not os.path.isdir("/<<username>>/nix"):
     run(f"mkdir -p /<<username>>/nix", shell = True)
 run(f"mount --bind /<<username>>/tmp /tmp", shell = True)
-run(f"rsync -avvczz --delete /nix/ /<<username>>/nix/", shell = True)
-run(f"mount --bind /<<username>>/nix /nix", shell = True)
+# run(f"rsync -avvczz --delete /nix/ /<<username>>/nix/", shell = True)
+# run(f"mount --bind /<<username>>/nix /nix", shell = True)
 #+end_src
 
 ****** update
