@@ -3847,13 +3847,13 @@ if args.boot_device:
 if args.swap:
     run(f"swapon /dev/zvol/{args.Pool}/swap", shell = True)
 
-if not os.path.isdir(boot := "/<<username>>/tmp"):
+if not os.path.isdir("/<<username>>/tmp"):
     run(f"mkdir -p /<<username>>/tmp", shell = True)
-if not os.path.isdir(boot := "/<<username>>/nix"):
+if not os.path.isdir("/<<username>>/nix"):
     run(f"mkdir -p /<<username>>/nix", shell = True)
-run(f"mount /<<username>>/tmp /tmp", shell = True)
-run(f"rsync -avvczz --delete /nix/ /<<username>>/nix/")
-run(f"mount /<<username>>/nix /nix", shell = True)
+run(f"mount --bind /<<username>>/tmp /tmp", shell = True)
+run(f"rsync -avvczz --delete /nix/ /<<username>>/nix/", shell = True)
+run(f"mount --bind /<<username>>/nix /nix", shell = True)
 #+end_src
 
 ****** update
