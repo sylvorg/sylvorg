@@ -1526,7 +1526,6 @@ rec {
                 "Public"
                 "Templates"
                 "Videos"
-                users.primary
             ]];
             cache = flatten [(map (dir: ".cache/${dir}") [
                 "flatpak"
@@ -1648,6 +1647,16 @@ rec {
         mkdir = path: "mkdir -p /persist/${path} &> /dev/null";
     };
     users = fromJSON (readFile ../resources/users.json);
+
+    datasets = {
+        backup = [
+            "system/persist"
+            "virt"
+            "omniverse"
+            users.primary
+        ];
+    };
+
     excludedUsers = [ "root" ];
     mainUsers = attrValues users;
     allUsers = mainUsers ++ excludedUsers;
@@ -2363,11 +2372,9 @@ in {
         yearly = 104;
     };
 
-    datasets = listToAttrs (map (dataset: nameValuePair "${host}/${dataset}" sanoidBase) [
-        host
-        "system/persist"
-        "virt"
-        "omniverse"
+    datasets = listToAttrs (map (dataset: nameValuePair "${host}/${dataset}" sanoidBase) flatten [
+        attrs.datasets.backup
+        [ host ]
     ]);
 };
 #+end_src
@@ -2401,11 +2408,9 @@ ${myIf.knull config.vars.zfs "syncoid"} = let
 in {
     enable = false;
     sshKey = "/root/.ssh/id_ecdsa";
-    commands = listToAttrs (map (dataset: nameValuePair "${host}/${dataset}" (syncoidBase // { target = ""; })) [
-        host
-        "virt"
-        "system/persist"
-        "omniverse"
+    commands = listToAttrs (map (dataset: nameValuePair "${host}/${dataset}" (syncoidBase // { target = ""; })) flatten [
+        attrs.datasets.backup
+        [ host ]
     ]);
 };
 #+end_src
@@ -3485,7 +3490,6 @@ if args.generate:
     run("nixos-generate-config --root /mnt", shell = True)
 
 if args.rsync:
-    run("nix-env -iA master.rsync", shell = True)
     run("rsync -avvczz ~/<<username>>/ /mnt/", shell = True)
 
 if args.install:
@@ -3693,7 +3697,8 @@ dnix.write("}")
             "oreo": { "mountpoint": "/home/<<username>>/oreo", "options": [ "snapdir=visible" ] },
             "sylveon": { "mountpoint": "/home/<<username>>/sylveon", "options": [ "snapdir=visible" ] },
             "sylvorg": { "mountpoint": "/home/<<username>>/sylvorg", "options": [ "snapdir=visible" ] },
-            "syvlorg": { "mountpoint": "/home/<<username>>/syvlorg", "options": [ "snapdir=visible" ] }},
+            "syvlorg": { "mountpoint": "/home/<<username>>/syvlorg", "options": [ "snapdir=visible" ] },
+            "<<username>>": { "mountpoint": "/home/<<username>>/<<username>>", "options": [ "snapdir=visible" ] }},
         "options": [ "mountpoint=legacy" ]},
     "system": {
         "datasets": {
@@ -3841,6 +3846,14 @@ if args.boot_device:
 
 if args.swap:
     run(f"swapon /dev/zvol/{args.Pool}/swap", shell = True)
+
+if not os.path.isdir(boot := "/<<username>>/tmp"):
+    run(f"mkdir -p /<<username>>/tmp", shell = True)
+if not os.path.isdir(boot := "/<<username>>/nix"):
+    run(f"mkdir -p /<<username>>/nix", shell = True)
+run(f"mount /<<username>>/tmp /tmp", shell = True)
+run(f"rsync -avvczz --delete /nix/ /<<username>>/nix/")
+run(f"mount /<<username>>/nix /nix", shell = True)
 #+end_src
 
 ****** update
