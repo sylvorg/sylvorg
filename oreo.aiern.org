@@ -3489,11 +3489,27 @@ if args.subcommand == "mount":
 if args.generate:
     run("nixos-generate-config --root /mnt", shell = True)
 
-if args.rsync:
+if args.rsync-mount:
     run("rsync -avvczz ~/<<username>>/ /mnt/", shell = True)
+
+if args.rsync-system:
+    run("rsync -avvczz ~/<<username>>/ /", shell = True)
+
+if args.rsync-both:
+    run("rsync -avvczz ~/<<username>>/ /mnt/", shell = True)
+    run("rsync -avvczz ~/<<username>>/ /", shell = True)
 
 if args.install:
     run("nixos-install --show-trace", shell = True)
+
+if args.bootstrap:
+    run("nix-channel --add https://github.com/nixos/nixpkgs/archive/master/nixpkgs.tar.gz master", shell = True)
+    run("nix-channel --update", shell = True)
+    run("nix-env -iA master.emacs master.python310", shell = True)
+    run("chmod +x ~/<<username>>/wheee.py", shell = True)
+    run("git -C ~/<<username>>/settings checkout main", shell = True)
+    run("~/<<username>>/settings/org-tangle.sh oreo.aiern.org README.org", shell = True)
+    run("git clone https://github.com/<<username>>/<<username>> ~/<<username>>/<<username>>", shell = True)
 
 # TODO: Also include a one-stop-install, mounting, generating, copying, etc. all in one go
 if args.all:
@@ -3532,8 +3548,11 @@ update.add_argument("-f", "--files", action="store_true")
 
 parser.add_argument("-g", "--generate", action="store_true")
 parser.add_argument("-l", "--link", action="store_true")
-parser.add_argument("-r", "--rsync", action="store_true")
+parser.add_argument("-r", "--rsync-both", action="store_true")
+parser.add_argument("--rsync-system", action="store_true")
+parser.add_argument("--rsync-mount", action="store_true")
 parser.add_argument("-i", "--install", action="store_true")
+parser.add_argument("-b", "--bootstrap", action="store_true")
 parser.add_argument("-a", "--all", action="store_true")
 
 # Adapted From:
