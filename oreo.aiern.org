@@ -3390,6 +3390,7 @@ parser.add_argument("--use-hash")
 parser.add_argument("-v", "--verbose", action="store_true")
 parser.add_argument("-d", "--dry-run", action="store_true")
 parser.add_argument("-i", "--install", action="store_true")
+parser.add_argument("-I", "--install-for")
 parser.add_argument("-H", "--host", required=True)
 args, unknown = parser.parse_known_args(argv[1:])
 
@@ -3404,6 +3405,19 @@ def grouper(iterable, n, fillvalue=None):
 unknown = dict(grouper(unknown, 2, ""))
 
 unknown["host"] = args.host
+
+if args.install_for:
+    match args.install_for:
+        case "rpi4":
+            unknown["noSwap"] = 1
+            unknown["system"] = "aarch64-linux"
+            unknown["type"] = "rpi"
+            unknown["device"] = "4b"
+        case "rpi3":
+            unknown["noSwap"] = 1
+            unknown["system"] = "aarch64-linux"
+            unknown["type"] = "rpi"
+            unknown["device"] = "3b"
 
 commandPre = f"nix-instantiate --read-write-mode --show-trace --eval -E 'let j = import " + os.path.dirname(os.path.realpath(argv[0])) + "/etc/nixos/lib {  }; in j.hostName"
 
