@@ -11,7 +11,7 @@ emkMake := make -f $(emkFile)
 bootstrap:
 |nix-channel --add https://github.com/nixos/nixpkgs/archive/master/nixpkgs.tar.gz master
 |nix-channel --update
-|nix-env -iA master.emacs master.python310
+|nix-env -iA master.emacs master.python310 master.nixUnstable
 |-git -C $(mkfileDir)/settings checkout main
 |$(mkfileDir)/settings/org-tangle.sh oreo.aiern.org README.org
 |chmod +x $(mkfileDir)/wheee.py $(mkfileDir)/bootstrap.py

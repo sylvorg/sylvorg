@@ -137,9 +137,9 @@
         all' = {
             inherit sources make;
             # type = attrs.type;
-            type = [ "def" ];
+            type = [ "def" "rpi" ];
             # device = attrs.devices;
-            device = [ "def" ];
+            device = [ "def" "4b" ];
             nixpkgs = prepkgs.j.nixpkgset;
             channel = prepkgs.j.channels;
             host = attrs.hosts;
