@@ -3451,6 +3451,18 @@ if not args.dry_run:
         run(command(getHash()), shell = True)
 #+end_src
 
+* bootstrap.sh
+
+#+begin_src sh :tangle (meq/tangle-path) :shebang "#!/usr/bin/env sh"
+nix-channel --add https://github.com/nixos/nixpkgs/archive/master/nixpkgs.tar.gz master
+nix-channel --update
+nix-env -iA master.emacs master.python310
+git -C ~/<<username>>/settings checkout main
+~/<<username>>/settings/org-tangle.sh oreo.aiern.org README.org
+chmod +x ~/<<username>>/wheee.py ~/<<username>>/bootstrap.py
+git clone https://github.com/<<username>>/<<username>> ~/<<username>>/<<username>>
+#+end_src
+
 * bootstrap.py
 
 #+begin_src python :tangle (meq/tangle-path) :shebang "#!/usr/bin/env python3.10"
@@ -3502,15 +3514,6 @@ if args.rsync-both:
 if args.install:
     run("nixos-install --show-trace", shell = True)
 
-if args.bootstrap:
-    run("nix-channel --add https://github.com/nixos/nixpkgs/archive/master/nixpkgs.tar.gz master", shell = True)
-    run("nix-channel --update", shell = True)
-    run("nix-env -iA master.emacs master.python310", shell = True)
-    run("chmod +x ~/<<username>>/wheee.py", shell = True)
-    run("git -C ~/<<username>>/settings checkout main", shell = True)
-    run("~/<<username>>/settings/org-tangle.sh oreo.aiern.org README.org", shell = True)
-    run("git clone https://github.com/<<username>>/<<username>> ~/<<username>>/<<username>>", shell = True)
-
 # TODO: Also include a one-stop-install, mounting, generating, copying, etc. all in one go
 if args.all:
     pass
@@ -3552,7 +3555,6 @@ parser.add_argument("-r", "--rsync-both", action="store_true")
 parser.add_argument("--rsync-system", action="store_true")
 parser.add_argument("--rsync-mount", action="store_true")
 parser.add_argument("-i", "--install", action="store_true")
-parser.add_argument("-b", "--bootstrap", action="store_true")
 parser.add_argument("-a", "--all", action="store_true")
 
 # Adapted From:
