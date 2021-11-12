@@ -4562,6 +4562,47 @@ aliases[_fzf_df_alias] = _fzf
 #+end_src
 
 * .config
+** caddy
+*** files
+**** argus
+:PROPERTIES:
+:header-args:caddyfile+: :noweb-ref argus
+:END:
+
+#+begin_src caddyfile :noweb-ref no :tangle (meq/tangle-path)
+<<argus>>
+#+end_src
+
+#+begin_src caddyfile
+
+#+end_src
+
+**** siluam
+:PROPERTIES:
+:header-args:caddyfile+: :noweb-ref siluam
+:END:
+
+#+begin_src caddyfile :noweb-ref no :tangle (meq/tangle-path)
+<<siluam>>
+#+end_src
+
+#+begin_src caddyfile
+
+#+end_src
+
+**** bastion
+:PROPERTIES:
+:header-args:caddyfile+: :noweb-ref bastion
+:END:
+
+#+begin_src caddyfile :noweb-ref no :tangle (meq/tangle-path)
+<<bastion>>
+#+end_src
+
+#+begin_src caddyfile
+
+#+end_src
+
 ** borgmatic
 
 #+name: borgmatic-ls
