@@ -634,7 +634,12 @@ Taken from [[https://github.com/NixOS/nixos-hardware/tree/master/microsoft/hyper
 
 #+name: 20210601184810839651300
 #+begin_src nix :tangle (meq/tangle-path)
-{ config, lib, ... }: with builtins; with lib; with j; {  }
+{ config, lib, ... }: with builtins; with lib; with j; {
+    boot.kernelParams = [
+        "console=ttyS1,115200n8"
+        "ARCH=arm"
+    ];
+}
 #+end_src
 
 **** surface
@@ -991,11 +996,12 @@ pkgs = let configBase = { inherit stc; ignoredAttrs = [ "host" ];}; in j.get (co
                 stc = lib.j.attrs.default-stc // {
                     device = "";
                     host = "";
+                    system = "";
                     type = "";
                     zfs = null;
                 };
             in if (with stc;
-                device == "" || host == "" || type == "" || zfs == null
+                device == "" || host == "" || system == "" || type == "" || zfs == null
             ) then (
                 abort "Sorry! The device, host, type, and zfs status must be set!"
             ) else lib.nixosSystem {
@@ -1503,6 +1509,7 @@ rec {
                 ".atom"
                 ".bash-history"
                 ".byobu"
+                ".caddy"
                 ".config"
                 ".linuxbrew"
                 ".local"
@@ -3245,7 +3252,7 @@ in with pkgs; [ emacsGcc yadm ]
         # Enables the generation of /boot/extlinux/extlinux.conf
         boot.loader.generic-extlinux-compatible.enable = true;
 
-        boot.loader.systemd-boot.enable = mkOrder 49 false;
+        boot.loader.systemd-boot.enable = mkForce false;
     };
 }
 #+end_src

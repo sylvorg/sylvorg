@@ -192,11 +192,12 @@
                 stc = lib.j.attrs.default-stc // {
                     device = "";
                     host = "";
+                    system = "";
                     type = "";
                     zfs = null;
                 };
             in if (with stc;
-                device == "" || host == "" || type == "" || zfs == null
+                device == "" || host == "" || system == "" || type == "" || zfs == null
             ) then (
                 abort "Sorry! The device, host, type, and zfs status must be set!"
             ) else lib.nixosSystem {
