@@ -5029,46 +5029,6 @@ else
 fi
 #+end_src
 
-*** hooks
-**** pre_commit
-:PROPERTIES:
-:header-args:bash+: :noweb-ref pre_commit
-:END:
-
-#+begin_src bash :noweb-ref no :tangle (meq/tangle-path) :shebang "#!/usr/bin/env bash"
-<<pre_commit>>
-#+end_src
-
-#+begin_src bash
-make -f $YADM_HOOK_WORK/makefile tangle
-#+end_src
-
-**** pre_pull
-:PROPERTIES:
-:header-args:bash+: :noweb-ref pre_pull
-:END:
-
-#+begin_src bash :noweb-ref no :tangle (meq/tangle-path) :shebang "#!/usr/bin/env bash"
-<<pre_pull>>
-#+end_src
-
-#+begin_src bash
-# make -f $YADM_HOOK_WORK/makefile subinit
-#+end_src
-
-**** post_pull
-:PROPERTIES:
-:header-args:bash+: :noweb-ref post_pull
-:END:
-
-#+begin_src bash :noweb-ref no :tangle (meq/tangle-path) :shebang "#!/usr/bin/env bash"
-<<post_pull>>
-#+end_src
-
-#+begin_src bash
-make -f $YADM_HOOK_WORK/makefile tangle
-#+end_src
-
 ** nix
 *** nix.conf
 :PROPERTIES:
@@ -5158,6 +5118,7 @@ eval $(starship init ion)
     excludesfile = ~/.globalignore
     attributesfile = ~/.gitattributes
     fileMode = false
+    hookPath = ~/.config/git/hooks
 
 [user]
     email = aiern@protonmail.com
@@ -5177,6 +5138,46 @@ eval $(starship init ion)
 
 [protocol "keybase"]
 	allow = always
+#+end_src
+
+*** hooks
+**** pre-commit
+:PROPERTIES:
+:header-args:bash+: :noweb-ref pre-commit
+:END:
+
+#+begin_src bash :noweb-ref no :tangle (meq/tangle-path) :shebang "#!/usr/bin/env bash"
+<<pre-commit>>
+#+end_src
+
+#+begin_src bash
+make -f ~/makefile tangle
+#+end_src
+
+**** pre-pull
+:PROPERTIES:
+:header-args:bash+: :noweb-ref pre-pull
+:END:
+
+#+begin_src bash :noweb-ref no :tangle (meq/tangle-path) :shebang "#!/usr/bin/env bash"
+<<pre-pull>>
+#+end_src
+
+#+begin_src bash
+make -f ~/makefile subinit
+#+end_src
+
+**** post-pull
+:PROPERTIES:
+:header-args:bash+: :noweb-ref post-pull
+:END:
+
+#+begin_src bash :noweb-ref no :tangle (meq/tangle-path) :shebang "#!/usr/bin/env bash"
+<<post-pull>>
+#+end_src
+
+#+begin_src bash
+make -f ~/makefile tangle
 #+end_src
 
 *** scripts
