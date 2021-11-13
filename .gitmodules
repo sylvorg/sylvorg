@@ -1,80 +1,84 @@
 [submodule ".emacs.d"]
     branch = main
-	path = .emacs.d
-	url = https://github.com/shadowrylander/.emacs.d.git
+    path = .emacs.d
+    url = https://github.com/shadowrylander/.emacs.d.git
 [submodule "resources/bashCompletions"]
     branch = master
-	path = resources/bashCompletions
-	url = https://github.com/scop/bash-completion.git
+    path = resources/bashCompletions
+    url = https://github.com/scop/bash-completion.git
 [submodule "resources/xeroFigletFonts"]
     branch = master
-	path = resources/xeroFigletFonts
-	url = https://github.com/xero/figlet-fonts.git
+    path = resources/xeroFigletFonts
+    url = https://github.com/xero/figlet-fonts.git
 [submodule "resources/grml"]
     branch = master
-	path = resources/grml
-	url = https://github.com/grml/grml-etc-core.git
+    path = resources/grml
+    url = https://github.com/grml/grml-etc-core.git
 [submodule "resources/kittyThemes"]
     branch = master
-	path = resources/kittyThemes
-	url = https://github.com/dexpota/kitty-themes.git
+    path = resources/kittyThemes
+    url = https://github.com/dexpota/kitty-themes.git
 [submodule "resources/aleclearmind"]
     branch = master
-	path = resources/aleclearmind
-	url = https://github.com/aleclearmind/nested-tmux.git
+    path = resources/aleclearmind
+    url = https://github.com/aleclearmind/nested-tmux.git
 [submodule "resources/oh-my-tmux"]
     branch = master
-	path = resources/oh-my-tmux
-	url = https://github.com/gpakosz/.tmux.git
+    path = resources/oh-my-tmux
+    url = https://github.com/gpakosz/.tmux.git
 [submodule "resources/powerline"]
     branch = master
-	path = resources/powerline
-	url = https://github.com/powerline/powerline.git
+    path = resources/powerline
+    url = https://github.com/powerline/powerline.git
 [submodule "resources/tpm"]
     branch = master
-	path = resources/tpm
-	url = https://github.com/tmux-plugins/tpm.git
+    path = resources/tpm
+    url = https://github.com/tmux-plugins/tpm.git
 [submodule ".vim"]
     branch = master
-	path = .vim
-	url = https://github.com/SpaceVim/SpaceVim.git
+    path = .vim
+    url = https://github.com/SpaceVim/SpaceVim.git
 [submodule ".config/neovim"]
     branch = master
-	path = .config/neovim
-	url = https://github.com/SpaceVim/SpaceVim.git
+    path = .config/neovim
+    url = https://github.com/SpaceVim/SpaceVim.git
 [submodule "resources/nix-direnv"]
     branch = master
-	path = resources/nix-direnv
-	url = https://github.com/nix-community/nix-direnv.git
+    path = resources/nix-direnv
+    url = https://github.com/nix-community/nix-direnv.git
 [submodule "settings"]
     branch = main
-	path = settings
-	url = https://github.com/shadowrylander/settings.git
+    path = settings
+    url = https://github.com/shadowrylander/settings.git
 [submodule "git-subtree"]
     branch = master
-	path = git-subtree
-	url = https://github.com/shadowrylander/git-subtree.git
+    path = git-subtree
+    url = https://github.com/shadowrylander/git-subtree.git
 [submodule "keybase/secrets"]
     branch = master
-	path = keybase/secrets
-	url = keybase://private/shadowrylander/secrets
+    path = keybase/secrets
+    url = keybase://private/shadowrylander/secrets
 [submodule "resources/bass"]
     branch = master
-	path = resources/bass
-	url = https://github.com/edc/bass.git
+    path = resources/bass
+    url = https://github.com/edc/bass.git
 [submodule "resources/nix-env.fish"]
     branch = master
-	path = resources/nix-env.fish
-	url = https://github.com/lilyball/nix-env.fish.git
+    path = resources/nix-env.fish
+    url = https://github.com/lilyball/nix-env.fish.git
 [submodule ".asdf"]
     branch = master
-	path = .asdf
-	url = https://github.com/asdf-vm/asdf.git
+    path = .asdf
+    url = https://github.com/asdf-vm/asdf.git
 [submodule "sylveon"]
     branch = main
-	path = sylveon
-	url = https://github.com/shadowrylander/sylveon.git
+    path = sylveon
+    url = https://github.com/shadowrylander/sylveon.git
 [submodule "sylvorg"]
     branch = master
-	path = sylvorg
-	url = keybase://private/shadowrylander/sylvorg
+    path = sylvorg
+    url = keybase://private/shadowrylander/sylvorg
+[submodule "shadowrylander.github.io"]
+    branch = master
+    path = shadowrylander.github.io
+    url = https://github.com/shadowrylander/shadowrylander.github.io.git
