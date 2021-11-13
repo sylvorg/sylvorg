@@ -4915,13 +4915,16 @@ if [[ $(uname -a) == *Android* ]]; then
     hash yadm 2>/dev/null && command=yadm || command=~/yadm
 
     GIT_SSL_NO_VERIFY=1 $command submodule update --init --depth 1 --recursive --remote
-    $command submodule foreach 'git -C $toplevel/$sm_path checkout main || git -C $toplevel/$sm_path checkout master || :'
-    git clone --depth 1 git@github.com:<<username>>/<<username>>.git ~/<<username>>
+    git clone --recurse-submodule git@github.com:<<username>>/<<username>>.git ~/one
     $command remote set-url --push origin git@github.com:<<username>>/<<username>>.git
     $command config include.path "~/.gitconfig"
 
     termux-reload-settings
 
+    # Adapted From:
+    # Answer: https://stackoverflow.com/a/42543006/10827766
+    # User: https://stackoverflow.com/users/1512161/fuad-saud
+    git -C ~/.emacs.d submodule foreach 'git -C $toplevel/$sm_path remote set-url --push origin git@github.com:<<username>>/$(basename $(git -C $toplevel/$sm_path config --get remote.origin.url))'
     git -C ~/.emacs.d remote set-url --push origin git@github.com:<<username>>/.emacs.d.git
     git -C ~/.emacs.d config include.path "~/.emacs.d/.gitconfig"
 
@@ -4990,13 +4993,19 @@ else
     git config --global --add protocol.keybase.allow always
     GIT_SSL_NO_VERIFY=1 $command submodule update --init --depth 1 --recursive --remote
     $command submodule foreach 'git -C $toplevel/$sm_path checkout main || git -C $toplevel/$sm_path checkout master || :'
+    git clone --recurse-submodule git@github.com:<<username>>/<<username>>.git ~/one
     $command remote set-url --push origin git@github.com:<<username>>/<<username>>.git
     $command config include.path "~/.gitconfig"
 
     # Adapted From: https://askubuntu.com/a/15856/1058868
     if [[ $EUID -ne 0 ]]; then
-        git -C ~/.emacs.d remote set-url --push origin git@github.com:<<username>>/.emacs.d.git
-        git -C ~/.emacs.d config include.path "~/.emacs.d/.gitconfig"
+
+    	# Adapted From:
+    	# Answer: https://stackoverflow.com/a/42543006/10827766
+    	# User: https://stackoverflow.com/users/1512161/fuad-saud
+    	git -C ~/.emacs.d submodule foreach 'git -C $toplevel/$sm_path remote set-url --push origin git@github.com:<<username>>/$(basename $(git -C $toplevel/$sm_path config --get remote.origin.url))'
+    	git -C ~/.emacs.d remote set-url --push origin git@github.com:<<username>>/.emacs.d.git
+	git -C ~/.emacs.d config include.path "~/.emacs.d/.gitconfig"
 
         stow -d ~/keybase -t ~ secrets
 
