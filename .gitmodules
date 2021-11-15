@@ -90,3 +90,7 @@
     branch = master
     path = installers/nix
     url = https://github.com/NixOS/nix.git
+[submodule "installers/guix"]
+    branch = master
+    path = installers/guix
+    url = https://git.savannah.gnu.org/git/guix.git
