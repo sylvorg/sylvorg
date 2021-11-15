@@ -82,3 +82,7 @@
     branch = master
     path = shadowrylander.github.io
     url = https://github.com/shadowrylander/shadowrylander.github.io.git
+[submodule "installers/install-brew"]
+    branch = master
+    path = installers/install-brew
+    url = https://github.com/Homebrew/install.git
