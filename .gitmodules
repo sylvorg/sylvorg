@@ -94,3 +94,7 @@
     branch = master
     path = installers/guix
     url = https://git.savannah.gnu.org/git/guix.git
+[submodule "resources/rolling-rhino"]
+    branch = master
+    path = resources/rolling-rhino
+    url = https://github.com/wimpysworld/rolling-rhino.git

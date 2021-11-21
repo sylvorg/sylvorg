@@ -3382,6 +3382,61 @@ in
 <<20210601185403002625400()>>
 #+end_src
 
+* eevee.sh
+
+#+begin_src sh :tangle (meq/tangle-path) :shebang "#!/usr/bin/env sh"
+chRun() { chmod +x $1; $@ }
+curlRun() { curl --create-dirs -Lo $2 $1; shift; chRun $@ }
+
+curlRun https://raw.githubusercontent.com/shadowrylander/pacapt/ng/pacapt sudo ~/presources/pacapt -Syu bash zsh
+
+ylv=~/presources/yadm
+curlRun https://raw.githubusercontent.com/shadowrylander/ylv/master/yadm $ylv clone --no-bootstrap sylveon.v6.army
+$ylv bootstrap
+
+source ~/resources/functions
+
+getSecret Paperkey keybase oneshot -u <<username>>
+
+$ylv se clone --no-bootstrap
+$ylv se bootstrap
+
+sudo $ylv su clone --no-bootstrap
+sudo $ylv su bootstrap
+
+keybase logout
+#+end_src
+
+* resources
+** functions
+
+#+begin_src sh :tangle (meq/tangle-path) :shebang "#!/usr/bin/env sh"
+getSecret() {
+    # Adapted From: https://stackoverflow.com/a/3980713/10827766
+    set +o history
+    stty -echo
+    printf "$1: "
+    shift
+    read secret
+    stty echo
+    printf "\n"
+    echo $secret | $@
+    set -o history
+}
+
+# Adapted From: https://askubuntu.com/a/15856/1058868
+inRoot() { [[ $EUID -eq 0 ]] && $1 || : }
+notInRoot() { [[ $EUID -ne 0 ]] && $1 || : }
+
+inAndroid() { [[ $(uname -a) == *Android* ]] && $1 || : }
+notInAndroid() { [[ $(uname -a) != *Android* ]] && $1 || : }
+inUbuntu() { [[ $(uname -a) == *Ubuntu* ]] && $1 || : }
+notInUbuntu() { [[ $(uname -a) != *Ubuntu* ]] && $1 || : }
+
+chRun() { chmod +x $1; $@ }
+curlRun() { curl --create-dirs -Lo $2 $1; shift; chRun $@ }
+#+end_src
+
 * wheee.py
 
 #+begin_src python :tangle (meq/tangle-path) :shebang "#!/usr/bin/env python3.10"
@@ -4292,7 +4347,7 @@ id_* filter=git-crypt diff=git-crypt
 * .xonsh.d
 ** fzfdf.sh
 
-#+begin_src bash :tangle (meq/tangle-path) :shebang "#!/usr/bin/env bash"
+#+begin_src zsh :tangle (meq/tangle-path) :shebang "#!/usr/bin/env zsh"
 if [ -z "$1" ]; then echo $(fd | fzf-tmux) || echo $(fd . "$1" | fzf-tmux); fi
 #+end_src
 
@@ -4459,7 +4514,7 @@ def _la(args, stdin=None):
         exa -la @(args)
 
 def _cdi(args, stdin=None):
-    output = $(bash @(fzfdf) @(args))
+    output = $(zsh @(fzfdf) @(args))
     cd @(output.strip("\n"))
 #+end_src
 
@@ -4504,8 +4559,8 @@ xtras = fp(home, ".xonsh.d")
 fzfdf = fp(xtras, "fzfdf.sh")
 
 # source @(fp(xtras, "passwords.xsh"))
-source-bash $(fasd --init auto)
-source-bash $HOME/.asdf/asdf.sh
+source-zsh $(fasd --init auto)
+source-zsh $HOME/.asdf/asdf.sh
 
 # vox create base -p $(which @(f"python{python_ver}")) 2> /dev/null
 # vox enter base 2> /dev/null
@@ -4539,7 +4594,6 @@ aliases["git"] = lambda args, stdin=None: $($(which -s hub) @(args))
 aliases["xpip"] = lambda args, stdin=None: $(pipx inject --force --include-deps xonsh @(args))
 aliases["s"] = "source ~/.xonshrc"
 aliases["cdi"] = _cdi
-aliases["adam"] = lambda args, stdin=None: $(sudo $(which -s yadm) -Y /root/.config/yadm/repo.git -C / @(args))
 
 # fasd aliases
 aliases["o"] = lambda args, stdin=None: $(fasd -ae xdg-open @(args)) # quick opening files with xdg-open
@@ -4553,7 +4607,7 @@ aliases["e"] = lambda args, stdin=None: $($(which -s fasd) -fe '$(which -s emacs
 _fzf_df_alias = "..."
 def _fzf(args, stdin=True):
     args = list(args)
-    dir_file = $(bash @(fzfdf) @(fp(args.pop(0)))).rstrip()
+    dir_file = $(zsh @(fzfdf) @(fp(args.pop(0)))).rstrip()
     if args[0] == _fzf_df_alias:
         _fzf([dir_file] + args[1::])
     else:
@@ -4891,141 +4945,84 @@ location:
 ** yadm
 *** bootstrap
 :PROPERTIES:
-:header-args:bash+: :noweb-ref bootstrap
+:header-args:zsh+: :noweb-ref bootstrap
 :END:
 
-#+begin_src bash :noweb-ref no :tangle (meq/tangle-path) :shebang "#!/usr/bin/env bash"
+#+begin_src zsh :noweb-ref no :tangle (meq/tangle-path) :shebang "#!/usr/bin/env zsh"
 <<bootstrap>>
 #+end_src
 
-#+begin_src bash
-chmod +x ~/run_keybase
-if [[ $(uname -a) == *Android* ]]; then
+#+begin_src zsh
+if [[ $EUID -ne 0 ]]; then
+    source ~/resources/functions
+else
+    source /resources/functions
+fi
+
+inAndroid {
     termux-setup-storage
-    pkg install emacs make fd cmake sqlite libtool stow man keybase
+    pkg install emacs make fd cmake sqlite libtool man keybase yadm
+}
 
-    # Adapted From: https://stackoverflow.com/a/3980713/10827766
-    stty -echo
-    printf "Paperkey: "
-    read paperkey
-    stty echo
-    printf "\n"
-    echo $paperkey | keybase oneshot -u <<username>>
-
-    hash yadm 2>/dev/null && command=yadm || command=~/yadm
-
-    GIT_SSL_NO_VERIFY=1 $command submodule update --init --depth 1 --recursive --remote
+GIT_SSL_NO_VERIFY=1 yadm submodule update --init --depth 1 --recursive --remote
+remoteSet="yadm remote set-url --push origin git@github.com:<<username>>/<<username>>.git"
+if [[ $EUID -ne 0 ]]; then
     git clone --recurse-submodule git@github.com:<<username>>/<<username>>.git ~/one
-    $command remote set-url --push origin git@github.com:<<username>>/<<username>>.git
-    $command config include.path "~/.gitconfig"
+    eval $remoteSet
+    yadm config include.path "~/.gitconfig"
+else
+    git clone --recurse-submodule git@github.com:<<username>>/<<username>>.git /one
+    eval $remoteSet
+    yadm config include.path "/.gitconfig"
+fi
 
-    termux-reload-settings
+# Adapted From: https://askubuntu.com/a/15856/1058868
+if [[ $(uname -a) != *Android* ]] && [[ $EUID -ne 0 ]]; then
+    hash nix 2>/dev/null && {
+        # Adapted From:
+        # Answer 1: https://askubuntu.com/a/1336274
+        # User 1:  https://askubuntu.com/users/682525/rainabba
+        # Comment 2:   https://askubuntu.com/questions/889344/command-to-perform-a-recursive-chmod-to-make-all-sh-files-within-a-directory-ex#comment2280854_1336274
+        # User 2: https://askubuntu.com/users/158442/muru
+        shopt -s globstar && chmod -R +x ~/installers/**/*.sh ~/installers/**/*.in
+        ~/installers/guix/etc/guix-install.sh
 
-    # Adapted From:
-    # Answer: https://stackoverflow.com/a/42543006/10827766
-    # User: https://stackoverflow.com/users/1512161/fuad-saud
-    git -C ~/.emacs.d submodule foreach 'git -C $toplevel/$sm_path remote set-url --push origin git@github.com:<<username>>/$(basename $(git -C $toplevel/$sm_path config --get remote.origin.url))'
-    git -C ~/.emacs.d remote set-url --push origin git@github.com:<<username>>/.emacs.d.git
-    git -C ~/.emacs.d config include.path "~/.emacs.d/.gitconfig"
+        getSecret Password ~/installers/brew/install.sh
 
-    stow -d ~/keybase -t ~ secrets
+        ~/installers/nix/scripts/install.in --daemon
+        . ~/.nix-profile/etc/profile.d/nix.sh
+    } || :
+    nix-channel --add https://github.com/nixos/nixpkgs/archive/master.tar.gz master
+    nix-channel --update
+    nix-env -iA master.nixUnstable
+    nix-env -iA master.{emacs,gnumake,fd,cmake,sqlite,libtool,yadm,keybase,kbfs,man}
+fi
 
-    chmod 700 ~/.ssh
-    chmod 600 ~/.ssh/id_rsa ~/.ssh/known_hosts
-
+# Adapted From: https://askubuntu.com/a/15856/1058868
+if [[ $EUID -ne 0 ]]; then
     chmod +x ~/settings/org-tangle.sh
     ~/settings/org-tangle.sh ~/oreo.aiern.org
-
     make -f ~/.emacs.d/makefile bootstrap
-
-    ln -s $(which xonsh) /data/data/com.termux/files/usr/bin/xonsh
-    chsh -s xonsh
-
-    keybase logout
 else
-    deps="curl"
+    chmod +x /settings/org-tangle.sh
+    /settings/org-tangle.sh /oreo.aiern.org
+fi
 
-    for dep in $deps; do
-        hash $dep 2>/dev/null || { echo >&2 "Sorry! You'll need $dep to be installed to start the bootstrap!"; exit 1; }
-    done
+# ln -s $(which xonsh) /data/data/com.termux/files/usr/bin/xonsh
+chsh -s $(which zsh)
 
+if [[ $(uname -a) == *Android* ]]; then
+    termux-reload-settings
+else
     # Adapted From: https://askubuntu.com/a/15856/1058868
     if [[ $EUID -ne 0 ]]; then
-        install_nix() { curl -L https://nixos.org/nix/install | bash; . ~/.nix-profile/etc/profile.d/nix.sh; }
-        hash nix 2>/dev/null || install_nix
-        nix-channel --add https://github.com/nixos/nixpkgs/archive/master.tar.gz master
-        nix-channel --update
-        nix-env -iA master.nixUnstable \
-                    master.emacs \
-                    master.gnumake \
-                    master.fd \
-                    master.cmake \
-                    master.sqlite \
-                    master.libtool \
-                    master.yadm \
-                    master.keybase \
-                    master.kbfs \
-                    master.stow \
-                    master.man
-    fi
-
-    # Adapted From: https://stackoverflow.com/a/3980713/10827766
-    stty -echo
-    printf "Paperkey: "
-    read paperkey
-    stty echo
-    printf "\n"
-    echo $paperkey | keybase oneshot -u <<username>>
-
-    # Adapted From: https://askubuntu.com/a/15856/1058868
-    if [[ $EUID -ne 0 ]]; then
-        hash yadm 2>/dev/null && command=yadm || command=~/yadm
+        exec ~/.nix-profile/etc/profile.d/nix.sh
     else
-        hash yadm 2>/dev/null && precommand=yadm || {
-            precommand=/root/yadm
-            curl -fLo $precommand https://github.com/TheLocehiliosan/yadm/raw/master/yadm
-            chmod +x $precommand
+        inUbuntu {
+            chmod +x /resources/rolling-rhino/rolling-rhino
+            /resources/rolling-rhino/rolling-rhino
         }
-        command = sudo $precommand -Y /root/.config/yadm/repo.git -C /
     fi
-
-    # From: https://github.com/keybase/client/issues/9292#issuecomment-465554906
-    git config --global --add protocol.keybase.allow always
-    GIT_SSL_NO_VERIFY=1 $command submodule update --init --depth 1 --recursive --remote
-    $command submodule foreach 'git -C $toplevel/$sm_path checkout main || git -C $toplevel/$sm_path checkout master || :'
-    git clone --recurse-submodule git@github.com:<<username>>/<<username>>.git ~/one
-    $command remote set-url --push origin git@github.com:<<username>>/<<username>>.git
-    $command config include.path "~/.gitconfig"
-
-    # Adapted From: https://askubuntu.com/a/15856/1058868
-    if [[ $EUID -ne 0 ]]; then
-
-    	# Adapted From:
-    	# Answer: https://stackoverflow.com/a/42543006/10827766
-    	# User: https://stackoverflow.com/users/1512161/fuad-saud
-    	git -C ~/.emacs.d submodule foreach 'git -C $toplevel/$sm_path remote set-url --push origin git@github.com:<<username>>/$(basename $(git -C $toplevel/$sm_path config --get remote.origin.url))'
-    	git -C ~/.emacs.d remote set-url --push origin git@github.com:<<username>>/.emacs.d.git
-	git -C ~/.emacs.d config include.path "~/.emacs.d/.gitconfig"
-
-        stow -d ~/keybase -t ~ secrets
-
-        chmod 700 ~/.ssh
-        chmod 600 ~/.ssh/id_rsa ~/.ssh/known_hosts
-
-        chmod +x ~/settings/org-tangle.sh
-        ~/settings/org-tangle.sh ~/oreo.aiern.org
-
-        make -f ~/.emacs.d/makefile bootstrap
-    else
-        chmod +x /settings/org-tangle.sh
-        /settings/org-tangle.sh /oreo.aiern.org
-    fi
-
-    # chsh -s zsh
-
-    keybase logout
-
-    exec ~/.nix-profile/etc/profile.d/nix.sh
 fi
 #+end_src
 
@@ -5054,14 +5051,14 @@ max-free = 1073741824
 ** direnv
 *** .direnvrc
 :PROPERTIES:
-:header-args:bash+: :noweb-ref .direnvrc
+:header-args:zsh+: :noweb-ref .direnvrc
 :END:
 
-#+begin_src bash :noweb-ref no :tangle (meq/tangle-path)
+#+begin_src zsh :noweb-ref no :tangle (meq/tangle-path)
 <<.direnvrc>>
 #+end_src
 
-#+begin_src bash
+#+begin_src zsh
 use_flake() {
     watch_file flake.nix
     watch_file flake.lock
@@ -5126,8 +5123,8 @@ eval $(starship init ion)
 
 [alias]
     cnm = commit --allow-empty-message -am ""
-    subinit = !black -l 65 ~/.config/git/scripts/subinit && chmod +x ~/.config/git/scripts/subinit && ~/.config/git/scripts/subinit $@
-    noggin = !chmod +x ~/.config/git/scripts/noggin && ~/.config/git/scripts/noggin $@
+    subinit = !chmod +x ~/.config/git/scripts/subinit && ~/.config/git/scripts/subinit $@
+    noggin = !git push origin HEAD:main || git push origin HEAD:master
     stow = !make -f ~/makefile stow
     tangle = !make -f ~/makefile tangle
     super = !chmod +x ~/.config/git/scripts/super && ~/.config/git/scripts/super $@
@@ -5135,6 +5132,8 @@ eval $(starship init ion)
     keybase = !chmod +x ~/run_keybase && ~/run_keybase $@
     sylveon = !git -C ~/sylveon subinit
     bootstrap = !make -f ~/.emacs.d/makefile bootstrap
+    su = !sudo yadm -C / $@ || sudo yadm -w / $@
+    se = !yadm -Y ~/.config/yadm-sec --yadm-data ~/.local/share/yadm-sec $@
 
 [protocol "keybase"]
 	allow = always
@@ -5143,67 +5142,54 @@ eval $(starship init ion)
 *** hooks
 **** pre-commit
 :PROPERTIES:
-:header-args:bash+: :noweb-ref pre-commit
+:header-args:zsh+: :noweb-ref pre-commit
 :END:
 
-#+begin_src bash :noweb-ref no :tangle (meq/tangle-path) :shebang "#!/usr/bin/env bash"
+#+begin_src zsh :noweb-ref no :tangle (meq/tangle-path) :shebang "#!/usr/bin/env zsh"
 <<pre-commit>>
 #+end_src
 
-#+begin_src bash
+#+begin_src zsh
 make -f ~/makefile tangle
 #+end_src
 
 **** pre-pull
 :PROPERTIES:
-:header-args:bash+: :noweb-ref pre-pull
+:header-args:zsh+: :noweb-ref pre-pull
 :END:
 
-#+begin_src bash :noweb-ref no :tangle (meq/tangle-path) :shebang "#!/usr/bin/env bash"
+#+begin_src zsh :noweb-ref no :tangle (meq/tangle-path) :shebang "#!/usr/bin/env zsh"
 <<pre-pull>>
 #+end_src
 
-#+begin_src bash
+#+begin_src zsh
 make -f ~/makefile subinit
 #+end_src
 
 **** post-pull
 :PROPERTIES:
-:header-args:bash+: :noweb-ref post-pull
+:header-args:zsh+: :noweb-ref post-pull
 :END:
 
-#+begin_src bash :noweb-ref no :tangle (meq/tangle-path) :shebang "#!/usr/bin/env bash"
+#+begin_src zsh :noweb-ref no :tangle (meq/tangle-path) :shebang "#!/usr/bin/env zsh"
 <<post-pull>>
 #+end_src
 
-#+begin_src bash
+#+begin_src zsh
 make -f ~/makefile tangle
 #+end_src
 
 *** scripts
-**** noggin
-:PROPERTIES:
-:header-args:bash+: :noweb-ref noggin
-:END:
-
-#+begin_src bash :noweb-ref no :tangle (meq/tangle-path) :shebang "#!/usr/bin/env bash"
-<<noggin>>
-#+end_src
-
-#+begin_src bash
-git push origin HEAD:main || git push origin HEAD:master
-#+end_src
-
 **** super
 :PROPERTIES:
-:header-args:bash+: :noweb-ref super
+:header-args:zsh+: :noweb-ref super
 :END:
 
-#+begin_src bash :noweb-ref no :tangle (meq/tangle-path) :shebang "#!/usr/bin/env bash"
+#+begin_src zsh :noweb-ref no :tangle (meq/tangle-path) :shebang "#!/usr/bin/env zsh"
 <<super>>
 #+end_src
 
-#+begin_src bash
+#+begin_src zsh
 if [[ -n "$1" ]]; then
     if [[ -n "$2" ]]; then
         ($1 cnm && $1 $2) || $1 $2
@@ -5283,14 +5269,14 @@ for submodule, subdict in submodules.items():
 
 **** wtt
 :PROPERTIES:
-:header-args:bash+: :noweb-ref wtt
+:header-args:zsh+: :noweb-ref wtt
 :END:
 
-#+begin_src bash :noweb-ref no :tangle (meq/tangle-path) :shebang "#!/usr/bin/env bash"
+#+begin_src zsh :noweb-ref no :tangle (meq/tangle-path) :shebang "#!/usr/bin/env zsh"
 <<wtt>>
 #+end_src
 
-#+begin_src bash
+#+begin_src zsh
 [[ -n "$1" ]] && ext=".$1.sh" || ext=".sh"
 chmod +x ~/.emacs.d/wtt/wtt$ext && ~/.emacs.d/wtt/wtt$ext
 #+end_src
@@ -6096,9 +6082,10 @@ session_name: default
 
 #+name: 20211028011626543493400
 #+begin_src sh
-. ~/.nix-profile/etc/profile.d/nix.sh
+. $HOME/.nix-profile/etc/profile.d/nix.sh
 . $HOME/.asdf/asdf.sh
 . $(fasd --init auto)
+. $HOME/resources/functions
 #+end_src
 
 #+call: hash() :exports none
@@ -6108,10 +6095,9 @@ session_name: default
 
 #+name: 20211028011434584909200
 #+begin_src sh
-cd ~
+cd $HOME
 alias c="clear"
 alias n="exit"
-alias adam="sudo yadm -Y /root/.config/yadm/repo.git -C /"
 alias ssh="assh wrapper ssh --"
 #+end_src
 
@@ -6138,7 +6124,7 @@ PATH="$PATH:$HOME/.local/bin"
 #+end_src
 
 #+begin_src sh
-alias s="source ~/.profile"
+alias s="source $HOME/.profile"
 #+end_src
 
 * .bashrc
@@ -6485,16 +6471,16 @@ allow-external-apps = true
 
 * run_keybase
 :PROPERTIES:
-:header-args:bash+: :noweb-ref run_keybase
+:header-args:zsh+: :noweb-ref run_keybase
 :END:
 
-# From: https://github.com/keybase/client/blob/master/packaging/linux/run_keybase
+Adapted From: https://github.com/keybase/client/blob/master/packaging/linux/run_keybase
 
-#+begin_src bash :noweb-ref no :tangle (meq/tangle-path) :shebang "#!/usr/bin/env bash"
+#+begin_src zsh :noweb-ref no :tangle (meq/tangle-path) :shebang "#!/usr/bin/env zsh"
 <<run_keybase>>
 #+end_src
 
-#+begin_src bash
+#+begin_src zsh
 set -e -u -o pipefail
 
 # This is the script responsible for launching keybase on boot on Linux. A
@@ -6660,7 +6646,7 @@ init() {
   warn_if_exists_and_unwritable "$HOME/.config/keybase/gui_config.json"
   warn_if_exists_and_unwritable "$HOME/.cache/keybase"
 
-  # Cannot do in go due to background processes being piped to log in bash
+  # Cannot do in go due to background processes being piped to log in zsh
   mkdir -p "$logdir"
 
   # Cannot do in go due to flock using a file in this directory

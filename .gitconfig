@@ -2,6 +2,7 @@
     excludesfile = ~/.globalignore
     attributesfile = ~/.gitattributes
     fileMode = false
+    hookPath = ~/.config/git/hooks
 
 [user]
     email = aiern@protonmail.com
@@ -9,8 +10,8 @@
 
 [alias]
     cnm = commit --allow-empty-message -am ""
-    subinit = !black -l 65 ~/.config/git/scripts/subinit && chmod +x ~/.config/git/scripts/subinit && ~/.config/git/scripts/subinit $@
-    noggin = !chmod +x ~/.config/git/scripts/noggin && ~/.config/git/scripts/noggin $@
+    subinit = !chmod +x ~/.config/git/scripts/subinit && ~/.config/git/scripts/subinit $@
+    noggin = !git push origin HEAD:main || git push origin HEAD:master
     stow = !make -f ~/makefile stow
     tangle = !make -f ~/makefile tangle
     super = !chmod +x ~/.config/git/scripts/super && ~/.config/git/scripts/super $@
@@ -18,6 +19,8 @@
     keybase = !chmod +x ~/run_keybase && ~/run_keybase $@
     sylveon = !git -C ~/sylveon subinit
     bootstrap = !make -f ~/.emacs.d/makefile bootstrap
+    su = !sudo yadm -C / $@ || sudo yadm -w / $@
+    se = !yadm -Y ~/.config/yadm-sec --yadm-data ~/.local/share/yadm-sec $@
 
 [protocol "keybase"]
 	allow = always
