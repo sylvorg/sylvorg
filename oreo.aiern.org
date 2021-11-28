@@ -1504,6 +1504,10 @@ rec {
                 "/etc/wireguard"
                 "/var/lib/acme"
                 "/var/lib/bluetooth"
+                "/usr"
+                "/bin"
+                "/sbin"
+                "/snap"
             ]];
             home = flatten [[
                 ".atom"
@@ -3382,27 +3386,55 @@ in
 <<20210601185403002625400()>>
 #+end_src
 
+** sv
+*** caddy
+**** log
+***** run
+
+#+begin_src zsh :tangle (meq/tangle-path) :shebang "#!/usr/bin/env zsh"
+exec svlogd -tt /etc/sv/caddy/log
+#+end_src
+
+**** run
+
+#+begin_src zsh :tangle (meq/tangle-path) :shebang "#!/usr/bin/env zsh"
+for port in 22 80 443 8080 9418; do
+    exec ufw allow $port &> /dev/null
+done
+exec chmod +x /etc/sv/caddy/{finish,log/run}
+exec /usr/bin/caddy run --config /.config/caddy/files/<<hostname()>> --adapter yaml 2>&1
+#+end_src
+
+**** finish
+
+#+begin_src zsh :tangle (meq/tangle-path) :shebang "#!/usr/bin/env zsh"
+exec killall caddy
+#+end_src
+
 * eevee.sh
 
 #+begin_src sh :tangle (meq/tangle-path) :shebang "#!/usr/bin/env sh"
 chRun() { chmod +x $1; $@ }
 curlRun() { curl --create-dirs -Lo $2 $1; shift; chRun $@ }
 
-curlRun https://raw.githubusercontent.com/shadowrylander/pacapt/ng/pacapt sudo ~/presources/pacapt -Syu bash zsh
+curlRun https://raw.githubusercontent.com/shadowrylander/pacapt/ng/pacapt sudo ~/presources/pacapt -Syu bash zsh git emacs-nox ufw runit-systemd
 
 ylv=~/presources/yadm
-curlRun https://raw.githubusercontent.com/shadowrylander/ylv/master/yadm $ylv clone --no-bootstrap sylveon.v6.army
-$ylv bootstrap
+curlRun https://raw.githubusercontent.com/shadowrylander/ylv/master/yadm $ylv clone --bootstrap sylveon.v6.army
 
 source ~/resources/functions
 
+# From: https://github.com/keybase/client/issues/9292#issuecomment-465554906
+git config --global --add protocol.keybase.allow always
+chRun ~/run_keybase
 getSecret Paperkey keybase oneshot -u <<username>>
 
-$ylv se clone --no-bootstrap
-$ylv se bootstrap
+$ylv se clone --bootstrap keybase://private/<<username>>/secrets
+sudo $ylv su clone --bootstrap sylveon.v6.army
 
-sudo $ylv su clone --no-bootstrap
-sudo $ylv su bootstrap
+for prog in ufw runit; do
+    sudo systemctl enable --now $prog
+done
 
 keybase logout
 #+end_src
@@ -4422,13 +4454,7 @@ $RIGHT_PROMPT = "{BOLD_#E5004D} {prompt_end}{BOLD_#FC9F71} || {BOLD_#E5004D} {us
 
 # Path
 sys_path.insert(0, "")
-extra_paths = [
-    f"{home}/.nimble/bin",
-    f"{home}/go/bin",
-    "/usr/lib/node_modules",
-    f"{home}/.local/bin",
-]
-$PATH += extra_paths
+<<profile-paths(shell="xonsh")>>
 
 # Shell
 # $EDITOR = "emacsclient --socket-name=spacemacsd -t"
@@ -4627,21 +4653,174 @@ aliases[_fzf_df_alias] = _fzf
 <<argus>>
 #+end_src
 
-#+begin_src caddyfile
-
+#+begin_src yaml
+admin:
+  disabled: true
+apps:
+  layer4:
+    servers:
+      srv0:
+        listen:
+          - ':22'
+          - ':80'
+          - ':443'
+        routes:
+          - match:
+              - ssh: {}
+            handle:
+              - handler: proxy
+                upstreams:
+                  - dial:
+                      - 'localhost:1622'
+          - match:
+              - http: []
+            handle:
+              - handler: proxy
+                upstreams:
+                  - dial:
+                      - 'localhost:1680'
+          - match:
+              - tls: {}
+            handle:
+              - handler: proxy
+                upstreams:
+                  - dial:
+                      - 'localhost:16433'
+  http:
+    https_port: 16433
+    servers:
+      srv1:
+        listen:
+          - ':1680'
+          - ':16433'
+        routes:
+          - match:
+              - host:
+                  - empoleon.duckdns.org
+            handle:
+              - handler: subroute
+                routes:
+                  - handle:
+                      - handler: static_response
+                        headers:
+                          Location:
+                            - >-
+                              https://github.com/shadowrylander/shadowrylander/blob/main/README.org
+                        status_code: 302
+            terminal: true
+          - match:
+              - host:
+                  - now.sylveon.v6.army
+            handle:
+              - handler: subroute
+                routes:
+                  - handle:
+                      - handler: vars
+                        root: /root/.local/share/yadm/repo.git
+                      - browse: {}
+                        handler: file_server
+                        hide:
+                          - ./Caddyfile
+            terminal: true
+          - match:
+              - host:
+                  - hub.sylveon.v6.army
+            handle:
+              - handler: subroute
+                routes:
+                  - handle:
+                      - handler: static_response
+                        headers:
+                          Location:
+                            - 'https://git.io/shadowrylander'
+                        status_code: 302
+            terminal: true
+          - match:
+              - host:
+                  - lab.sylveon.v6.army
+            handle:
+              - handler: subroute
+                routes:
+                  - handle:
+                      - handler: static_response
+                        headers:
+                          Location:
+                            - 'https://gitlab.com/shadowrylander'
+                        status_code: 302
+            terminal: true
+          - match:
+              - host:
+                  - oreon.duckdns.org
+            handle:
+              - handler: subroute
+                routes:
+                  - handle:
+                      - handler: static_response
+                        headers:
+                          Location:
+                            - >-
+                              https://github.com/shadowrylander/shadowrylander/blob/main/oreo.aiern.org
+                        status_code: 302
+            terminal: true
+          - match:
+              - host:
+                  - sylveon.v6.army
+            handle:
+              - handler: subroute
+                routes:
+                  - handle:
+                      - handler: vars
+                        root: /root/one/.git
+                      - browse: {}
+                        handler: file_server
+                        hide:
+                          - ./Caddyfile
+            terminal: true
+          - match:
+              - host:
+                  - s*.ydns.eu
+            handle:
+              - handler: subroute
+                routes:
+                  - handle:
+                      - handler: vars
+                        root: '/root/one/{http.request.uri}/.git'
+                      - handler: rewrite
+                        strip_path_suffix: /.git
+                      - handler: rewrite
+                        strip_path_suffix: .git
+                      - browse: {}
+                        handler: file_server
+                        hide:
+                          - ./Caddyfile
+            terminal: true
+  tls:
+    automation:
+      policies:
+        - subjects:
+            - empoleon.duckdns.org
+            - now.sylveon.v6.army
+            - hub.sylveon.v6.army
+            - lab.sylveon.v6.army
+            - oreon.duckdns.org
+            - sylveon.v6.army
+            - syvl.ydns.eu
+          issuers:
 #+end_src
 
-**** siluam
-:PROPERTIES:
-:header-args:caddyfile+: :noweb-ref siluam
-:END:
-
-#+begin_src caddyfile :noweb-ref no :tangle (meq/tangle-path)
-<<siluam>>
+#+begin_src yaml
+            - ca: 'https://acme.zerossl.com/v2/DV90'
+              email: syvlorg@protonmail.com
+              module: acme
+            - ca: 'https://acme.zerossl.com/v2/DV90'
+              email: syvlorg@protonmail.com
+              module: zerossl
 #+end_src
 
-#+begin_src caddyfile
-
+#+begin_src yaml :noweb-ref no
+            - ca: 'https://acme-staging-v02.api.letsencrypt.org/directory'
+              email: syvlorg@protonmail.com
+              module: acme
 #+end_src
 
 **** bastion
@@ -4989,35 +5168,47 @@ if [[ $(uname -a) != *Android* ]] && [[ $EUID -ne 0 ]]; then
 
         getSecret Password ~/installers/brew/install.sh
 
-        ~/installers/nix/scripts/install.in --daemon
+        ~/installers/nix/scripts/install.in
         . ~/.nix-profile/etc/profile.d/nix.sh
     } || :
     nix-channel --add https://github.com/nixos/nixpkgs/archive/master.tar.gz master
     nix-channel --update
     nix-env -iA master.nixUnstable
-    nix-env -iA master.{emacs,gnumake,fd,cmake,sqlite,libtool,yadm,keybase,kbfs,man}
+    nix-env -iA master.{emacs,gnumake,fd,cmake,sqlite,libtool,keybase,kbfs,man}
 fi
 
 # Adapted From: https://askubuntu.com/a/15856/1058868
 if [[ $EUID -ne 0 ]]; then
     chmod +x ~/settings/org-tangle.sh
-    ~/settings/org-tangle.sh ~/oreo.aiern.org
+    ~/settings/org-tangle.sh ~/{oreo.aiern,README}.org
     make -f ~/.emacs.d/makefile bootstrap
 else
     chmod +x /settings/org-tangle.sh
-    /settings/org-tangle.sh /oreo.aiern.org
+    /settings/org-tangle.sh /{oreo.aiern,README}.org
 fi
 
 # ln -s $(which xonsh) /data/data/com.termux/files/usr/bin/xonsh
 chsh -s $(which zsh)
+
+. ~/.asdf/asdf.sh || . /.asdf/asdf.sh
+asdf plugin-add golang https://github.com/kennyp/asdf-golang.git
+asdf install golang latest
+asdf global golang latest
+
+go install github.com/CGamesPlay/git-remote-restic@latest
+git config --global --add protocol.restic.allow always
 
 if [[ $(uname -a) == *Android* ]]; then
     termux-reload-settings
 else
     # Adapted From: https://askubuntu.com/a/15856/1058868
     if [[ $EUID -ne 0 ]]; then
-        exec ~/.nix-profile/etc/profile.d/nix.sh
+        exec ~/.zshrc
     else
+        go install github.com/caddyserver/xcaddy/cmd/xcaddy@latest
+        xcaddy build --with github.com/mholt/caddy-l4@latest --with github.com/abiosoft/caddy-yaml@latest
+        mv {.,/usr/bin}/caddy
+
         inUbuntu {
             chmod +x /resources/rolling-rhino/rolling-rhino
             /resources/rolling-rhino/rolling-rhino
@@ -5134,8 +5325,12 @@ eval $(starship init ion)
     bootstrap = !make -f ~/.emacs.d/makefile bootstrap
     su = !sudo yadm -C / $@ || sudo yadm -w / $@
     se = !yadm -Y ~/.config/yadm-sec --yadm-data ~/.local/share/yadm-sec $@
+    clone-init = !mv .git/hooks/post-update.sample .git/hooks/post-update && chmod a+x .git/hooks/post-update && git update-server-info
 
 [protocol "keybase"]
+	allow = always
+
+[protocol "restic"]
 	allow = always
 #+end_src
 
@@ -5312,6 +5507,7 @@ cd ~/resources/bass
 make install &>/dev/null
 cd -
 <<20211028011434584909200>>
+<<profile-paths(shell="fish")>>
 alias s=source ~/.config/fish/config.fish
 direnv hook fish | source
 starship init fish | source
@@ -6075,12 +6271,7 @@ session_name: default
 <<.profile>>
 #+end_src
 
-#+call: hash() :exports none
-
-#+RESULTS:
-: 20211028011626543493400
-
-#+name: 20211028011626543493400
+#+name: profile-sources
 #+begin_src sh
 . $HOME/.nix-profile/etc/profile.d/nix.sh
 . $HOME/.asdf/asdf.sh
@@ -6088,12 +6279,7 @@ session_name: default
 . $HOME/resources/functions
 #+end_src
 
-#+call: hash() :exports none
-
-#+RESULTS:
-: 20211028011434584909200
-
-#+name: 20211028011434584909200
+#+name: cd-home-and-profile-aliases
 #+begin_src sh
 cd $HOME
 alias c="clear"
@@ -6101,26 +6287,33 @@ alias n="exit"
 alias ssh="assh wrapper ssh --"
 #+end_src
 
-#+call: hash() :exports none
-
-#+RESULTS:
-: 20211028011441477114800
-
-#+name: 20211028011441477114800
-#+begin_src sh
-PATH="$PATH:$HOME/.local/bin"
+#+name: profile-paths
+#+begin_src emacs-lisp :noweb-ref no :var shell=""
+(let* (path '("$HOME/.local/bin"
+            "$HOME/.nimble/bin"
+            "$HOME/go/bin"
+            "/usr/local/sbin"
+            "/usr/local/bin"
+            "/usr/sbin"
+            "/usr/bin"
+            "/sbin"
+            "/bin"
+            "/usr/games"
+            "/usr/local/games"
+            "/snap/bin"
+            "/usr/local/go/bin"
+            "/usr/lib/node_modules"))
+    (pcase shell
+        ("fish" (concat "set -gx PATH $PATH" (string-join path " ")))
+        ("xonsh" (concat "$PATH += [ \"" (string-join path "\",\n\t\"") "\" ]"))
+        (t (concat "PATH=\"$PATH:" (string-join path ":") "\""))))
 #+end_src
 
-#+call: hash() :exports none
-
-#+RESULTS:
-: 20211027212551212534800
-
-#+name: 20211027212551212534800
+#+name: profile-all-together
 #+begin_src sh :noweb-ref no
-<<20211028011626543493400>>
-<<20211028011434584909200>>
-<<20211028011441477114800>>
+<<profile-sources>>
+<<cd-home-and-profile-aliases>>
+<<profile-paths()>>
 #+end_src
 
 #+begin_src sh
@@ -6143,7 +6336,7 @@ alias s="source $HOME/.profile"
 
 #+name: 20211027212836251792500
 #+begin_src bash
-<<20211027212551212534800>>
+<<profile-all-together>>
 alias s="source ~/.bashrc"
 eval "$(direnv hook bash)"
 eval "$(starship init bash)"
@@ -6292,7 +6485,7 @@ temp
 
 #+begin_src zsh
 source ~/resources/grml/etc/zsh/zshrc
-<<20211027212551212534800>>
+<<profile-all-together>>
 alias s="source ~/.zshrc"
 eval "$(direnv hook zsh)"
 prompt off
