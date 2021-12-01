@@ -93,6 +93,11 @@
     branch = main
     path = sylveon
     url = https://github.com/shadowrylander/sylveon.git
+[submodule "ylv"]
+    shallow = true
+    branch = main
+    path = ylv
+    url = https://github.com/shadowrylander/ylv.git
 [submodule "sylvorg"]
     shallow = true
     branch = master
@@ -123,8 +128,3 @@
     branch = master
     path = resources/rolling-rhino
     url = https://github.com/wimpysworld/rolling-rhino.git
-[submodule "goroot"]
-    shallow = true
-    branch = master
-    path = goroot
-    url = https://go.googlesource.com/go

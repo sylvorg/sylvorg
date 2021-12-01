@@ -3398,17 +3398,52 @@ exec svlogd -tt /etc/sv/caddy/log
 **** run
 
 #+begin_src zsh :tangle (meq/tangle-path) :shebang "#!/usr/bin/env zsh"
-for port in 22 80 443 8080 9418; do
-    exec ufw allow $port &> /dev/null
+for port in 22 80 443 2022 8080 9418 60000:61000/udp; do
+    ufw allow $port &> /dev/null
 done
-exec chmod +x /etc/sv/caddy/{finish,log/run}
+chmod +x /etc/sv/caddy/{finish,log/run}
 exec /usr/bin/caddy run --config /.config/caddy/files/<<hostname()>> --adapter yaml 2>&1
 #+end_src
 
 **** finish
 
 #+begin_src zsh :tangle (meq/tangle-path) :shebang "#!/usr/bin/env zsh"
-exec killall caddy
+killall caddy
+#+end_src
+
+*** stow-runit
+**** log
+***** run
+
+#+begin_src zsh :tangle (meq/tangle-path) :shebang "#!/usr/bin/env zsh"
+exec svlogd -tt /etc/sv/stow-runit/log
+#+end_src
+
+**** run
+
+#+begin_src zsh :tangle (meq/tangle-path) :shebang "#!/usr/bin/env zsh"
+stow-sv() { stow --adopt --restow -d /etc -t $1 sv }
+stow-runit() {
+    for dir in /services /etc/service /var/service; do
+        mkdir -p $dir
+        stow-sv $dir
+    done
+    if [[ -n "$SVDIR" ]]; then
+        mkdir -p $SVDIR
+        stow-sv $SVDIR
+    fi
+}
+if [[ "$1" == "--bootstrap" ]]; then
+    stow-runit
+else
+    exec snooze -M/15 stow-runit
+fi
+#+end_src
+
+**** finish
+
+#+begin_src zsh :tangle (meq/tangle-path) :shebang "#!/usr/bin/env zsh"
+killall snooze
 #+end_src
 
 * eevee.sh
@@ -3417,26 +3452,17 @@ exec killall caddy
 chRun() { chmod +x $1; $@ }
 curlRun() { curl --create-dirs -Lo $2 $1; shift; chRun $@ }
 
-curlRun https://raw.githubusercontent.com/shadowrylander/pacapt/ng/pacapt sudo ~/presources/pacapt -Syu bash zsh git emacs-nox ufw runit-systemd
+curlRun https://raw.githubusercontent.com/shadowrylander/pacapt/ng/pacapt sudo ~/presources/pacapt -Syu bash zsh git emacs-nox ufw runit-systemd ddclient snooze
 
-ylv=~/presources/yadm
-curlRun https://raw.githubusercontent.com/shadowrylander/ylv/master/yadm $ylv clone --bootstrap sylveon.v6.army
+ylv=~/presources/ylv
+curlRun https://raw.githubusercontent.com/shadowrylander/ylv/master/ylv $ylv clone --bootstrap sylveon.v6.army
 
 source ~/resources/functions
 
-# From: https://github.com/keybase/client/issues/9292#issuecomment-465554906
-git config --global --add protocol.keybase.allow always
-chRun ~/run_keybase
-getSecret Paperkey keybase oneshot -u <<username>>
+$ylv se clone --bootstrap <<username>>@bastiodon:<<20211201082448294920957>>/repo.git
+$ylv su clone --bootstrap sylveon.v6.army
 
-$ylv se clone --bootstrap keybase://private/<<username>>/secrets
-sudo $ylv su clone --bootstrap sylveon.v6.army
-
-for prog in ufw runit; do
-    sudo systemctl enable --now $prog
-done
-
-keybase logout
+# create a git alias to keep the root and home yadm repos in sync
 #+end_src
 
 * resources
@@ -4649,7 +4675,7 @@ aliases[_fzf_df_alias] = _fzf
 :header-args:caddyfile+: :noweb-ref argus
 :END:
 
-#+begin_src caddyfile :noweb-ref no :tangle (meq/tangle-path)
+#+begin_src yaml :noweb-ref no :tangle (meq/tangle-path)
 <<argus>>
 #+end_src
 
@@ -4659,7 +4685,25 @@ admin:
 apps:
   layer4:
     servers:
-      srv0:
+      et:
+        listen:
+          - ':2022'
+        routes:
+          - handle:
+              - handler: proxy
+                upstreams:
+                  - dial:
+                      - 'localhost:16222'
+      syncthing:
+        listen:
+          - ':8384'
+        routes:
+          - handle:
+              - handler: proxy
+                upstreams:
+                  - dial:
+                      - 'localhost:16384'
+      relay:
         listen:
           - ':22'
           - ':80'
@@ -4689,25 +4733,11 @@ apps:
   http:
     https_port: 16433
     servers:
-      srv1:
+      web:
         listen:
           - ':1680'
           - ':16433'
         routes:
-          - match:
-              - host:
-                  - empoleon.duckdns.org
-            handle:
-              - handler: subroute
-                routes:
-                  - handle:
-                      - handler: static_response
-                        headers:
-                          Location:
-                            - >-
-                              https://github.com/shadowrylander/shadowrylander/blob/main/README.org
-                        status_code: 302
-            terminal: true
           - match:
               - host:
                   - now.sylveon.v6.army
@@ -4750,7 +4780,7 @@ apps:
             terminal: true
           - match:
               - host:
-                  - oreon.duckdns.org
+                  - oreon.v6.army
             handle:
               - handler: subroute
                 routes:
@@ -4786,8 +4816,6 @@ apps:
                       - handler: vars
                         root: '/root/one/{http.request.uri}/.git'
                       - handler: rewrite
-                        strip_path_suffix: /.git
-                      - handler: rewrite
                         strip_path_suffix: .git
                       - browse: {}
                         handler: file_server
@@ -4798,13 +4826,12 @@ apps:
     automation:
       policies:
         - subjects:
-            - empoleon.duckdns.org
             - now.sylveon.v6.army
             - hub.sylveon.v6.army
             - lab.sylveon.v6.army
-            - oreon.duckdns.org
+            - oreon.v6.army
             - sylveon.v6.army
-            - syvl.ydns.eu
+            - s*.ydns.eu
           issuers:
 #+end_src
 
@@ -5132,28 +5159,28 @@ location:
 #+end_src
 
 #+begin_src zsh
+# Adapted From: https://askubuntu.com/a/15856/1058868
 if [[ $EUID -ne 0 ]]; then
-    source ~/resources/functions
+    root="~"
+    ylv="$root/ylv/ylv"
 else
-    source /resources/functions
+    root=""
+    ylv="$root/ylv/ylv su"
 fi
+
+chmod +x $ylv
+
+source $root/resources/functions
 
 inAndroid {
     termux-setup-storage
-    pkg install emacs make fd cmake sqlite libtool man keybase yadm
+    pkg install emacs make fd cmake sqlite libtool man
 }
 
-GIT_SSL_NO_VERIFY=1 yadm submodule update --init --depth 1 --recursive --remote
-remoteSet="yadm remote set-url --push origin git@github.com:<<username>>/<<username>>.git"
-if [[ $EUID -ne 0 ]]; then
-    git clone --recurse-submodule git@github.com:<<username>>/<<username>>.git ~/one
-    eval $remoteSet
-    yadm config include.path "~/.gitconfig"
-else
-    git clone --recurse-submodule git@github.com:<<username>>/<<username>>.git /one
-    eval $remoteSet
-    yadm config include.path "/.gitconfig"
-fi
+GIT_SSL_NO_VERIFY=1 $ylv submodule update --init --depth 1 --recursive --remote
+git clone --recurse-submodule git@github.com:<<username>>/<<username>>.git $root/one
+$ylv remote set-url --push origin git@github.com:<<username>>/<<username>>.git
+$ylv config include.path "$root/.gitconfig"
 
 # Adapted From: https://askubuntu.com/a/15856/1058868
 if [[ $(uname -a) != *Android* ]] && [[ $EUID -ne 0 ]]; then
@@ -5165,32 +5192,25 @@ if [[ $(uname -a) != *Android* ]] && [[ $EUID -ne 0 ]]; then
         # User 2: https://askubuntu.com/users/158442/muru
         shopt -s globstar && chmod -R +x ~/installers/**/*.sh ~/installers/**/*.in
         ~/installers/guix/etc/guix-install.sh
-
-        getSecret Password ~/installers/brew/install.sh
-
-        ~/installers/nix/scripts/install.in
+        ~/installers/brew/install.sh
+        ~/installers/nix/scripts/install.in --daemon
         . ~/.nix-profile/etc/profile.d/nix.sh
     } || :
     nix-channel --add https://github.com/nixos/nixpkgs/archive/master.tar.gz master
     nix-channel --update
     nix-env -iA master.nixUnstable
-    nix-env -iA master.{emacs,gnumake,fd,cmake,sqlite,libtool,keybase,kbfs,man}
+    nix-env -iA master.{emacs,gnumake,fd,cmake,sqlite,libtool,man}
 fi
 
-# Adapted From: https://askubuntu.com/a/15856/1058868
-if [[ $EUID -ne 0 ]]; then
-    chmod +x ~/settings/org-tangle.sh
-    ~/settings/org-tangle.sh ~/{oreo.aiern,README}.org
-    make -f ~/.emacs.d/makefile bootstrap
-else
-    chmod +x /settings/org-tangle.sh
-    /settings/org-tangle.sh /{oreo.aiern,README}.org
-fi
+chmod +x $root/settings/org-tangle.sh
+$root/settings/org-tangle.sh $root/{oreo.aiern,README}.org
 
-# ln -s $(which xonsh) /data/data/com.termux/files/usr/bin/xonsh
+notInRoot make -f ~/.emacs.d/makefile bootstrap
+
+# ln -s $(which xonsh) $PREFIX/usr/bin/xonsh
 chsh -s $(which zsh)
 
-. ~/.asdf/asdf.sh || . /.asdf/asdf.sh
+. $root/.asdf/asdf.sh
 asdf plugin-add golang https://github.com/kennyp/asdf-golang.git
 asdf install golang latest
 asdf global golang latest
@@ -5201,7 +5221,6 @@ git config --global --add protocol.restic.allow always
 if [[ $(uname -a) == *Android* ]]; then
     termux-reload-settings
 else
-    # Adapted From: https://askubuntu.com/a/15856/1058868
     if [[ $EUID -ne 0 ]]; then
         exec ~/.zshrc
     else
@@ -5213,6 +5232,12 @@ else
             chmod +x /resources/rolling-rhino/rolling-rhino
             /resources/rolling-rhino/rolling-rhino
         }
+
+        chRun /etc/sv/stow-runit/run --bootstrap
+
+        for prog in ufw runit et ddclient; do
+            sudo systemctl enable --now $prog
+        done
     fi
 fi
 #+end_src
@@ -5286,6 +5311,37 @@ eval $(starship init ion)
 #+end_src
 
 ** git
+
+#+call: hash() :exports none
+
+#+RESULTS:
+: 20211201082448294920957
+
+#+name: 20211201082448294920957
+#+begin_src text
+~/.local/share/yadm-sec
+#+end_src
+
+#+call: hash() :exports none
+
+#+RESULTS:
+: 20211201082803817502027
+
+#+name: 20211201082803817502027
+#+begin_src text
+.local/share/yadm
+#+end_src
+
+#+call: hash() :exports none
+
+#+RESULTS:
+: 20211201082822483040679
+
+#+name: 20211201082822483040679
+#+begin_src text
+/root/.local/share/yadm
+#+end_src
+
 *** config
 :PROPERTIES:
 :header-args:conf+: :noweb-ref config
@@ -5314,18 +5370,22 @@ eval $(starship init ion)
 
 [alias]
     cnm = commit --allow-empty-message -am ""
-    subinit = !chmod +x ~/.config/git/scripts/subinit && ~/.config/git/scripts/subinit $@
+    subinit = !chmod +x ~/.config/git/scripts/subinit && ~/.config/git/scripts/subinit
     noggin = !git push origin HEAD:main || git push origin HEAD:master
     stow = !make -f ~/makefile stow
-    tangle = !make -f ~/makefile tangle
-    super = !chmod +x ~/.config/git/scripts/super && ~/.config/git/scripts/super $@
-    wtt = !chmod +x ~/.config/git/scripts/wtt && ~/.config/git/scripts/wtt $@
-    keybase = !chmod +x ~/run_keybase && ~/run_keybase $@
+    mangle = !make -f ~/makefile tangle
+    tangle = !chmod +x ~/.config/git/scripts/tangle && ~/.config/git/scripts/tangle
+    super = !chmod +x ~/.config/git/scripts/super && ~/.config/git/scripts/super
+    wtt = !chmod +x ~/.config/git/scripts/wtt && ~/.config/git/scripts/wtt
+    sunc = !chmod +x ~/.config/git/scripts/sunc && ~/.config/git/scripts/sunc
+    keybase = !chmod +x ~/run_keybase && ~/run_keybase
     sylveon = !git -C ~/sylveon subinit
     bootstrap = !make -f ~/.emacs.d/makefile bootstrap
-    su = !sudo yadm -C / $@ || sudo yadm -w / $@
-    se = !yadm -Y ~/.config/yadm-sec --yadm-data ~/.local/share/yadm-sec $@
+    su = !sudo yadm -C / $@ || sudo yadm -w /
+    se = !yadm -Y ~/.config/yadm-sec --yadm-data <<20211201082448294920957>>
     clone-init = !mv .git/hooks/post-update.sample .git/hooks/post-update && chmod a+x .git/hooks/post-update && git update-server-info
+    exa = !exa -la --octal-permissions -I .git
+    exat = exa -T
 
 [protocol "keybase"]
 	allow = always
@@ -5375,6 +5435,23 @@ make -f ~/makefile tangle
 #+end_src
 
 *** scripts
+**** tangle
+:PROPERTIES:
+:header-args:zsh+: :noweb-ref tangle
+:END:
+
+#+begin_src zsh :noweb-ref no :tangle (meq/tangle-path) :shebang "#!/usr/bin/env zsh"
+<<tangle>>
+#+end_src
+
+#+begin_src zsh
+chmod +x settings/org-tangle.sh && settings/org-tangle.sh $@ || \
+chmod +x home/.emacs.d/settings/org-tangle.sh && home/.emacs.d/settings/org-tangle.sh $@ || \
+chmod +x ~/settings/org-tangle.sh && ~/settings/org-tangle.sh $@ || \
+chmod +x ~/.emacs.d/settings/org-tangle.sh && ~/.emacs.d/settings/org-tangle.sh $@ || \
+chmod +x /settings/org-tangle.sh && /settings/org-tangle.sh $@
+#+end_src
+
 **** super
 :PROPERTIES:
 :header-args:zsh+: :noweb-ref super
@@ -5474,6 +5551,26 @@ for submodule, subdict in submodules.items():
 #+begin_src zsh
 [[ -n "$1" ]] && ext=".$1.sh" || ext=".sh"
 chmod +x ~/.emacs.d/wtt/wtt$ext && ~/.emacs.d/wtt/wtt$ext
+#+end_src
+
+**** sunc
+:PROPERTIES:
+:header-args:zsh+: :noweb-ref sunc
+:END:
+
+#+begin_src zsh :noweb-ref no :tangle (meq/tangle-path) :shebang "#!/usr/bin/env zsh"
+<<sunc>>
+#+end_src
+
+#+begin_src zsh
+yadm su remote add user $HOME/<<20211201082803817502027>>/repo.git
+yadm su mangle
+yadm su super
+yadm su sync user main
+yadm remote add root <<20211201082822483040679>>/repo.git
+yadm mangle
+yadm super
+yadm sync root main
 #+end_src
 
 ** powershell
