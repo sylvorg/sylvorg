@@ -3442,8 +3442,34 @@ fi
 
 **** finish
 
+#+call: hash() :exports none
+
+#+RESULTS:
+: 20211201115756956646307
+
+#+name: 20211201115756956646307
 #+begin_src zsh :tangle (meq/tangle-path) :shebang "#!/usr/bin/env zsh"
 killall snooze
+#+end_src
+
+*** git-sunc
+**** log
+***** run
+
+#+begin_src zsh :tangle (meq/tangle-path) :shebang "#!/usr/bin/env zsh"
+exec svlogd -tt /etc/sv/git-sunc/log
+#+end_src
+
+**** run
+
+#+begin_src zsh :tangle (meq/tangle-path) :shebang "#!/usr/bin/env zsh"
+exec snooze -M/15 git-sunc
+#+end_src
+
+**** finish
+
+#+begin_src zsh :tangle (meq/tangle-path) :shebang "#!/usr/bin/env zsh"
+<<20211201115756956646307>>
 #+end_src
 
 * eevee.sh
@@ -5564,12 +5590,8 @@ git chRun ~/.emacs.d/wtt/wtt$ext
 
 #+begin_src zsh
 yadm su remote add user $HOME/<<20211201082803817502027>>/repo.git
-yadm su mangle
-yadm su super
 yadm su sync user main
 yadm remote add root <<20211201082822483040679>>/repo.git
-yadm mangle
-yadm super
 yadm sync root main
 #+end_src
 
