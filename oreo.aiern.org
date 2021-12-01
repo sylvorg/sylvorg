@@ -3449,18 +3449,20 @@ killall snooze
 * eevee.sh
 
 #+begin_src sh :tangle (meq/tangle-path) :shebang "#!/usr/bin/env sh"
-chRun() { chmod +x $1; $@ }
-curlRun() { curl --create-dirs -Lo $2 $1; shift; chRun $@ }
+chRun() { chmod +x $1 && $@ }
+curlRun() { curl --create-dirs -Lo $2 $1 && shift && chRun $@ }
 
 curlRun https://raw.githubusercontent.com/shadowrylander/pacapt/ng/pacapt sudo ~/presources/pacapt -Syu bash zsh git emacs-nox ufw runit-systemd ddclient snooze
 
 ylv=~/presources/ylv
-curlRun https://raw.githubusercontent.com/shadowrylander/ylv/master/ylv $ylv clone --bootstrap sylveon.v6.army
+curlRun https://raw.githubusercontent.com/shadowrylander/ylv/master/ylv $ylv clone --no-bootstrap sylveon.v6.army
+chRun ~/.config/yadm/bootstrap
 
-source ~/resources/functions
+$ylv se clone --no-bootstrap <<username>>@bastiodon:<<20211201082448294920957>>/repo.git
+chRun ~/.config/yadm-sec/bootstrap
 
-$ylv se clone --bootstrap <<username>>@bastiodon:<<20211201082448294920957>>/repo.git
 $ylv su clone --bootstrap sylveon.v6.army
+chRun sudo /root/.config/yadm/bootstrap
 
 # create a git alias to keep the root and home yadm repos in sync
 #+end_src
@@ -3491,8 +3493,8 @@ notInAndroid() { [[ $(uname -a) != *Android* ]] && $1 || : }
 inUbuntu() { [[ $(uname -a) == *Ubuntu* ]] && $1 || : }
 notInUbuntu() { [[ $(uname -a) != *Ubuntu* ]] && $1 || : }
 
-chRun() { chmod +x $1; $@ }
-curlRun() { curl --create-dirs -Lo $2 $1; shift; chRun $@ }
+chRun() { git chRun $@ }
+curlRun() { git curlRun $@ }
 #+end_src
 
 * wheee.py
@@ -5202,8 +5204,7 @@ if [[ $(uname -a) != *Android* ]] && [[ $EUID -ne 0 ]]; then
     nix-env -iA master.{emacs,gnumake,fd,cmake,sqlite,libtool,man}
 fi
 
-chmod +x $root/settings/org-tangle.sh
-$root/settings/org-tangle.sh $root/{oreo.aiern,README}.org
+chRun $root/settings/org-tangle.sh $root/{oreo.aiern,README}.org
 
 notInRoot make -f ~/.emacs.d/makefile bootstrap
 
@@ -5228,10 +5229,7 @@ else
         xcaddy build --with github.com/mholt/caddy-l4@latest --with github.com/abiosoft/caddy-yaml@latest
         mv {.,/usr/bin}/caddy
 
-        inUbuntu {
-            chmod +x /resources/rolling-rhino/rolling-rhino
-            /resources/rolling-rhino/rolling-rhino
-        }
+        inUbuntu chRun /resources/rolling-rhino/rolling-rhino
 
         chRun /etc/sv/stow-runit/run --bootstrap
 
@@ -5370,15 +5368,17 @@ eval $(starship init ion)
 
 [alias]
     cnm = commit --allow-empty-message -am ""
-    subinit = !chmod +x ~/.config/git/scripts/subinit && ~/.config/git/scripts/subinit
+    chRun = !chmod +x $1 &&
+    curlRun = !curl --create-dirs -Lo $2 $1 && shift && git chRun $@
+    subinit = chRun ~/.config/git/scripts/subinit
     noggin = !git push origin HEAD:main || git push origin HEAD:master
     stow = !make -f ~/makefile stow
     mangle = !make -f ~/makefile tangle
-    tangle = !chmod +x ~/.config/git/scripts/tangle && ~/.config/git/scripts/tangle
-    super = !chmod +x ~/.config/git/scripts/super && ~/.config/git/scripts/super
-    wtt = !chmod +x ~/.config/git/scripts/wtt && ~/.config/git/scripts/wtt
-    sunc = !chmod +x ~/.config/git/scripts/sunc && ~/.config/git/scripts/sunc
-    keybase = !chmod +x ~/run_keybase && ~/run_keybase
+    tangle = chRun ~/.config/git/scripts/tangle
+    super = chRun ~/.config/git/scripts/super
+    wtt = chRun ~/.config/git/scripts/wtt
+    sunc = chRun ~/.config/git/scripts/sunc
+    keybase = chRun ~/run_keybase
     sylveon = !git -C ~/sylveon subinit
     bootstrap = !make -f ~/.emacs.d/makefile bootstrap
     su = !sudo yadm -C / $@ || sudo yadm -w /
@@ -5445,11 +5445,11 @@ make -f ~/makefile tangle
 #+end_src
 
 #+begin_src zsh
-chmod +x settings/org-tangle.sh && settings/org-tangle.sh $@ || \
-chmod +x home/.emacs.d/settings/org-tangle.sh && home/.emacs.d/settings/org-tangle.sh $@ || \
-chmod +x ~/settings/org-tangle.sh && ~/settings/org-tangle.sh $@ || \
-chmod +x ~/.emacs.d/settings/org-tangle.sh && ~/.emacs.d/settings/org-tangle.sh $@ || \
-chmod +x /settings/org-tangle.sh && /settings/org-tangle.sh $@
+git chRun settings/org-tangle.sh $@ || \
+git chRun home/.emacs.d/settings/org-tangle.sh $@ || \
+git chRun ~/settings/org-tangle.sh $@ || \
+git chRun ~/.emacs.d/settings/org-tangle.sh $@ || \
+git chRun /settings/org-tangle.sh $@
 #+end_src
 
 **** super
@@ -5550,7 +5550,7 @@ for submodule, subdict in submodules.items():
 
 #+begin_src zsh
 [[ -n "$1" ]] && ext=".$1.sh" || ext=".sh"
-chmod +x ~/.emacs.d/wtt/wtt$ext && ~/.emacs.d/wtt/wtt$ext
+git chRun ~/.emacs.d/wtt/wtt$ext
 #+end_src
 
 **** sunc
