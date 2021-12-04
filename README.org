@@ -1,53 +1,6 @@
 #+setupfile: ./settings/README.org
 #+include: ./settings/README.org
 
-* mscripts
-** stow
-
-#+begin_src xonsh :tangle (meq/tangle-path) :shebang "#!/usr/bin/env xonsh"
-import fuckit, os
-from sys import argv
-chmod 700 @(os.path.join(argv[1], ".ssh")) &> /dev/null
-chmod +x @(os.path.join(argv[1], "run_keybase"))
-@$(os.path.join(argv[1], "run_keybase"))
-git -C @(os.path.join(argv[1], "keybase", "secrets")) pull
-with fuckit:
-    for f in $(ls -a @(os.path.join(argv[1], "keybase", "secrets", ".ssh"))).split():
-        if f not in [ ".", ".." ]:
-            rm @(os.path.join(argv[1], ".ssh", f))
-stow -d @(os.path.join(argv[1], "keybase")) -t @(argv[1]) secrets
-chmod 700 @(os.path.join(argv[1], ".ssh"))
-chmod 600 @(os.path.join(argv[1], ".ssh", "*"))
-#+end_src
-
-** tangle
-
-#+begin_src xonsh :tangle (meq/tangle-path) :shebang "#!/usr/bin/env xonsh"
-import os
-from sys import argv
-
-def runFd(dir, ext, cmd, recursive = True):
-    try:
-        if isinstance(ext, str): raise TypeError
-        else: iter(ext)
-    except TypeError: newExt = "-e " + ext
-    else:
-        newExt = ""
-        for e in ext: newExt += f" -e {e}"
-    if recursive:
-        fd . @(dir) -HI @(newExt) -x @(cmd)
-    else:
-        fd . @(dir) -HId 1 @(newExt) -x @(cmd)
-
-runFd(argv[1], "sh", "chmod +x", 1)
-runFd(argv[1], "py", "black -l 65", 1)
-for d in [
-    ".config"
-]:
-    runFd(os.path.join(argv[1], d), "sh", "chmod +x")
-    runFd(os.path.join(argv[1], d), "py", "black -l 65")
-#+end_src
-
 * makefile
 
 #+begin_src makefile :tangle (meq/tangle-path)
@@ -61,42 +14,21 @@ emkDir := $(mkfileDir)/.emacs.d/
 emkFile := $(emkDir)/makefile
 emkMake := make -f $(emkFile)
 
-bootstrap:
-|nix-channel --add https://github.com/nixos/nixpkgs/archive/master/nixpkgs.tar.gz master
-|nix-channel --update
-|nix-env -iA master.emacs master.python310 master.nixUnstable
-|-git -C $(mkfileDir)/settings checkout main
-|$(mkfileDir)/settings/org-tangle.sh oreo.aiern.org README.org
-|chmod +x $(mkfileDir)/wheee.py $(mkfileDir)/bootstrap.py
-|-git clone https://github.com/<<username>>/<<username>> $(mkfileDir)/<<username>>
-
 README:
-|yes yes | $(mkfileDir)/settings/org-tangle.sh $(mkfileDir)/README.org
+|git tangle $(mkfileDir)/README.org
 
-both: README
-|yes yes | $(mkfileDir)/settings/org-tangle.sh $(mkfileDir)/oreo.aiern.org
-
-tangle: both
-|chmod +x $(mkfileDir)/mscripts/tangle
-|$(mkfileDir)/mscripts/tangle $(mkfileDir)
+tangle: README
+|git tangle $(mkfileDir)/oreo.aiern.org
 
 tangle-emacs:
 |$(emkMake) tangle
 
 tangle-all: tangle tangle-emacs
 
-subinit:
-|$(emkMake) subinit
-|yadm submodule sync --recursive
-
 emacs:
 |$(emkMake) emacs
 emacs-nw:
 |$(emkMake) emacs-nw
-
-stow:
-|chmod +x $(mkfileDir)/mscripts/stow
-|$(mkfileDir)/mscripts/stow $(mkfileDir)
 #+end_src
 
 * previous projects

@@ -3472,27 +3472,6 @@ exec snooze -M/15 git-sunc
 <<20211201115756956646307>>
 #+end_src
 
-* eevee.sh
-
-#+begin_src sh :tangle (meq/tangle-path) :shebang "#!/usr/bin/env sh"
-chRun() { chmod +x $1 && $@ }
-curlRun() { curl --create-dirs -Lo $2 $1 && shift && chRun $@ }
-
-curlRun https://raw.githubusercontent.com/shadowrylander/pacapt/ng/pacapt sudo ~/presources/pacapt -Syu bash zsh git emacs-nox ufw runit-systemd ddclient snooze
-
-ylv=~/presources/ylv
-curlRun https://raw.githubusercontent.com/shadowrylander/ylv/master/ylv $ylv clone --no-bootstrap sylveon.v6.army
-chRun ~/.config/yadm/bootstrap
-
-$ylv se clone --no-bootstrap <<username>>@bastiodon:<<20211201082448294920957>>/repo.git
-chRun ~/.config/yadm-sec/bootstrap
-
-$ylv su clone --bootstrap sylveon.v6.army
-chRun sudo /root/.config/yadm/bootstrap
-
-# create a git alias to keep the root and home yadm repos in sync
-#+end_src
-
 * resources
 ** functions
 
@@ -3520,6 +3499,7 @@ inUbuntu() { [[ $(uname -a) == *Ubuntu* ]] && $1 || : }
 notInUbuntu() { [[ $(uname -a) != *Ubuntu* ]] && $1 || : }
 
 chRun() { git chRun $@ }
+sudoRun() { sudo chmod +x $1 && sudo $@ }
 curlRun() { git curlRun $@ }
 #+end_src
 
@@ -4696,201 +4676,6 @@ aliases[_fzf_df_alias] = _fzf
 #+end_src
 
 * .config
-** caddy
-*** files
-**** argus
-:PROPERTIES:
-:header-args:caddyfile+: :noweb-ref argus
-:END:
-
-#+begin_src yaml :noweb-ref no :tangle (meq/tangle-path)
-<<argus>>
-#+end_src
-
-#+begin_src yaml
-admin:
-  disabled: true
-apps:
-  layer4:
-    servers:
-      et:
-        listen:
-          - ':2022'
-        routes:
-          - handle:
-              - handler: proxy
-                upstreams:
-                  - dial:
-                      - 'localhost:16222'
-      syncthing:
-        listen:
-          - ':8384'
-        routes:
-          - handle:
-              - handler: proxy
-                upstreams:
-                  - dial:
-                      - 'localhost:16384'
-      relay:
-        listen:
-          - ':22'
-          - ':80'
-          - ':443'
-        routes:
-          - match:
-              - ssh: {}
-            handle:
-              - handler: proxy
-                upstreams:
-                  - dial:
-                      - 'localhost:1622'
-          - match:
-              - http: []
-            handle:
-              - handler: proxy
-                upstreams:
-                  - dial:
-                      - 'localhost:1680'
-          - match:
-              - tls: {}
-            handle:
-              - handler: proxy
-                upstreams:
-                  - dial:
-                      - 'localhost:16433'
-  http:
-    https_port: 16433
-    servers:
-      web:
-        listen:
-          - ':1680'
-          - ':16433'
-        routes:
-          - match:
-              - host:
-                  - now.sylveon.v6.army
-            handle:
-              - handler: subroute
-                routes:
-                  - handle:
-                      - handler: vars
-                        root: /root/.local/share/yadm/repo.git
-                      - browse: {}
-                        handler: file_server
-                        hide:
-                          - ./Caddyfile
-            terminal: true
-          - match:
-              - host:
-                  - hub.sylveon.v6.army
-            handle:
-              - handler: subroute
-                routes:
-                  - handle:
-                      - handler: static_response
-                        headers:
-                          Location:
-                            - 'https://git.io/shadowrylander'
-                        status_code: 302
-            terminal: true
-          - match:
-              - host:
-                  - lab.sylveon.v6.army
-            handle:
-              - handler: subroute
-                routes:
-                  - handle:
-                      - handler: static_response
-                        headers:
-                          Location:
-                            - 'https://gitlab.com/shadowrylander'
-                        status_code: 302
-            terminal: true
-          - match:
-              - host:
-                  - oreon.v6.army
-            handle:
-              - handler: subroute
-                routes:
-                  - handle:
-                      - handler: static_response
-                        headers:
-                          Location:
-                            - >-
-                              https://github.com/shadowrylander/shadowrylander/blob/main/oreo.aiern.org
-                        status_code: 302
-            terminal: true
-          - match:
-              - host:
-                  - sylveon.v6.army
-            handle:
-              - handler: subroute
-                routes:
-                  - handle:
-                      - handler: vars
-                        root: /root/one/.git
-                      - browse: {}
-                        handler: file_server
-                        hide:
-                          - ./Caddyfile
-            terminal: true
-          - match:
-              - host:
-                  - s*.ydns.eu
-            handle:
-              - handler: subroute
-                routes:
-                  - handle:
-                      - handler: vars
-                        root: '/root/one/{http.request.uri}/.git'
-                      - handler: rewrite
-                        strip_path_suffix: .git
-                      - browse: {}
-                        handler: file_server
-                        hide:
-                          - ./Caddyfile
-            terminal: true
-  tls:
-    automation:
-      policies:
-        - subjects:
-            - now.sylveon.v6.army
-            - hub.sylveon.v6.army
-            - lab.sylveon.v6.army
-            - oreon.v6.army
-            - sylveon.v6.army
-            - s*.ydns.eu
-          issuers:
-#+end_src
-
-#+begin_src yaml
-            - ca: 'https://acme.zerossl.com/v2/DV90'
-              email: syvlorg@protonmail.com
-              module: acme
-            - ca: 'https://acme.zerossl.com/v2/DV90'
-              email: syvlorg@protonmail.com
-              module: zerossl
-#+end_src
-
-#+begin_src yaml :noweb-ref no
-            - ca: 'https://acme-staging-v02.api.letsencrypt.org/directory'
-              email: syvlorg@protonmail.com
-              module: acme
-#+end_src
-
-**** bastion
-:PROPERTIES:
-:header-args:caddyfile+: :noweb-ref bastion
-:END:
-
-#+begin_src caddyfile :noweb-ref no :tangle (meq/tangle-path)
-<<bastion>>
-#+end_src
-
-#+begin_src caddyfile
-
-#+end_src
-
 ** borgmatic
 
 #+name: borgmatic-ls
@@ -5187,6 +4972,8 @@ location:
 #+end_src
 
 #+begin_src zsh
+set -eo pipefail
+
 # Adapted From: https://askubuntu.com/a/15856/1058868
 if [[ $EUID -ne 0 ]]; then
     root="~"
@@ -5230,17 +5017,21 @@ if [[ $(uname -a) != *Android* ]] && [[ $EUID -ne 0 ]]; then
     nix-env -iA master.{emacs,gnumake,fd,cmake,sqlite,libtool,man}
 fi
 
-chRun $root/settings/org-tangle.sh $root/{oreo.aiern,README}.org
+git tangle $root/{oreo.aiern,README}.org
 
-notInRoot make -f ~/.emacs.d/makefile bootstrap
+notInRoot git bootstrap
 
 # ln -s $(which xonsh) $PREFIX/usr/bin/xonsh
 chsh -s $(which zsh)
 
 . $root/.asdf/asdf.sh
-asdf plugin-add golang https://github.com/kennyp/asdf-golang.git
+asdf plugin add golang https://github.com/kennyp/asdf-golang.git
 asdf install golang latest
 asdf global golang latest
+
+asdf plugin add nodejs https://github.com/asdf-vm/asdf-nodejs.git
+asdf install nodejs latest
+asdf global nodejs latest
 
 go install github.com/CGamesPlay/git-remote-restic@latest
 git config --global --add protocol.restic.allow always
@@ -5252,8 +5043,12 @@ else
         exec ~/.zshrc
     else
         go install github.com/caddyserver/xcaddy/cmd/xcaddy@latest
-        xcaddy build --with github.com/mholt/caddy-l4@latest --with github.com/abiosoft/caddy-yaml@latest
+        xcaddy build --with github.com/mholt/caddy-l4@latest \
+                     --with github.com/abiosoft/caddy-yaml@latest \
+                     --with github.com/caddy-dns/cloudflare@latest
         mv {.,/usr/bin}/caddy
+
+        npm install -g wstunnel
 
         inUbuntu chRun /resources/rolling-rhino/rolling-rhino
 
@@ -5335,37 +5130,6 @@ eval $(starship init ion)
 #+end_src
 
 ** git
-
-#+call: hash() :exports none
-
-#+RESULTS:
-: 20211201082448294920957
-
-#+name: 20211201082448294920957
-#+begin_src text
-~/.local/share/yadm-sec
-#+end_src
-
-#+call: hash() :exports none
-
-#+RESULTS:
-: 20211201082803817502027
-
-#+name: 20211201082803817502027
-#+begin_src text
-.local/share/yadm
-#+end_src
-
-#+call: hash() :exports none
-
-#+RESULTS:
-: 20211201082822483040679
-
-#+name: 20211201082822483040679
-#+begin_src text
-/root/.local/share/yadm
-#+end_src
-
 *** config
 :PROPERTIES:
 :header-args:conf+: :noweb-ref config
@@ -5395,23 +5159,30 @@ eval $(starship init ion)
 [alias]
     cnm = commit --allow-empty-message -am ""
     chRun = !chmod +x $1 &&
-    curlRun = !curl --create-dirs -Lo $2 $1 && shift && git chRun $@
+    curlRun = !curl --create-dirs -Lo $2 $1 && shift && git chRun
     subinit = chRun ~/.config/git/scripts/subinit
     noggin = !git push origin HEAD:main || git push origin HEAD:master
-    stow = !make -f ~/makefile stow
-    mangle = !make -f ~/makefile tangle
+    make = !make -f ~/makefile
+    emake = !make -f home/.emacs.d/makefile $@ || make -f ~/.emacs.d/makefile
+    stow = make stow
+    mangle = make tangle
     tangle = chRun ~/.config/git/scripts/tangle
     super = chRun ~/.config/git/scripts/super
     wtt = chRun ~/.config/git/scripts/wtt
     sunc = chRun ~/.config/git/scripts/sunc
+    senc = chRun ~/.config/git/scripts/senc
     keybase = chRun ~/run_keybase
     sylveon = !git -C ~/sylveon subinit
-    bootstrap = !make -f ~/.emacs.d/makefile bootstrap
+    bootstrap = emake bootstrap
     su = !sudo yadm -C / $@ || sudo yadm -w /
-    se = !yadm -Y ~/.config/yadm-sec --yadm-data <<20211201082448294920957>>
+    se = chRun ~/.config/git/scripts/se
     clone-init = !mv .git/hooks/post-update.sample .git/hooks/post-update && chmod a+x .git/hooks/post-update && git update-server-info
     exa = !exa -la --octal-permissions -I .git
     exat = exa -T
+    brew = chRun ~/.config/git/scripts/brew
+    nix = chRun ~/.config/git/scripts/nix
+    guix = chRun ~/.config/git/scripts/guix
+    asdf = chRun ~/.config/git/scripts/asdf
 
 [protocol "keybase"]
 	allow = always
@@ -5471,11 +5242,12 @@ make -f ~/makefile tangle
 #+end_src
 
 #+begin_src zsh
-git chRun settings/org-tangle.sh $@ || \
-git chRun home/.emacs.d/settings/org-tangle.sh $@ || \
-git chRun ~/settings/org-tangle.sh $@ || \
-git chRun ~/.emacs.d/settings/org-tangle.sh $@ || \
-git chRun /settings/org-tangle.sh $@
+run="yes yes | git chRun"
+$run settings/org-tangle.sh $@ || \
+$run home/.emacs.d/settings/org-tangle.sh $@ || \
+$run ~/settings/org-tangle.sh $@ || \
+$run ~/.emacs.d/settings/org-tangle.sh $@ || \
+$run /settings/org-tangle.sh $@
 #+end_src
 
 **** super
@@ -5589,10 +5361,103 @@ git chRun ~/.emacs.d/wtt/wtt$ext
 #+end_src
 
 #+begin_src zsh
-yadm su remote add user $HOME/<<20211201082803817502027>>/repo.git
+yadm su remote add user $HOME/<<yadm-dir>>/repo.git
 yadm su sync user main
-yadm remote add root <<20211201082822483040679>>/repo.git
+yadm remote add root /root/<<yadm-dir>>/repo.git
 yadm sync root main
+#+end_src
+
+**** senc
+:PROPERTIES:
+:header-args:zsh+: :noweb-ref senc
+:END:
+
+#+begin_src zsh :noweb-ref no :tangle (meq/tangle-path) :shebang "#!/usr/bin/env zsh"
+<<senc>>
+#+end_src
+
+#+begin_src zsh
+yadm su se remote add user $HOME/<<yadm-dir>>-sec/repo.git
+yadm su se sync user main
+yadm se remote add root /root/<<yadm-dir>>-sec/repo.git
+yadm se sync root main
+#+end_src
+
+**** se
+:PROPERTIES:
+:header-args:zsh+: :noweb-ref se
+:END:
+
+#+begin_src zsh :noweb-ref no :tangle (meq/tangle-path) :shebang "#!/usr/bin/env zsh"
+<<se>>
+#+end_src
+
+#+begin_src zsh
+# Adapted From: https://askubuntu.com/a/15856/1058868
+if [[ $EUID -ne 0 ]]; then
+    root="~"
+    ylv="$root/ylv/ylv"
+else
+    root="/root"
+    ylv="/ylv/ylv su"
+fi
+
+$ylv -Y $root/.config/yadm-sec --yadm-dir $root/<<yadm-dir>>-sec
+#+end_src
+
+**** brew
+:PROPERTIES:
+:header-args:zsh+: :noweb-ref brew
+:END:
+
+#+begin_src zsh :noweb-ref no :tangle (meq/tangle-path) :shebang "#!/usr/bin/env zsh"
+<<brew>>
+#+end_src
+
+#+begin_src zsh
+/home/linuxbrew/.linuxbrew/bin/brew $@ || \
+/home/linuxbrew/.linuxbrew/bin/$@ || \
+/home/linuxbrew/.linuxbrew/sbin/$@
+#+end_src
+
+**** nix
+:PROPERTIES:
+:header-args:zsh+: :noweb-ref nix
+:END:
+
+#+begin_src zsh :noweb-ref no :tangle (meq/tangle-path) :shebang "#!/usr/bin/env zsh"
+<<nix>>
+#+end_src
+
+#+begin_src zsh
+/nix/var/nix/profiles/default/bin/nix-env $@ || /nix/var/nix/profiles/default/bin/$@
+#+end_src
+
+**** guix
+:PROPERTIES:
+:header-args:zsh+: :noweb-ref guix
+:END:
+
+#+begin_src zsh :noweb-ref no :tangle (meq/tangle-path) :shebang "#!/usr/bin/env zsh"
+<<guix>>
+#+end_src
+
+#+begin_src zsh
+/usr/local/bin/guix $@ || /home/linuxbrew/.guix-profile/bin/$@
+#+end_src
+
+**** asdf
+:PROPERTIES:
+:header-args:zsh+: :noweb-ref asdf
+:END:
+
+#+begin_src zsh :noweb-ref no :tangle (meq/tangle-path) :shebang "#!/usr/bin/env zsh"
+<<asdf>>
+#+end_src
+
+#+begin_src zsh
+/home/linuxbrew/.linuxbrew/opt/asdf/bin/asdf $@ || \
+/home/linuxbrew/.linuxbrew/opt/asdf/bin/$@
 #+end_src
 
 ** powershell
@@ -6410,6 +6275,10 @@ alias ssh="assh wrapper ssh --"
 #+begin_src emacs-lisp :noweb-ref no :var shell=""
 (let* (path '("$HOME/.local/bin"
             "$HOME/.nimble/bin"
+            "/home/linuxbrew/.linuxbrew/bin"
+            "/home/linuxbrew/.linuxbrew/sbin"
+            "$HOME/.nix-profile/bin"
+            "$HOME/.guix-profile/bin"
             "$HOME/go/bin"
             "/usr/local/sbin"
             "/usr/local/bin"
