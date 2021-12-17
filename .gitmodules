@@ -68,11 +68,6 @@
     branch = master
     path = git-subtree
     url = https://github.com/shadowrylander/git-subtree.git
-[submodule "keybase/secrets"]
-    shallow = true
-    branch = master
-    path = keybase/secrets
-    url = keybase://private/shadowrylander/secrets
 [submodule "resources/bass"]
     shallow = true
     branch = master
@@ -83,11 +78,6 @@
     branch = master
     path = resources/nix-env.fish
     url = https://github.com/lilyball/nix-env.fish.git
-[submodule ".asdf"]
-    shallow = true
-    branch = master
-    path = .asdf
-    url = https://github.com/asdf-vm/asdf.git
 [submodule "sylveon"]
     shallow = true
     branch = main
@@ -98,31 +88,16 @@
     branch = main
     path = ylv
     url = https://github.com/shadowrylander/ylv.git
-[submodule "sylvorg"]
+[submodule "sylvorg.github.io"]
     shallow = true
     branch = master
-    path = sylvorg
-    url = keybase://private/shadowrylander/sylvorg
-[submodule "shadowrylander.github.io"]
+    path = sylvorg.github.io
+    url = https://github.com/sylvorg/sylvorg.github.io.git
+[submodule "syvlorg.github.io"]
     shallow = true
     branch = master
-    path = shadowrylander.github.io
-    url = https://github.com/shadowrylander/shadowrylander.github.io.git
-[submodule "installers/brew"]
-    shallow = true
-    branch = master
-    path = installers/brew
-    url = https://github.com/Homebrew/install.git
-[submodule "installers/nix"]
-    shallow = true
-    branch = master
-    path = installers/nix
-    url = https://github.com/NixOS/nix.git
-[submodule "installers/guix"]
-    shallow = true
-    branch = master
-    path = installers/guix
-    url = https://git.savannah.gnu.org/git/guix.git
+    path = syvlorg.github.io
+    url = https://github.com/syvlorg/syvlorg.github.io.git
 [submodule "resources/rolling-rhino"]
     shallow = true
     branch = master

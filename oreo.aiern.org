@@ -3391,14 +3391,14 @@ in
 **** log
 ***** run
 
-#+begin_src zsh :tangle (meq/tangle-path) :shebang "#!/usr/bin/env zsh"
+#+begin_src zsh :tangle (meq/tangle-on-relay) :shebang "#!/usr/bin/env zsh"
 exec svlogd -tt /etc/sv/caddy/log
 #+end_src
 
 **** run
 
-#+begin_src zsh :tangle (meq/tangle-path) :shebang "#!/usr/bin/env zsh"
-for port in 22 80 443 2022 8080 9418 60000:61000/udp; do
+#+begin_src zsh :tangle (meq/tangle-on-relay) :shebang "#!/usr/bin/env zsh"
+for port in 22 80 222 443 2022 8080 9418 60000:61000/udp; do
     ufw allow $port &> /dev/null
 done
 chmod +x /etc/sv/caddy/{finish,log/run}
@@ -3407,7 +3407,7 @@ exec /usr/bin/caddy run --config /.config/caddy/files/<<hostname()>> --adapter y
 
 **** finish
 
-#+begin_src zsh :tangle (meq/tangle-path) :shebang "#!/usr/bin/env zsh"
+#+begin_src zsh :tangle (meq/tangle-on-relay) :shebang "#!/usr/bin/env zsh"
 killall caddy
 #+end_src
 
@@ -3472,6 +3472,26 @@ exec snooze -M/15 git-sunc
 <<20211201115756956646307>>
 #+end_src
 
+*** git-senc
+**** log
+***** run
+
+#+begin_src zsh :tangle (meq/tangle-path) :shebang "#!/usr/bin/env zsh"
+exec svlogd -tt /etc/sv/git-senc/log
+#+end_src
+
+**** run
+
+#+begin_src zsh :tangle (meq/tangle-path) :shebang "#!/usr/bin/env zsh"
+exec snooze -M/15 git-senc
+#+end_src
+
+**** finish
+
+#+begin_src zsh :tangle (meq/tangle-path) :shebang "#!/usr/bin/env zsh"
+<<20211201115756956646307>>
+#+end_src
+
 * resources
 ** functions
 
@@ -3497,10 +3517,6 @@ inAndroid() { [[ $(uname -a) == *Android* ]] && $1 || : }
 notInAndroid() { [[ $(uname -a) != *Android* ]] && $1 || : }
 inUbuntu() { [[ $(uname -a) == *Ubuntu* ]] && $1 || : }
 notInUbuntu() { [[ $(uname -a) != *Ubuntu* ]] && $1 || : }
-
-chRun() { git chRun $@ }
-sudoRun() { sudo chmod +x $1 && sudo $@ }
-curlRun() { git curlRun $@ }
 #+end_src
 
 * wheee.py
@@ -4997,18 +5013,22 @@ git clone --recurse-submodule git@github.com:<<username>>/<<username>>.git $root
 $ylv remote set-url --push origin git@github.com:<<username>>/<<username>>.git
 $ylv config include.path "$root/.gitconfig"
 
+inRoot git chRun /installers/guix/etc/guix-install.sh
+
 # Adapted From: https://askubuntu.com/a/15856/1058868
 if [[ $(uname -a) != *Android* ]] && [[ $EUID -ne 0 ]]; then
     hash nix 2>/dev/null && {
-        # Adapted From:
-        # Answer 1: https://askubuntu.com/a/1336274
-        # User 1:  https://askubuntu.com/users/682525/rainabba
-        # Comment 2:   https://askubuntu.com/questions/889344/command-to-perform-a-recursive-chmod-to-make-all-sh-files-within-a-directory-ex#comment2280854_1336274
-        # User 2: https://askubuntu.com/users/158442/muru
-        shopt -s globstar && chmod -R +x ~/installers/**/*.sh ~/installers/**/*.in
-        ~/installers/guix/etc/guix-install.sh
-        ~/installers/brew/install.sh
-        ~/installers/nix/scripts/install.in --daemon
+#+end_src
+
+This was adapted from [[https://askubuntu.com/a/1336274][this answer]] by [[https://askubuntu.com/users/682525/rainabba][rainabba]], as well as [[https://askubuntu.com/questions/889344/command-to-perform-a-recursive-chmod-to-make-all-sh-files-within-a-directory-ex#comment2280854_1336274][this comment]] by [[https://askubuntu.com/users/158442/muru][muru]]; however, I don't use it any more:
+
+#+begin_src zsh :noweb-ref no
+shopt -s globstar && chmod -R +x ~/installers/**/*.sh ~/installers/**/*.in
+#+end_src
+
+#+begin_src zsh
+        git chRun ~/installers/brew/install.sh
+        git chRun ~/installers/nix/scripts/install.in --daemon
         . ~/.nix-profile/etc/profile.d/nix.sh
     } || :
     nix-channel --add https://github.com/nixos/nixpkgs/archive/master.tar.gz master
@@ -5036,12 +5056,12 @@ asdf global nodejs latest
 go install github.com/CGamesPlay/git-remote-restic@latest
 git config --global --add protocol.restic.allow always
 
+go install github.com/charmbracelet/soft-serve/cmd/soft@latest
+
 if [[ $(uname -a) == *Android* ]]; then
     termux-reload-settings
 else
-    if [[ $EUID -ne 0 ]]; then
-        exec ~/.zshrc
-    else
+    inRoot {
         go install github.com/caddyserver/xcaddy/cmd/xcaddy@latest
         xcaddy build --with github.com/mholt/caddy-l4@latest \
                      --with github.com/abiosoft/caddy-yaml@latest \
@@ -5052,12 +5072,12 @@ else
 
         inUbuntu chRun /resources/rolling-rhino/rolling-rhino
 
-        chRun /etc/sv/stow-runit/run --bootstrap
+        git chRun /etc/sv/stow-runit/run --bootstrap
 
         for prog in ufw runit et ddclient; do
             sudo systemctl enable --now $prog
         done
-    fi
+    }
 fi
 #+end_src
 
@@ -5159,7 +5179,9 @@ eval $(starship init ion)
 [alias]
     cnm = commit --allow-empty-message -am ""
     chRun = !chmod +x $1 &&
-    curlRun = !curl --create-dirs -Lo $2 $1 && shift && git chRun
+    curlRun = !curl --create-dirs -fsSLo $2 $1 && shift && git chRun
+    sudoRun = !sudo chRun
+    sudoCurl = !sudo curlRun
     subinit = chRun ~/.config/git/scripts/subinit
     noggin = !git push origin HEAD:main || git push origin HEAD:master
     make = !make -f ~/makefile
@@ -5183,6 +5205,8 @@ eval $(starship init ion)
     nix = chRun ~/.config/git/scripts/nix
     guix = chRun ~/.config/git/scripts/guix
     asdf = chRun ~/.config/git/scripts/asdf
+    pacapt = chRun ~/.config/git/scripts/pacapt
+    boom = chRun ~/.config/git/scripts/boom
 
 [protocol "keybase"]
 	allow = always
@@ -5458,6 +5482,32 @@ $ylv -Y $root/.config/yadm-sec --yadm-dir $root/<<yadm-dir>>-sec
 #+begin_src zsh
 /home/linuxbrew/.linuxbrew/opt/asdf/bin/asdf $@ || \
 /home/linuxbrew/.linuxbrew/opt/asdf/bin/$@
+#+end_src
+
+**** pacapt
+:PROPERTIES:
+:header-args:zsh+: :noweb-ref pacapt
+:END:
+
+#+begin_src zsh :noweb-ref no :tangle (meq/tangle-path) :shebang "#!/usr/bin/env zsh"
+<<pacapt>>
+#+end_src
+
+#+begin_src zsh
+git sudoRun /resources/pacapt/pacapt $@
+#+end_src
+
+**** boom
+:PROPERTIES:
+:header-args:zsh+: :noweb-ref boom
+:END:
+
+#+begin_src zsh :noweb-ref no :tangle (meq/tangle-path) :shebang "#!/usr/bin/env zsh"
+<<boom>>
+#+end_src
+
+#+begin_src zsh
+for pm in brew asdf nix guix pacapt; do git $pm $@ && break; done
 #+end_src
 
 ** powershell
