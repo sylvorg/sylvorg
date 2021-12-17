@@ -5008,7 +5008,7 @@ inAndroid {
     pkg install emacs make fd cmake sqlite libtool man
 }
 
-GIT_SSL_NO_VERIFY=1 $ylv submodule update --init --depth 1 --recursive --remote
+GIT_SSL_NO_VERIFY=1 $ylv submodule update --init --depth 1 --recursive --remote --force
 git clone --recurse-submodule git@github.com:<<username>>/<<username>>.git $root/one
 $ylv remote set-url --push origin git@github.com:<<username>>/<<username>>.git
 $ylv config include.path "$root/.gitconfig"
