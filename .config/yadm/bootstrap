@@ -15,7 +15,6 @@ if [[ $(uname -a) == *Android* ]]; then
     hash yadm 2>/dev/null && command=yadm || command=~/yadm
 
     GIT_SSL_NO_VERIFY=1 $command submodule update --init --depth 1 --recursive --remote
-    $command submodule foreach 'git -C $toplevel/$sm_path checkout main || git -C $toplevel/$sm_path checkout master || :'
     git clone --recurse-submodule git@github.com:shadowrylander/shadowrylander.git ~/one
     $command remote set-url --push origin git@github.com:shadowrylander/shadowrylander.git
     $command config include.path "~/.gitconfig"
@@ -93,7 +92,6 @@ else
     # From: https://github.com/keybase/client/issues/9292#issuecomment-465554906
     git config --global --add protocol.keybase.allow always
     GIT_SSL_NO_VERIFY=1 $command submodule update --init --depth 1 --recursive --remote
-    $command submodule foreach 'git -C $toplevel/$sm_path checkout main || git -C $toplevel/$sm_path checkout master || :'
     git clone --recurse-submodule git@github.com:shadowrylander/shadowrylander.git ~/one
     $command remote set-url --push origin git@github.com:shadowrylander/shadowrylander.git
     $command config include.path "~/.gitconfig"
