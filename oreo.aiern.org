@@ -4977,6 +4977,34 @@ location:
     # umask: 0077
 #+end_src
 
+** systemd
+*** user
+**** emacs.service
+:PROPERTIES:
+:header-args:systemd+: :noweb-ref emacs.service
+:END:
+
+#+begin_src systemd :noweb-ref no :tangle (meq/tangle-path)
+<<emacs.service>>
+#+end_src
+
+#+begin_src
+[Unit]
+Description=Emacs text editor
+Documentation=info:emacs man:emacs(1) https://gnu.org/software/emacs/
+
+[Service]
+Type=forking
+ExecStart=/usr/bin/emacs --bg-daemon=damascus --update
+ExecStop=/usr/bin/emacsclient -s damascus -e "(kill-emacs)"
+Environment=SSH_AUTH_SOCK=%t/keyring/ssh
+Restart=on-failure
+TimeoutSec=900
+
+[Install]
+WantedBy=default.target
+#+end_src
+
 ** yadm
 *** bootstrap
 :PROPERTIES:
@@ -5039,7 +5067,7 @@ fi
 
 git tangle $root/{oreo.aiern,README}.org
 
-notInRoot git bootstrap
+notInRoot { make -f ~/.emacs.d/makefile ylv-init && git bootstrap }
 
 # ln -s $(which xonsh) $PREFIX/usr/bin/xonsh
 chsh -s $(which zsh)
@@ -5183,7 +5211,7 @@ eval $(starship init ion)
     sudoRun = !sudo chRun
     sudoCurl = !sudo curlRun
     subinit = chRun ~/.config/git/scripts/subinit
-    noggin = !git push origin HEAD:main || git push origin HEAD:master
+    noggin = !git push origin HEAD:$(git remote show origin | grep "HEAD branch" | sed 's/.*: //')
     make = !make -f ~/makefile
     emake = !make -f home/.emacs.d/makefile $@ || make -f ~/.emacs.d/makefile
     stow = make stow
