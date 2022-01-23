@@ -58,11 +58,6 @@
     branch = master
     path = resources/nix-direnv
     url = https://github.com/nix-community/nix-direnv.git
-[submodule "settings"]
-    shallow = true
-    branch = main
-    path = settings
-    url = https://github.com/shadowrylander/settings.git
 [submodule "git-subtree"]
     shallow = true
     branch = master
@@ -103,3 +98,6 @@
     branch = master
     path = resources/rolling-rhino
     url = https://github.com/wimpysworld/rolling-rhino.git
+[submodule "settings"]
+	path = settings
+	url = https://github.com/shadowrylander/settings.git

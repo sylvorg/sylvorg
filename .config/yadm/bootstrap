@@ -1,128 +1,83 @@
-#!/usr/bin/env bash
-chmod +x ~/run_keybase
-if [[ $(uname -a) == *Android* ]]; then
-    termux-setup-storage
-    pkg install emacs make fd cmake sqlite libtool stow man keybase
+#!/usr/bin/env zsh
+set -eo pipefail
 
-    # Adapted From: https://stackoverflow.com/a/3980713/10827766
-    stty -echo
-    printf "Paperkey: "
-    read paperkey
-    stty echo
-    printf "\n"
-    echo $paperkey | keybase oneshot -u shadowrylander
-
-    hash yadm 2>/dev/null && command=yadm || command=~/yadm
-
-    GIT_SSL_NO_VERIFY=1 $command submodule update --init --depth 1 --recursive --remote
-    git clone --recurse-submodule git@github.com:shadowrylander/shadowrylander.git ~/one
-    $command remote set-url --push origin git@github.com:shadowrylander/shadowrylander.git
-    $command config include.path "~/.gitconfig"
-
-    termux-reload-settings
-
-    # Adapted From:
-    # Answer: https://stackoverflow.com/a/42543006/10827766
-    # User: https://stackoverflow.com/users/1512161/fuad-saud
-    git -C ~/.emacs.d submodule foreach 'git -C $toplevel/$sm_path remote set-url --push origin git@github.com:<<username>>/$(basename $(git -C $toplevel/$sm_path config --get remote.origin.url))'
-    git -C ~/.emacs.d remote set-url --push origin git@github.com:shadowrylander/.emacs.d.git
-	git -C ~/.emacs.d config include.path "~/.emacs.d/.gitconfig"
-
-    stow -d ~/keybase -t ~ secrets
-
-    chmod 700 ~/.ssh
-    chmod 600 ~/.ssh/id_rsa ~/.ssh/known_hosts
-
-    chmod +x ~/settings/org-tangle.sh
-    ~/settings/org-tangle.sh ~/oreo.aiern.org
-
-    make -f ~/.emacs.d/makefile bootstrap
-
-    ln -s $(which xonsh) /data/data/com.termux/files/usr/bin/xonsh
-    chsh -s xonsh
-
-    keybase logout
+# Adapted From: https://askubuntu.com/a/15856/1058868
+if [[ $EUID -ne 0 ]]; then
+    root="~"
+    ylv="$root/ylv/ylv"
 else
-    deps="curl"
+    root=""
+    ylv="$root/ylv/ylv su"
+fi
 
-    for dep in $deps; do
-        hash $dep 2>/dev/null || { echo >&2 "Sorry! You'll need $dep to be installed to start the bootstrap!"; exit 1; }
-    done
+chmod +x $ylv
 
-    # Adapted From: https://askubuntu.com/a/15856/1058868
-    if [[ $EUID -ne 0 ]]; then
-        install_nix() { curl -L https://nixos.org/nix/install | bash; . ~/.nix-profile/etc/profile.d/nix.sh; }
-        hash nix 2>/dev/null || install_nix
-        nix-channel --add https://github.com/nixos/nixpkgs/archive/master.tar.gz master
-        nix-channel --update
-        nix-env -iA master.nixUnstable \
-                    master.emacs \
-                    master.gnumake \
-                    master.fd \
-                    master.cmake \
-                    master.sqlite \
-                    master.libtool \
-                    master.yadm \
-                    master.keybase \
-                    master.kbfs \
-                    master.stow \
-                    master.man
-    fi
+source $root/resources/functions
 
-    # Adapted From: https://stackoverflow.com/a/3980713/10827766
-    stty -echo
-    printf "Paperkey: "
-    read paperkey
-    stty echo
-    printf "\n"
-    echo $paperkey | keybase oneshot -u shadowrylander
+inAndroid {
+    termux-setup-storage
+    pkg install emacs make fd cmake sqlite libtool man
+}
 
-    # Adapted From: https://askubuntu.com/a/15856/1058868
-    if [[ $EUID -ne 0 ]]; then
-        hash yadm 2>/dev/null && command=yadm || command=~/yadm
-    else
-        hash yadm 2>/dev/null && precommand=yadm || {
-            precommand=/root/yadm
-            curl -fLo $precommand https://github.com/TheLocehiliosan/yadm/raw/master/yadm
-            chmod +x $precommand
-        }
-        command = sudo $precommand -Y /root/.config/yadm/repo.git -C /
-    fi
+GIT_SSL_NO_VERIFY=1 $ylv submodule update --init --depth 1 --recursive --remote --force
+git clone --recurse-submodule git@github.com:shadowrylander/shadowrylander.git $root/one
+$ylv remote set-url --push origin git@github.com:shadowrylander/shadowrylander.git
+$ylv config include.path "$root/.gitconfig"
 
-    # From: https://github.com/keybase/client/issues/9292#issuecomment-465554906
-    git config --global --add protocol.keybase.allow always
-    GIT_SSL_NO_VERIFY=1 $command submodule update --init --depth 1 --recursive --remote
-    git clone --recurse-submodule git@github.com:shadowrylander/shadowrylander.git ~/one
-    $command remote set-url --push origin git@github.com:shadowrylander/shadowrylander.git
-    $command config include.path "~/.gitconfig"
+inRoot git chRun /installers/guix/etc/guix-install.sh
 
-    # Adapted From: https://askubuntu.com/a/15856/1058868
-    if [[ $EUID -ne 0 ]]; then
+# Adapted From: https://askubuntu.com/a/15856/1058868
+if [[ $(uname -a) != *Android* ]] && [[ $EUID -ne 0 ]]; then
+    hash nix 2>/dev/null && {
+        git chRun ~/installers/brew/install.sh
+        git chRun ~/installers/nix/scripts/install.in --daemon
+        . ~/.nix-profile/etc/profile.d/nix.sh
+    } || :
+    nix-channel --add https://github.com/nixos/nixpkgs/archive/master.tar.gz master
+    nix-channel --update
+    nix-env -iA master.nixUnstable
+    nix-env -iA master.{emacs,gnumake,fd,cmake,sqlite,libtool,man}
+fi
 
-    	# Adapted From:
-    	# Answer: https://stackoverflow.com/a/42543006/10827766
-    	# User: https://stackoverflow.com/users/1512161/fuad-saud
-    	git -C ~/.emacs.d submodule foreach 'git -C $toplevel/$sm_path remote set-url --push origin git@github.com:<<username>>/$(basename $(git -C $toplevel/$sm_path config --get remote.origin.url))'
-    	git -C ~/.emacs.d remote set-url --push origin git@github.com:shadowrylander/.emacs.d.git
-    	git -C ~/.emacs.d config include.path "~/.emacs.d/.gitconfig"
+git tangle $root/{oreo.aiern,README}.org
 
-        stow -d ~/keybase -t ~ secrets
+notInRoot { make -f ~/.emacs.d/makefile ylv-init && git bootstrap }
 
-        chmod 700 ~/.ssh
-        chmod 600 ~/.ssh/id_rsa ~/.ssh/known_hosts
+# ln -s $(which xonsh) $PREFIX/usr/bin/xonsh
+chsh -s $(which zsh)
 
-        chmod +x ~/settings/org-tangle.sh
-        ~/settings/org-tangle.sh ~/oreo.aiern.org
+. $root/.asdf/asdf.sh
+asdf plugin add golang https://github.com/kennyp/asdf-golang.git
+asdf install golang latest
+asdf global golang latest
 
-        make -f ~/.emacs.d/makefile bootstrap
-    else
-        chmod +x /settings/org-tangle.sh
-        /settings/org-tangle.sh /oreo.aiern.org
-    fi
+asdf plugin add nodejs https://github.com/asdf-vm/asdf-nodejs.git
+asdf install nodejs latest
+asdf global nodejs latest
 
-    # chsh -s zsh
+go install github.com/CGamesPlay/git-remote-restic@latest
+git config --global --add protocol.restic.allow always
 
-    keybase logout
+go install github.com/charmbracelet/soft-serve/cmd/soft@latest
 
-    exec ~/.nix-profile/etc/profile.d/nix.sh
+if [[ $(uname -a) == *Android* ]]; then
+    termux-reload-settings
+else
+    inRoot {
+        go install github.com/caddyserver/xcaddy/cmd/xcaddy@latest
+        xcaddy build --with github.com/mholt/caddy-l4@latest \
+                     --with github.com/abiosoft/caddy-yaml@latest \
+                     --with github.com/caddy-dns/cloudflare@latest
+        mv {.,/usr/bin}/caddy
+
+        npm install -g wstunnel
+
+        inUbuntu chRun /resources/rolling-rhino/rolling-rhino
+
+        git chRun /etc/sv/stow-runit/run --bootstrap
+
+        for prog in ufw runit et ddclient; do
+            sudo systemctl enable --now $prog
+        done
+    }
 fi

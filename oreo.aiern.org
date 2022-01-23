@@ -2063,7 +2063,7 @@ and in the NixOS manual (accessible by running ‘nixos-help’).
     system = {
         # This value determines the NixOS release from which the default
         # settings for stateful data, like file locations and database versions
-        # on your system were taken. It‘s perfectly fine and recommended to leave
+        # on your system were taken. It's perfectly fine and recommended to leave
         # this value at the release version of the first install of this system.
         # Before changing this value read the documentation for this option
         # (e.g. man configuration.nix or on https://nixos.org/nixos/options.html).
@@ -6347,11 +6347,33 @@ cd $HOME
 alias c="clear"
 alias n="exit"
 alias ssh="assh wrapper ssh --"
+alias vi='ec'
+alias vim='ec'
+alias e='ec'
+alias f='ec -t'
+alias r='systemctl --user restart emacs && ec'
+alias s='systemctl --user restart emacs && ec -t'
+alias p='emactl'
+alias ep='emacs-push'
+alias phy='PYTHONPATH="$HOME/.local/syvl/python/hy:$HOME/.local/syvl/python/bakery:$PYTHONPATH" ~/.local/syvl/python/hy/bin/hy'
+#+end_src
+
+#+name: profile-functions
+#+begin_src sh
+ec() { { [ -z "$1" ] || [ "$1" != -* ]; } && emacsclient -s damascus -c $@ || emacsclient -s damascus $@; }
+emactl() { systemctl --user $1 emacs.service; }
+emacs-push() { make -f ~/.emacs.d/lib/$1/settings/makefile; }
+#+end_src
+
+#+name: profile-exports
+#+begin_src sh
+export EDITOR='ec'
+export VISUAL='ec'
 #+end_src
 
 #+name: profile-paths
 #+begin_src emacs-lisp :noweb-ref no :var shell=""
-(let* (path '("$HOME/.local/bin"
+(let* ((path '("$HOME/.local/bin"
             "$HOME/.nimble/bin"
             "/home/linuxbrew/.linuxbrew/bin"
             "/home/linuxbrew/.linuxbrew/sbin"
@@ -6368,7 +6390,7 @@ alias ssh="assh wrapper ssh --"
             "/usr/local/games"
             "/snap/bin"
             "/usr/local/go/bin"
-            "/usr/lib/node_modules"))
+            "/usr/lib/node_modules")))
     (pcase shell
         ("fish" (concat "set -gx PATH $PATH" (string-join path " ")))
         ("xonsh" (concat "$PATH += [ \"" (string-join path "\",\n\t\"") "\" ]"))
@@ -6378,6 +6400,8 @@ alias ssh="assh wrapper ssh --"
 #+name: profile-all-together
 #+begin_src sh :noweb-ref no
 <<profile-sources>>
+<<profile-functions>>
+<<profile-exports>>
 <<cd-home-and-profile-aliases>>
 <<profile-paths()>>
 #+end_src

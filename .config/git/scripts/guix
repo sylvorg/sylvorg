@@ -1,0 +1,2 @@
+#!/usr/bin/env zsh
+/usr/local/bin/guix $@ || /home/linuxbrew/.guix-profile/bin/$@

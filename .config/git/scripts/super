@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/usr/bin/env zsh
 if [[ -n "$1" ]]; then
     if [[ -n "$2" ]]; then
         ($1 cnm && $1 $2) || $1 $2

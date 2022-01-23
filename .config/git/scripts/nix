@@ -1,0 +1,2 @@
+#!/usr/bin/env zsh
+/nix/var/nix/profiles/default/bin/nix-env $@ || /nix/var/nix/profiles/default/bin/$@
