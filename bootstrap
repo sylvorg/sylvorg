@@ -1,0 +1,288 @@
+#!/usr/bin/env sh
+[ -d $HOME/.local/bootstrap ] || mkdir -p $HOME/.local/bootstrap
+curl -fsSLo $HOME/.local/bootstrap/syvl https://raw.githubusercontent.com/shadowrylander/syvl/main/syvl
+chmod +x $HOME/.local/bootstrap/syvl
+$HOME/.local/bootstrap/syvl --init
+source $HOME/.local/syvl/python/bin/activate
+dependencies="sd"
+for prog in $dependencies; do hash $prog 2>/dev/null || $pacapt -yyu && break; done
+for prog in $dependencies; do hash $prog 2>/dev/null || $pacapt -S $prog; done
+hy - "$@" <<'EOF'
+(import click)
+(import json)
+(import os)
+(import addict [Dict :as D])
+(import bakery [ getconf
+                 mkswap
+                 mount
+                 nixos-generate-config
+                 nixos-install
+                 sd
+                 swapon
+                 umount
+                 zfs
+                 zpool ])
+(import functools [partial])
+(import pathlib [Path])
+(import sys [argv])
+(import toolz [last])
+(require hyrule [-> assoc])
+(del (get argv 0))
+(setv resources "/etc/nixos/")
+(defn update-datasets [host swap [pool False]]
+      (setv snap-dir     [ "snapdir=visible" ]
+            extra-copies (+ snap-dir [ "copies=3" ])
+            cache        [ "sync=disabled" ]
+            ml           "mountpoint=legacy"
+            d            "datasets"
+            s            "system"
+            datasets     (D (.loads json (.strip #[[
+                                {
+                                    "base": {  },
+                                    "omniverse": {  },
+                                    "reserved": {  },
+                                    "shadowrylander": { "datasets": {
+                                            "oreo": { "mountpoint": "/home/shadowrylander/oreo", "options": [ "snapdir=visible" ] },
+                                            "sylveon": { "mountpoint": "/home/shadowrylander/sylveon", "options": [ "snapdir=visible" ] },
+                                            "sylvorg": { "mountpoint": "/home/shadowrylander/sylvorg", "options": [ "snapdir=visible" ] },
+                                            "syvlorg": { "mountpoint": "/home/shadowrylander/syvlorg", "options": [ "snapdir=visible" ] },
+                                            "shadowrylander": { "mountpoint": "/home/shadowrylander/shadowrylander", "options": [ "snapdir=visible" ] }},
+                                        "options": [ "mountpoint=legacy" ]},
+                                    "system": {
+                                        "datasets": {
+                                            "home": { "datasets": { "root": { "mountpoint": "/root" }}},
+                                            "nix": {  },
+                                            "persist": {
+                                                "datasets": {
+                                                    "cache": {
+                                                        "datasets": { "root": {  }},
+                                                        "options": [ "sync=disabled" ]
+                                                    },
+                                                    "home": { "datasets": { "root": {  }}}
+                                                }
+                                            },
+                                            "root": {  },
+                                            "tmp": { "datasets": { "nix": {  }}, "options": [ "sync=disabled" ] },
+                                            "etc": {  },
+                                            "var": {  },
+                                            "usr": {  },
+                                            "srv": {  },
+                                            "opt": {  }
+                                        },
+                                        "options": [ "mountpoint=legacy" ]
+                                    },
+                                    "virt": {
+                                        "datasets": {
+                                            "docker": {  },
+                                            "kvm": {  },
+                                            "podman": { "datasets": {  }},
+                                            "qemu": {  },
+                                            "vagrant": {  },
+                                            "xen": {  }
+                                        },
+                                        "options": [ "mountpoint=legacy", "refreservation=none" ],
+                                        "mountpoint": "/var/lib"
+                                    }
+                                }
+                         ]])))
+            users        (D (.loads json (.strip #[[
+                                {
+                                    "primary": "shadowrylander",
+                                    "secondary": "frost",
+                                    "nightingale": "curtis"
+                                }
+                         ]]))))
+      (assoc datasets host { "datasets" { "jails" { "datasets" { "base" (dict)}}}
+                             "options" [ ml ]})
+      (for [user (.values users)]
+           (assoc (. datasets [s] [d] home [d]) user (dict))
+           (assoc (. datasets virt [d] podman [d]) user (dict))
+           (for [dataset (.keys (. datasets [s] [d] persist [d]))]
+                (assoc (. datasets [s] [d] persist [d] [dataset] [d]) user (dict))))
+      (with [dnix (open f"{resources}/datasets.nix" "w")]
+            (.write dnix "host: {\n")
+            (defn recurse [ddict dname droot [mountpoint ""]]
+                  (setv recurse/dataset (+ droot "/" dname)
+                        cloning         (and (!= dname base)
+                                             (and encrypted deduplicated))
+                        prefixes        (, "system"
+                                           "system/root"
+                                           "swap"
+                                           "base"
+                                           "hold"
+                                           "omniverse"
+                                           "reserved" ))
+                  (if cloning
+                      (setv clone-or-create  "clone"
+                            snapshot-or-none (+ host "/base@root"))
+                      (setv clone-or-create  "create"
+                            snapshot-or-none ""))
+                  (if (not (in recurse/dataset (lfor dataset prefixes (+ host "/" dataset))))
+                      (do (if (setx recurse/mountpoint (.get ddict "mountpoint" ""))
+                              (setv mountpoint recurse/mountpoint)
+                              (if mountpoint
+                                  (setv mountpoint (+ mountpoint "/" dname)
+                                        recurse/mountpoint mountpoint)
+                                  (do (setv recurse/mountpoint (.removeprefix recurse/dataset (+ host "/")))
+                                      (for [prefix prefixes]
+                                           (setv recurse/mountpoint (.removeprefix recurse/mountpoint (+ prefix "/"))))
+                                      (setv recurse/mountpoint (+ "/" recurse/mountpoint)))))
+                          (.write dnix #[f[\t"{recurse/dataset}" = "{recurse/mountpoint}"{";"}\n]f])))
+                  (if pool
+                      (do (zfs clone-or-create
+                               :o { "repeat-with-values" (.get ddict "options" []) }
+                               snapshot-or-none
+                               recurse/dataset)
+                          (.snapshot zfs :r True (+ recurse/dataset "@root"))))
+                  (for [[key value] (.items (.get ddict d (D {  })))]
+                       (recurse value key recurse/dataset mountpoint)))
+            (for [[key value] (.items datasets)]
+                 (recurse value key host))
+            (.write dnix "host: {\n"))
+      (if pool
+          (let [pool-size-plus-metric (get (.get zpool :H True "size" host :m/list True :m/split True) 2)
+                pool-size             (-> "pool_size_plus_metric[:-1]"
+                                          (py)
+                                          (float)
+                                          (round 2))
+                pool-metric           (last pool-size-plus-metric)]
+               (defn pool-percentage-value [percentage]
+                     (-> percentage
+                         (float)
+                         (/ 100)
+                         (round 2)
+                         (str)
+                         (+ pool-metric)
+                         (return)))
+               (.set zfs
+                     (+ "refreservation=" (pool-percentage-value 15))
+                     (+ host "/reserved"))
+
+               ;; Apparently, if python internal keywords exist in the argument, such as "set", etc.
+               ;; the command errors out; perhaps something to raise an issue of.
+               ;; This seems to work as an alternative.
+               ;; run(f"zfs set refreservation={pool_percentage_value(15)} {args.Pool}/reserved", shell = True)
+
+               (if swap
+                   (let [swoptions [ "com.sun:auto-snapshot=false"
+                                     "compression=zle"
+                                     "logbias=throughput"
+                                     "primarycache=metadata"
+                                     "secondarycache=none"
+                                     "sync=standard" ]
+                         page-size (getconf "PAGESIZE" :m/str True)]
+                        (.create zfs
+                                 :V (+ (str swap) "G")
+                                 :b page-size
+                                 :o { "repeat-with-values" swoptions }
+                                 (+ host "/swap"))
+                        (mkswap (+ "/dev/zvol" host "/swap")))))))
+#@((.group click :no-args-is-help True)
+   (.argument click "host")
+   (.option click "-a" "--all" :default False)
+   (.option click "-g" "--generate" :default False)
+   (.option click "-i" "--install" :default False)
+   (.option click "-r" "--replace" :default False)
+   click.pass-context
+   (defn bootstrap [ ctx host all generate install replace ]
+         (.ensure-object ctx dict)
+         (setv ctx.obj.host host)
+         (if (or generate all)
+             (nixos-generate-config :root "/mnt"))
+         (if (or replace all)
+             (sd "./hardware-configuration.nix"
+                 (+ "'${builtins.fetchGit { url = \"https://github.com/shadowrylander/shadowrylander\"; }}/configs/" host "'")
+                 "/etc/nixos/configuration.nix"))
+         (if (or install all)
+             (nixos-install :show-trace True))))
+#@((.command bootstrap :no-args-is-help True)
+   (.option click "-d" "--deduplicated" :default False)
+   (.option click "-e" "--encrypted" :default False)
+   (.option click "-s" "--swap" :type int :default 0)
+   (.option click "-z" "--zfs-device" :required True)
+   click.pass-context
+   (defn create [ ctx deduplicated encrypted swap zfs-device ]
+         (try (if (= (input "THIS WILL DELETE ALL DATA ON THE SELECTED DEVICE / PARTITION! TO CONTINUE, TYPE IN 'ZFS CREATE'!\n\t") "ZFS CREATE")
+                  (let [options (D { "xattr"      "sa"
+                                     "acltype"    "posixacl"
+                                     "mountpoint"  "none"
+                                     "compression" "zstd-19"
+                                     "checksum"    "edonr"
+                                     "atime"       "off"
+                                     "relatime"    "off" })
+                        command (partial zpool.create
+                                         :f True
+                                         :o { "repeat-with-values" (, "autotrim=on" "altroot=/mnt" "autoexpand=on") })]
+                       (if encrypted
+                           (setv options.encryption "aes-256-gcm"
+                                 options.keyformat  "passphrase"))
+                       (if deduplicated
+                           (setv options.dedup "edonr,verify"))
+                       (try (.mkdir (Path "/mnt"))
+                            (except [FileExistsError]
+                                    (umount :R True "/mnt")))
+                       (.export zpool :f True ctx.obj.host :m/ignore-stderr True)
+                       (command :O { "repeat-with-values" (gfor [k v] (.items options) f"{k}={v}") } ctx.obj.host zfs-device)
+                       (update-datasets ctx.obj.host swap :pool True))
+                  (print "Sorry; not continuing!\n\n"))
+              (finally (.export zpool :f True ctx.obj.host :m/ignore-stderr True)))))
+#@((.command bootstrap :no-args-is-help True)
+   (.option click "-b" "--boot-device")
+   (.option click "-d" "--deduplicated" :default False)
+   (.option click "-e" "--encrypted" :default False)
+   (.option click "-r" "--root-device")
+   (.option click "-s" "--swap" :default False)
+   click.pass-context
+   (defn mount [ ctx boot-device deduplicated encrypted root-device swap ]
+         (for [dataset (.list zfs :r True :H True :m/list True :m/split True)]
+              (if (in ctx.obj.host dataset)
+                  (break))
+              (else (.import zpool :f True ctx.obj.host)))
+         (if encrypted
+             (.load-key zfs ctx.obj.host :m/run True))
+         (try (.mkdir (Path "/mnt"))
+              (except [FileExistsError]
+                      (umount :R True "/mnt")))
+         (if root-device
+             (mount root-device "/mnt")
+             (mount :t "zfs" (+ ctx.obj.host "/system/root") "/mnt"))
+         (with [datasets (open (+ resources "/datasets.nix"))]
+               (for [dataset (cut (.readlines datasets) 1 -1)]
+                    (setv [dataset mount] (.split dataset "=")
+                          dataset         (.strip dataset)
+mount           (+ "\"/mnt"
+                   (-> mount
+                       (.strip)
+                       (.lstrip "\"")
+                       (.replace "${host}" ctx.obj.host))))
+           (.mkdir (Path mount) :parents True :exists-ok True)
+           (mount :t "zfs" dataset mount)))
+(if boot-device
+    (let [boot "/mnt/boot/efi"]
+         (.mkdir (Path boot) :parents True :exists-ok True)
+         (mount boot-device boot)))
+(if swap
+    (swapon (+ "/dev/zvol/" ctx.obj.host "/swap")))
+
+;; (mount :t "zfs" (+ ctx.obj.host "/system/tmp") "/tmp")
+;; (mount :t "zfs" (+ ctx.obj.host "/system/tmp/nix") "/tmp/nix")
+;; (rsync :a True :v { "repeat" 2 } :c True :z { "repeat" 2 } :delete True "/nix/" "/tmp/nix/")
+;; (mount :t "zfs" (+ ctx.obj.host "/system/tmp/nix") "/nix")
+
+))
+#@((.command bootstrap :no-args-is-help True)
+   (.option click "-d" "--deduplicated" :default False)
+   (.option click "-e" "--encrypted" :default False)
+   (.option click "-f" "--files" :default False)
+   (.option click "-p" "--pool" :default False)
+   (.option click "-s" "--swap" :type int :default 0)
+   click.pass-context
+   (defn update [ ctx deduplicated encrypted files pool swap ]
+         (try (setv ud (partial update-datasets ctx.obj.host swap))
+              (cond [files (ud)]
+                    [pool (ud :pool True)]
+                    [True (ud)])
+              (finally (.export zpool :f True ctx.obj.host :m/ignore-stderr True)))))
+(if (= __name__ "__main__")
+    (bootstrap :obj (D {})))
+EOF
