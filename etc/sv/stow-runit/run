@@ -1,0 +1,17 @@
+#!/usr/bin/env zsh
+stow-sv() { stow --adopt --restow -d /etc -t $1 sv }
+stow-runit() {
+    for dir in /services /etc/service /var/service; do
+        mkdir -p $dir
+        stow-sv $dir
+    done
+    if [[ -n "$SVDIR" ]]; then
+        mkdir -p $SVDIR
+        stow-sv $SVDIR
+    fi
+}
+if [[ "$1" == "--bootstrap" ]]; then
+    stow-runit
+else
+    exec snooze -M/15 stow-runit
+fi

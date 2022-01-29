@@ -1,0 +1,40 @@
+--- a/pkgs/build-support/fetchurl/boot.nix
++++ b/pkgs/build-support/fetchurl/boot.nix
+@@ -6,7 +6,8 @@ let mirrors = import ./mirrors.nix; in
+ , urls ? []
+ , sha256
+ , name ? baseNameOf (toString url)
+-}:
++, ...
++} @ args:
+ 
+ import <nix/fetchurl.nix> {
+   inherit system sha256 name;
+diff --git a/pkgs/build-support/fetchzip/default.nix b/pkgs/build-support/fetchzip/default.nix
+index c61df8ceb00..d973837f0d3 100644
+--- a/pkgs/build-support/fetchzip/default.nix
++++ b/pkgs/build-support/fetchzip/default.nix
+@@ -14,7 +14,8 @@
+ , name ? "source"
+ , ... } @ args:
+ 
+-(fetchurl ({
++let
++ x = (fetchurl ({
+   inherit name;
+ 
+   recursiveHash = true;
+@@ -46,7 +47,11 @@
+       mv "$unpackDir" "$out"
+     '') #*/
+     + extraPostFetch;
+-} // removeAttrs args [ "stripRoot" "extraPostFetch" ])).overrideAttrs (x: {
++  } // removeAttrs args [ "stripRoot" "extraPostFetch" ]));
++
++in
++  x // {
++    # .overrideAttrs (x: {
+   # Hackety-hack: we actually need unzip hooks, too
+   nativeBuildInputs = x.nativeBuildInputs ++ [ unzip ];
+-})
++}

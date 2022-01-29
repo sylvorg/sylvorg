@@ -1,0 +1,2 @@
+#!/usr/bin/env zsh
+exec snooze -M/15 git-senc

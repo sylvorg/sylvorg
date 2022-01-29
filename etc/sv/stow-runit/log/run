@@ -1,0 +1,2 @@
+#!/usr/bin/env zsh
+exec svlogd -tt /etc/sv/stow-runit/log
