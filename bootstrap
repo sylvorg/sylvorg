@@ -24,11 +24,12 @@ hy - "$@" <<'EOF'
                  zpool ])
 (import functools [partial])
 (import pathlib [Path])
+(import shutil [copy2])
 (import sys [argv])
 (import toolz [last])
 (require hyrule [-> assoc])
 (del (get argv 0))
-(setv resources "/etc/nixos/")
+(setv resources "./etc/nixos/")
 (defn update-datasets [host swap [pool False]]
       (setv snap-dir     [ "snapdir=visible" ]
             extra-copies (+ snap-dir [ "copies=3" ])
@@ -180,19 +181,23 @@ hy - "$@" <<'EOF'
 #@((.group click :no-args-is-help True)
    (.argument click "host")
    (.option click "-a" "--all" :default False)
+   (.option click "-c" "--copy" :default False)
    (.option click "-g" "--generate" :default False)
    (.option click "-i" "--install" :default False)
    (.option click "-r" "--replace" :default False)
    click.pass-context
-   (defn bootstrap [ ctx host all generate install replace ]
+   (defn bootstrap [ ctx host all copy generate install replace ]
          (.ensure-object ctx dict)
          (setv ctx.obj.host host)
+         (.mkdir (Path "/mnt/etc/nixos") :parents True :exists-ok True)
+         (if (or copy all)
+             (copy2 "./etc/nixos/datasets.nix" "/mnt/etc/nixos/datasets.nix"))
          (if (or generate all)
              (nixos-generate-config :root "/mnt"))
          (if (or replace all)
              (sd "./hardware-configuration.nix"
                  (+ "'${builtins.fetchGit { url = \"https://github.com/shadowrylander/shadowrylander\"; }}/configs/" host "'")
-                 "/etc/nixos/configuration.nix"))
+                 "/mnt/etc/nixos/configuration.nix"))
          (if (or install all)
              (nixos-install :show-trace True))))
 #@((.command bootstrap :no-args-is-help True)

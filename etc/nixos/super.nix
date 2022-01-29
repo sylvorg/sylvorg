@@ -48,9 +48,9 @@ loader = {
         network.ssh.enable = true;
     };
 };
-kernelPackages = pkgs.linuxPackages_xanmod;
-# kernelPackages = pkgs.linuxPackages_lqx;
-# kernelPackages = pkgs.linuxPackages_zen;
+# kernelPackages = mkDefault pkgs.linuxPackages_xanmod;
+# kernelPackages = mkDefaultpkgs.linuxPackages_lqx;
+# kernelPackages = mkDefaultpkgs.linuxPackages_zen;
 kernelPatches = [
 { name = "clear"; patch = ./patches/0110-initialize-ata-before-graphics.patch; }
 {

@@ -68,6 +68,7 @@ hy - "$@" <<'EOF'
                  zpool ])
 (import functools [partial])
 (import pathlib [Path])
+(import shutil [copy2])
 (import sys [argv])
 (import toolz [last])
 #+end_src
@@ -87,7 +88,7 @@ hy - "$@" <<'EOF'
 *** Set Resources Directory
 
 #+begin_src hy
-(setv resources "/etc/nixos/")
+(setv resources "./etc/nixos/")
 #+end_src
 
 *** Datasets
@@ -257,19 +258,23 @@ hy - "$@" <<'EOF'
 #@((.group click :no-args-is-help True)
    (.argument click "host")
    (.option click "-a" "--all" :default False)
+   (.option click "-c" "--copy" :default False)
    (.option click "-g" "--generate" :default False)
    (.option click "-i" "--install" :default False)
    (.option click "-r" "--replace" :default False)
    click.pass-context
-   (defn bootstrap [ ctx host all generate install replace ]
+   (defn bootstrap [ ctx host all copy generate install replace ]
          (.ensure-object ctx dict)
          (setv ctx.obj.host host)
+         (.mkdir (Path "/mnt/etc/nixos") :parents True :exists-ok True)
+         (if (or copy all)
+             (copy2 "./etc/nixos/datasets.nix" "/mnt/etc/nixos/datasets.nix"))
          (if (or generate all)
              (nixos-generate-config :root "/mnt"))
          (if (or replace all)
              (sd "./hardware-configuration.nix"
                  (+ "'${builtins.fetchGit { url = \"https://github.com/shadowrylander/shadowrylander\"; }}/configs/" host "'")
-                 "/etc/nixos/configuration.nix"))
+                 "/mnt/etc/nixos/configuration.nix"))
          (if (or install all)
              (nixos-install :show-trace True))))
 #+end_src
@@ -880,6 +885,37 @@ index c61df8ceb00..d973837f0d3 100644
                     if mnt and usb in mnt:
                         umount @(mnt.split()[2])
     '';
+}
+#+end_src
+
+**** murasame
+***** default.nix
+
+#+begin_src nix
+{ config, ... }:
+
+{
+    imports = [
+        ../../super.nix
+        ../../bcachefs.nix
+    ];
+    networking = {
+        hostName = baseNameOf (toString ./.);
+        hostId = <<hostId()>>;
+    };
+}
+#+end_src
+
+*** bcachefs.nix
+
+#+begin_src nix
+{ config, ... }:
+
+{
+    boot.loader = {
+        supportedFilesystems = [ "bcachefs" ];
+        initrd.supportedFilesystems = config.boot.loader.supportedFilesystems;
+    };
 }
 #+end_src
 
@@ -1533,9 +1569,9 @@ loader = {
 ****** Kernel
 
 #+begin_src nix
-kernelPackages = pkgs.linuxPackages_xanmod;
-# kernelPackages = pkgs.linuxPackages_lqx;
-# kernelPackages = pkgs.linuxPackages_zen;
+# kernelPackages = mkDefault pkgs.linuxPackages_xanmod;
+# kernelPackages = mkDefaultpkgs.linuxPackages_lqx;
+# kernelPackages = mkDefaultpkgs.linuxPackages_zen;
 #+end_src
 
 ******* Patches
