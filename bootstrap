@@ -214,11 +214,11 @@
                        (try (.mkdir (Path "/mnt"))
                             (except [FileExistsError]
                                     (umount :R True "/mnt")))
-                       (.export zpool :f True ctx.obj.host :m/ignore-stderr True)
-                       (command :O { "repeat-with-values" (gfor [k v] (.items options) f"{k}={v}") } ctx.obj.host zfs-device)
-                       (update-datasets ctx.obj.host swap :pool True))
+                       (.export zpool :f True host :m/ignore-stderr True)
+                       (command :O { "repeat-with-values" (gfor [k v] (.items options) f"{k}={v}") } host zfs-device)
+                       (update-datasets host swap :pool True))
                   (print "Sorry; not continuing!\n\n"))
-              (finally (.export zpool :f True ctx.obj.host :m/ignore-stderr True)))))
+              (finally (.export zpool :f True host :m/ignore-stderr True)))))
 #@((.command bootstrap :no-args-is-help True)
    (.argument click "host")
    (.option click "-b" "--boot-device")
@@ -228,17 +228,17 @@
    (.option click "-s" "--swap" :default False)
    (defn mount [ boot-device deduplicated encrypted host root-device swap ]
          (for [dataset (.list zfs :r True :H True :m/list True :m/split True)]
-              (if (in ctx.obj.host dataset)
+              (if (in host dataset)
                   (break))
-              (else (.import zpool :f True ctx.obj.host)))
+              (else (.import zpool :f True host)))
          (if encrypted
-             (.load-key zfs ctx.obj.host :m/run True))
+             (.load-key zfs host :m/run True))
          (try (.mkdir (Path "/mnt"))
               (except [FileExistsError]
                       (umount :R True "/mnt")))
          (if root-device
              (mount root-device "/mnt")
-             (mount :t "zfs" (+ ctx.obj.host "/system/root") "/mnt"))
+             (mount :t "zfs" (+ host "/system/root") "/mnt"))
          (with [datasets (open (+ resources "/datasets.nix"))]
                (for [dataset (cut (.readlines datasets) 1 -1)]
                     (setv [dataset mount] (.split dataset "=")
@@ -247,7 +247,7 @@ mount           (+ "\"/mnt"
                    (-> mount
                        (.strip)
                        (.lstrip "\"")
-                       (.replace "${host}" ctx.obj.host))))
+                       (.replace "${host}" host))))
            (.mkdir (Path mount) :parents True :exist-ok True)
            (mount :t "zfs" dataset mount)))
 (if boot-device
@@ -255,12 +255,12 @@ mount           (+ "\"/mnt"
          (.mkdir (Path boot) :parents True :exist-ok True)
          (mount boot-device boot)))
 (if swap
-    (swapon (+ "/dev/zvol/" ctx.obj.host "/swap")))
+    (swapon (+ "/dev/zvol/" host "/swap")))
 
-;; (mount :t "zfs" (+ ctx.obj.host "/system/tmp") "/tmp")
-;; (mount :t "zfs" (+ ctx.obj.host "/system/tmp/nix") "/tmp/nix")
+;; (mount :t "zfs" (+ host "/system/tmp") "/tmp")
+;; (mount :t "zfs" (+ host "/system/tmp/nix") "/tmp/nix")
 ;; (rsync :a True :v { "repeat" 2 } :c True :z { "repeat" 2 } :delete True "/nix/" "/tmp/nix/")
-;; (mount :t "zfs" (+ ctx.obj.host "/system/tmp/nix") "/nix")
+;; (mount :t "zfs" (+ host "/system/tmp/nix") "/nix")
 
 ))
 #@((.command bootstrap :no-args-is-help True)
@@ -271,10 +271,10 @@ mount           (+ "\"/mnt"
    (.option click "-p" "--pool" :default False)
    (.option click "-s" "--swap" :type int :default 0)
    (defn update [ deduplicated encrypted files host pool swap ]
-         (try (setv ud (partial update-datasets ctx.obj.host swap))
+         (try (setv ud (partial update-datasets host swap))
               (cond [files (ud)]
                     [pool (ud :pool True)]
                     [True (ud)])
-              (finally (.export zpool :f True ctx.obj.host :m/ignore-stderr True)))))
+              (finally (.export zpool :f True host :m/ignore-stderr True)))))
 (if (= __name__ "__main__")
     (bootstrap))
