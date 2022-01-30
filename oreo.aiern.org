@@ -314,7 +314,8 @@ echo 'source $HOME/.local/syvl/python/bin/activate'
                            (setv options.dedup "edonr,verify"))
                        (try (.mkdir (Path "/mnt"))
                             (except [FileExistsError]
-                                    (umount :R True "/mnt")))
+                                    (if (.ismount os.path "/mnt")
+                                        (umount :R True "/mnt"))))
                        (.export zpool :f True ctx.obj.host :m/ignore-stderr True)
                        (command :O { "repeat-with-values" (gfor [k v] (.items options) f"{k}={v}") } ctx.obj.host zfs-device)
                        (update-datasets ctx.obj.host swap :pool True))
@@ -342,7 +343,8 @@ echo 'source $HOME/.local/syvl/python/bin/activate'
              (.load-key zfs ctx.obj.host :m/run True))
          (try (.mkdir (Path "/mnt"))
               (except [FileExistsError]
-                      (umount :R True "/mnt")))
+                      (if (.ismount os.path "/mnt")
+                          (umount :R True "/mnt"))))
          (if root-device
              (mount root-device "/mnt")
              (mount :t "zfs" (+ ctx.obj.host "/system/root") "/mnt"))
