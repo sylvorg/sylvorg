@@ -266,7 +266,7 @@ hy - "$@" <<'EOF'
    (defn bootstrap [ ctx host all copy generate install replace ]
          (.ensure-object ctx dict)
          (setv ctx.obj.host host)
-         (.mkdir (Path "/mnt/etc/nixos") :parents True :exists-ok True)
+         (.mkdir (Path "/mnt/etc/nixos") :parents True :exist-ok True)
          (if (or copy all)
              (copy2 "./etc/nixos/datasets.nix" "/mnt/etc/nixos/datasets.nix"))
          (if (or generate all)
@@ -356,11 +356,11 @@ then re-add them to the final mountpoint with ~"/mnt~.
 #+end_src
 
 #+begin_src hy
-                    (.mkdir (Path mount) :parents True :exists-ok True)
+                    (.mkdir (Path mount) :parents True :exist-ok True)
                     (mount :t "zfs" dataset mount)))
          (if boot-device
              (let [boot "/mnt/boot/efi"]
-                  (.mkdir (Path boot) :parents True :exists-ok True)
+                  (.mkdir (Path boot) :parents True :exist-ok True)
                   (mount boot-device boot)))
          (if swap
              (swapon (+ "/dev/zvol/" ctx.obj.host "/swap")))
