@@ -206,7 +206,11 @@ echo 'source $HOME/.local/syvl/python/bin/activate'
                                       (for [prefix prefixes]
                                            (setv recurse/mountpoint (.removeprefix recurse/mountpoint (+ prefix "/"))))
                                       (setv recurse/mountpoint (+ "/" recurse/mountpoint)))))
-                          (.write dnix #[f[\t"{recurse/dataset}" = "{recurse/mountpoint}"{";"}\n]f])))
+                          (.write dnix (+ "\t\""
+                                          recurse/dataset
+                                          "\" = \""
+                                          recurse/mountpoint
+                                          "\";\n"))))
                   (if pool
                       (do (zfs :m/subcommand clone-or-create
                                :o { "repeat-with-values" (.get ddict "options" []) }
@@ -217,7 +221,7 @@ echo 'source $HOME/.local/syvl/python/bin/activate'
                        (recurse value key recurse/dataset mountpoint)))
             (for [[key value] (.items datasets)]
                  (recurse value key host))
-            (.write dnix "host: {\n"))
+            (.write dnix "}"))
       (if pool
           (let [pool-size-plus-metric (get (.get zpool :H True "size" host :m/list True :m/split True) 2)
                 pool-size             (-> pool-size-plus-metric
