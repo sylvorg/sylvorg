@@ -173,12 +173,16 @@
    (.option click "-c" "--copy" :default False)
    (.option click "-g" "--generate" :default False)
    (.option click "-H" "--host")
+   (.option click "-I" "--inspect" :default False)
    (.option click "-i" "--install" :default False)
+   (.option click "-p" "--Print" :default False)
    (.option click "-r" "--replace" :default False)
    click.pass-context
-   (defn bootstrap [ ctx host all copy generate install replace ]
+   (defn bootstrap [ ctx all copy generate host inspect install Print replace ]
          (.ensure-object ctx dict)
          (setv ctx.obj.host host)
+         (if Print (.bake-all- getconf :m/print-command-and-run True))
+         (if inspect (.bake-all- getconf :m/debug True))
          (.mkdir (Path "/mnt/etc/nixos") :parents True :exist-ok True)
          (if (or copy all)
              (copy2 "./etc/nixos/datasets.nix" "/mnt/etc/nixos/datasets.nix"))
