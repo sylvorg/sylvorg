@@ -91,12 +91,6 @@ echo 'source $HOME/.local/syvl/python/bin/activate'
 (require hyrule [-> assoc])
 #+end_src
 
-** Remove Hy Binary from Command-Line Arguments
-
-#+begin_src hy
-(del (get argv 0))
-#+end_src
-
 ** Set Resources Directory
 
 #+begin_src hy
@@ -268,13 +262,16 @@ echo 'source $HOME/.local/syvl/python/bin/activate'
 
 #+begin_src hy
 #@((.group click :no-args-is-help True)
-   (.argument click "host")
    (.option click "-a" "--all" :default False)
    (.option click "-c" "--copy" :default False)
    (.option click "-g" "--generate" :default False)
+   (.option click "-H" "--host")
    (.option click "-i" "--install" :default False)
    (.option click "-r" "--replace" :default False)
-   (defn bootstrap [ host all copy generate install replace ]
+   click.pass-context
+   (defn bootstrap [ ctx host all copy generate install replace ]
+         (.ensure-object ctx dict)
+         (setv ctx.obj.host host)
          (.mkdir (Path "/mnt/etc/nixos") :parents True :exist-ok True)
          (if (or copy all)
              (copy2 "./etc/nixos/datasets.nix" "/mnt/etc/nixos/datasets.nix"))
@@ -292,12 +289,13 @@ echo 'source $HOME/.local/syvl/python/bin/activate'
 
 #+begin_src hy
 #@((.command bootstrap :no-args-is-help True)
-   (.argument click "host")
    (.option click "-d" "--deduplicated" :default False)
    (.option click "-e" "--encrypted" :default False)
    (.option click "-s" "--swap" :type int :default 0)
    (.option click "-z" "--zfs-device" :required True)
-   (defn create [ deduplicated encrypted host swap zfs-device ]
+   click.pass-context
+   (defn create [ ctx deduplicated encrypted swap zfs-device ]
+         (if (not ctx.obj.host) (raise (ValueError "Sorry! The host needs to be set!")))
          (try (if (= (input "THIS WILL DELETE ALL DATA ON THE SELECTED DEVICE / PARTITION! TO CONTINUE, TYPE IN 'ZFS CREATE'!\n\t") "ZFS CREATE")
                   (let [options (D { "xattr"      "sa"
                                      "acltype"    "posixacl"
@@ -317,36 +315,37 @@ echo 'source $HOME/.local/syvl/python/bin/activate'
                        (try (.mkdir (Path "/mnt"))
                             (except [FileExistsError]
                                     (umount :R True "/mnt")))
-                       (.export zpool :f True host :m/ignore-stderr True)
-                       (command :O { "repeat-with-values" (gfor [k v] (.items options) f"{k}={v}") } host zfs-device)
-                       (update-datasets host swap :pool True))
+                       (.export zpool :f True ctx.obj.host :m/ignore-stderr True)
+                       (command :O { "repeat-with-values" (gfor [k v] (.items options) f"{k}={v}") } ctx.obj.host zfs-device)
+                       (update-datasets ctx.obj.host swap :pool True))
                   (print "Sorry; not continuing!\n\n"))
-              (finally (.export zpool :f True host :m/ignore-stderr True)))))
+              (finally (.export zpool :f True ctx.obj.host :m/ignore-stderr True)))))
 #+end_src
 
 *** Mount
 
 #+begin_src hy
 #@((.command bootstrap :no-args-is-help True)
-   (.argument click "host")
    (.option click "-b" "--boot-device")
    (.option click "-d" "--deduplicated" :default False)
    (.option click "-e" "--encrypted" :default False)
    (.option click "-r" "--root-device")
    (.option click "-s" "--swap" :default False)
-   (defn mount [ boot-device deduplicated encrypted host root-device swap ]
+   click.pass-context
+   (defn mount [ ctx boot-device deduplicated encrypted root-device swap ]
+         (if (not ctx.obj.host) (raise (ValueError "Sorry! The host needs to be set!")))
          (for [dataset (.list zfs :r True :H True :m/list True :m/split True)]
-              (if (in host dataset)
+              (if (in ctx.obj.host dataset)
                   (break))
-              (else (.import zpool :f True host)))
+              (else (.import zpool :f True ctx.obj.host)))
          (if encrypted
-             (.load-key zfs host :m/run True))
+             (.load-key zfs ctx.obj.host :m/run True))
          (try (.mkdir (Path "/mnt"))
               (except [FileExistsError]
                       (umount :R True "/mnt")))
          (if root-device
              (mount root-device "/mnt")
-             (mount :t "zfs" (+ host "/system/root") "/mnt"))
+             (mount :t "zfs" (+ ctx.obj.host "/system/root") "/mnt"))
          (with [datasets (open (+ resources "/datasets.nix"))]
                (for [dataset (cut (.readlines datasets) 1 -1)]
                     (setv [dataset mount] (.split dataset "=")
@@ -361,7 +360,7 @@ then re-add them to the final mountpoint with ~"/mnt~.
                                              (-> mount
                                                  (.strip)
                                                  (.lstrip "\"")
-                                                 (.replace "${host}" host))))
+                                                 (.replace "${host}" ctx.obj.host))))
 #+end_src
 
 #+begin_src hy
@@ -372,12 +371,12 @@ then re-add them to the final mountpoint with ~"/mnt~.
                   (.mkdir (Path boot) :parents True :exist-ok True)
                   (mount boot-device boot)))
          (if swap
-             (swapon (+ "/dev/zvol/" host "/swap")))
+             (swapon (+ "/dev/zvol/" ctx.obj.host "/swap")))
 
-         ;; (mount :t "zfs" (+ host "/system/tmp") "/tmp")
-         ;; (mount :t "zfs" (+ host "/system/tmp/nix") "/tmp/nix")
+         ;; (mount :t "zfs" (+ ctx.obj.host "/system/tmp") "/tmp")
+         ;; (mount :t "zfs" (+ ctx.obj.host "/system/tmp/nix") "/tmp/nix")
          ;; (rsync :a True :v { "repeat" 2 } :c True :z { "repeat" 2 } :delete True "/nix/" "/tmp/nix/")
-         ;; (mount :t "zfs" (+ host "/system/tmp/nix") "/nix")
+         ;; (mount :t "zfs" (+ ctx.obj.host "/system/tmp/nix") "/nix")
          
          ))
 #+end_src
@@ -386,25 +385,26 @@ then re-add them to the final mountpoint with ~"/mnt~.
 
 #+begin_src hy
 #@((.command bootstrap :no-args-is-help True)
-   (.argument click "host")
    (.option click "-d" "--deduplicated" :default False)
    (.option click "-e" "--encrypted" :default False)
    (.option click "-f" "--files" :default False)
    (.option click "-p" "--pool" :default False)
    (.option click "-s" "--swap" :type int :default 0)
-   (defn update [ deduplicated encrypted files host pool swap ]
-         (try (setv ud (partial update-datasets host swap))
+   click.pass-context
+   (defn update [ ctx deduplicated encrypted files pool swap ]
+         (if (not ctx.obj.host) (raise (ValueError "Sorry! The host needs to be set!")))
+         (try (setv ud (partial update-datasets ctx.obj.host swap))
               (cond [files (ud)]
                     [pool (ud :pool True)]
                     [True (ud)])
-              (finally (.export zpool :f True host :m/ignore-stderr True)))))
+              (finally (.export zpool :f True ctx.obj.host :m/ignore-stderr True)))))
 #+end_src
 
 ** End of bootstrap
 
 #+begin_src hy
 (if (= __name__ "__main__")
-    (bootstrap))
+    (bootstrap :obj (D {})))
 #+end_src
 
 * etc
