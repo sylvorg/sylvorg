@@ -175,13 +175,13 @@
    (.option click "-H" "--host")
    (.option click "-I" "--inspect" :is-flag True)
    (.option click "-i" "--install" :is-flag True)
-   (.option click "-p" "--Print" :is-flag True)
+   (.option click "-p" "--print-run" :is-flag True)
    (.option click "-r" "--replace" :is-flag True)
    click.pass-context
-   (defn bootstrap [ ctx all copy generate host inspect install Print replace ]
+   (defn bootstrap [ ctx all copy generate host inspect install print-run replace ]
          (.ensure-object ctx dict)
          (setv ctx.obj.host host)
-         (if Print (.bake-all- getconf :m/print-command-and-run True))
+         (if print-run (.bake-all- getconf :m/print-command-and-run True))
          (if inspect (.bake-all- getconf :m/debug True))
          (.mkdir (Path "/mnt/etc/nixos") :parents True :exist-ok True)
          (if (or copy all)
