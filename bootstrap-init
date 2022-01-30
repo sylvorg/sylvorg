@@ -6,5 +6,7 @@ $HOME/.local/bootstrap/syvl --init
 dependencies="sd"
 for prog in $dependencies; do hash $prog 2>/dev/null || $pacapt -yyu 2>/dev/null && break || :; done
 for prog in $dependencies; do hash $prog 2>/dev/null || $pacapt -S $prog 2>/dev/null || nix-env -iA nixos.$prog; done
-echo "\tRun this, then the bootstrap!"
-echo '\t\tsource $HOME/.local/syvl/python/bin/activate'
+chmod +x bootstrap
+echo
+echo 'source $HOME/.local/syvl/python/bin/activate'
+echo
