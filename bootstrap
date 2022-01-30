@@ -90,8 +90,8 @@
            (assoc (. datasets virt [d] podman [d]) user (dict))
            (for [dataset (.keys (. datasets [s] [d] persist [d]))]
                 (assoc (. datasets [s] [d] persist [d] [dataset] [d]) user (dict))))
-      (with [dnix (open f"{resources}/datasets.nix" "w")]
-            (.write dnix "host: {\n")
+      (with [dnix (open (+ resources "/datasets.nix") "w")]
+            (.write dnix "{\n")
             (defn recurse [ddict dname droot [mountpoint ""]]
                   (setv recurse/dataset (+ droot "/" dname)
                         cloning         (and (!= dname "base")
@@ -189,7 +189,7 @@
          (if inspect (.bake-all- getconf :m/debug True))
          (.mkdir (Path "/mnt/etc/nixos") :parents True :exist-ok True)
          (if (or copy all)
-             (copy2 "./etc/nixos/datasets.nix" "/mnt/etc/nixos/datasets.nix"))
+             (copy2 (+ resources "/datasets.nix") "/mnt/etc/nixos/datasets.nix"))
          (if (or generate all)
              (nixos-generate-config :root "/mnt"))
          (if (or replace all)

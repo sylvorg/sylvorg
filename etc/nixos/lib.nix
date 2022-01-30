@@ -175,7 +175,7 @@ homes = listToAttrs (map (
 ) mainUsers);
 allHomes = homes // { root = "/root"; };
 datasets = {
-    fileSystems = import /etc/nixos/datasets.nix host;
+    fileSystems = import /etc/nixos/datasets.nix;
     backup = [
         "system/persist"
         "virt"
