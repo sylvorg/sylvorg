@@ -262,14 +262,14 @@ echo 'source $HOME/.local/syvl/python/bin/activate'
 
 #+begin_src hy
 #@((.group click :no-args-is-help True)
-   (.option click "-a" "--all" :default False)
-   (.option click "-c" "--copy" :default False)
-   (.option click "-g" "--generate" :default False)
+   (.option click "-a" "--all" :is-flag True)
+   (.option click "-c" "--copy" :is-flag True)
+   (.option click "-g" "--generate" :is-flag True)
    (.option click "-H" "--host")
-   (.option click "-I" "--inspect" :default False)
-   (.option click "-i" "--install" :default False)
-   (.option click "-p" "--Print" :default False)
-   (.option click "-r" "--replace" :default False)
+   (.option click "-I" "--inspect" :is-flag True)
+   (.option click "-i" "--install" :is-flag True)
+   (.option click "-p" "--Print" :is-flag True)
+   (.option click "-r" "--replace" :is-flag True)
    click.pass-context
    (defn bootstrap [ ctx all copy generate host inspect install Print replace ]
          (.ensure-object ctx dict)
@@ -293,8 +293,8 @@ echo 'source $HOME/.local/syvl/python/bin/activate'
 
 #+begin_src hy
 #@((.command bootstrap :no-args-is-help True)
-   (.option click "-d" "--deduplicated" :default False)
-   (.option click "-e" "--encrypted" :default False)
+   (.option click "-d" "--deduplicated" :is-flag True)
+   (.option click "-e" "--encrypted" :is-flag True)
    (.option click "-s" "--swap" :type int :default 0)
    (.option click "-z" "--zfs-device" :required True)
    click.pass-context
@@ -332,10 +332,10 @@ echo 'source $HOME/.local/syvl/python/bin/activate'
 #+begin_src hy
 #@((.command bootstrap :no-args-is-help True)
    (.option click "-b" "--boot-device")
-   (.option click "-d" "--deduplicated" :default False)
-   (.option click "-e" "--encrypted" :default False)
+   (.option click "-d" "--deduplicated" :is-flag True)
+   (.option click "-e" "--encrypted" :is-flag True)
    (.option click "-r" "--root-device")
-   (.option click "-s" "--swap" :default False)
+   (.option click "-s" "--swap" :is-flag True)
    click.pass-context
    (defn mount [ ctx boot-device deduplicated encrypted root-device swap ]
          (if (not ctx.obj.host) (raise (ValueError "Sorry! The host needs to be set; do this with the main command while running the subcommand!")))
@@ -391,10 +391,10 @@ then re-add them to the final mountpoint with ~"/mnt~.
 
 #+begin_src hy
 #@((.command bootstrap :no-args-is-help True)
-   (.option click "-d" "--deduplicated" :default False)
-   (.option click "-e" "--encrypted" :default False)
-   (.option click "-f" "--files" :default False)
-   (.option click "-p" "--pool" :default False)
+   (.option click "-d" "--deduplicated" :is-flag True)
+   (.option click "-e" "--encrypted" :is-flag True)
+   (.option click "-f" "--files" :is-flag True)
+   (.option click "-p" "--pool" :is-flag True)
    (.option click "-s" "--swap" :type int :default 0)
    click.pass-context
    (defn update [ ctx deduplicated encrypted files pool swap ]
