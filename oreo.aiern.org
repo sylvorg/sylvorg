@@ -4,26 +4,24 @@
 The tangle functions are adapted from [[https://emacs.stackexchange.com/a/29884/31428][this answer on the emacs Stack Exchange]],
 which was written by [[https://emacs.stackexchange.com/users/2710/andrew-swann][Andrew Swann]].
 
-* bootstrap
+* bootstrap-init
 :PROPERTIES:
-:header-args:sh+: :noweb-ref nwr20220129201318455450756
-:header-args:hy+: :noweb-ref nwr20220129201318455450756
+:header-args:sh+: :noweb-ref nwr20220130005510138019380
 :END:
 
-#+begin_src hy :noweb-ref no :tangle (meq/tangle-path) :shebang "#!/usr/bin/env sh"
-<<nwr20220129201318455450756>>
+#+begin_src sh :noweb-ref no :tangle (meq/tangle-path) :shebang "#!/usr/bin/env sh"
+<<nwr20220130005510138019380>>
 #+end_src
 
-** Download, Run, and Source Syvl Venv
+** Download and Run Syvl
 
 Use [[https://github.com/<<username>>/syvl][syvl]]
 
 #+begin_src sh
 [ -d $HOME/.local/bootstrap ] || mkdir -p $HOME/.local/bootstrap
-curl -fsSLo $HOME/.local/bootstrap/syvl https://raw.githubusercontent.com/shadowrylander/syvl/main/syvl
+curl -fsSLo $HOME/.local/bootstrap/syvl https://raw.githubusercontent.com/<<username>>/syvl/main/syvl
 chmod +x $HOME/.local/bootstrap/syvl
 $HOME/.local/bootstrap/syvl --init
-source $HOME/.local/syvl/python/bin/activate
 #+end_src
 
 ** Install Necessary Tools
@@ -36,15 +34,22 @@ for prog in $dependencies; do hash $prog 2>/dev/null || $pacapt -yyu 2>/dev/null
 for prog in $dependencies; do hash $prog 2>/dev/null || $pacapt -S $prog 2>/dev/null || nix-env -iA nixos.$prog; done
 #+end_src
 
-** Hy Begins
-
-Start hy with the original command-line arguments:
+** Source and Return Syvl Venv
 
 #+begin_src sh
-hy - "$@" <<'EOF'
+exec $HOME/.local/syvl/python/bin/activate
 #+end_src
 
-*** Imports
+* bootstrap
+:PROPERTIES:
+:header-args:hy+: :noweb-ref nwr20220129201318455450756
+:END:
+
+#+begin_src hy :noweb-ref no :tangle (meq/tangle-path) :shebang "#!/usr/bin/env hy"
+<<nwr20220129201318455450756>>
+#+end_src
+
+** Imports
 
 #+begin_src hy
 (import click)
@@ -52,7 +57,7 @@ hy - "$@" <<'EOF'
 (import os)
 #+end_src
 
-**** From
+*** From
 
 #+begin_src hy
 (import addict [Dict :as D])
@@ -73,25 +78,25 @@ hy - "$@" <<'EOF'
 (import toolz [last])
 #+end_src
 
-*** Requires
+** Requires
 
 #+begin_src hy
 (require hyrule [-> assoc])
 #+end_src
 
-*** Remove Hy Binary from Command-Line Arguments
+** Remove Hy Binary from Command-Line Arguments
 
 #+begin_src hy
 (del (get argv 0))
 #+end_src
 
-*** Set Resources Directory
+** Set Resources Directory
 
 #+begin_src hy
 (setv resources "./etc/nixos/")
 #+end_src
 
-*** Datasets
+** Datasets
 
 #+call: hash() :exports none
 
@@ -149,7 +154,7 @@ hy - "$@" <<'EOF'
 }
 #+end_src
 
-*** Update Datasets
+** Update Datasets
 
 #+begin_src hy
 (defn update-datasets [host swap [pool False]]
@@ -252,7 +257,7 @@ hy - "$@" <<'EOF'
                         (mkswap (+ "/dev/zvol" host "/swap")))))))
 #+end_src
 
-*** Click
+** Click
 
 #+begin_src hy
 #@((.group click :no-args-is-help True)
@@ -273,13 +278,13 @@ hy - "$@" <<'EOF'
              (nixos-generate-config :root "/mnt"))
          (if (or replace all)
              (sd "./hardware-configuration.nix"
-                 (+ "'${builtins.fetchGit { url = \"https://github.com/shadowrylander/shadowrylander\"; }}/configs/" host "'")
+                 (+ "'${builtins.fetchGit { url = \"https://github.com/<<username>>/<<username>>\"; }}/configs/" host "'")
                  "/mnt/etc/nixos/configuration.nix"))
          (if (or install all)
              (nixos-install :show-trace True))))
 #+end_src
 
-**** Create
+*** Create
 
 #+begin_src hy
 #@((.command bootstrap :no-args-is-help True)
@@ -316,7 +321,7 @@ hy - "$@" <<'EOF'
               (finally (.export zpool :f True ctx.obj.host :m/ignore-stderr True)))))
 #+end_src
 
-**** Mount
+*** Mount
 
 #+begin_src hy
 #@((.command bootstrap :no-args-is-help True)
@@ -375,7 +380,7 @@ then re-add them to the final mountpoint with ~"/mnt~.
          ))
 #+end_src
 
-**** Update
+*** Update
 
 #+begin_src hy
 #@((.command bootstrap :no-args-is-help True)
@@ -394,17 +399,11 @@ then re-add them to the final mountpoint with ~"/mnt~.
               (finally (.export zpool :f True ctx.obj.host :m/ignore-stderr True)))))
 #+end_src
 
-*** End of Hy
+** End of bootstrap
 
 #+begin_src hy
 (if (= __name__ "__main__")
     (bootstrap :obj (D {})))
-#+end_src
-
-** End of bootstrap
-
-#+begin_src sh
-EOF
 #+end_src
 
 * etc

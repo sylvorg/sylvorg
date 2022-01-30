@@ -1,13 +1,4 @@
-#!/usr/bin/env sh
-[ -d $HOME/.local/bootstrap ] || mkdir -p $HOME/.local/bootstrap
-curl -fsSLo $HOME/.local/bootstrap/syvl https://raw.githubusercontent.com/shadowrylander/syvl/main/syvl
-chmod +x $HOME/.local/bootstrap/syvl
-$HOME/.local/bootstrap/syvl --init
-source $HOME/.local/syvl/python/bin/activate
-dependencies="sd"
-for prog in $dependencies; do hash $prog 2>/dev/null || $pacapt -yyu 2>/dev/null && break || :; done
-for prog in $dependencies; do hash $prog 2>/dev/null || $pacapt -S $prog 2>/dev/null || nix-env -iA nixos.$prog; done
-hy - "$@" <<'EOF'
+#!/usr/bin/env hy
 (import click)
 (import json)
 (import os)
@@ -293,4 +284,3 @@ mount           (+ "\"/mnt"
               (finally (.export zpool :f True ctx.obj.host :m/ignore-stderr True)))))
 (if (= __name__ "__main__")
     (bootstrap :obj (D {})))
-EOF
