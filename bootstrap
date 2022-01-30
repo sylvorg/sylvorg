@@ -170,16 +170,13 @@
                                  (+ host "/swap"))
                         (mkswap (+ "/dev/zvol" host "/swap")))))))
 #@((.group click :no-args-is-help True)
+   (.argument click "host")
    (.option click "-a" "--all" :default False)
    (.option click "-c" "--copy" :default False)
    (.option click "-g" "--generate" :default False)
-   (.option click "-H" "--host")
    (.option click "-i" "--install" :default False)
    (.option click "-r" "--replace" :default False)
-   click.pass-context
-   (defn bootstrap [ ctx host all copy generate install replace ]
-         (.ensure-object ctx dict)
-         (setv ctx.obj.host host)
+   (defn bootstrap [ host all copy generate install replace ]
          (.mkdir (Path "/mnt/etc/nixos") :parents True :exist-ok True)
          (if (or copy all)
              (copy2 "./etc/nixos/datasets.nix" "/mnt/etc/nixos/datasets.nix"))
@@ -192,13 +189,12 @@
          (if (or install all)
              (nixos-install :show-trace True))))
 #@((.command bootstrap :no-args-is-help True)
+   (.argument click "host")
    (.option click "-d" "--deduplicated" :default False)
    (.option click "-e" "--encrypted" :default False)
    (.option click "-s" "--swap" :type int :default 0)
    (.option click "-z" "--zfs-device" :required True)
-   click.pass-context
-   (defn create [ ctx deduplicated encrypted swap zfs-device ]
-         (if (not ctx.obj.host) (raise (ValueError "Sorry! The host needs to be set!")))
+   (defn create [ deduplicated encrypted host swap zfs-device ]
          (try (if (= (input "THIS WILL DELETE ALL DATA ON THE SELECTED DEVICE / PARTITION! TO CONTINUE, TYPE IN 'ZFS CREATE'!\n\t") "ZFS CREATE")
                   (let [options (D { "xattr"      "sa"
                                      "acltype"    "posixacl"
@@ -224,14 +220,13 @@
                   (print "Sorry; not continuing!\n\n"))
               (finally (.export zpool :f True ctx.obj.host :m/ignore-stderr True)))))
 #@((.command bootstrap :no-args-is-help True)
+   (.argument click "host")
    (.option click "-b" "--boot-device")
    (.option click "-d" "--deduplicated" :default False)
    (.option click "-e" "--encrypted" :default False)
    (.option click "-r" "--root-device")
    (.option click "-s" "--swap" :default False)
-   click.pass-context
-   (defn mount [ ctx boot-device deduplicated encrypted root-device swap ]
-         (if (not ctx.obj.host) (raise (ValueError "Sorry! The host needs to be set!")))
+   (defn mount [ boot-device deduplicated encrypted host root-device swap ]
          (for [dataset (.list zfs :r True :H True :m/list True :m/split True)]
               (if (in ctx.obj.host dataset)
                   (break))
@@ -269,18 +264,17 @@ mount           (+ "\"/mnt"
 
 ))
 #@((.command bootstrap :no-args-is-help True)
+   (.argument click "host")
    (.option click "-d" "--deduplicated" :default False)
    (.option click "-e" "--encrypted" :default False)
    (.option click "-f" "--files" :default False)
    (.option click "-p" "--pool" :default False)
    (.option click "-s" "--swap" :type int :default 0)
-   click.pass-context
-   (defn update [ ctx deduplicated encrypted files pool swap ]
-         (if (not ctx.obj.host) (raise (ValueError "Sorry! The host needs to be set!")))
+   (defn update [ deduplicated encrypted files host pool swap ]
          (try (setv ud (partial update-datasets ctx.obj.host swap))
               (cond [files (ud)]
                     [pool (ud :pool True)]
                     [True (ud)])
               (finally (.export zpool :f True ctx.obj.host :m/ignore-stderr True)))))
 (if (= __name__ "__main__")
-    (bootstrap :obj (D {})))
+    (bootstrap))

@@ -9,4 +9,3 @@ for prog in $dependencies; do hash $prog 2>/dev/null || $pacapt -S $prog 2>/dev/
 chmod +x bootstrap
 echo
 echo 'source $HOME/.local/syvl/python/bin/activate'
-echo
