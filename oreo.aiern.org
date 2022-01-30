@@ -34,12 +34,11 @@ for prog in $dependencies; do hash $prog 2>/dev/null || $pacapt -yyu 2>/dev/null
 for prog in $dependencies; do hash $prog 2>/dev/null || $pacapt -S $prog 2>/dev/null || nix-env -iA nixos.$prog; done
 #+end_src
 
-** Source Syvl Venv
+** Return Syvl Venv Activation Command
 
 #+begin_src sh
-source $HOME/.local/syvl/python/bin/activate
-chmod +x bootstrap
-./bootstrap $@
+echo "\tRun this, then the bootstrap!"
+echo '\t\tsource $HOME/.local/syvl/python/bin/activate'
 #+end_src
 
 * bootstrap
