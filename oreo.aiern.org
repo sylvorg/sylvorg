@@ -182,7 +182,7 @@ echo 'source $HOME/.local/syvl/python/bin/activate'
             (.write dnix "host: {\n")
             (defn recurse [ddict dname droot [mountpoint ""]]
                   (setv recurse/dataset (+ droot "/" dname)
-                        cloning         (and (!= dname base)
+                        cloning         (and (!= dname "base")
                                              (and encrypted deduplicated))
                         prefixes        (, "system"
                                            "system/root"
