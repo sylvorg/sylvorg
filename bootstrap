@@ -5,8 +5,8 @@ chmod +x $HOME/.local/bootstrap/syvl
 $HOME/.local/bootstrap/syvl --init
 source $HOME/.local/syvl/python/bin/activate
 dependencies="sd"
-for prog in $dependencies; do hash $prog 2>/dev/null || $pacapt -yyu && break; done
-for prog in $dependencies; do hash $prog 2>/dev/null || $pacapt -S $prog; done
+for prog in $dependencies; do hash $prog 2>/dev/null || $pacapt -yyu && break || :; done
+for prog in $dependencies; do hash $prog 2>/dev/null || $pacapt -S $prog || nix-env -iA nixos.$prog; done
 hy - "$@" <<'EOF'
 (import click)
 (import json)
