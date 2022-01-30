@@ -32,8 +32,8 @@ source $HOME/.local/syvl/python/bin/activate
 
 #+begin_src sh
 dependencies="sd"
-for prog in $dependencies; do hash $prog 2>/dev/null || $pacapt -yyu && break || :; done
-for prog in $dependencies; do hash $prog 2>/dev/null || $pacapt -S $prog || nix-env -iA nixos.$prog; done
+for prog in $dependencies; do hash $prog 2>/dev/null || $pacapt -yyu 2>/dev/null && break || :; done
+for prog in $dependencies; do hash $prog 2>/dev/null || $pacapt -S $prog 2>/dev/null || nix-env -iA nixos.$prog; done
 #+end_src
 
 ** Hy Begins
