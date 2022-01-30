@@ -94,7 +94,7 @@ echo 'source $HOME/.local/syvl/python/bin/activate'
 ** Set Resources Directory
 
 #+begin_src hy
-(setv resources "./etc/nixos/")
+(setv resources (.dirname os.path (.realpath os.path __file__)))
 #+end_src
 
 ** Datasets
@@ -393,8 +393,8 @@ then re-add them to the final mountpoint with ~"/mnt~.
 #@((.command bootstrap :no-args-is-help True)
    (.option click "-d" "--deduplicated" :is-flag True)
    (.option click "-e" "--encrypted" :is-flag True)
-   (.option click "-f" "--files" :is-flag True)
-   (.option click "-p" "--pool" :is-flag True)
+   (.option click "-f" "--files" :is-flag True :help "Update datasets.nix with any new datasets; the default")
+   (.option click "-p" "--pool" :is-flag True :help "Update the pool and datasets.nix with any new datasets")
    (.option click "-s" "--swap" :type int :default 0)
    click.pass-context
    (defn update [ ctx deduplicated encrypted files pool swap ]
