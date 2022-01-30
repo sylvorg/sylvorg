@@ -132,8 +132,8 @@
             (.write dnix "host: {\n"))
       (if pool
           (let [pool-size-plus-metric (get (.get zpool :H True "size" host :m/list True :m/split True) 2)
-                pool-size             (-> "pool_size_plus_metric[:-1]"
-                                          (py)
+                pool-size             (-> pool-size-plus-metric
+                                          (cut 0 -1)
                                           (float)
                                           (round 2))
                 pool-metric           (last pool-size-plus-metric)]
