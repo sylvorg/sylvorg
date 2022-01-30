@@ -158,7 +158,7 @@ echo 'source $HOME/.local/syvl/python/bin/activate'
 ** Update Datasets
 
 #+begin_src hy
-(defn update-datasets [host swap [pool False]]
+(defn update-datasets [host swap encrypted deduplicated [pool False]]
       (setv snap-dir     [ "snapdir=visible" ]
             extra-copies (+ snap-dir [ "copies=3" ])
             cache        [ "sync=disabled" ]
@@ -318,7 +318,7 @@ echo 'source $HOME/.local/syvl/python/bin/activate'
                                         (umount :R True "/mnt"))))
                        (.export zpool :f True ctx.obj.host :m/ignore-stderr True)
                        (command :O { "repeat-with-values" (gfor [k v] (.items options) f"{k}={v}") } ctx.obj.host zfs-device)
-                       (update-datasets ctx.obj.host swap :pool True))
+                       (update-datasets ctx.obj.host swap encrypted deduplicated :pool True))
                   (print "Sorry; not continuing!\n\n"))
               (finally (.export zpool :f True ctx.obj.host :m/ignore-stderr True)))))
 #+end_src
@@ -395,7 +395,7 @@ then re-add them to the final mountpoint with ~"/mnt~.
    click.pass-context
    (defn update [ ctx deduplicated encrypted files pool swap ]
          (if (not ctx.obj.host) (raise (ValueError "Sorry! The host needs to be set!")))
-         (try (setv ud (partial update-datasets ctx.obj.host swap))
+         (try (setv ud (partial update-datasets ctx.obj.host swap encrypted deduplicated))
               (cond [files (ud)]
                     [pool (ud :pool True)]
                     [True (ud)])
