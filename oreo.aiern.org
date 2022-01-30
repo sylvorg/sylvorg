@@ -70,7 +70,7 @@ echo 'source $HOME/.local/syvl/python/bin/activate'
 (import addict [Dict :as D])
 (import bakery [ getconf
                  mkswap
-                 mount
+                 mount :as Mount
                  nixos-generate-config
                  nixos-install
                  sd
@@ -295,7 +295,7 @@ echo 'source $HOME/.local/syvl/python/bin/activate'
    (.option click "-z" "--zfs-device" :required True)
    click.pass-context
    (defn create [ ctx deduplicated encrypted swap zfs-device ]
-         (if (not ctx.obj.host) (raise (ValueError "Sorry! The host needs to be set!")))
+         (if (not ctx.obj.host) (raise (ValueError "Sorry! The host needs to be set; do this with the main command while running the subcommand!")))
          (try (if (= (input "THIS WILL DELETE ALL DATA ON THE SELECTED DEVICE / PARTITION! TO CONTINUE, TYPE IN 'ZFS CREATE'!\n\t") "ZFS CREATE")
                   (let [options (D { "xattr"      "sa"
                                      "acltype"    "posixacl"
@@ -334,7 +334,7 @@ echo 'source $HOME/.local/syvl/python/bin/activate'
    (.option click "-s" "--swap" :default False)
    click.pass-context
    (defn mount [ ctx boot-device deduplicated encrypted root-device swap ]
-         (if (not ctx.obj.host) (raise (ValueError "Sorry! The host needs to be set!")))
+         (if (not ctx.obj.host) (raise (ValueError "Sorry! The host needs to be set; do this with the main command while running the subcommand!")))
          (for [dataset (.list zfs :r True :H True :m/list True :m/split True)]
               (if (in ctx.obj.host dataset)
                   (break))
@@ -346,39 +346,39 @@ echo 'source $HOME/.local/syvl/python/bin/activate'
                       (if (.ismount os.path "/mnt")
                           (umount :R True "/mnt"))))
          (if root-device
-             (mount root-device "/mnt")
-             (mount :t "zfs" (+ ctx.obj.host "/system/root") "/mnt"))
+             (Mount root-device "/mnt")
+             (Mount :t "zfs" (+ ctx.obj.host "/system/root") "/mnt"))
          (with [datasets (open (+ resources "/datasets.nix"))]
                (for [dataset (cut (.readlines datasets) 1 -1)]
-                    (setv [dataset mount] (.split dataset "=")
-                          dataset         (.strip dataset)
+                    (setv [dataset mount/mount] (.split dataset "=")
+                          dataset               (.strip dataset)
 #+end_src
 
-Because the mount already has a double-quote on the right side, we strip the quotes on the left side,
+Because the ~mount/mount~ already has a double-quote on the right side, we strip the quotes on the left side,
 then re-add them to the final mountpoint with ~"/mnt~.
 
 #+begin_src hy
-                          mount           (+ "\"/mnt"
-                                             (-> mount
-                                                 (.strip)
-                                                 (.lstrip "\"")
-                                                 (.replace "${host}" ctx.obj.host))))
+                          mount/mount           (+ "\"/mnt"
+                                                   (-> mount/mount
+                                                       (.strip)
+                                                       (.lstrip "\"")
+                                                       (.replace "${host}" ctx.obj.host))))
 #+end_src
 
 #+begin_src hy
-                    (.mkdir (Path mount) :parents True :exist-ok True)
-                    (mount :t "zfs" dataset mount)))
+                    (.mkdir (Path mount/mount) :parents True :exist-ok True)
+                    (Mount :t "zfs" dataset mount/mount)))
          (if boot-device
              (let [boot "/mnt/boot/efi"]
                   (.mkdir (Path boot) :parents True :exist-ok True)
-                  (mount boot-device boot)))
+                  (Mount boot-device boot)))
          (if swap
              (swapon (+ "/dev/zvol/" ctx.obj.host "/swap")))
 
-         ;; (mount :t "zfs" (+ ctx.obj.host "/system/tmp") "/tmp")
-         ;; (mount :t "zfs" (+ ctx.obj.host "/system/tmp/nix") "/tmp/nix")
+         ;; (Mount :t "zfs" (+ ctx.obj.host "/system/tmp") "/tmp")
+         ;; (Mount :t "zfs" (+ ctx.obj.host "/system/tmp/nix") "/tmp/nix")
          ;; (rsync :a True :v { "repeat" 2 } :c True :z { "repeat" 2 } :delete True "/nix/" "/tmp/nix/")
-         ;; (mount :t "zfs" (+ ctx.obj.host "/system/tmp/nix") "/nix")
+         ;; (Mount :t "zfs" (+ ctx.obj.host "/system/tmp/nix") "/nix")
          
          ))
 #+end_src
@@ -394,7 +394,7 @@ then re-add them to the final mountpoint with ~"/mnt~.
    (.option click "-s" "--swap" :type int :default 0)
    click.pass-context
    (defn update [ ctx deduplicated encrypted files pool swap ]
-         (if (not ctx.obj.host) (raise (ValueError "Sorry! The host needs to be set!")))
+         (if (not ctx.obj.host) (raise (ValueError "Sorry! The host needs to be set; do this with the main command while running the subcommand!")))
          (try (setv ud (partial update-datasets ctx.obj.host swap encrypted deduplicated))
               (cond [files (ud)]
                     [pool (ud :pool True)]
