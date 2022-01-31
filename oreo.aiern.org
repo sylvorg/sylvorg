@@ -302,7 +302,7 @@ echo 'source $HOME/.local/syvl/python/bin/activate'
                      "/mnt/etc/nixos/configuration.nix")
                  (raise (NameError no-host-error-message))))
          (if (or install all)
-             (nixos-install :show-trace True))))
+             (nixos-install :show-trace True :option "tarball-ttl 0"))))
 #+end_src
 
 *** Create
