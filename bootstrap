@@ -259,6 +259,7 @@
                           dataset               (.strip dataset)
 mount/mount           (+ "\"/mnt"
                          (-> mount/mount
+                             (cut 0 -1)
                              (.strip)
                              (.lstrip "\"")
                              (.replace "${host}" ctx.obj.host))))
