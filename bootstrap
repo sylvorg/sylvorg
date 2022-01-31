@@ -187,7 +187,6 @@
          (setv ctx.obj.host host)
          (if print-run (.bake-all- getconf :m/print-command-and-run True))
          (if inspect (.bake-all- getconf :m/debug True))
-         (.mkdir (Path "/mnt/etc/nixos") :parents True :exist-ok True)
          (if (or copy all)
              (copy2 (+ resources "/datasets.nix") "/mnt/etc/nixos/datasets.nix"))
          (if (or generate all)
@@ -222,10 +221,6 @@
                                  options.keyformat  "passphrase"))
                        (if deduplicated
                            (setv options.dedup "edonr,verify"))
-                       (try (.mkdir (Path "/mnt"))
-                            (except [FileExistsError]
-                                    (if (.ismount os.path "/mnt")
-                                        (umount :R True "/mnt"))))
                        (.export zpool :f True ctx.obj.host :m/ignore-stderr True)
                        (command :O { "repeat-with-values" (gfor [k v] (.items options) f"{k}={v}") } ctx.obj.host zfs-device)
                        (update-datasets ctx.obj.host swap encrypted deduplicated :pool True))
@@ -253,6 +248,7 @@
          (if root-device
              (Mount root-device "/mnt")
              (Mount :t "zfs" (+ ctx.obj.host "/system/root") "/mnt"))
+         (.mkdir (Path "/mnt/etc/nixos") :parents True :exist-ok True)
          (with [datasets (open (+ resources "/datasets.nix"))]
                (for [dataset (cut (.readlines datasets) 1 -1)]
                     (setv [dataset mount/mount] (.split dataset "=")
