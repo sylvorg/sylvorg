@@ -41,7 +41,6 @@ loader = {
     # Used for Bedrock Linux
     initScript.enable = mkForce true;
 
-    extraModprobeConfig = '' options kvm_intel_nested=1 '';
     supportedFilesystems = j.attrs.fileSystems.supported;
     initrd = {
         inherit (config.boot) supportedFilesystems;

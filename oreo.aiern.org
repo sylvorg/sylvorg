@@ -1580,6 +1580,12 @@ imports = [
 boot = {
 #+end_src
 
+****** Extra Modprobe Config
+
+#+begin_src hy
+extraModprobeConfig = '' options kvm_intel_nested=1 '';
+#+end_src
+
 ****** Loader
 
 #+begin_src nix
@@ -1611,7 +1617,6 @@ loader = {
     # Used for Bedrock Linux
     initScript.enable = mkForce true;
 
-    extraModprobeConfig = '' options kvm_intel_nested=1 '';
     supportedFilesystems = j.attrs.fileSystems.supported;
     initrd = {
         inherit (config.boot) supportedFilesystems;
