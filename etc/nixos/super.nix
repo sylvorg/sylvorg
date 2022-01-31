@@ -103,9 +103,9 @@ environment.systemPackages = with pkgs; [
     vlc
     xfce.thunar
 ] ++ (map (pkg: pkgs.gnome."gnome-${pkg}") [
-    boxes
-    characters
-    tweaks
+    "boxes"
+    "characters"
+    "tweaks"
 ]) ++ (with pkgs.gnome; [
     dconf-editor
     eog
