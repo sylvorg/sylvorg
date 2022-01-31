@@ -353,25 +353,31 @@ echo 'source $HOME/.local/syvl/python/bin/activate'
              (Mount :t "zfs" (+ ctx.obj.host "/system/root") "/mnt"))
          (.mkdir (Path "/mnt/etc/nixos") :parents True :exist-ok True)
          (with [datasets (open (+ resources "/datasets.nix"))]
-               (for [dataset (cut (.readlines datasets) 1 -1)]
-                    (setv [dataset mount/mount] (.split dataset "=")
-                          dataset               (.strip dataset)
+               (setv dataset-dict (dfor dm
+                                        (cut (.readlines datasets) 1 -1)
+                                        :setv [k v] (.split dataset "=")
+                                        [(.strip k)
 #+end_src
 
-Because the ~mount/mount~ already has a double-quote on the right side, we strip the quotes on the left side,
+Because the mount already has a double-quote on the right side, we strip the quotes on the left side,
 then re-add them to the final mountpoint with ~"/mnt~.
 
 #+begin_src hy
-                          mount/mount           (+ "\"/mnt"
-                                                   (-> mount/mount
-                                                       (.strip)
-                                                       (.rstrip ";")
-                                                       (.lstrip "\""))))
+                                         (+ "\"/mnt"
+                                            (-> v
+                                                (.strip)
+                                                (.rstrip ";")
+                                                (.lstrip "\"")))])
 #+end_src
 
 #+begin_src hy
-                    (.mkdir (Path (.strip mount/mount "\"")) :parents True :exist-ok True)
-                    (Mount :t "zfs" dataset mount/mount)))
+                     ordered-dataset-dict (-> dataset-dict
+                                              (.items)
+                                              (sorted :key (fn [item] (get item 1)))
+                                              (dict)))
+               (for [[k v] ordered-dataset-dict]
+                    (-> v (.strip "\"") (Path) (.mkdir :parents True :exists-ok True))
+                    (Mount :t "zfs" k v))
          (if boot-device
              (let [boot "/mnt/boot/efi"]
                   (.mkdir (Path boot) :parents True :exist-ok True)

@@ -250,16 +250,22 @@
              (Mount :t "zfs" (+ ctx.obj.host "/system/root") "/mnt"))
          (.mkdir (Path "/mnt/etc/nixos") :parents True :exist-ok True)
          (with [datasets (open (+ resources "/datasets.nix"))]
-               (for [dataset (cut (.readlines datasets) 1 -1)]
-                    (setv [dataset mount/mount] (.split dataset "=")
-                          dataset               (.strip dataset)
-mount/mount           (+ "\"/mnt"
-                         (-> mount/mount
-                             (.strip)
-                             (.rstrip ";")
-                             (.lstrip "\""))))
-           (.mkdir (Path (.strip mount/mount "\"")) :parents True :exist-ok True)
-           (Mount :t "zfs" dataset mount/mount)))
+               (setv dataset-dict (dfor dm
+                                        (cut (.readlines datasets) 1 -1)
+                                        :setv [k v] (.split dataset "=")
+                                        [(.strip k)
+(+ "\"/mnt"
+   (-> v
+       (.strip)
+       (.rstrip ";")
+       (.lstrip "\"")))])
+            ordered-dataset-dict (-> dataset-dict
+                                     (.items)
+                                     (sorted :key (fn [item] (get item 1)))
+                                     (dict)))
+      (for [[k v] ordered-dataset-dict]
+           (-> v (.strip "\"") (Path) (.mkdir :parents True :exists-ok True))
+           (Mount :t "zfs" k v))
 (if boot-device
     (let [boot "/mnt/boot/efi"]
          (.mkdir (Path boot) :parents True :exist-ok True)
