@@ -1,6 +1,6 @@
 pkgs: lib: host: with lib; with builtins;
 let
-newLib = rec {
+newLib = self: rec {
 functions = {
 zipToSet = names: values: listToAttrs (
     map (nv: nameValuePair nv.fst nv.snd) (let hasAttrs = any isAttrs values; in zipLists (

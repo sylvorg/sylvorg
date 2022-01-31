@@ -996,7 +996,7 @@ let
 ***** New Lib
 
 #+begin_src nix
-newLib = rec {
+newLib = self: rec {
 #+end_src
 
 ****** Functions
