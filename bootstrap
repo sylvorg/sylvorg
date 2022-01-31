@@ -262,7 +262,7 @@ mount/mount           (+ "\"/mnt"
                              (.strip)
                              (.rstrip ";")
                              (.lstrip "\""))))
-           (.mkdir (Path mount/mount) :parents True :exist-ok True)
+           (.mkdir (Path (.strip mount/mount "\"")) :parents True :exist-ok True)
            (Mount :t "zfs" dataset mount/mount)))
 (if boot-device
     (let [boot "/mnt/boot/efi"]
