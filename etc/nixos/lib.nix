@@ -11,7 +11,7 @@ zipToSet = names: values: listToAttrs (
 );
 # TODO: Why is the filter necessary?
 foldToSet = list: foldr (new: old: recursiveUpdate new old) {} (filter (item: isAttrs item) list);
-if = {
+myIf = {
     list = condition: value: optionals condition value;
     singleton = condition: value: optional condition value;
     set = condition: value: if condition then value else {};

@@ -185,13 +185,14 @@
          (if print-run (.bake-all- getconf :m/print-command-and-run True))
          (if inspect (.bake-all- getconf :m/debug True))))
 #@((.command bootstrap :no-args-is-help True)
+   (.argument click "program-arguments" :nargs -1)
    (.option click "-a" "--all" :is-flag True)
    (.option click "-c" "--copy" :is-flag True)
    (.option click "-g" "--generate" :is-flag True)
    (.option click "-i" "--install" :is-flag True)
    (.option click "-r" "--replace" :is-flag True)
    click.pass-context
-   (defn main [ ctx all copy generate install replace ]
+   (defn main [ ctx all copy generate install program-arguments replace ]
          (.bake-all- getconf :m/sudo True)
          (if (or copy all)
              (rsync :a True :v { "repeat" 2 } :c True :z { "repeat" 2 } f"{resources}/" "/mnt/etc/nixos/"))
@@ -204,7 +205,8 @@
                      "/mnt/etc/nixos/configuration.nix")
                  (raise (NameError no-host-error-message))))
          (if (or install all)
-             (nixos-install :m/run True
+             (nixos-install #* program-arguments
+                            :m/run True
                             :show-trace True
 :option "tarball-ttl 0"
 ))))

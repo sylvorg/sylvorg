@@ -283,13 +283,14 @@ echo 'source $HOME/.local/syvl/python/bin/activate'
 
 #+begin_src hy
 #@((.command bootstrap :no-args-is-help True)
+   (.argument click "program-arguments" :nargs -1)
    (.option click "-a" "--all" :is-flag True)
    (.option click "-c" "--copy" :is-flag True)
    (.option click "-g" "--generate" :is-flag True)
    (.option click "-i" "--install" :is-flag True)
    (.option click "-r" "--replace" :is-flag True)
    click.pass-context
-   (defn main [ ctx all copy generate install replace ]
+   (defn main [ ctx all copy generate install program-arguments replace ]
          (.bake-all- getconf :m/sudo True)
          (if (or copy all)
              (rsync :a True :v { "repeat" 2 } :c True :z { "repeat" 2 } f"{resources}/" "/mnt/etc/nixos/"))
@@ -302,7 +303,8 @@ echo 'source $HOME/.local/syvl/python/bin/activate'
                      "/mnt/etc/nixos/configuration.nix")
                  (raise (NameError no-host-error-message))))
          (if (or install all)
-             (nixos-install :m/run True
+             (nixos-install #* program-arguments
+                            :m/run True
                             :show-trace True
 #+end_src
 
@@ -1024,7 +1026,7 @@ foldToSet = list: foldr (new: old: recursiveUpdate new old) {} (filter (item: is
 ******* My Conditionals
 
 #+begin_src nix
-if = {
+myIf = {
     list = condition: value: optionals condition value;
     singleton = condition: value: optional condition value;
     set = condition: value: if condition then value else {};
