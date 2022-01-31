@@ -1002,7 +1002,7 @@ newLib = self: rec {
 ****** Functions
 
 #+begin_src nix
-functions = {
+functions = rec {
 #+end_src
 
 ******* Zip To Set

@@ -1,7 +1,7 @@
 pkgs: lib: host: with lib; with builtins;
 let
 newLib = self: rec {
-functions = {
+functions = rec {
 zipToSet = names: values: listToAttrs (
     map (nv: nameValuePair nv.fst nv.snd) (let hasAttrs = any isAttrs values; in zipLists (
         if hasAttrs then names else (sort lessThan names)
