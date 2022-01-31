@@ -217,4 +217,4 @@ paths = rec {
 };
 };
 extension = makeExtensible newLib;
-in with lib; extension.extend (final: prev: newLib.foldToSet (attrValues prev))
+in with lib; extension.extend (final: prev: foldr (new: old: recursiveUpdate new old) {} (attrValues prev))

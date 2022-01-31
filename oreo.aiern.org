@@ -1348,7 +1348,7 @@ extension = makeExtensible newLib;
 **** Extend
 
 #+begin_src nix
-in with lib; extension.extend (final: prev: newLib.foldToSet (attrValues prev))
+in with lib; extension.extend (final: prev: foldr (new: old: recursiveUpdate new old) {} (attrValues prev))
 #+end_src
 
 *** overlays.nix
