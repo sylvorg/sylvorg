@@ -1928,7 +1928,7 @@ nix = rec {
 ***** Nixpkgs
 
 #+begin_src nix
-nixpkgs = { inherit overlays; };
+nixpkgs = trace overlays { inherit overlays; };
 #+end_src
 
 ***** Power
