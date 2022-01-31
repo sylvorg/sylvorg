@@ -375,7 +375,7 @@ then re-add them to the final mountpoint with ~"/mnt~.
                                               (.items)
                                               (sorted :key (fn [item] (get item 1)))
                                               (dict)))
-               (for [[k v] ordered-dataset-dict]
+               (for [[k v] (.items ordered-dataset-dict)]
                     (-> v (.strip "\"") (Path) (.mkdir :parents True :exists-ok True))
                     (Mount :t "zfs" k v)))
          (if boot-device
