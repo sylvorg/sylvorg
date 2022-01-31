@@ -195,13 +195,14 @@
    (defn main [ ctx all copy generate install program-arguments replace ]
          (.bake-all- getconf :m/sudo True)
          (if (or copy all)
-             (rsync :a True :v { "repeat" 2 } :c True :z { "repeat" 2 } f"{resources}/" "/mnt/etc/nixos/"))
+             (rsync :m/run True :a True :v { "repeat" 2 } :c True :z { "repeat" 2 } f"{resources}/" "/mnt/etc/nixos/"))
          (if (or generate all)
-             (nixos-generate-config :root "/mnt" :m/stdout-stderr True :m/dazzle True))
+             (nixos-generate-config :m/run True :root "/mnt" :m/dazzle True))
          (if (or replace all)
              (if ctx.obj.host
-                 (sd "./hardware-configuration.nix"
-                     (+ "./configs/" ctx.object.host)
+                 (sd :m/run True
+                     "./hardware-configuration.nix"
+                     (+ "./configs/" ctx.obj.host)
                      "/mnt/etc/nixos/configuration.nix")
                  (raise (NameError no-host-error-message))))
          (if (or install all)
