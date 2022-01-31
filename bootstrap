@@ -16,11 +16,10 @@
                  zpool ])
 (import functools [partial])
 (import pathlib [Path])
-(import shutil [copy2])
 (import sys [argv])
 (import toolz [last])
 (require hyrule [-> assoc])
-(setv resources (.dirname os.path (.realpath os.path __file__)))
+(setv resources (+ (.dirname os.path (.realpath os.path __file__)) "/etc/nixos/"))
 (defn update-datasets [host swap encrypted deduplicated [pool False]]
       (setv snap-dir     [ "snapdir=visible" ]
             extra-copies (+ snap-dir [ "copies=3" ])
@@ -195,14 +194,13 @@
    (defn main [ ctx all copy generate install replace ]
          (.bake-all- getconf :m/sudo True)
          (if (or copy all)
-             (do (rsync :a True :v { "repeat" 2 } :c True :z { "repeat" 2 } f"{resources}/etc/nixos/" "/mnt/etc/nixos/")
-                 (copy2 (+ resources "/datasets.nix") "/mnt/etc/nixos/datasets.nix")))
+             (rsync :a True :v { "repeat" 2 } :c True :z { "repeat" 2 } f"{resources}/" "/mnt/etc/nixos/"))
          (if (or generate all)
              (nixos-generate-config :root "/mnt" :m/stdout-stderr True :m/dazzle True))
          (if (or replace all)
              (if ctx.obj.host
                  (sd "./hardware-configuration.nix"
-                     "./super.nix"
+                     (+ "./configs/" ctx.object.host)
                      "/mnt/etc/nixos/configuration.nix")
                  (raise (NameError no-host-error-message))))
          (if (or install all)
