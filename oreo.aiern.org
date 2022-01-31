@@ -355,7 +355,7 @@ echo 'source $HOME/.local/syvl/python/bin/activate'
          (with [datasets (open (+ resources "/datasets.nix"))]
                (setv dataset-dict (dfor dm
                                         (cut (.readlines datasets) 1 -1)
-                                        :setv [k v] (.split dataset "=")
+                                        :setv [k v] (.split dm "=")
                                         [(.strip k)
 #+end_src
 
