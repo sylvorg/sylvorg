@@ -1469,7 +1469,7 @@ in flatten [
 (let
     mozilla = fetchGit { url = "https://github.com/mozilla/nixpkgs-mozilla"; };
     mozilla-overlays = import "${mozilla}/overlays.nix";
-in (map (o: import (mozilla + o)) mozilla-overlays))
+in (map import mozilla-overlays))
 #+end_src
 
 **** Overlays in Overlays Directory

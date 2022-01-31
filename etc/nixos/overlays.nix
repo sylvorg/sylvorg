@@ -39,7 +39,7 @@ in flatten [
 (let
     mozilla = fetchGit { url = "https://github.com/mozilla/nixpkgs-mozilla"; };
     mozilla-overlays = import "${mozilla}/overlays.nix";
-in (map (o: import (mozilla + o)) mozilla-overlays))
+in (map import mozilla-overlays))
 (flatten (map (file:
     [(final: prev: {
         "${j.functions.name { inherit file; }}" = import file {
