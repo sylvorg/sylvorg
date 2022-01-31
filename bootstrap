@@ -259,8 +259,8 @@
                           dataset               (.strip dataset)
 mount/mount           (+ "\"/mnt"
                          (-> mount/mount
-                             (cut 0 -1)
                              (.strip)
+                             (cut 0 -1)
                              (.lstrip "\"")
                              (.replace "${host}" ctx.obj.host))))
            (.mkdir (Path mount/mount) :parents True :exist-ok True)

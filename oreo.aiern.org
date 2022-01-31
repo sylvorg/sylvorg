@@ -368,8 +368,8 @@ then re-add them to the final mountpoint with ~"/mnt~.
 #+begin_src hy
                           mount/mount           (+ "\"/mnt"
                                                    (-> mount/mount
-                                                       (cut 0 -1)
                                                        (.strip)
+                                                       (cut 0 -1)
                                                        (.lstrip "\"")
                                                        (.replace "${host}" ctx.obj.host))))
 #+end_src
