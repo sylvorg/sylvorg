@@ -172,6 +172,7 @@
                                  :o { "repeat-with-values" swoptions }
                                  (+ host "/swap"))
                         (mkswap (+ "/dev/zvol" host "/swap")))))))
+(setv no-host-error-message "Sorry! The host needs to be set; do this with the main command while running the subcommand!")
 #@((.group click :no-args-is-help True)
    (.option click "-a" "--all" :is-flag True)
    (.option click "-c" "--copy" :is-flag True)
@@ -192,9 +193,11 @@
          (if (or generate all)
              (nixos-generate-config :root "/mnt"))
          (if (or replace all)
-             (sd "./hardware-configuration.nix"
-                 (+ "'${builtins.fetchGit { url = \"https://github.com/shadowrylander/shadowrylander\"; }}/configs/" host "'")
-                 "/mnt/etc/nixos/configuration.nix"))
+             (if host
+                 (sd "./hardware-configuration.nix"
+                     (+ "'${builtins.fetchGit { url = \"https://github.com/shadowrylander/shadowrylander\"; }}/configs/" host "'")
+                     "/mnt/etc/nixos/configuration.nix")
+                 (raise (ValueError no-host-error-message))))
          (if (or install all)
              (nixos-install :show-trace True))))
 #@((.command bootstrap :no-args-is-help True)
@@ -204,28 +207,29 @@
    (.option click "-z" "--zfs-device" :required True)
    click.pass-context
    (defn create [ ctx deduplicated encrypted swap zfs-device ]
-         (if (not ctx.obj.host) (raise (ValueError "Sorry! The host needs to be set; do this with the main command while running the subcommand!")))
-         (try (if (= (input "THIS WILL DELETE ALL DATA ON THE SELECTED DEVICE / PARTITION! TO CONTINUE, TYPE IN 'ZFS CREATE'!\n\t") "ZFS CREATE")
-                  (let [options (D { "xattr"      "sa"
-                                     "acltype"    "posixacl"
-                                     "mountpoint"  "none"
-                                     "compression" "zstd-19"
-                                     "checksum"    "edonr"
-                                     "atime"       "off"
-                                     "relatime"    "off" })
-                        command (partial zpool.create
-                                         :f True
-                                         :o { "repeat-with-values" (, "autotrim=on" "altroot=/mnt" "autoexpand=on") })]
-                       (if encrypted
-                           (setv options.encryption "aes-256-gcm"
-                                 options.keyformat  "passphrase"))
-                       (if deduplicated
-                           (setv options.dedup "edonr,verify"))
-                       (.export zpool :f True ctx.obj.host :m/ignore-stderr True)
-                       (command :O { "repeat-with-values" (gfor [k v] (.items options) f"{k}={v}") } ctx.obj.host zfs-device)
-                       (update-datasets ctx.obj.host swap encrypted deduplicated :pool True))
-                  (print "Sorry; not continuing!\n\n"))
-              (finally (.export zpool :f True ctx.obj.host :m/ignore-stderr True)))))
+         (if ctx.obj.host
+             (try (if (= (input "THIS WILL DELETE ALL DATA ON THE SELECTED DEVICE / PARTITION! TO CONTINUE, TYPE IN 'ZFS CREATE'!\n\t") "ZFS CREATE")
+                      (let [options (D { "xattr"      "sa"
+                                         "acltype"    "posixacl"
+                                         "mountpoint"  "none"
+                                         "compression" "zstd-19"
+                                         "checksum"    "edonr"
+                                         "atime"       "off"
+                                         "relatime"    "off" })
+                            command (partial zpool.create
+                                             :f True
+                                             :o { "repeat-with-values" (, "autotrim=on" "altroot=/mnt" "autoexpand=on") })]
+                           (if encrypted
+                               (setv options.encryption "aes-256-gcm"
+                                     options.keyformat  "passphrase"))
+                           (if deduplicated
+                               (setv options.dedup "edonr,verify"))
+                           (.export zpool :f True ctx.obj.host :m/ignore-stderr True)
+                           (command :O { "repeat-with-values" (gfor [k v] (.items options) f"{k}={v}") } ctx.obj.host zfs-device)
+                           (update-datasets ctx.obj.host swap encrypted deduplicated :pool True))
+                      (print "Sorry; not continuing!\n\n"))
+                  (finally (.export zpool :f True ctx.obj.host :m/ignore-stderr True)))
+             (raise (ValueError no-host-error-message)))))
 #@((.command bootstrap :no-args-is-help True)
    (.option click "-b" "--boot-device")
    (.option click "-d" "--deduplicated" :is-flag True)
@@ -234,51 +238,52 @@
    (.option click "-s" "--swap" :is-flag True)
    click.pass-context
    (defn mount [ ctx boot-device deduplicated encrypted root-device swap ]
-         (if (not ctx.obj.host) (raise (ValueError "Sorry! The host needs to be set; do this with the main command while running the subcommand!")))
-         (for [dataset (.list zfs :r True :H True :m/list True :m/split True)]
-              (if (in ctx.obj.host dataset)
-                  (break))
-              (else (.import zpool :f True ctx.obj.host)))
-         (if encrypted
-             (.load-key zfs ctx.obj.host :m/run True))
-         (try (.mkdir (Path "/mnt"))
-              (except [FileExistsError]
-                      (if (.ismount os.path "/mnt")
-                          (umount :R True "/mnt"))))
-         (if root-device
-             (Mount root-device "/mnt")
-             (Mount :t "zfs" (+ ctx.obj.host "/system/root") "/mnt"))
-         (.mkdir (Path "/mnt/etc/nixos") :parents True :exist-ok True)
-         (with [datasets (open (+ resources "/datasets.nix"))]
-               (setv dataset-dict (dfor dm
-                                        (cut (.readlines datasets) 1 -1)
-                                        :setv [k v] (.split dm "=")
-                                        [(.strip k)
+         (if ctx.obj.host
+             (do (for [dataset (.list zfs :r True :H True :m/list True :m/split True)]
+                      (if (in ctx.obj.host dataset)
+                          (break))
+                      (else (.import zpool :f True ctx.obj.host)))
+                 (if encrypted
+                     (.load-key zfs ctx.obj.host :m/run True))
+                 (try (.mkdir (Path "/mnt"))
+                      (except [FileExistsError]
+                              (if (.ismount os.path "/mnt")
+                                  (umount :R True "/mnt"))))
+                 (if root-device
+                     (Mount root-device "/mnt")
+                     (Mount :t "zfs" (+ ctx.obj.host "/system/root") "/mnt"))
+                 (.mkdir (Path "/mnt/etc/nixos") :parents True :exist-ok True)
+                 (with [datasets (open (+ resources "/datasets.nix"))]
+                       (setv dataset-dict (dfor dm
+                                                (cut (.readlines datasets) 1 -1)
+                                                :setv [k v] (.split dm "=")
+                                                [(.strip k)
 (+ "\"/mnt"
    (-> v
        (.strip)
        (.rstrip ";")
        (.lstrip "\"")))])
-            ordered-dataset-dict (-> dataset-dict
-                                     (.items)
-                                     (sorted :key (fn [item] (get item 1)))
-                                     (dict)))
-      (for [[k v] (.items ordered-dataset-dict)]
-           (-> v (.strip "\"") (Path) (.mkdir :parents True :exist-ok True))
-           (Mount :t "zfs" k v)))
-(if boot-device
-    (let [boot "/mnt/boot/efi"]
-         (.mkdir (Path boot) :parents True :exist-ok True)
-         (Mount boot-device boot)))
-(if swap
-    (swapon (+ "/dev/zvol/" ctx.obj.host "/swap")))
+                ordered-dataset-dict (-> dataset-dict
+                                         (.items)
+                                         (sorted :key (fn [item] (get item 1)))
+                                         (dict)))
+          (for [[k v] (.items ordered-dataset-dict)]
+               (-> v (.strip "\"") (Path) (.mkdir :parents True :exist-ok True))
+               (Mount :t "zfs" k v)))
+    (if boot-device
+        (let [boot "/mnt/boot/efi"]
+             (.mkdir (Path boot) :parents True :exist-ok True)
+             (Mount boot-device boot)))
+    (if swap
+        (swapon (+ "/dev/zvol/" ctx.obj.host "/swap")))
 
-;; (Mount :t "zfs" (+ ctx.obj.host "/system/tmp") "/tmp")
-;; (Mount :t "zfs" (+ ctx.obj.host "/system/tmp/nix") "/tmp/nix")
-;; (rsync :a True :v { "repeat" 2 } :c True :z { "repeat" 2 } :delete True "/nix/" "/tmp/nix/")
-;; (Mount :t "zfs" (+ ctx.obj.host "/system/tmp/nix") "/nix")
+    ;; (Mount :t "zfs" (+ ctx.obj.host "/system/tmp") "/tmp")
+    ;; (Mount :t "zfs" (+ ctx.obj.host "/system/tmp/nix") "/tmp/nix")
+    ;; (rsync :a True :v { "repeat" 2 } :c True :z { "repeat" 2 } :delete True "/nix/" "/tmp/nix/")
+    ;; (Mount :t "zfs" (+ ctx.obj.host "/system/tmp/nix") "/nix")
 
-))
+    )
+(raise (ValueError no-host-error-message)))))
 #@((.command bootstrap :no-args-is-help True)
    (.option click "-d" "--deduplicated" :is-flag True)
    (.option click "-e" "--encrypted" :is-flag True)
@@ -287,11 +292,12 @@
    (.option click "-s" "--swap" :type int :default 0)
    click.pass-context
    (defn update [ ctx deduplicated encrypted files pool swap ]
-         (if (not ctx.obj.host) (raise (ValueError "Sorry! The host needs to be set; do this with the main command while running the subcommand!")))
-         (try (setv ud (partial update-datasets ctx.obj.host swap encrypted deduplicated))
-              (cond [files (ud)]
-                    [pool (ud :pool True)]
-                    [True (ud)])
-              (finally (.export zpool :f True ctx.obj.host :m/ignore-stderr True)))))
+         (if ctx.obj.host
+             (try (setv ud (partial update-datasets ctx.obj.host swap encrypted deduplicated))
+                  (cond [files (ud)]
+                        [pool (ud :pool True)]
+                        [True (ud)])
+                  (finally (.export zpool :f True ctx.obj.host :m/ignore-stderr True)))
+             (raise (ValueError no-host-error-message)))))
 (if (= __name__ "__main__")
     (bootstrap :obj (D {})))
