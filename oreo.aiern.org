@@ -29,7 +29,7 @@ $HOME/.local/bootstrap/syvl --init
 - [[https://github.com/chmln/sd][sd]]
 
 #+begin_src sh
-dependencies="sd"
+dependencies="rsync sd"
 for prog in $dependencies; do hash $prog 2>/dev/null || $pacapt -yyu 2>/dev/null && break || :; done
 for prog in $dependencies; do hash $prog 2>/dev/null || $pacapt -S $prog 2>/dev/null || nix-env -iA nixos.$prog; done
 #+end_src
@@ -73,6 +73,7 @@ echo 'source $HOME/.local/syvl/python/bin/activate'
                  mount :as Mount
                  nixos-generate-config
                  nixos-install
+                 rsync
                  sd
                  swapon
                  umount
@@ -292,16 +293,14 @@ echo 'source $HOME/.local/syvl/python/bin/activate'
    (defn main [ ctx all copy generate install replace ]
          (.bake-all- getconf :m/sudo True)
          (if (or copy all)
-             (copy2 (+ resources "/datasets.nix") "/mnt/etc/nixos/datasets.nix"))
+             (do (rsync :a True :v { "repeat" 2 } :c True :z { "repeat" 2 } f"{resources}/etc/nixos/" "/mnt/etc/nixos/")
+                 (copy2 (+ resources "/datasets.nix") "/mnt/etc/nixos/datasets.nix")))
          (if (or generate all)
              (nixos-generate-config :root "/mnt" :m/stdout-stderr True :m/dazzle True))
          (if (or replace all)
              (if ctx.obj.host
                  (sd "./hardware-configuration.nix"
-                     (+ "'./hardware-configuration.nix\n"
-                        "\"${builtins.fetchGit { url = \"https://github.com/<<username>>/<<username>>\"; }}/etc/nixos/configs/"
-                        ctx.obj.host
-                        "\"'")
+                     "./super.nix"
                      "/mnt/etc/nixos/configuration.nix")
                  (raise (NameError no-host-error-message))))
          (if (or install all)
@@ -1565,6 +1564,7 @@ in with lib; {
 
 #+begin_src nix
 imports = [
+    ./hardware-configuration.nix
     "${fetchGit { url = "https://github.com/nix-community/impermanence"; }}/nixos.nix"
     "${fetchGit { url = "https://github.com/${j.attrs.users.primary}/nixpkgs"; ref = "guix"; }}/nixos/modules/services/development/guix.nix"
 ];

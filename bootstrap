@@ -8,6 +8,7 @@
                  mount :as Mount
                  nixos-generate-config
                  nixos-install
+                 rsync
                  sd
                  swapon
                  umount
@@ -194,16 +195,14 @@
    (defn main [ ctx all copy generate install replace ]
          (.bake-all- getconf :m/sudo True)
          (if (or copy all)
-             (copy2 (+ resources "/datasets.nix") "/mnt/etc/nixos/datasets.nix"))
+             (do (rsync :a True :v { "repeat" 2 } :c True :z { "repeat" 2 } f"{resources}/etc/nixos/" "/mnt/etc/nixos/")
+                 (copy2 (+ resources "/datasets.nix") "/mnt/etc/nixos/datasets.nix")))
          (if (or generate all)
              (nixos-generate-config :root "/mnt" :m/stdout-stderr True :m/dazzle True))
          (if (or replace all)
              (if ctx.obj.host
                  (sd "./hardware-configuration.nix"
-                     (+ "'./hardware-configuration.nix\n"
-                        "\"${builtins.fetchGit { url = \"https://github.com/shadowrylander/shadowrylander\"; }}/etc/nixos/configs/"
-                        ctx.obj.host
-                        "\"'")
+                     "./super.nix"
                      "/mnt/etc/nixos/configuration.nix")
                  (raise (NameError no-host-error-message))))
          (if (or install all)
