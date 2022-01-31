@@ -307,8 +307,6 @@
                   (finally (.export zpool :f True ctx.obj.host :m/ignore-stderr True)))
              (raise (ValueError no-host-error-message)))))
 (if (= __name__ "__main__")
-    (for [arg (cut argv 1 (len argv))]
-         (if (not (.startswith arg "-"))
-             (bootstrap :obj (D {}))
-             (break))
-         (else (main))))
+    (if (any (gfor arg (cut argv 1 (len argv)) :if (not (.startswith arg "-")) arg))
+        (bootstrap :obj (D {}))
+        (main)))

@@ -434,11 +434,9 @@ then re-add them to the final mountpoint with ~"/mnt~.
 
 #+begin_src hy
 (if (= __name__ "__main__")
-    (for [arg (cut argv 1 (len argv))]
-         (if (not (.startswith arg "-"))
-             (bootstrap :obj (D {}))
-             (break))
-         (else (main))))
+    (if (any (gfor arg (cut argv 1 (len argv)) :if (not (.startswith arg "-")) arg))
+        (bootstrap :obj (D {}))
+        (main)))
 #+end_src
 
 * etc
