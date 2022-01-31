@@ -298,7 +298,7 @@ echo 'source $HOME/.local/syvl/python/bin/activate'
          (if (or replace all)
              (if ctx.obj.host
                  (sd "./hardware-configuration.nix"
-                     (+ "'\"${builtins.fetchGit { url = \"https://github.com/<<username>>/<<username>>\"; }}/configs/" ctx.obj.host "\"'")
+                     (+ "'\"${builtins.fetchGit { url = \"https://github.com/<<username>>/<<username>>\"; }}/etc/nixos/configs/" ctx.obj.host "\"'")
                      "/mnt/etc/nixos/configuration.nix")
                  (raise (NameError no-host-error-message))))
          (if (or install all)
