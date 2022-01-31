@@ -369,9 +369,8 @@ then re-add them to the final mountpoint with ~"/mnt~.
                           mount/mount           (+ "\"/mnt"
                                                    (-> mount/mount
                                                        (.strip)
-                                                       (cut 0 -1)
-                                                       (.lstrip "\"")
-                                                       (.replace "${host}" ctx.obj.host))))
+                                                       (.rstrip ";")
+                                                       (.lstrip "\""))))
 #+end_src
 
 #+begin_src hy

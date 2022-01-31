@@ -260,9 +260,8 @@
 mount/mount           (+ "\"/mnt"
                          (-> mount/mount
                              (.strip)
-                             (cut 0 -1)
-                             (.lstrip "\"")
-                             (.replace "${host}" ctx.obj.host))))
+                             (.rstrip ";")
+                             (.lstrip "\""))))
            (.mkdir (Path mount/mount) :parents True :exist-ok True)
            (Mount :t "zfs" dataset mount/mount)))
 (if boot-device
