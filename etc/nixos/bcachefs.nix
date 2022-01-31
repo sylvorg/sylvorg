@@ -1,7 +1,7 @@
 { config, ... }:
 
 {
-    boot.loader = {
+    boot = {
         supportedFilesystems = [ "bcachefs" ];
         initrd.supportedFilesystems = config.boot.loader.supportedFilesystems;
     };
