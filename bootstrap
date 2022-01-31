@@ -265,7 +265,7 @@
                                      (dict)))
       (for [[k v] ordered-dataset-dict]
            (-> v (.strip "\"") (Path) (.mkdir :parents True :exists-ok True))
-           (Mount :t "zfs" k v))
+           (Mount :t "zfs" k v)))
 (if boot-device
     (let [boot "/mnt/boot/efi"]
          (.mkdir (Path boot) :parents True :exist-ok True)
