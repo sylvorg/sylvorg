@@ -191,7 +191,7 @@
    (.option click "-i" "--install" :is-flag True)
    (.option click "-r" "--replace" :is-flag True)
    click.pass-context
-   (defn main [ ctx all copy dazzle generate host inspect install print-run replace ]
+   (defn main [ ctx all copy generate install replace ]
          (.bake-all- getconf :m/sudo True)
          (if (or copy all)
              (copy2 (+ resources "/datasets.nix") "/mnt/etc/nixos/datasets.nix"))
