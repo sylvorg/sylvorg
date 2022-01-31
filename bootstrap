@@ -200,7 +200,7 @@
          (if (or replace all)
              (if ctx.obj.host
                  (sd "./hardware-configuration.nix"
-                     (+ "'${builtins.fetchGit { url = \"https://github.com/shadowrylander/shadowrylander\"; }}/configs/" ctx.obj.host "'")
+                     (+ "'\"${builtins.fetchGit { url = \"https://github.com/shadowrylander/shadowrylander\"; }}/configs/" ctx.obj.host "\"'")
                      "/mnt/etc/nixos/configuration.nix")
                  (raise (NameError no-host-error-message))))
          (if (or install all)
