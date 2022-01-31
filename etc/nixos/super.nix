@@ -169,11 +169,10 @@ system = {
 };
 networking = let
     wofie = "4876d858001ae2b6b27f7517f36045a09836fb877cbafef3b101e5c995af7a71";
-    interfaces' = attrNames config.networking.interfaces;
 in {
-    interfaces = map (interface:
-        { inherit interface; method = "magicpacket"; }
-    ) interfaces';
+    # interfaces = map (interface:
+    #     { inherit interface; method = "magicpacket"; }
+    # ) (attrNames config.networking.interfaces);
     inherit (config.networking) hostName;
     wireless = {
         # enable = true; # Enables wireless support via wpa_supplicant.
