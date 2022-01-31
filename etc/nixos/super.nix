@@ -11,7 +11,7 @@ imports = [
     /etc/hardware-configuration.nix
     "${fetchGit { url = "https://github.com/nix-community/impermanence"; }}/nixos.nix"
     "${fetchGit { url = "https://github.com/${j.attrs.users.primary}/nixpkgs"; ref = "guix"; }}/nixos/modules/services/development/guix.nix"
-]
+];
 boot = {
 loader = {
     systemd-boot = {
