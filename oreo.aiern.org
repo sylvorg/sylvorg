@@ -305,7 +305,8 @@ echo 'source $HOME/.local/syvl/python/bin/activate'
                      "/mnt/etc/nixos/configuration.nix")
                  (raise (NameError no-host-error-message))))
          (if (or install all)
-             (nixos-install :show-trace True
+             (nixos-install :m/run True
+                            :show-trace True
 #+end_src
 
 From [[https://github.com/NixOS/nix/issues/2293#issuecomment-405339738][here]], and documented [[https://nixos.org/manual/nix/stable/expressions/builtins.html#:~:text=The%20fetched%20tarball%20is%20cached%20for%20a%20certain%20amount%20of%20time%20(1%20hour%20by%20default)%20in%20~/.cache/nix/tarballs/.%20You%20can%20change%20the%20cache%20timeout%20either%20on%20the%20command%20line%20with%20%2D%2Dtarball%2Dttl%20number%2Dof%2Dseconds%20or%20in%20the%20Nix%20configuration%20file%20by%20adding%20the%20line%20tarball%2Dttl%20%3D%20number%2Dof%2Dseconds.][here]]:

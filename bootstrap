@@ -207,7 +207,8 @@
                      "/mnt/etc/nixos/configuration.nix")
                  (raise (NameError no-host-error-message))))
          (if (or install all)
-             (nixos-install :show-trace True
+             (nixos-install :m/run True
+                            :show-trace True
 :option "tarball-ttl 0"
 ))))
 #@((.command bootstrap :no-args-is-help True)
