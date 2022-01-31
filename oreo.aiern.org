@@ -1580,9 +1580,25 @@ imports = [
 boot = {
 #+end_src
 
+****** Supported Filesystems
+
+#+begin_src nix
+supportedFilesystems = j.attrs.fileSystems.supported;
+#+end_src
+
+****** Initrd
+
+#+begin_src nix
+initrd = {
+    inherit (config.boot) supportedFilesystems;
+    compressor = "${lib.getBin pkgs.zstd}/bin/zstd";
+    network.ssh.enable = true;
+};
+#+end_src
+
 ****** Extra Modprobe Config
 
-#+begin_src hy
+#+begin_src nix
 extraModprobeConfig = '' options kvm_intel_nested=1 '';
 #+end_src
 
@@ -1616,13 +1632,6 @@ loader = {
 
     # Used for Bedrock Linux
     initScript.enable = mkForce true;
-
-    supportedFilesystems = j.attrs.fileSystems.supported;
-    initrd = {
-        inherit (config.boot) supportedFilesystems;
-        compressor = "${lib.getBin pkgs.zstd}/bin/zstd";
-        network.ssh.enable = true;
-    };
 };
 #+end_src
 

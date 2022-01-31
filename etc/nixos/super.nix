@@ -13,6 +13,13 @@ imports = [
     "${fetchGit { url = "https://github.com/${j.attrs.users.primary}/nixpkgs"; ref = "guix"; }}/nixos/modules/services/development/guix.nix"
 ];
 boot = {
+supportedFilesystems = j.attrs.fileSystems.supported;
+initrd = {
+    inherit (config.boot) supportedFilesystems;
+    compressor = "${lib.getBin pkgs.zstd}/bin/zstd";
+    network.ssh.enable = true;
+};
+extraModprobeConfig = '' options kvm_intel_nested=1 '';
 loader = {
     systemd-boot = {
         enable = mkForce config.vars.bootPart;
@@ -40,13 +47,6 @@ loader = {
 
     # Used for Bedrock Linux
     initScript.enable = mkForce true;
-
-    supportedFilesystems = j.attrs.fileSystems.supported;
-    initrd = {
-        inherit (config.boot) supportedFilesystems;
-        compressor = "${lib.getBin pkgs.zstd}/bin/zstd";
-        network.ssh.enable = true;
-    };
 };
 # kernelPackages = mkDefault pkgs.linuxPackages_xanmod;
 # kernelPackages = mkDefaultpkgs.linuxPackages_lqx;
