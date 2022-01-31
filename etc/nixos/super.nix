@@ -64,7 +64,7 @@ kernelPatches = [
     '';
 }
 ];
-extraModulePackages = with config.boot.kernelPackages; [ anbox wireguard ];
+extraModulePackages = with config.boot.kernelPackages; [ anbox wireguard zfsUnstable ];
 binfmt.emulatedSystems = [
     "armv7l-linux"
     "aarch64-linux"
@@ -84,7 +84,6 @@ zfs = {
     enableUnstable = true;
     devNodes = "/dev/";
 };
-extraModulePackages = with config.boot.kernelPackages; [ zfsUnstable ];
 };
 console = {
     # Select internationalisation properties.
