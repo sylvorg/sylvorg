@@ -1384,11 +1384,11 @@ channels = (map (d: "nixos-" + d) (
     "21.11"
 )) + (
     "master"
-)
+);
 othernixpkgs = listToAttrs (map (ref: nameValuePair
     ref
     (fetchGit { url = "https://github.com/nixos/nixpkgs"; inherit ref; })
-) channels)
+) channels);
 otherpkgs = mapAttrs (n: v: import v j.attrs.configs.nixpkgs) othernixpkgs;
 #+end_src
 
