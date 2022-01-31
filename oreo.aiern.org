@@ -267,11 +267,12 @@ echo 'source $HOME/.local/syvl/python/bin/activate'
 #+begin_src hy
 (setv no-host-error-message "Sorry! The host needs to be set; do this with the main command while running the subcommand!")
 #@((.group click :no-args-is-help True)
+   (.option click "-d" "--dazzle" :is-flag True)
    (.option click "-H" "--host")
    (.option click "-i" "--inspect" :is-flag True)
    (.option click "-p" "--print-run" :is-flag True)
    click.pass-context
-   (defn bootstrap [ ctx host inspect print-run ]
+   (defn bootstrap [ ctx dazzle host inspect print-run ]
          (.ensure-object ctx dict)
          (setv ctx.obj.host host)
          (if print-run (.bake-all- getconf :m/print-command-and-run True))
@@ -284,20 +285,22 @@ echo 'source $HOME/.local/syvl/python/bin/activate'
 #@((.command click :no-args-is-help True)
    (.option click "-a" "--all" :is-flag True)
    (.option click "-c" "--copy" :is-flag True)
+   (.option click "-d" "--dazzle" :is-flag True)
    (.option click "-g" "--generate" :is-flag True)
    (.option click "-H" "--host")
    (.option click "-I" "--inspect" :is-flag True)
    (.option click "-i" "--install" :is-flag True)
    (.option click "-p" "--print-run" :is-flag True)
    (.option click "-r" "--replace" :is-flag True)
-   (defn main [ all copy generate host inspect install print-run replace ]
+   (defn main [ all copy dazzle generate host inspect install print-run replace ]
          (if print-run (.bake-all- getconf :m/print-command-and-run True))
          (if inspect (.bake-all- getconf :m/debug True))
+         (if dazzle (.bake-all- getconf :m/dazzle True))
          (.bake-all- getconf :m/sudo True)
          (if (or copy all)
              (copy2 (+ resources "/datasets.nix") "/mnt/etc/nixos/datasets.nix"))
          (if (or generate all)
-             (nixos-generate-config :root "/mnt"))
+             (nixos-generate-config :root "/mnt" :m/stdout-stderr True :m/dazzle True))
          (if (or replace all)
              (if host
                  (sd "./hardware-configuration.nix"
