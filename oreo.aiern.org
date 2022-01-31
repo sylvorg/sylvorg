@@ -298,8 +298,8 @@ echo 'source $HOME/.local/syvl/python/bin/activate'
          (if (or replace all)
              (if ctx.obj.host
                  (sd "./hardware-configuration.nix"
-                     (+ "./hardware-configuration.nix\n"
-                        "'\"${builtins.fetchGit { url = \"https://github.com/<<username>>/<<username>>\"; }}/etc/nixos/configs/"
+                     (+ "'./hardware-configuration.nix\n"
+                        "\"${builtins.fetchGit { url = \"https://github.com/<<username>>/<<username>>\"; }}/etc/nixos/configs/"
                         ctx.obj.host
                         "\"'")
                      "/mnt/etc/nixos/configuration.nix")
