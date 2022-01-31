@@ -298,7 +298,9 @@ echo 'source $HOME/.local/syvl/python/bin/activate'
          (if (or replace all)
              (if ctx.obj.host
                  (sd "./hardware-configuration.nix"
-                     (+ "'\"${builtins.fetchGit { url = \"https://github.com/<<username>>/<<username>>\"; }}/etc/nixos/configs/" ctx.obj.host "\"'")
+                     (+ "'\"${builtins.fetchGit { url = \"https://github.com/<<username>>/<<username>>\"; }}/etc/nixos/configs/"
+                        ctx.obj.host
+                        "\" ./hardware-configuration.nix'")
                      "/mnt/etc/nixos/configuration.nix")
                  (raise (NameError no-host-error-message))))
          (if (or install all)
@@ -1561,7 +1563,6 @@ in with lib; {
 
 #+begin_src nix
 imports = [
-    ../../../etc/nixos/hardware-configuration.nix
     "${fetchGit { url = "https://github.com/nix-community/impermanence"; }}/nixos.nix"
     "${fetchGit { url = "https://github.com/${j.attrs.users.primary}/nixpkgs"; ref = "guix"; }}/nixos/modules/services/development/guix.nix"
 ];
