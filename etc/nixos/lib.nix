@@ -138,7 +138,7 @@ configs = {
         permittedInsecurePackages = [
             "python2.7-cryptography-2.9.2"
         ];
-    }
+    };
     nix = let
         MG = size: let
             mg = stringToCharacters size;
