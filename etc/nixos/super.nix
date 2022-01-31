@@ -235,7 +235,7 @@ nix = rec {
     useSandbox = true;
     # sandboxPaths = [];
 };
-nixpkgs = trace overlays { inherit overlays; };
+nixpkgs = { inherit overlays; };
 services.logind.lidSwitch = "hybrid-sleep";
 powerManagement = {
     enable = true;

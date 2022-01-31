@@ -1466,7 +1466,10 @@ in flatten [
 **** Mozilla
 
 #+begin_src nix
-(import "${fetchGit { url = "https://github.com/mozilla/nixpkgs-mozilla"; }}/overlays.nix")
+(let
+    mozilla = fetchGit { url = "https://github.com/mozilla/nixpkgs-mozilla"; };
+    mozilla-overlays = import "${mozilla}/overlays.nix";
+in (map (o: import (mozilla + o)) mozilla-overlays))
 #+end_src
 
 **** Overlays in Overlays Directory
@@ -1928,7 +1931,7 @@ nix = rec {
 ***** Nixpkgs
 
 #+begin_src nix
-nixpkgs = trace overlays { inherit overlays; };
+nixpkgs = { inherit overlays; };
 #+end_src
 
 ***** Power

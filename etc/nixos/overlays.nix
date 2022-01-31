@@ -36,7 +36,10 @@ in flatten [
         in pkgs.callPackage pkgSrc { inherit pkgSrc; };
     })
 ]
-(import "${fetchGit { url = "https://github.com/mozilla/nixpkgs-mozilla"; }}/overlays.nix")
+(let
+    mozilla = fetchGit { url = "https://github.com/mozilla/nixpkgs-mozilla"; };
+    mozilla-overlays = import "${mozilla}/overlays.nix";
+in (map (o: import (mozilla + o)) mozilla-overlays))
 (flatten (map (file:
     [(final: prev: {
         "${j.functions.name { inherit file; }}" = import file {
