@@ -195,6 +195,7 @@
    (defn main [ all copy generate host inspect install print-run replace ]
          (if print-run (.bake-all- getconf :m/print-command-and-run True))
          (if inspect (.bake-all- getconf :m/debug True))
+         (.bake-all- getconf :m/sudo True)
          (if (or copy all)
              (copy2 (+ resources "/datasets.nix") "/mnt/etc/nixos/datasets.nix"))
          (if (or generate all)
@@ -307,6 +308,9 @@
                   (finally (.export zpool :f True ctx.obj.host :m/ignore-stderr True)))
              (raise (ValueError no-host-error-message)))))
 (if (= __name__ "__main__")
+
+    ;; TODO: Add to nanite, where, instead of `(bootstrap :obj (D {}))', you would pass in a function partial of it.
+
     (if (= (get argv 1) "main")
         (do (.pop argv 1)
             (main))
