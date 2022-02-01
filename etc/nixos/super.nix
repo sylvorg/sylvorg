@@ -171,7 +171,6 @@ in {
     # interfaces = map (interface:
     #     { inherit interface; method = "magicpacket"; }
     # ) (attrNames config.networking.interfaces);
-    inherit (config.networking) hostName;
     wireless = {
         # enable = true; # Enables wireless support via wpa_supplicant.
         enable = false; # Enables wireless support via wpa_supplicant.

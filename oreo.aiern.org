@@ -1866,7 +1866,6 @@ in {
     # interfaces = map (interface:
     #     { inherit interface; method = "magicpacket"; }
     # ) (attrNames config.networking.interfaces);
-    inherit (config.networking) hostName;
     wireless = {
         # enable = true; # Enables wireless support via wpa_supplicant.
         enable = false; # Enables wireless support via wpa_supplicant.
@@ -4088,32 +4087,6 @@ auto_fullscreen = True
 # We choose LG3D to maximize irony: it is a 3D non-reparenting WM written in
 # java that happens to be on java's whitelist.
 wmname = "LG3D"
-#+end_src
-
-** nixpkgs
-
-#+call: hash() :exports none
-
-#+RESULTS:
-: 20210601185836015744100
-
-#+name: 20210601185836015744100
-#+begin_src emacs-lisp :var oc=""
-(format-spec "with builtins; with (getFlake \"${getEnv \"HOME\"}/etc/nixos\"); with lib; with j;
-let stc = legacyPackages.hostName.${getEnv \"HOSTNAME\"} or default-stc;
-in get { inherit stc; set = legacyPackages.%o; }" `((?o . ,oc)))
-#+end_src
-
-**** overlays.nix
-
-#+begin_src nix
-<<20210601185836015744100(oc="overlays")>>
-#+end_src
-
-**** config.nix
-
-#+begin_src nix
-<<20210601185836015744100(oc="config")>>
 #+end_src
 
 * .SpaceVim.d
