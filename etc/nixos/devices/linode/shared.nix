@@ -1,6 +1,5 @@
 { config, lib, ... }: with builtins; with lib; with j; {
     config = {
-        vars.terminal = true;
         boot = {
             kernelParams = [ "console=ttyS0,19200n8" ];
             loader.grub.extraConfig = ''

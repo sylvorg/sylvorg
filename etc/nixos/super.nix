@@ -22,7 +22,6 @@ initrd = {
 extraModprobeConfig = '' options kvm_intel_nested=1 '';
 loader = {
     systemd-boot = {
-        enable = mkForce config.vars.bootPart;
         configurationLimit = 25;
         editor = false;
     };
@@ -71,10 +70,10 @@ binfmt.emulatedSystems = [
 kernelModules = [ "zfs" ];
 # loader.grub.zfsSupport = true;
 initrd = {
-    postDeviceCommands = myIf.empty config.vars.zfs (mkAfter ''
+    postDeviceCommands = mkAfter ''
         zfs rollback -r ${host}/system/root@blank
         # zfs rollback -r ${host}/system/home@blank
-    '');
+    '';
     kernelModules = [ "zfs" ];
     availableKernelModules = [ "zfs" ];
 };
@@ -363,14 +362,14 @@ syncoid = let
             "--create-bookmark"
         ];
         }
-        (mkIf vars.encrypted {
-            sendOptions = "vvwRI";
-            recvOptions = "vvFs";
-        })
-        (mkIf (!vars.encrypted) {
-            recvOptions = "vvFds";
-            sendOptions = "vvRI";
-        })
+        # (mkIf vars.encrypted {
+        #     sendOptions = "vvwRI";
+        #     recvOptions = "vvFs";
+        # })
+        # (mkIf (!vars.encrypted) {
+        #     recvOptions = "vvFds";
+        #     sendOptions = "vvRI";
+        # })
     ];
 in {
     enable = false;
@@ -389,26 +388,23 @@ systemd = {
     };
 };
 users = with j.attrs.users; let
-    base = mkMerge [{
-            hashedPassword = "$6$DoC/h6kR66Sa$aZKtTOXAqnan/jAC.4dH9tCYshheiKUZItR4g/kmMMLsfLQh0KslINL9zUTX2IjAZh9DE18eAh1AAz48.n/cm.";
-            isNormalUser = true;
-            createHome = true;
-            extraGroups = [
-                "wheel"
-                "networkmanager"
-                "persist"
-            ];
-            openssh.authorizedKeys.keys = [
-                attrs.ssh.keys.master
-            ];
-            packages = import (
-                if (pathExists ../packages.nix) then ../packages.nix else ./packages.nix
-            ) inputs;
-        }
-        (mkIf (!config.vars.minimal) {
-            extraGroups = [ "libvirtd" "docker" ];
-        })
-    ];
+    base = {
+        hashedPassword = "$6$DoC/h6kR66Sa$aZKtTOXAqnan/jAC.4dH9tCYshheiKUZItR4g/kmMMLsfLQh0KslINL9zUTX2IjAZh9DE18eAh1AAz48.n/cm.";
+        isNormalUser = true;
+        createHome = true;
+        extraGroups = [
+            "wheel"
+            "networkmanager"
+            "persist"
+        ];
+        openssh.authorizedKeys.keys = [
+            attrs.ssh.keys.master
+        ];
+        packages = import (
+            if (pathExists ../packages.nix) then ../packages.nix else ./packages.nix
+        ) inputs;
+        extraGroups = [ "libvirtd" "docker" ];
+    };
 in rec {
     users = mkMerge [
         (genAttrs attrs.allUsers (user: base))
