@@ -1250,7 +1250,7 @@ allHomes = homes // { root = "/root"; };
 
 #+begin_src nix
 datasets = {
-    fileSystems = import /etc/nixos/datasets.nix;
+    fileSystems = import ./datasets.nix;
     backup = [
         "system/persist"
         "virt"
