@@ -348,7 +348,7 @@ in {
     };
 
     datasets = listToAttrs (map (dataset: nameValuePair "${host}/${dataset}" sanoidBase) flatten [
-        attrs.datasets.backup
+        j.attrs.datasets.backup
         [ config.networking.hostName ]
     ]);
 };
@@ -375,7 +375,7 @@ in {
     enable = false;
     sshKey = "/root/.ssh/id_ecdsa";
     commands = listToAttrs (map (dataset: nameValuePair "${host}/${dataset}" (syncoidBase // { target = ""; })) flatten [
-        attrs.datasets.backup
+        j.attrs.datasets.backup
         [ config.networking.hostName ]
     ]);
 };
@@ -400,7 +400,7 @@ users = with j.attrs.users; let
             "docker"
         ];
         openssh.authorizedKeys.keys = [
-            attrs.ssh.keys.master
+            j.attrs.ssh.keys.master
         ];
         packages = import (
             if (pathExists ../packages.nix) then ../packages.nix else ./packages.nix
@@ -408,11 +408,11 @@ users = with j.attrs.users; let
     };
 in rec {
     users = mkMerge [
-        (genAttrs attrs.allUsers (user: base))
+        (genAttrs j.attrs.allUsers (user: base))
         {
             "${primary}" = {
                 uid = 4362;
-                home = attrs.allHomes.${primary};
+                home = j.attrs.allHomes.${primary};
                 description = "Jeet Ray";
                 group = primary;
                 extraGroups = [ secondary ];
@@ -420,7 +420,7 @@ in rec {
             };
             "${secondary}" = {
                 uid = 1111;
-                home = attrs.allHomes.${secondary};
+                home = j.attrs.allHomes.${secondary};
                 description = "Alicia Summers";
                 group = secondary;
                 extraGroups = [ primary ];
@@ -428,7 +428,7 @@ in rec {
             };
             "${nightingale}" = {
                 uid = 8888;
-                home = attrs.allHomes.${nightingale};
+                home = j.attrs.allHomes.${nightingale};
                 description = "Curtis Nightingale";
                 group = "root";
                 extraGroups = [ primary secondary ];
@@ -436,7 +436,7 @@ in rec {
             };
             root = {
                 shell = mkForce pkgs.zsh;
-                home = attrs.allHomes.root;
+                home = j.attrs.allHomes.root;
                 isNormalUser = mkForce false;
                 isSystemUser = mkForce true;
             };
