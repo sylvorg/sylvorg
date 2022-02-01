@@ -62,7 +62,11 @@ kernelPatches = [
     '';
 }
 ];
-extraModulePackages = with config.boot.kernelPackages; [ anbox wireguard zfsUnstable ];
+extraModulePackages = with config.boot.kernelPackages; [
+    anbox
+    # wireguard
+    zfsUnstable
+];
 binfmt.emulatedSystems = [
     "armv7l-linux"
     "aarch64-linux"

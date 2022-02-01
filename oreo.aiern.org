@@ -1628,7 +1628,11 @@ kernelPatches = [
 ******* Extra Module Packages
 
 #+begin_src nix
-extraModulePackages = with config.boot.kernelPackages; [ anbox wireguard zfsUnstable ];
+extraModulePackages = with config.boot.kernelPackages; [
+    anbox
+    # wireguard
+    zfsUnstable
+];
 #+end_src
 
 ******* Emulated Systems
