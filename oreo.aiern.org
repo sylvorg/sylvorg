@@ -1686,7 +1686,7 @@ environment = {
 ****** Etc
 
 #+begin_src nix
-etc."nix/nix.conf".text = j.attrs.configs.nix;
+etc."nix/nix.conf".text = mkForce j.attrs.configs.nix;
 #+end_src
 
 ****** Paths to Link
@@ -2006,14 +2006,16 @@ xserver = {
     layout = "us";
     # xkbOptions = "eurosign:e";
     # Enable touchpad support.
-    libinput = {
+    libinput
         enable = true;
-        naturalScrolling = true;
-        middleEmulation = true;
-        tapping = true;
+        touchpad = {
+            naturalScrolling = true;
+            middleEmulation = true;
+            tapping = true;
+        };
     };
     # synaptics.enable = true;
-    desktopManager.gnome3.enable = true;
+    desktopManager.gnome.enable = true;
     displayManager = {
         startx.enable = true;
         lightdm.enable = mkForce false;

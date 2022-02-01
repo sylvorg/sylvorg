@@ -90,7 +90,7 @@ console = {
     keyMap = "us";
 };
 environment = {
-etc."nix/nix.conf".text = j.attrs.configs.nix;
+etc."nix/nix.conf".text = mkForce j.attrs.configs.nix;
 pathsToLink = [ "/share/nix-direnv" ];
 systemPackages = with pkgs; [
     #   vim # Do not forget to add an editor to edit configuration.nix! The Nano editor is also installed by default.
@@ -292,14 +292,16 @@ xserver = {
     layout = "us";
     # xkbOptions = "eurosign:e";
     # Enable touchpad support.
-    libinput = {
+    libinput
         enable = true;
-        naturalScrolling = true;
-        middleEmulation = true;
-        tapping = true;
+        touchpad = {
+            naturalScrolling = true;
+            middleEmulation = true;
+            tapping = true;
+        };
     };
     # synaptics.enable = true;
-    desktopManager.gnome3.enable = true;
+    desktopManager.gnome.enable = true;
     displayManager = {
         startx.enable = true;
         lightdm.enable = mkForce false;
