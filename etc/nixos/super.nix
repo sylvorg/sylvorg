@@ -343,10 +343,10 @@ in {
         yearly = 104;
     };
 
-    datasets = listToAttrs (map (dataset: nameValuePair "${host}/${dataset}" sanoidBase) flatten [
+    datasets = listToAttrs (map (dataset: nameValuePair "${host}/${dataset}" sanoidBase) (flatten [
         j.attrs.datasets.backup
         [ config.networking.hostName ]
-    ]);
+    ]));
 };
 syncoid = let
     syncoidBase = mkMerge [{
@@ -370,10 +370,10 @@ syncoid = let
 in {
     enable = false;
     sshKey = "/root/.ssh/id_ecdsa";
-    commands = listToAttrs (map (dataset: nameValuePair "${host}/${dataset}" (syncoidBase // { target = ""; })) flatten [
+    commands = listToAttrs (map (dataset: nameValuePair "${host}/${dataset}" (syncoidBase // { target = ""; })) (flatten [
         j.attrs.datasets.backup
         [ config.networking.hostName ]
-    ]);
+    ]));
 };
 };
 systemd = {
