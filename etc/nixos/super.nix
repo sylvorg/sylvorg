@@ -75,8 +75,8 @@ kernelModules = [ "zfs" ];
 # loader.grub.zfsSupport = true;
 initrd = {
     postDeviceCommands = mkAfter ''
-        zfs rollback -r ${host}/system/root@blank
-        # zfs rollback -r ${host}/system/home@blank
+        zfs rollback -r ${config.networking.hostName}/system/root@blank
+        # zfs rollback -r ${config.networking.hostName}/system/home@blank
     '';
     kernelModules = [ "zfs" ];
     availableKernelModules = [ "zfs" ];
