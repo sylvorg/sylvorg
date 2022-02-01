@@ -103,7 +103,7 @@ in zipToSet
     (map (file: name { inherit suffix file; }) files)
     (map (file: import file (foldToSet [ modules inputs ])) files);
 };
-attrs = {
+attrs = rec {
 persistent = {
     files = flatten [[ "/etc/host" ]];
     directories = flatten [[

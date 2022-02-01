@@ -1161,7 +1161,7 @@ allow-unsafe-native-code-during-evaluation = true
 #+end_src
 
 #+begin_src nix
-attrs = {
+attrs = rec {
 #+end_src
 
 ******* Persistence
