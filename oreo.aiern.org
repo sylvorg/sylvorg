@@ -1418,7 +1418,7 @@ in flatten [
 **** NIX
 
 #+begin_src nix
-[( final: prev: { nix = (fetchGit { url = "https://github.com/nix-community/nur"; }).defaultNix; })]
+[( final: prev: { nix = (fetchGit { url = "https://github.com/nixos/nix"; }).defaultNix; })]
 #+end_src
 
 **** NUR
