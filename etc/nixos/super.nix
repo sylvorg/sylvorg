@@ -5,7 +5,7 @@ nixpkgs = fetchGit { url = "https://github.com/nixos/nixpkgs"; inherit ref; };
 prepkgs = import nixpkgs {  };
 lib = prepkgs.lib.extend (final: prev: { j = import ./lib.nix prepkgs final config.networking.hostName; });
 # overlays = import ./overlays.nix lib nixpkgs pkgs ref;
-pkgs = import nixpkgs { inherit overlays; };
+pkgs = import nixpkgs { inherit (or overlays [  ]); };
 in with lib; {
 imports = [
     ./hardware-configuration.nix

@@ -1506,7 +1506,7 @@ lib = prepkgs.lib.extend (final: prev: { j = import ./lib.nix prepkgs final conf
 ***** Pkgs
 
 #+begin_src nix
-pkgs = import nixpkgs { inherit overlays; };
+pkgs = import nixpkgs { inherit (or overlays [  ]); };
 #+end_src
 
 **** Config
