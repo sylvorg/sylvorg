@@ -63,7 +63,7 @@ kernelPatches = [
 }
 ];
 extraModulePackages = with config.boot.kernelPackages; [
-    anbox
+    # anbox
     # wireguard
     zfsUnstable
 ];
