@@ -21,7 +21,7 @@ in flatten [
     pkgs = otherpkgs;
     inherit channels;
 };})]
-[( final: prev: { nix = (fetchGit { url = "https://github.com/nixos/nix"; }).defaultNix; })]
+[( final: prev: { nix = import (fetchGit { url = "https://github.com/nixos/nix"; }); })]
 [( final: prev: { nur = import (fetchGit { url = "https://github.com/nix-community/nur"; }) { nurpkgs = nixpkgs; pkgs = prev; }; })]
 [
     (import (fetchGit { url = "https://github.com/nix-community/emacs-overlay"; }))
