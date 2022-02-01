@@ -255,7 +255,7 @@
                           (break))
                       (else (.import zpool :f True ctx.obj.host)))
                  (if encrypted
-                     (.load-key zfs ctx.obj.host :m/run True))
+                     (.load-key zfs ctx.obj.host))
                  (try (.mkdir (Path "/mnt"))
                       (except [FileExistsError]
                               (if (.ismount os.path "/mnt")

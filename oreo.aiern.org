@@ -377,7 +377,7 @@ or in the Nix configuration file by adding the line tarball-ttl = number-of-seco
                           (break))
                       (else (.import zpool :f True ctx.obj.host)))
                  (if encrypted
-                     (.load-key zfs ctx.obj.host :m/run True))
+                     (.load-key zfs ctx.obj.host))
                  (try (.mkdir (Path "/mnt"))
                       (except [FileExistsError]
                               (if (.ismount os.path "/mnt")
@@ -2044,7 +2044,7 @@ openssh = {
 ****** UDEV
 
 #+begin_src nix
-services.udev.extraRules = ''
+udev.extraRules = ''
     ACTION=="add|change", KERNEL=="sd[a-z]*[0-9]*|mmcblk[0-9]*p[0-9]*|nvme[0-9]*n[0-9]*p[0-9]*", ENV{ID_FS_TYPE}=="zfs_member", ATTR{../queue/scheduler}="none"
 ''; # zfs already has its own scheduler. without this my(@Artturin) computer froze for a second when i nix build something.
 #+end_src
