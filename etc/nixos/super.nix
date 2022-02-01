@@ -10,7 +10,7 @@ in with lib; {
 imports = [
     ./hardware-configuration.nix
     "${fetchGit { url = "https://github.com/nix-community/impermanence"; }}/nixos.nix"
-    "${fetchGit { url = "https://github.com/${j.attrs.users.primary}/nixpkgs"; ref = "guix"; }}/nixos/modules/services/development/guix.nix"
+    # "${fetchGit { url = "https://github.com/${j.attrs.users.primary}/nixpkgs"; ref = "guix"; }}/nixos/modules/services/development/guix.nix"
 ];
 boot = {
 supportedFilesystems = j.attrs.fileSystems.supported;
@@ -273,7 +273,7 @@ security.pam = {
 };
 services = {
 flatpak.enable = !elem currentSystem [ "aarch64-linux" ];
-guix.enable = true;
+# guix.enable = true;
 printing.enable = true;
 openssh = {
     enable = true;

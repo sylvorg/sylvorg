@@ -1521,7 +1521,7 @@ in with lib; {
 imports = [
     ./hardware-configuration.nix
     "${fetchGit { url = "https://github.com/nix-community/impermanence"; }}/nixos.nix"
-    "${fetchGit { url = "https://github.com/${j.attrs.users.primary}/nixpkgs"; ref = "guix"; }}/nixos/modules/services/development/guix.nix"
+    # "${fetchGit { url = "https://github.com/${j.attrs.users.primary}/nixpkgs"; ref = "guix"; }}/nixos/modules/services/development/guix.nix"
 ];
 #+end_src
 
@@ -1967,7 +1967,7 @@ flatpak.enable = !elem currentSystem [ "aarch64-linux" ];
 ****** Guix
 
 #+begin_src nix
-guix.enable = true;
+# guix.enable = true;
 #+end_src
 
 ****** Printing
