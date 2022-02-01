@@ -2072,7 +2072,7 @@ in {
         yearly = 104;
     };
 
-    datasets = listToAttrs (map (dataset: nameValuePair "${host}/${dataset}" sanoidBase) (flatten [
+    datasets = listToAttrs (map (dataset: nameValuePair "${config.networking.hostName}/${dataset}" sanoidBase) (flatten [
         j.attrs.datasets.backup
         [ config.networking.hostName ]
     ]));
