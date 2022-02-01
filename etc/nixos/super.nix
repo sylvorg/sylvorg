@@ -396,6 +396,8 @@ users = with j.attrs.users; let
             "wheel"
             "networkmanager"
             "persist"
+            "libvirtd"
+            "docker"
         ];
         openssh.authorizedKeys.keys = [
             attrs.ssh.keys.master
@@ -403,7 +405,6 @@ users = with j.attrs.users; let
         packages = import (
             if (pathExists ../packages.nix) then ../packages.nix else ./packages.nix
         ) inputs;
-        extraGroups = [ "libvirtd" "docker" ];
     };
 in rec {
     users = mkMerge [
