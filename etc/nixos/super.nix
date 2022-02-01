@@ -292,7 +292,7 @@ xserver = {
     layout = "us";
     # xkbOptions = "eurosign:e";
     # Enable touchpad support.
-    libinput
+    libinput = {
         enable = true;
         touchpad = {
             naturalScrolling = true;
