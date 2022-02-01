@@ -132,7 +132,7 @@ fileSystems = let
     fileSystems' = j.attrs.datasets.fileSystems;
 in mapAttrs' (dataset: mountpoint: nameValuePair mountpoint (
     mkForce (base // { device = dataset; ${
-        myIf.knull ((hasInfix j.attrs.users.primary dataset) || (hasInfix "persist" dataset)) "neededForBoot"
+        j.functions.myIf.knull ((hasInfix j.attrs.users.primary dataset) || (hasInfix "persist" dataset)) "neededForBoot"
     } = true; })
 )) fileSystems';
 hardware = {
