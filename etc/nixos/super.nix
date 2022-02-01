@@ -121,10 +121,10 @@ persistence = let
     redRepo = readDir repo;
 in {
     "/persistent" = { inherit (j.attrs.persistent) files directories; };
-    "${repo}" = {
-        directories = attrNames (filterAttrs (n: v: v == "directory") redRepo);
-        files = attrNames (filterAttrs (n: v: v != "directory") redRepo);
-    };
+    # "${repo}" = {
+    #     directories = attrNames (filterAttrs (n: v: v == "directory") redRepo);
+    #     files = attrNames (filterAttrs (n: v: v != "directory") redRepo);
+    # };
 };
 };
 fileSystems = let

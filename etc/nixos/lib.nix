@@ -114,7 +114,6 @@ persistent = {
             "/etc/NetworkManager/system-connections"
             "/etc/nix"
             "/etc/nixos"
-            "/etc/nixos/config"
             "/etc/ssh"
             "/etc/wireguard"
             "/var/lib/acme"

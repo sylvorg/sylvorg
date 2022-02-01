@@ -1177,7 +1177,6 @@ persistent = {
             "/etc/NetworkManager/system-connections"
             "/etc/nix"
             "/etc/nixos"
-            "/etc/nixos/config"
             "/etc/ssh"
             "/etc/wireguard"
             "/var/lib/acme"
@@ -1780,10 +1779,10 @@ persistence = let
     redRepo = readDir repo;
 in {
     "/persistent" = { inherit (j.attrs.persistent) files directories; };
-    "${repo}" = {
-        directories = attrNames (filterAttrs (n: v: v == "directory") redRepo);
-        files = attrNames (filterAttrs (n: v: v != "directory") redRepo);
-    };
+    # "${repo}" = {
+    #     directories = attrNames (filterAttrs (n: v: v == "directory") redRepo);
+    #     files = attrNames (filterAttrs (n: v: v != "directory") redRepo);
+    # };
 };
 #+end_src
 
