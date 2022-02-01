@@ -2041,14 +2041,6 @@ udev.extraRules = ''
 ''; # zfs already has its own scheduler. without this my(@Artturin) computer froze for a second when i nix build something.
 #+end_src
 
-****** Wake-On-LAN
-
-#+begin_src nix
-wakeonlan.interfaces = map (interface:
-    { inherit interface; method = "magicpacket"; }
-) (attrNames config.networking.interfaces);
-#+end_src
-
 ****** XServer
 
 #+begin_src nix
