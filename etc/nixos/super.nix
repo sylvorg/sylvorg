@@ -145,7 +145,7 @@ zramSwap = {
     enable = true;
     algorithm = "zstd";
 };
-xdg.portal.enable = mkForce (!elem system [ "aarch64-linux" ]);
+xdg.portal.enable = mkForce (!elem currentSystem [ "aarch64-linux" ]);
 i18n = {
     # Select internationalisation properties.
     defaultLocale = "en_US.UTF-8";
@@ -273,7 +273,7 @@ security.pam = {
     enableSSHAgentAuth = true;
 };
 services = {
-flatpak.enable = !elem system [ "aarch64-linux" ];
+flatpak.enable = !elem currentSystem [ "aarch64-linux" ];
 guix.enable = true;
 printing.enable = true;
 openssh = {
@@ -424,7 +424,7 @@ in rec {
                 description = "Alicia Summers";
                 group = secondary;
                 extraGroups = [ primary ];
-                shell = if (!elem system [ "aarch64-linux" ]) then pkgs.fish else pkgs.zsh;
+                shell = if (!elem currentSystem [ "aarch64-linux" ]) then pkgs.fish else pkgs.zsh;
             };
             "${nightingale}" = {
                 uid = 8888;

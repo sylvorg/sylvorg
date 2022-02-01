@@ -1830,7 +1830,7 @@ Help is available in the configuration.nix(5) man page and in the NixOS manual (
 ****** Flatpak
 
 #+begin_src nix
-xdg.portal.enable = mkForce (!elem system [ "aarch64-linux" ]);
+xdg.portal.enable = mkForce (!elem currentSystem [ "aarch64-linux" ]);
 #+end_src
 
 ****** Miscellaneous
@@ -2005,7 +2005,7 @@ services = {
 ****** Flatpak
 
 #+begin_src nix
-flatpak.enable = !elem system [ "aarch64-linux" ];
+flatpak.enable = !elem currentSystem [ "aarch64-linux" ];
 #+end_src
 
 ****** Guix
@@ -2221,7 +2221,7 @@ in rec {
                 description = "Alicia Summers";
                 group = secondary;
                 extraGroups = [ primary ];
-                shell = if (!elem system [ "aarch64-linux" ]) then pkgs.fish else pkgs.zsh;
+                shell = if (!elem currentSystem [ "aarch64-linux" ]) then pkgs.fish else pkgs.zsh;
             };
             "${nightingale}" = {
                 uid = 8888;
