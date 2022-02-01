@@ -4,49 +4,6 @@
 The tangle functions are adapted from [[https://emacs.stackexchange.com/a/29884/31428][this answer on the emacs Stack Exchange]],
 which was written by [[https://emacs.stackexchange.com/users/2710/andrew-swann][Andrew Swann]].
 
-* bootstrap-init
-:PROPERTIES:
-:header-args:sh+: :noweb-ref nwr20220130005510138019380
-:END:
-
-#+begin_src sh :noweb-ref no :tangle (meq/tangle-path) :shebang "#!/usr/bin/env sh"
-<<nwr20220130005510138019380>>
-#+end_src
-
-** Download and Run Syvl
-
-Use [[https://github.com/<<username>>/syvl][syvl]]
-
-#+begin_src sh
-[ -d $HOME/.local/bootstrap ] || mkdir -p $HOME/.local/bootstrap
-curl -fsSLo $HOME/.local/bootstrap/syvl https://raw.githubusercontent.com/<<username>>/syvl/main/syvl
-chmod +x $HOME/.local/bootstrap/syvl
-$HOME/.local/bootstrap/syvl --init
-#+end_src
-
-** Install Necessary Tools
-
-- [[https://github.com/chmln/sd][sd]]
-
-#+begin_src sh
-dependencies="rsync sd"
-for prog in $dependencies; do hash $prog 2>/dev/null || $pacapt -yyu 2>/dev/null && break || :; done
-for prog in $dependencies; do hash $prog 2>/dev/null || $pacapt -S $prog 2>/dev/null || nix-env -iA nixos.$prog; done
-#+end_src
-
-** Make Bootstrap Executable
-
-#+begin_src sh
-chmod +x bootstrap
-#+end_src
-
-** Return Syvl Venv Activation Command
-
-#+begin_src sh
-echo
-echo 'source $HOME/.local/syvl/python/bin/activate'
-#+end_src
-
 * bootstrap
 :PROPERTIES:
 :header-args:hy+: :noweb-ref nwr20220129201318455450756
@@ -1543,7 +1500,7 @@ lib = prepkgs.lib.extend (final: prev: { j = import ./lib.nix prepkgs final conf
 ***** Overlays
 
 #+begin_src nix
-overlays = import ./overlays.nix lib nixpkgs pkgs ref;
+# overlays = import ./overlays.nix lib nixpkgs pkgs ref;
 #+end_src
 
 ***** Pkgs
