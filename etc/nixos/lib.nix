@@ -105,25 +105,21 @@ in zipToSet
 };
 attrs = {
 persistent = {
-    files = {
-        system = flatten [[ "/etc/host" ]];
-    };
-    directories = {
-        system = flatten [[
-            "/etc/containers"
-            "/etc/NetworkManager/system-connections"
-            "/etc/nix"
-            "/etc/nixos"
-            "/etc/ssh"
-            "/etc/wireguard"
-            "/var/lib/acme"
-            "/var/lib/bluetooth"
-            "/usr"
-            "/bin"
-            "/sbin"
-            "/snap"
-        ]];
-    };
+    files = flatten [[ "/etc/host" ]];
+    directories = flatten [[
+        "/etc/containers"
+        "/etc/NetworkManager/system-connections"
+        "/etc/nix"
+        "/etc/nixos"
+        "/etc/ssh"
+        "/etc/wireguard"
+        "/var/lib/acme"
+        "/var/lib/bluetooth"
+        "/usr"
+        "/bin"
+        "/sbin"
+        "/snap"
+    ]];
 };
 configs = {
     nixpkgs = {
