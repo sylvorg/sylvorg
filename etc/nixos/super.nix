@@ -402,9 +402,6 @@ users = with j.attrs.users; let
         openssh.authorizedKeys.keys = [
             j.attrs.ssh.keys.master
         ];
-        packages = import (
-            if (pathExists ../packages.nix) then ../packages.nix else ./packages.nix
-        ) inputs;
     };
 in rec {
     users = mkMerge [
