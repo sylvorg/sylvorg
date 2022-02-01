@@ -3,6 +3,6 @@
 {
     boot = {
         supportedFilesystems = [ "bcachefs" ];
-        initrd.supportedFilesystems = config.boot.loader.supportedFilesystems;
+        initrd.supportedFilesystems = config.boot.supportedFilesystems;
     };
 }
