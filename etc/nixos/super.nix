@@ -90,16 +90,10 @@ systemPackages = with pkgs; [
     #   vim # Do not forget to add an editor to edit configuration.nix! The Nano editor is also installed by default.
 ] ++ (map (pkg: pkgs.gnome."gnome-${pkg}") [
     # "boxes"
-    "characters"
-    "tweaks"
+    # "characters"
+    # "tweaks"
 ]) ++ (with pkgs.gnome; [
-    dconf-editor
-    eog
-    file-roller
-    gpaste
-    gucharmap
-    libgnome-keyring
-    seahorse
+    # dconf-editor
 ]);
 persistence = let
     dir = "/home/${j.attrs.users.primary}/.local/share/yadm/repo.git";
@@ -406,10 +400,7 @@ in rec {
                 description = "Alicia Summers";
                 group = secondary;
                 extraGroups = [ primary ];
-
-                # TODO
-                # shell = if (!elem currentSystem [ "aarch64-linux" ]) then pkgs.fish else pkgs.zsh;
-
+                shell = if (!elem currentSystem [ "aarch64-linux" ]) then pkgs.fish else pkgs.zsh;
             };
             "${nightingale}" = {
                 uid = 8888;
