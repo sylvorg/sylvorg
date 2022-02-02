@@ -16,10 +16,5 @@ othernixpkgs = listToAttrs (map (ref: nameValuePair
 ) channels);
 otherpkgs = mapAttrs (n: v: import v j.attrs.configs.nixpkgs) othernixpkgs;
 in flatten [
-[(final: prev: { j = {
-    nixpkgs = othernixpkgs;
-    pkgs = otherpkgs;
-    inherit channels;
-};})]
 [(final: prev: { guix = final.callPackage "${fetchGit { url = "https://github.com/${j.attrs.users.primary}/nixpkgs"; ref = "guix"; }}/pkgs/development/guix/guix.nix" {  }; })]
 ]

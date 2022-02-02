@@ -1354,7 +1354,7 @@ in flatten [
 
 **** J
 
-#+begin_src nix
+#+begin_src nix :noweb-ref no
 [(final: prev: { j = {
     nixpkgs = othernixpkgs;
     pkgs = otherpkgs;
