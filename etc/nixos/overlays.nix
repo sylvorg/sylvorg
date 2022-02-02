@@ -21,19 +21,5 @@ in flatten [
     pkgs = otherpkgs;
     inherit channels;
 };})]
-[( final: prev: { nur = import (fetchGit { url = "https://github.com/nix-community/nur"; }) { nurpkgs = nixpkgs; pkgs = prev; }; })]
-[
-    (import (fetchGit { url = "https://github.com/nix-community/emacs-overlay"; }))
-    (final: prev: { emacs-nox = final.emacsGit-nox; })
-    (final: prev: { emacs = final.emacsGit; })
-]
-[( final: prev: { systemd = prev.systemd.overrideAttrs (old: { withHomed = true; }); })]
-[
-    (final: prev: {
-        extra-container = let
-            pkgSrc = fetchGit { url = "https://github.com/erikarvstedt/extra-container"; };
-        in pkgs.callPackage pkgSrc { inherit pkgSrc; };
-    })
-]
 [(final: prev: { guix = final.callPackage "${fetchGit { url = "https://github.com/${j.attrs.users.primary}/nixpkgs"; ref = "guix"; }}/pkgs/development/guix/guix.nix" {  }; })]
 ]
