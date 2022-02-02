@@ -3,11 +3,11 @@
 {
     imports = [
         ../../super.nix
-        "${builtins.fetchGit { url = "https://github.com/${j.attrs.users.primary}/nixos-hardware.git"; ref = "surface-enableRedistributableFirmware"; }}/microsoft/surface"
+        "${builtins.fetchGit { url = "https://github.com/nixos/nixos-hardware.git"; }}/microsoft/surface"
     ];
     networking = {
         hostName = baseNameOf (toString ./.);
-        hostId = "b3eaf0bb";
+        hostId = "94de63b8";
         networkmanager.extraConfig = ''
             [connection]
             wifi.powersave = 2

@@ -871,7 +871,7 @@ index c61df8ceb00..d973837f0d3 100644
 {
     imports = [
         ../../super.nix
-        "${builtins.fetchGit { url = "https://github.com/${j.attrs.users.primary}/nixos-hardware.git"; ref = "surface-enableRedistributableFirmware"; }}/microsoft/surface"
+        "${builtins.fetchGit { url = "https://github.com/nixos/nixos-hardware.git"; }}/microsoft/surface"
     ];
     networking = {
         hostName = baseNameOf (toString ./.);
@@ -1407,7 +1407,7 @@ in flatten [
 **** Containers
 ***** Extra-Containers
 
-#+begin_src nix
+#+begin_src nix :noweb-ref no
 [
     (final: prev: {
         extra-container = let
@@ -1419,7 +1419,7 @@ in flatten [
 
 **** Mozilla
 
-#+begin_src nix
+#+begin_src nix :noweb-ref no
 (let
     mozilla = fetchGit { url = "https://github.com/mozilla/nixpkgs-mozilla"; };
     mozilla-overlays = import "${mozilla}/overlays.nix";
@@ -1428,7 +1428,7 @@ in (map import mozilla-overlays))
 
 **** Overlays in Overlays Directory
 
-#+begin_src nix
+#+begin_src nix :noweb-ref no
 (flatten (map (file:
     [(final: prev: {
         "${j.functions.name { inherit file; }}" = import file {
@@ -1440,7 +1440,7 @@ in (map import mozilla-overlays))
 
 **** Overrides from Older Channels
 
-#+begin_src nix
+#+begin_src nix :noweb-ref no
 (let pkgsets = {
     unstable = [  ];
 };
