@@ -36,10 +36,10 @@ which was written by [[https://emacs.stackexchange.com/users/2710/andrew-swann][
                  umount
                  zfs
                  zpool ])
+(import cytoolz [last])
 (import functools [partial])
 (import pathlib [Path])
 (import sys [argv])
-(import toolz [last])
 #+end_src
 
 ** Requires
@@ -1389,7 +1389,7 @@ in flatten [
 
 **** Emacs
 
-#+begin_src nix :noweb-ref no
+#+begin_src nix
 [
     (import (fetchGit { url = "https://github.com/nix-community/emacs-overlay"; }))
     (final: prev: { emacs-nox = final.emacsGit-nox; })

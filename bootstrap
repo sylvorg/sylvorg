@@ -14,10 +14,10 @@
                  umount
                  zfs
                  zpool ])
+(import cytoolz [last])
 (import functools [partial])
 (import pathlib [Path])
 (import sys [argv])
-(import toolz [last])
 (require hyrule [-> assoc])
 (setv resources (+ (.dirname os.path (.realpath os.path __file__)) "/etc/nixos/"))
 (defn update-datasets [host swap encrypted deduplicated [pool False]]
