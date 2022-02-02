@@ -406,7 +406,10 @@ in rec {
                 description = "Alicia Summers";
                 group = secondary;
                 extraGroups = [ primary ];
-                shell = if (!elem currentSystem [ "aarch64-linux" ]) then pkgs.fish else pkgs.zsh;
+
+                # TODO
+                # shell = if (!elem currentSystem [ "aarch64-linux" ]) then pkgs.fish else pkgs.zsh;
+
             };
             "${nightingale}" = {
                 uid = 8888;
