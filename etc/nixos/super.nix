@@ -51,6 +51,15 @@ loader = {
 # kernelPackages = mkDefaultpkgs.linuxPackages_lqx;
 # kernelPackages = mkDefaultpkgs.linuxPackages_zen;
 kernelPatches = [
+{
+    name = "Enable ZSTD Compression";
+    patch = null;
+    extraConfig = ''
+        RD_ZSTD y
+        KERNEL_ZSTD y
+        KERNEL_XZ n
+    '';
+}
 ];
 extraModulePackages = with config.boot.kernelPackages; [
     # anbox

@@ -1354,6 +1354,8 @@ in flatten [
 
 **** J
 
+# TODO
+
 #+begin_src nix :noweb-ref no
 [(final: prev: { j = {
     nixpkgs = othernixpkgs;
@@ -1614,7 +1616,7 @@ kernelPatches = [
 
 # TODO
 
-#+begin_src nix :noweb-ref no
+#+begin_src nix
 {
     name = "Enable ZSTD Compression";
     patch = null;
