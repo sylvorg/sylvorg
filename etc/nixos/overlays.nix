@@ -27,5 +27,9 @@ in flatten [
     (final: prev: { emacs-nox = final.emacsGit-nox; })
     (final: prev: { emacs = final.emacsGit; })
 ]
+(let
+    mozilla = fetchGit { url = "https://github.com/mozilla/nixpkgs-mozilla"; };
+    mozilla-overlays = import "${mozilla}/overlays.nix";
+in (map import mozilla-overlays))
 [(final: prev: { guix = final.callPackage "${fetchGit { url = "https://github.com/${j.attrs.users.primary}/nixpkgs"; ref = "guix"; }}/pkgs/development/guix/guix.nix" {  }; })]
 ]
