@@ -1400,14 +1400,14 @@ in flatten [
 **** Systemd
 ***** Homed
 
-#+begin_src nix :noweb-ref no
+#+begin_src nix
 [( final: prev: { systemd = prev.systemd.overrideAttrs (old: { withHomed = true; }); })]
 #+end_src
 
 **** Containers
 ***** Extra-Containers
 
-#+begin_src nix :noweb-ref no
+#+begin_src nix
 [
     (final: prev: {
         extra-container = let
@@ -1719,7 +1719,7 @@ systemPackages = with pkgs; [
     vlc
     xfce.thunar
 ] ++ (map (pkg: pkgs.gnome."gnome-${pkg}") [
-    "boxes"
+    # "boxes"
     "characters"
     "tweaks"
 ]) ++ (with pkgs.gnome; [

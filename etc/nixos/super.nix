@@ -96,7 +96,7 @@ systemPackages = with pkgs; [
     vlc
     xfce.thunar
 ] ++ (map (pkg: pkgs.gnome."gnome-${pkg}") [
-    "boxes"
+    # "boxes"
     "characters"
     "tweaks"
 ]) ++ (with pkgs.gnome; [

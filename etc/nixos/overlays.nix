@@ -27,6 +27,14 @@ in flatten [
     (final: prev: { emacs-nox = final.emacsGit-nox; })
     (final: prev: { emacs = final.emacsGit; })
 ]
+[( final: prev: { systemd = prev.systemd.overrideAttrs (old: { withHomed = true; }); })]
+[
+    (final: prev: {
+        extra-container = let
+            pkgSrc = fetchGit { url = "https://github.com/erikarvstedt/extra-container"; };
+        in pkgs.callPackage pkgSrc { inherit pkgSrc; };
+    })
+]
 (let
     mozilla = fetchGit { url = "https://github.com/mozilla/nixpkgs-mozilla"; };
     mozilla-overlays = import "${mozilla}/overlays.nix";
