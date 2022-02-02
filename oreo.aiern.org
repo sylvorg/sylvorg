@@ -1400,14 +1400,14 @@ in flatten [
 **** Systemd
 ***** Homed
 
-#+begin_src nix :noweb-ref no
+#+begin_src nix
 [( final: prev: { systemd = prev.systemd.overrideAttrs (old: { withHomed = true; }); })]
 #+end_src
 
 **** Containers
 ***** Extra-Containers
 
-#+begin_src nix :noweb-ref no
+#+begin_src nix
 [
     (final: prev: {
         extra-container = let
@@ -1419,7 +1419,7 @@ in flatten [
 
 **** Mozilla
 
-#+begin_src nix :noweb-ref no
+#+begin_src nix
 (let
     mozilla = fetchGit { url = "https://github.com/mozilla/nixpkgs-mozilla"; };
     mozilla-overlays = import "${mozilla}/overlays.nix";
@@ -1428,7 +1428,7 @@ in (map import mozilla-overlays))
 
 **** Overlays in Overlays Directory
 
-#+begin_src nix :noweb-ref no
+#+begin_src nix
 (flatten (map (file:
     [(final: prev: {
         "${j.functions.name { inherit file; }}" = import file {
@@ -1440,7 +1440,7 @@ in (map import mozilla-overlays))
 
 **** Overrides from Older Channels
 
-#+begin_src nix :noweb-ref no
+#+begin_src nix
 (let pkgsets = {
     unstable = [  ];
 };
