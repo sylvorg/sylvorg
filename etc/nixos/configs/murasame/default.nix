@@ -5,11 +5,11 @@
         ../../super.nix
 
         # TODO
-        # ../../bcachefs.nix
+        ../../bcachefs.nix
 
     ];
     networking = {
         hostName = baseNameOf (toString ./.);
-        hostId = "782f9e40";
+        hostId = "12b83108";
     };
 }
