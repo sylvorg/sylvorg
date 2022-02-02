@@ -274,7 +274,7 @@ You can change the cache timeout either on the command line with --tarball-ttl n
 or in the Nix configuration file by adding the line tarball-ttl = number-of-seconds.
 #+end_quote
 
-#+begin_src hy
+#+begin_src hy :noweb-ref no
                             :option "tarball-ttl 0"
 #+end_src
 
@@ -904,7 +904,10 @@ index c61df8ceb00..d973837f0d3 100644
 {
     imports = [
         ../../super.nix
-        ../../bcachefs.nix
+
+        # TODO
+        # ../../bcachefs.nix
+
     ];
     networking = {
         hostName = baseNameOf (toString ./.);
@@ -1374,19 +1377,19 @@ in flatten [
 
 **** NIX
 
-#+begin_src nix
+#+begin_src nix :noweb-ref no
 [( final: prev: { nix = import (fetchGit { url = "https://github.com/nixos/nix"; }); })]
 #+end_src
 
 **** NUR
 
-#+begin_src nix
+#+begin_src nix :noweb-ref no
 [( final: prev: { nur = import (fetchGit { url = "https://github.com/nix-community/nur"; }) { nurpkgs = nixpkgs; pkgs = prev; }; })]
 #+end_src
 
 **** Emacs
 
-#+begin_src nix
+#+begin_src nix :noweb-ref no
 [
     (import (fetchGit { url = "https://github.com/nix-community/emacs-overlay"; }))
     (final: prev: { emacs-nox = final.emacsGit-nox; })
@@ -1397,14 +1400,14 @@ in flatten [
 **** Systemd
 ***** Homed
 
-#+begin_src nix
+#+begin_src nix :noweb-ref no
 [( final: prev: { systemd = prev.systemd.overrideAttrs (old: { withHomed = true; }); })]
 #+end_src
 
 **** Containers
 ***** Extra-Containers
 
-#+begin_src nix
+#+begin_src nix :noweb-ref no
 [
     (final: prev: {
         extra-container = let
@@ -1416,7 +1419,7 @@ in flatten [
 
 **** Mozilla
 
-#+begin_src nix
+#+begin_src nix :noweb-ref no
 (let
     mozilla = fetchGit { url = "https://github.com/mozilla/nixpkgs-mozilla"; };
     mozilla-overlays = import "${mozilla}/overlays.nix";
@@ -1425,7 +1428,7 @@ in (map import mozilla-overlays))
 
 **** Overlays in Overlays Directory
 
-#+begin_src nix
+#+begin_src nix :noweb-ref no
 (flatten (map (file:
     [(final: prev: {
         "${j.functions.name { inherit file; }}" = import file {
@@ -1437,7 +1440,7 @@ in (map import mozilla-overlays))
 
 **** Overrides from Older Channels
 
-#+begin_src nix
+#+begin_src nix :noweb-ref no
 (let pkgsets = {
     unstable = [  ];
 };
@@ -1500,7 +1503,7 @@ lib = prepkgs.lib.extend (final: prev: { j = import ./lib.nix prepkgs final conf
 ***** Overlays
 
 #+begin_src nix
-overlays = []; # import ./overlays.nix lib nixpkgs pkgs ref;
+overlays = import ./overlays.nix lib nixpkgs pkgs ref;
 #+end_src
 
 ***** Pkgs
@@ -1521,7 +1524,7 @@ in with lib; {
 imports = [
     ./hardware-configuration.nix
     "${fetchGit { url = "https://github.com/nix-community/impermanence"; }}/nixos.nix"
-    # "${fetchGit { url = "https://github.com/${j.attrs.users.primary}/nixpkgs"; ref = "guix"; }}/nixos/modules/services/development/guix.nix"
+    "${fetchGit { url = "https://github.com/${j.attrs.users.primary}/nixpkgs"; ref = "guix"; }}/nixos/modules/services/development/guix.nix"
 ];
 #+end_src
 
@@ -1601,13 +1604,17 @@ kernelPatches = [
 
 ******** Clear Linux
 
-#+begin_src nix
+# TODO
+
+#+begin_src nix :noweb-ref no
 { name = "clear"; patch = ./patches/0110-initialize-ata-before-graphics.patch; }
 #+end_src
 
 ******** ZSTD Kernel Compression
 
-#+begin_src nix
+# TODO
+
+#+begin_src nix :noweb-ref no
 {
     name = "Enable ZSTD Compression";
     patch = null;
@@ -1971,7 +1978,7 @@ flatpak.enable = !elem currentSystem [ "aarch64-linux" ];
 ****** Guix
 
 #+begin_src nix
-# guix.enable = true;
+guix.enable = true;
 #+end_src
 
 ****** Printing
@@ -2223,7 +2230,9 @@ virtualisation = {
         package = pkgs.docker;
         enableOnBoot = true;
     };
-    libvirtd.enable = true;
+
+    # TODO
+    # libvirtd.enable = true;
 };
 #+end_src
 

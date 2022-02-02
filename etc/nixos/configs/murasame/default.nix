@@ -3,10 +3,13 @@
 {
     imports = [
         ../../super.nix
-        ../../bcachefs.nix
+
+        # TODO
+        # ../../bcachefs.nix
+
     ];
     networking = {
         hostName = baseNameOf (toString ./.);
-        hostId = "8a6fc785";
+        hostId = "19751beb";
     };
 }

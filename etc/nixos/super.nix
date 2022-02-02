@@ -4,13 +4,13 @@ ref = "master";
 nixpkgs = fetchGit { url = "https://github.com/nixos/nixpkgs"; inherit ref; };
 prepkgs = import nixpkgs {  };
 lib = prepkgs.lib.extend (final: prev: { j = import ./lib.nix prepkgs final config.networking.hostName; });
-overlays = []; # import ./overlays.nix lib nixpkgs pkgs ref;
+overlays = import ./overlays.nix lib nixpkgs pkgs ref;
 pkgs = import nixpkgs { inherit overlays; };
 in with lib; {
 imports = [
     ./hardware-configuration.nix
     "${fetchGit { url = "https://github.com/nix-community/impermanence"; }}/nixos.nix"
-    # "${fetchGit { url = "https://github.com/${j.attrs.users.primary}/nixpkgs"; ref = "guix"; }}/nixos/modules/services/development/guix.nix"
+    "${fetchGit { url = "https://github.com/${j.attrs.users.primary}/nixpkgs"; ref = "guix"; }}/nixos/modules/services/development/guix.nix"
 ];
 boot = {
 supportedFilesystems = j.attrs.fileSystems.supported;
@@ -51,16 +51,6 @@ loader = {
 # kernelPackages = mkDefaultpkgs.linuxPackages_lqx;
 # kernelPackages = mkDefaultpkgs.linuxPackages_zen;
 kernelPatches = [
-{ name = "clear"; patch = ./patches/0110-initialize-ata-before-graphics.patch; }
-{
-    name = "Enable ZSTD Compression";
-    patch = null;
-    extraConfig = ''
-        RD_ZSTD y
-        KERNEL_ZSTD y
-        KERNEL_XZ n
-    '';
-}
 ];
 extraModulePackages = with config.boot.kernelPackages; [
     # anbox
@@ -277,7 +267,7 @@ security.pam = {
 };
 services = {
 flatpak.enable = !elem currentSystem [ "aarch64-linux" ];
-# guix.enable = true;
+guix.enable = true;
 printing.enable = true;
 openssh = {
     enable = true;
@@ -469,6 +459,8 @@ virtualisation = {
         package = pkgs.docker;
         enableOnBoot = true;
     };
-    libvirtd.enable = true;
+
+    # TODO
+    # libvirtd.enable = true;
 };
 }

@@ -21,41 +21,5 @@ in flatten [
     pkgs = otherpkgs;
     inherit channels;
 };})]
-[( final: prev: { nix = import (fetchGit { url = "https://github.com/nixos/nix"; }); })]
-[( final: prev: { nur = import (fetchGit { url = "https://github.com/nix-community/nur"; }) { nurpkgs = nixpkgs; pkgs = prev; }; })]
-[
-    (import (fetchGit { url = "https://github.com/nix-community/emacs-overlay"; }))
-    (final: prev: { emacs-nox = final.emacsGit-nox; })
-    (final: prev: { emacs = final.emacsGit; })
-]
-[( final: prev: { systemd = prev.systemd.overrideAttrs (old: { withHomed = true; }); })]
-[
-    (final: prev: {
-        extra-container = let
-            pkgSrc = fetchGit { url = "https://github.com/erikarvstedt/extra-container"; };
-        in pkgs.callPackage pkgSrc { inherit pkgSrc; };
-    })
-]
-(let
-    mozilla = fetchGit { url = "https://github.com/mozilla/nixpkgs-mozilla"; };
-    mozilla-overlays = import "${mozilla}/overlays.nix";
-in (map import mozilla-overlays))
-(flatten (map (file:
-    [(final: prev: {
-        "${j.functions.name { inherit file; }}" = import file {
-            inherit sources pkgs lib;
-        };
-    })]
-) (j.functions.list { dir = ./overlays; ignores = [ "nix" ]; })))
-(let pkgsets = {
-    unstable = [  ];
-};
-in flatten (mapAttrsToList (
-    pkgchannel: pkglist: map (
-        pkg: [(final: prev: {
-            "${pkg}" = if (pkgchannel == channel) then prev.${pkg} else final.j.pkgs.${pkgchannel}.${pkg};
-        })]
-    ) pkglist
-) pkgsets))
 [(final: prev: { guix = final.callPackage "${fetchGit { url = "https://github.com/${j.attrs.users.primary}/nixpkgs"; ref = "guix"; }}/pkgs/development/guix/guix.nix" {  }; })]
 ]
