@@ -21,5 +21,6 @@ in flatten [
     pkgs = otherpkgs;
     inherit channels;
 };})]
+[( final: prev: { nix = import (fetchGit { url = "https://github.com/nixos/nix"; }); })]
 [(final: prev: { guix = final.callPackage "${fetchGit { url = "https://github.com/${j.attrs.users.primary}/nixpkgs"; ref = "guix"; }}/pkgs/development/guix/guix.nix" {  }; })]
 ]

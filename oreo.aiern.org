@@ -1377,7 +1377,7 @@ in flatten [
 
 **** NIX
 
-#+begin_src nix :noweb-ref no
+#+begin_src nix
 [( final: prev: { nix = import (fetchGit { url = "https://github.com/nixos/nix"; }); })]
 #+end_src
 
