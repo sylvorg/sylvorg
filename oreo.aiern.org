@@ -1417,7 +1417,7 @@ in flatten [
 **** Containers
 ***** Extra-Containers
 
-#+begin_src nix :noweb-ref no
+#+begin_src nix
 [
     (final: prev: {
         extra-container = let
