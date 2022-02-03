@@ -24,12 +24,12 @@ loader = {
     systemd-boot = {
         configurationLimit = 25;
         editor = mkForce false;
-        # enable = mkForce false;
-        enable = mkForce true;
+        enable = mkForce false;
+        # enable = mkForce true;
     };
     grub = {
-        # enable = mkForce true;
-        enable = mkForce false;
+        enable = mkForce true;
+        # enable = mkForce false;
         efiSupport = true;
         efiInstallAsRemovable = mkForce false;
         # devices = [ "nodev" ];
@@ -52,6 +52,7 @@ loader = {
     # Used for Bedrock Linux
     # Also causing EFI stuff not to be installed
     # initScript.enable = mkForce true;
+
 };
 # kernelPackages = mkDefault pkgs.linuxPackages_xanmod;
 # kernelPackages = mkDefaultpkgs.linuxPackages_lqx;
