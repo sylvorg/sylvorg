@@ -1362,8 +1362,6 @@ in flatten [
 
 **** J
 
-# TODO
-
 #+begin_src nix
 [(final: prev: { j = {
     nixpkgs = othernixpkgs;
@@ -1386,6 +1384,8 @@ in flatten [
 #+end_src
 
 **** NIX
+
+# TODO
 
 #+begin_src nix :noweb-ref no
 [( final: prev: { nix = import (fetchGit { url = "https://github.com/nixos/nix"; }); })]
@@ -1410,7 +1410,7 @@ in flatten [
 **** Systemd
 ***** Homed
 
-#+begin_src nix
+#+begin_src nix :noweb-ref no
 [( final: prev: { systemd = prev.systemd.overrideAttrs (old: { withHomed = true; }); })]
 #+end_src
 
