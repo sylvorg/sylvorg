@@ -24,7 +24,7 @@ loader = {
     systemd-boot = {
         configurationLimit = 25;
         editor = mkForce false;
-        # # enable = mkForce false;
+        # enable = mkForce false;
         enable = mkForce true;
     };
     grub = {
@@ -47,7 +47,7 @@ loader = {
         canTouchEfiVariables = mkForce true;
         efiSysMountPoint = "/boot/efi";
     };
-    # timeout = 10;
+    timeout = 10;
 
     # Used for Bedrock Linux
     # initScript.enable = mkForce true;
