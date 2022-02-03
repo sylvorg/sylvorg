@@ -24,12 +24,12 @@ loader = {
     systemd-boot = {
         configurationLimit = 25;
         editor = mkForce false;
-        enable = mkForce false;
-        # enable = mkForce true;
+        # enable = mkForce false;
+        enable = mkForce true;
     };
     grub = {
-        enable = mkForce true;
-        # enable = mkForce false;
+        # enable = mkForce true;
+        enable = mkForce false;
         efiSupport = true;
         efiInstallAsRemovable = mkForce false;
         # devices = [ "nodev" ];
