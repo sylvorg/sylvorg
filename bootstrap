@@ -14,6 +14,7 @@
                  umount
                  zfs
                  zpool ])
+(import coconut *)
 (import cytoolz [last])
 (import functools [partial])
 (import pathlib [Path])
