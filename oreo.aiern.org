@@ -1581,19 +1581,19 @@ loader = {
         enable = mkForce true;
     };
     grub = {
-        # # enable = mkForce true;
-        # enable = mkForce false;
-        # efiSupport = true;
-        # efiInstallAsRemovable = mkForce false;
-        # # devices = [ "nodev" ];
-        # device = "nodev";
-        # version = 2;
+        # enable = mkForce true;
+        enable = mkForce false;
+        efiSupport = true;
+        efiInstallAsRemovable = mkForce false;
+        # devices = [ "nodev" ];
+        device = "nodev";
+        version = 2;
 
-        # # TODO: Get more options
-        # extraEntries = ''
-        #     menuentry "Reboot" { reboot }
-        #     menuentry "Poweroff" { halt }
-        # '';
+        # TODO: Get more options
+        extraEntries = ''
+            menuentry "Reboot" { reboot }
+            menuentry "Poweroff" { halt }
+        '';
 
     };
     efi = {
