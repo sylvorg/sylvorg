@@ -50,7 +50,8 @@ loader = {
     timeout = 10;
 
     # Used for Bedrock Linux
-    initScript.enable = mkForce true;
+    # Also causing EFI stuff not to be installed
+    # initScript.enable = mkForce true;
 };
 # kernelPackages = mkDefault pkgs.linuxPackages_xanmod;
 # kernelPackages = mkDefaultpkgs.linuxPackages_lqx;
