@@ -21,46 +21,46 @@ initrd = {
 };
 extraModprobeConfig = '' options kvm_intel_nested=1 '';
 loader = {
-    systemd-boot = {
-        configurationLimit = 25;
-        editor = mkForce false;
-        # enable = mkForce false;
-        enable = mkForce true;
-    };
-    grub = {
-        # enable = mkForce true;
-        enable = mkForce false;
-        efiSupport = true;
-        efiInstallAsRemovable = mkForce false;
-        # devices = [ "nodev" ];
-        device = "nodev";
-        version = 2;
-
-        # TODO: Get more options
-        extraEntries = ''
-            menuentry "Reboot" { reboot }
-            menuentry "Poweroff" { halt }
-        '';
-
-    };
-    efi = {
-        canTouchEfiVariables = mkForce true;
-        efiSysMountPoint = "/boot/efi";
-    };
-    timeout = 10;
-
-    # Used for Bedrock Linux
-    initScript.enable = mkForce true;
-
-    # efi = {
-    #     canTouchEfiVariables = true;
-    #     efiSysMountPoint = "/boot/efi"; # ← use the same mount point here.
+    # systemd-boot = {
+    #     configurationLimit = 25;
+    #     editor = mkForce false;
+    #     # enable = mkForce false;
+    #     enable = mkForce true;
     # };
     # grub = {
+    #     # enable = mkForce true;
+    #     enable = mkForce false;
     #     efiSupport = true;
-    #     #efiInstallAsRemovable = true; # in case canTouchEfiVariables doesn't work for your system
+    #     efiInstallAsRemovable = mkForce false;
+    #     # devices = [ "nodev" ];
     #     device = "nodev";
+    #     version = 2;
+
+    #     # TODO: Get more options
+    #     extraEntries = ''
+    #         menuentry "Reboot" { reboot }
+    #         menuentry "Poweroff" { halt }
+    #     '';
+
     # };
+    # efi = {
+    #     canTouchEfiVariables = mkForce true;
+    #     efiSysMountPoint = "/boot/efi";
+    # };
+    # timeout = 10;
+
+    # # Used for Bedrock Linux
+    # initScript.enable = mkForce true;
+
+    efi = {
+        canTouchEfiVariables = true;
+        efiSysMountPoint = "/boot/efi"; # ← use the same mount point here.
+    };
+    grub = {
+        efiSupport = true;
+        #efiInstallAsRemovable = true; # in case canTouchEfiVariables doesn't work for your system
+        device = "nodev";
+    };
 };
 # kernelPackages = mkDefault pkgs.linuxPackages_xanmod;
 # kernelPackages = mkDefaultpkgs.linuxPackages_lqx;
