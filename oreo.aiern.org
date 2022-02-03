@@ -1429,7 +1429,7 @@ in flatten [
 
 **** Mozilla
 
-#+begin_src nix :noweb-ref no
+#+begin_src nix
 (let
     mozilla = fetchGit { url = "https://github.com/mozilla/nixpkgs-mozilla"; };
     mozilla-overlays = import "${mozilla}/overlays.nix";
