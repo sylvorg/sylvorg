@@ -29,7 +29,7 @@ loader = {
     grub = {
         enable = mkForce true;
         efiSupport = true;
-        efiInstallAsRemovable = mkForce true;
+        efiInstallAsRemovable = mkForce false;
         devices = [ "nodev" ];
         # devices = "nodev";
         version = 2;
@@ -42,7 +42,7 @@ loader = {
 
     };
     efi = {
-        canTouchEfiVariables = mkForce false;
+        canTouchEfiVariables = mkForce true;
         efiSysMountPoint = "/boot/efi";
     };
     timeout = 10;
