@@ -25,7 +25,7 @@ loader = {
         # configurationLimit = 25;
         # editor = mkForce false;
         # # enable = mkForce false;
-        # enable = mkForce true;
+        enable = mkForce true;
     };
     grub = {
         # # enable = mkForce true;
