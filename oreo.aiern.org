@@ -1450,7 +1450,7 @@ in (map import mozilla-overlays))
 
 **** Overrides from Older Channels
 
-#+begin_src nix :noweb-ref no
+#+begin_src nix
 (let pkgsets = {
     unstable = [  ];
 };

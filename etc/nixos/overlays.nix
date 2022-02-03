@@ -45,5 +45,15 @@ in (map import mozilla-overlays))
         };
     })]
 ) (j.functions.list { dir = ./overlays; ignores = [ "nix" ]; })))
+(let pkgsets = {
+    unstable = [  ];
+};
+in flatten (mapAttrsToList (
+    pkgchannel: pkglist: map (
+        pkg: [(final: prev: {
+            "${pkg}" = if (pkgchannel == channel) then prev.${pkg} else final.j.pkgs.${pkgchannel}.${pkg};
+        })]
+    ) pkglist
+) pkgsets))
 [(final: prev: { guix = final.callPackage "${fetchGit { url = "https://github.com/${j.attrs.users.primary}/nixpkgs"; ref = "guix"; }}/pkgs/development/guix/guix.nix" {  }; })]
 ]
