@@ -1410,7 +1410,7 @@ in flatten [
 **** Systemd
 ***** Homed
 
-#+begin_src nix :noweb-ref no
+#+begin_src nix
 [( final: prev: { systemd = prev.systemd.overrideAttrs (old: { withHomed = true; }); })]
 #+end_src
 

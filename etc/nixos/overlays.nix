@@ -27,5 +27,6 @@ in flatten [
     (final: prev: { emacs-nox = final.emacsGit-nox; })
     (final: prev: { emacs = final.emacsGit; })
 ]
+[( final: prev: { systemd = prev.systemd.overrideAttrs (old: { withHomed = true; }); })]
 [(final: prev: { guix = final.callPackage "${fetchGit { url = "https://github.com/${j.attrs.users.primary}/nixpkgs"; ref = "guix"; }}/pkgs/development/guix/guix.nix" {  }; })]
 ]
