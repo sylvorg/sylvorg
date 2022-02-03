@@ -24,10 +24,12 @@ loader = {
     systemd-boot = {
         configurationLimit = 25;
         editor = false;
+        enable = mkForce false;
     };
     grub = {
-        enable = mkForce false;
+        enable = mkForce true;
         efiSupport = true;
+        efiInstallAsRemovable = true;
         devices = [ "nodev" ];
         version = 2;
 
@@ -446,8 +448,6 @@ virtualisation = {
         package = pkgs.docker;
         enableOnBoot = true;
     };
-
-    # TODO
     libvirtd.enable = true;
 };
 }

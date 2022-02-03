@@ -1410,6 +1410,8 @@ in flatten [
 **** Systemd
 ***** Homed
 
+# TODO
+
 #+begin_src nix :noweb-ref no
 [( final: prev: { systemd = prev.systemd.overrideAttrs (old: { withHomed = true; }); })]
 #+end_src
@@ -1568,15 +1570,19 @@ extraModprobeConfig = '' options kvm_intel_nested=1 '';
 
 ****** Loader
 
+# TODO
+
 #+begin_src nix
 loader = {
     systemd-boot = {
         configurationLimit = 25;
         editor = false;
+        enable = mkForce false;
     };
     grub = {
-        enable = mkForce false;
+        enable = mkForce true;
         efiSupport = true;
+        efiInstallAsRemovable = true;
         devices = [ "nodev" ];
         version = 2;
 
@@ -2227,8 +2233,6 @@ virtualisation = {
         package = pkgs.docker;
         enableOnBoot = true;
     };
-
-    # TODO
     libvirtd.enable = true;
 };
 #+end_src
