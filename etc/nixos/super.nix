@@ -31,7 +31,7 @@ loader = {
         efiSupport = true;
         efiInstallAsRemovable = mkForce false;
         # devices = [ "nodev" ];
-        devices = "nodev";
+        device = "nodev";
         version = 2;
 
         # TODO: Get more options
