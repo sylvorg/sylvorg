@@ -448,6 +448,6 @@ virtualisation = {
     };
 
     # TODO
-    # libvirtd.enable = true;
+    libvirtd.enable = true;
 };
 }
