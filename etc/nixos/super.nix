@@ -22,7 +22,7 @@ initrd = {
 extraModprobeConfig = '' options kvm_intel_nested=1 '';
 loader = {
     systemd-boot = {
-        # configurationLimit = 25;
+        configurationLimit = 25;
         # editor = mkForce false;
         # # enable = mkForce false;
         enable = mkForce true;
