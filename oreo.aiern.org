@@ -915,10 +915,7 @@ index c61df8ceb00..d973837f0d3 100644
 {
     imports = [
         ../../super.nix
-
-        # TODO
         ../../bcachefs.nix
-
     ];
     networking = {
         hostName = baseNameOf (toString ./.);
@@ -1367,7 +1364,7 @@ in flatten [
 
 # TODO
 
-#+begin_src nix :noweb-ref no
+#+begin_src nix
 [(final: prev: { j = {
     nixpkgs = othernixpkgs;
     pkgs = otherpkgs;
