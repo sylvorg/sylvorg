@@ -31,6 +31,7 @@ loader = {
         efiSupport = true;
         efiInstallAsRemovable = true;
         devices = [ "nodev" ];
+        # devices = "nodev";
         version = 2;
 
         # TODO: Get more options
@@ -41,7 +42,7 @@ loader = {
 
     };
     efi = {
-        canTouchEfiVariables = mkForce true;
+        # canTouchEfiVariables = mkForce true;
         efiSysMountPoint = "/boot/efi";
     };
     timeout = 10;
