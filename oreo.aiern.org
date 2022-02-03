@@ -1438,7 +1438,7 @@ in (map import mozilla-overlays))
 
 **** Overlays in Overlays Directory
 
-#+begin_src nix :noweb-ref no
+#+begin_src nix
 (flatten (map (file:
     [(final: prev: {
         "${j.functions.name { inherit file; }}" = import file {
