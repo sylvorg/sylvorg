@@ -50,7 +50,7 @@ loader = {
     timeout = 10;
 
     # Used for Bedrock Linux
-    # initScript.enable = mkForce true;
+    initScript.enable = mkForce true;
 };
 # kernelPackages = mkDefault pkgs.linuxPackages_xanmod;
 # kernelPackages = mkDefaultpkgs.linuxPackages_lqx;

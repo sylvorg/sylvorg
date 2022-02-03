@@ -1603,7 +1603,7 @@ loader = {
     timeout = 10;
 
     # Used for Bedrock Linux
-    # initScript.enable = mkForce true;
+    initScript.enable = mkForce true;
 };
 #+end_src
 
