@@ -9,7 +9,7 @@ pkgs = import nixpkgs { inherit overlays; };
 in with lib; {
 imports = [
     ./hardware-configuration.nix
-    "${fetchGit { url = "https://github.com/nix-community/impermanence"; }}/nixos.nix"
+    # "${fetchGit { url = "https://github.com/nix-community/impermanence"; }}/nixos.nix"
     "${fetchGit { url = "https://github.com/${j.attrs.users.primary}/nixpkgs"; ref = "guix"; }}/nixos/modules/services/development/guix.nix"
 ];
 boot = {
@@ -100,21 +100,10 @@ systemPackages = with pkgs; [
     # "boxes"
     # "characters"
     # "tweaks"
+    "session"
 ]) ++ (with pkgs.gnome; [
     # dconf-editor
 ]);
-persistence = let
-    dir = "/home/${j.attrs.users.primary}/.local/share/yadm/repo.git";
-    repo = fetchGit {
-        url = if (pathExists dir) then "file://${dir}" else "https://github.com/${j.attrs.users.primary}/${j.attrs.users.primary}"; };
-    redRepo = readDir repo;
-in {
-    "/persistent" = { inherit (j.attrs.persistent) files directories; };
-    # "${repo}" = {
-    #     directories = attrNames (filterAttrs (n: v: v == "directory") redRepo);
-    #     files = attrNames (filterAttrs (n: v: v != "directory") redRepo);
-    # };
-};
 };
 fileSystems = let
     inherit (j.attrs.fileSystems) base;

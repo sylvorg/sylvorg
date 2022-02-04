@@ -4,17 +4,32 @@
 The tangle functions are adapted from [[https://emacs.stackexchange.com/a/29884/31428][this answer on the emacs Stack Exchange]],
 which was written by [[https://emacs.stackexchange.com/users/2710/andrew-swann][Andrew Swann]].
 
-* nichtstrap.py
+* shell.nix
 
-#+begin_src py
-import hy
-from addict import Dict
-from .nichtstrap import nichtstrap
-if __name__ == "__main__":
-    nichtstrap(obj = Dict(dict()))
+#+begin_src nix :tangle (meq/tangle-path)
+let
+    name = "nichtstrap";
+    bakery = "~/.local/${name}/bakery";
+in with import <nixpkgs> {};
+stdenv.mkDerivation rec {
+  inherit name;
+  buildInputs = with pkgs; [ python310 sd gcc rsync ];
+  nativeBuildInputs = buildInputs;
+  shellHook = ''
+    python3 -m venv ~/.local/${name}/venv
+    source ~/.local/${name}/venv/bin/activate
+    pip install coconut \
+                cytoolz \
+                xonsh
+    [ -d ${bakery} ] || git clone https://github.com/shadowrylander/bakery.git ${bakery}
+    [ $(git -C ${bakery} fetch --dry-run | head -c 1 | wc -l) -ne 0 ] && git -C ${bakery} pull && pip install ${bakery}
+    chmod +x ${builtins.toString ./.}/nichtstrap
+    exec xonsh
+  '';
+}
 #+end_src
 
-* bootstrap
+* nichtstrap
 :PROPERTIES:
 :header-args:hy+: :noweb-ref nwr20220129201318455450756
 :END:
@@ -46,11 +61,28 @@ if __name__ == "__main__":
                  umount
                  zfs
                  zpool ])
-(import coconut *)
-(import cytoolz [last])
 (import functools [partial])
 (import pathlib [Path])
 (import sys [argv])
+#+end_src
+
+*** Coconut
+
+[[https://coconut.readthedocs.io/en/latest/index.html][Coconut]]:
+
+#+begin_src hy
+(try (import coconut *)
+     (except [ImportError] None))
+#+end_src
+
+*** Toolz
+
+[[https://github.com/pytoolz/toolz][Toolz]] and [[https://github.com/pytoolz/cytoolz/][CyToolz]]:
+
+#+begin_src hy
+(try (import cytoolz [first])
+     (except [ImportError]
+             (import toolz [first])))
 #+end_src
 
 ** Requires
@@ -418,7 +450,7 @@ then re-add them to the final mountpoint with ~"/mnt~.
 
 ** End of bootstrap
 
-#+begin_src hy
+#+begin_src hy :noweb-ref no
 (if (= __name__ "__main__")
     (bootstrap :obj (D {})))
 #+end_src
@@ -1135,22 +1167,85 @@ attrs = rec {
 ******* Persistence
 
 #+begin_src nix
-persistent = {
-    files = flatten [[ "/etc/host" ]];
-    directories = flatten [[
-        "/etc/containers"
-        "/etc/NetworkManager/system-connections"
-        "/etc/nix"
-        "/etc/nixos"
-        "/etc/ssh"
-        "/etc/wireguard"
-        "/var/lib/acme"
-        "/var/lib/bluetooth"
-        "/usr"
-        "/bin"
-        "/sbin"
-        "/snap"
-    ]];
+persistent = let
+    dir = "${allHomes.${j.attrs.users.primary}}/.local/share/yadm/repo.git";
+    repo = fetchGit {
+        url = if (pathExists dir) then "file://${dir}" else "https://github.com/${j.attrs.users.primary}/${j.attrs.users.primary}"; };
+    redRepo = readDir repo;
+    redRepoFiles = attrNames (filterAttrs (n: v: v != "directory") redRepo);
+    redRepoDirectories = attrNames (filterAttrs (n: v: v == "directory") redRepo);
+in {
+    files = flatten [
+        [ "/etc/host" ]
+        redRepoFiles
+    ];
+    directories = flatten [
+        [
+            "/etc/containers"
+            "/etc/NetworkManager/system-connections"
+            "/etc/nix"
+            "/etc/nixos"
+            "/etc/ssh"
+            "/etc/wireguard"
+            "/var/lib/acme"
+            "/var/lib/bluetooth"
+            "/usr"
+            "/bin"
+            "/sbin"
+            "/snap"
+        ]
+        redRepoDirectories
+    ];
+    users = listToAttrs ((user: nameValuePair user {
+        files = flatten [
+            [
+                ".bash-history"
+                ".emacs-profile"
+                ".gitignore"
+                ".globalignore"
+                ".nix-channels"
+                ".python-history"
+                ".viminfo"
+                ".zsh-history"
+                ".screenrc"
+            ]
+            redRepoFiles
+        ];
+        directories = flatten [
+            [
+                ".atom"
+                ".byobu"
+                ".cache"
+                ".caddy"
+                ".config"
+                ".linuxbrew"
+                ".local"
+                ".mozilla"
+                ".peru"
+                ".pki"
+                ".vim_runtime"
+                ".virtualenvs"
+                ".vscode-oss"
+                ".vscode"
+                ".yubico"
+                ".z"
+                "Documents"
+                "Downloads"
+                "keybase"
+                "Music"
+                "nix-plugins"
+                "Pictures"
+                "Public"
+                "Templates"
+                "tests"
+                "Videos"
+                "VirtualBox VMs"
+                { directory = ".gnupg"; mode = "0700"; }
+                { directory = ".nixops"; mode = "0700"; }
+                { directory = ".ssh"; mode = "0700"; }
+            ]
+            redRepoDirectories
+        ]}) allUsers);
 };
 #+end_src
 
@@ -1535,7 +1630,7 @@ in with lib; {
 #+begin_src nix
 imports = [
     ./hardware-configuration.nix
-    "${fetchGit { url = "https://github.com/nix-community/impermanence"; }}/nixos.nix"
+    # "${fetchGit { url = "https://github.com/nix-community/impermanence"; }}/nixos.nix"
     "${fetchGit { url = "https://github.com/${j.attrs.users.primary}/nixpkgs"; ref = "guix"; }}/nixos/modules/services/development/guix.nix"
 ];
 #+end_src
@@ -1681,7 +1776,7 @@ kernelParams = [ "nohibernate" ];
 initrd = {
     postDeviceCommands = mkAfter ''
         zfs rollback -r ${config.networking.hostName}/system/root@blank
-        # zfs rollback -r ${config.networking.hostName}/system/home@blank
+        zfs rollback -r ${config.networking.hostName}/system/home@blank
     '';
     kernelModules = [ "zfs" ];
     availableKernelModules = [ "zfs" ];
@@ -1737,6 +1832,7 @@ systemPackages = with pkgs; [
     # "boxes"
     # "characters"
     # "tweaks"
+    "session"
 ]) ++ (with pkgs.gnome; [
     # dconf-editor
 ]);
@@ -1744,19 +1840,8 @@ systemPackages = with pkgs; [
 
 ****** ZFS
 
-#+begin_src nix
-persistence = let
-    dir = "/home/${j.attrs.users.primary}/.local/share/yadm/repo.git";
-    repo = fetchGit {
-        url = if (pathExists dir) then "file://${dir}" else "https://github.com/${j.attrs.users.primary}/${j.attrs.users.primary}"; };
-    redRepo = readDir repo;
-in {
-    "/persistent" = { inherit (j.attrs.persistent) files directories; };
-    # "${repo}" = {
-    #     directories = attrNames (filterAttrs (n: v: v == "directory") redRepo);
-    #     files = attrNames (filterAttrs (n: v: v != "directory") redRepo);
-    # };
-};
+#+begin_src nix :noweb-ref no
+persistence."/persistent" = { inherit (j.attrs.persistent) files directories users; };
 #+end_src
 
 ****** End of Environment

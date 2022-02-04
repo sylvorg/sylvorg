@@ -14,11 +14,14 @@
                  umount
                  zfs
                  zpool ])
-(import coconut *)
-(import cytoolz [last])
 (import functools [partial])
 (import pathlib [Path])
 (import sys [argv])
+(try (import coconut *)
+     (except [ImportError] None))
+(try (import cytoolz [first])
+     (except [ImportError]
+             (import toolz [first])))
 (require hyrule [-> assoc])
 (setv resources (+ (.dirname os.path (.realpath os.path __file__)) "/etc/nixos/"))
 (defn update-datasets [host swap encrypted deduplicated [pool False]]
@@ -311,5 +314,3 @@
                         [True (ud)])
                   (finally (.export zpool :f True ctx.obj.host :m/ignore-stderr True)))
              (raise (NameError no-host-error-message)))))
-(if (= __name__ "__main__")
-    (bootstrap :obj (D {})))
