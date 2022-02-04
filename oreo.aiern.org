@@ -9,21 +9,19 @@ which was written by [[https://emacs.stackexchange.com/users/2710/andrew-swann][
 #+begin_src nix :tangle (meq/tangle-path)
 let
     name = "nichtstrap";
-    bakery = "~/.local/${name}/bakery";
 in with import <nixpkgs> {};
 stdenv.mkDerivation rec {
   inherit name;
   buildInputs = with pkgs; [ python310 sd gcc rsync ];
   nativeBuildInputs = buildInputs;
   shellHook = ''
-    python3 -m venv ~/.local/${name}/venv
-    source ~/.local/${name}/venv/bin/activate
-    pip install coconut \
+    python3 -m venv ~/.local/${name}
+    source ~/.local/${name}/bin/activate
+    pip install https://github.com/<<username>>/bakery/archive/main.tar.gz \
+                coconut \
                 cytoolz \
                 xonsh || :
-    [ -d ${bakery} ] || git clone https://github.com/shadowrylander/bakery.git ${bakery} && pip install ${bakery} || :
-    [ $(git -C ${bakery} fetch --dry-run | head -c 1 | wc -l) -ne 0 ] && git -C ${bakery} pull && pip install ${bakery} || :
-    chmod +x ${builtins.toString ./.}/nichtstrap || chmod +x ${builtins.toString ./.}/nichtstrap.py
+    chmod +x ${builtins.toString ./.}/nichtstrap 2> /dev/null || chmod +x ${builtins.toString ./.}/nichtstrap.py
     exec xonsh
   '';
 }
@@ -33,10 +31,11 @@ stdenv.mkDerivation rec {
 
 #+begin_src py :tangle (meq/tangle-path)
 import hy, os
-from nanite import module_installed, sui
+from addict import Dict
+from nanite import module_installed
 nichtstrap = module_installed(os.path.dirname(os.path.realpath(__file__)) + "/nichtstrap.hy").nichtstrap
 if __name__ == "__main__":
-    nichtstrap(obj=sui("addict", "Dict")(dict()))
+    nichtstrap(obj=Dict(dict()))
 #+end_src
 
 * nichtstrap.hy
@@ -304,7 +303,7 @@ if __name__ == "__main__":
    (.option click "-r" "--replace" :is-flag True)
    (.option click "-R" "--rebuild")
    click.pass-context
-   (defn main [ ctx all copy generate install program-arguments replace ]
+   (defn main [ ctx all copy generate install program-arguments rebuild replace ]
          (.bake-all- getconf :m/sudo True)
          (setv copy-partial (partial rsync :m/run True :a True :v { "repeat" 2 } :c True :z { "repeat" 2 } f"{resources}/"))
          (if rebuild

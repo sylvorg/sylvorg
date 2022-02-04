@@ -200,7 +200,7 @@
    (.option click "-r" "--replace" :is-flag True)
    (.option click "-R" "--rebuild")
    click.pass-context
-   (defn main [ ctx all copy generate install program-arguments replace ]
+   (defn main [ ctx all copy generate install program-arguments rebuild replace ]
          (.bake-all- getconf :m/sudo True)
          (setv copy-partial (partial rsync :m/run True :a True :v { "repeat" 2 } :c True :z { "repeat" 2 } f"{resources}/"))
          (if rebuild
