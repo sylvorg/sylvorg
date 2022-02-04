@@ -18,6 +18,7 @@ stdenv.mkDerivation rec {
   shellHook = ''
     python3 -m venv ~/.local/${name}/venv
     source ~/.local/${name}/venv/bin/activate
+    pip install --pre hy || :
     pip install addict \
                 coconut \
                 cytoolz \
@@ -33,6 +34,7 @@ stdenv.mkDerivation rec {
 * nichtstrap.py
 
 #+begin_src py :tangle (meq/tangle-path)
+import hy
 from addict import Dict
 from .nichtstrap import nichtstrap
 if __name__ == "__main__":

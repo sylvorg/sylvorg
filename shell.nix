@@ -9,6 +9,7 @@ stdenv.mkDerivation rec {
   shellHook = ''
     python3 -m venv ~/.local/${name}/venv
     source ~/.local/${name}/venv/bin/activate
+    pip install --pre hy || :
     pip install addict \
                 coconut \
                 cytoolz \
