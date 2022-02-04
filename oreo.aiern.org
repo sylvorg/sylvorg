@@ -294,8 +294,8 @@ if __name__ == "__main__":
 
 #+begin_src hy
 #@((.command nichtstrap :no-args-is-help True
-                        :ignore-unknown-options True
-                        :allow-extra-args True)
+                        :context-settings { "ignore_unknown_options" True
+                                            "allow_extra_args"       True })
    (.argument click "program-arguments" :nargs -1)
    (.option click "-a" "--all" :is-flag True)
    (.option click "-c" "--copy" :is-flag True)

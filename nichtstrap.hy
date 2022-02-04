@@ -190,8 +190,8 @@
          (if print-run (.bake-all- getconf :m/print-command-and-run True))
          (if inspect (.bake-all- getconf :m/debug True))))
 #@((.command nichtstrap :no-args-is-help True
-                        :ignore-unknown-options True
-                        :allow-extra-args True)
+                        :context-settings { "ignore_unknown_options" True
+                                            "allow_extra_args"       True })
    (.argument click "program-arguments" :nargs -1)
    (.option click "-a" "--all" :is-flag True)
    (.option click "-c" "--copy" :is-flag True)
