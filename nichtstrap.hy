@@ -8,6 +8,7 @@
                  mount :as Mount
                  nixos-generate-config
                  nixos-install
+                 nixos-rebuild
                  rsync
                  sd
                  swapon
@@ -188,18 +189,28 @@
          (setv ctx.obj.host host)
          (if print-run (.bake-all- getconf :m/print-command-and-run True))
          (if inspect (.bake-all- getconf :m/debug True))))
-#@((.command nichtstrap :no-args-is-help True)
+#@((.command nichtstrap :no-args-is-help True
+                        :ignore-unknown-options True
+                        :allow-extra-args True)
    (.argument click "program-arguments" :nargs -1)
    (.option click "-a" "--all" :is-flag True)
    (.option click "-c" "--copy" :is-flag True)
    (.option click "-g" "--generate" :is-flag True)
    (.option click "-i" "--install" :is-flag True)
    (.option click "-r" "--replace" :is-flag True)
+   (.option click "-R" "--rebuild")
    click.pass-context
    (defn main [ ctx all copy generate install program-arguments replace ]
          (.bake-all- getconf :m/sudo True)
+         (setv copy-partial (partial rsync :m/run True :a True :v { "repeat" 2 } :c True :z { "repeat" 2 } f"{resources}/"))
+         (if rebuild
+             (do (if all
+                     (raise (NameError "Sorry! `all' and `rebuild' cannot be used together!")))
+                 (if copy
+                     (copy-partial "/etc/nixos/"))
+                 (nixos-rebuild rebuild #* ctx.args :show-trace True)))
          (if (or copy all)
-             (rsync :m/run True :a True :v { "repeat" 2 } :c True :z { "repeat" 2 } f"{resources}/" "/mnt/etc/nixos/"))
+             (copy-partial "/mnt/etc/nixos/"))
          (if (or generate all)
              (nixos-generate-config :m/run True :root "/mnt" :m/dazzle True))
          (if (or replace all)
@@ -210,10 +221,9 @@
                      "/mnt/etc/nixos/configuration.nix")
                  (raise (NameError no-host-error-message))))
          (if (or install all)
-             (nixos-install #* program-arguments
+             (nixos-install #* ctx.args
                             :m/run True
                             :show-trace True
-:option "tarball-ttl 0"
 ))))
 #@((.command nichtstrap :no-args-is-help True)
    (.option click "-d" "--deduplicated" :is-flag True)
