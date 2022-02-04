@@ -10,6 +10,7 @@ which was written by [[https://emacs.stackexchange.com/users/2710/andrew-swann][
 let
     name = "nichtstrap";
     bakery = "~/.local/${name}/bakery";
+    nanite = "~/.local/${name}/nanite";
 in with import <nixpkgs> {};
 stdenv.mkDerivation rec {
   inherit name;
@@ -23,6 +24,8 @@ stdenv.mkDerivation rec {
                 coconut \
                 cytoolz \
                 xonsh || :
+    [ -d ${nanite} ] || git clone https://gitlab.com/picotech/nanotech/nanite.git ${nanite} || :
+    [ $(git -C ${nanite} fetch --dry-run | head -c 1 | wc -l) -ne 0 ] && git -C ${nanite} pull && pip install ${nanite} || :
     [ -d ${bakery} ] || git clone https://github.com/shadowrylander/bakery.git ${bakery} || :
     [ $(git -C ${bakery} fetch --dry-run | head -c 1 | wc -l) -ne 0 ] && git -C ${bakery} pull && pip install ${bakery} || :
     chmod +x ${builtins.toString ./.}/nichtstrap || chmod +x ${builtins.toString ./.}/nichtstrap.py
@@ -34,14 +37,14 @@ stdenv.mkDerivation rec {
 * nichtstrap.py
 
 #+begin_src py :tangle (meq/tangle-path)
-import hy
-from addict import Dict
-from nichtstrap_hy import nichtstrap
+import hy, os
+from nanite import module_installed, sui
+nichtstrap = module_installed(os.path.dirname(os.path.realpath(__file__)) + "/nichtstrap.hy")
 if __name__ == "__main__":
-    nichtstrap(obj=Dict(dict()))
+    nichtstrap(obj=sui("addict", "Dict")(dict()))
 #+end_src
 
-* nichtstrap_hy.hy
+* nichtstrap.hy
 :PROPERTIES:
 :header-args:hy+: :noweb-ref nwr20220129201318455450756
 :END:
