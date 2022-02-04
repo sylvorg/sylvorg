@@ -20,16 +20,25 @@ stdenv.mkDerivation rec {
     source ~/.local/${name}/venv/bin/activate
     pip install coconut \
                 cytoolz \
-                xonsh
-    [ -d ${bakery} ] || git clone https://github.com/shadowrylander/bakery.git ${bakery}
-    [ $(git -C ${bakery} fetch --dry-run | head -c 1 | wc -l) -ne 0 ] && git -C ${bakery} pull && pip install ${bakery}
+                xonsh || :
+    [ -d ${bakery} ] || git clone https://github.com/shadowrylander/bakery.git ${bakery} || :
+    [ $(git -C ${bakery} fetch --dry-run | head -c 1 | wc -l) -ne 0 ] && git -C ${bakery} pull && pip install ${bakery} || :
     chmod +x ${builtins.toString ./.}/nichtstrap
     exec xonsh
   '';
 }
 #+end_src
 
-* nichtstrap
+* nichtstrap.py
+
+#+begin_src py :tangle (meq/tangle-path)
+from addict import Dict
+from .nichtstrap import nichtstrap
+if __name__ == "__main__":
+    nichtstrap(obj=Dict(dict()))
+#+end_src
+
+* nichtstrap.hy
 :PROPERTIES:
 :header-args:hy+: :noweb-ref nwr20220129201318455450756
 :END:
@@ -272,7 +281,7 @@ stdenv.mkDerivation rec {
    (.option click "-i" "--inspect" :is-flag True)
    (.option click "-p" "--print-run" :is-flag True)
    click.pass-context
-   (defn bootstrap [ ctx dazzle host inspect print-run ]
+   (defn nichtstrap [ ctx dazzle host inspect print-run ]
          (.ensure-object ctx dict)
          (setv ctx.obj.host host)
          (if print-run (.bake-all- getconf :m/print-command-and-run True))
@@ -282,7 +291,7 @@ stdenv.mkDerivation rec {
 *** Main
 
 #+begin_src hy
-#@((.command bootstrap :no-args-is-help True)
+#@((.command nichtstrap :no-args-is-help True)
    (.argument click "program-arguments" :nargs -1)
    (.option click "-a" "--all" :is-flag True)
    (.option click "-c" "--copy" :is-flag True)
@@ -328,7 +337,7 @@ or in the Nix configuration file by adding the line tarball-ttl = number-of-seco
 *** Create
 
 #+begin_src hy
-#@((.command bootstrap :no-args-is-help True)
+#@((.command nichtstrap :no-args-is-help True)
    (.option click "-d" "--deduplicated" :is-flag True)
    (.option click "-e" "--encrypted" :is-flag True)
    (.option click "-s" "--swap" :type int :default 0)
@@ -363,7 +372,7 @@ or in the Nix configuration file by adding the line tarball-ttl = number-of-seco
 *** Mount
 
 #+begin_src hy
-#@((.command bootstrap :no-args-is-help True)
+#@((.command nichtstrap :no-args-is-help True)
    (.option click "-b" "--boot-device")
    (.option click "-d" "--deduplicated" :is-flag True)
    (.option click "-e" "--encrypted" :is-flag True)
@@ -431,7 +440,7 @@ then re-add them to the final mountpoint with ~"/mnt~.
 *** Update
 
 #+begin_src hy
-#@((.command bootstrap :no-args-is-help True)
+#@((.command nichtstrap :no-args-is-help True)
    (.option click "-d" "--deduplicated" :is-flag True)
    (.option click "-e" "--encrypted" :is-flag True)
    (.option click "-f" "--files" :is-flag True :help "Update datasets.nix with any new datasets; the default")
@@ -448,11 +457,11 @@ then re-add them to the final mountpoint with ~"/mnt~.
              (raise (NameError no-host-error-message)))))
 #+end_src
 
-** End of bootstrap
+** End of nichtstrap
 
 #+begin_src hy :noweb-ref no
 (if (= __name__ "__main__")
-    (bootstrap :obj (D {})))
+    (nichtstrap :obj (D {})))
 #+end_src
 
 * etc

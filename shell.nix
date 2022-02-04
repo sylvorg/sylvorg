@@ -9,11 +9,11 @@ stdenv.mkDerivation rec {
   shellHook = ''
     python3 -m venv ~/.local/${name}/venv
     source ~/.local/${name}/venv/bin/activate
-    [ -d ${bakery} ] || git clone https://github.com/shadowrylander/bakery.git ${bakery}
-    [ $(git -C ${bakery} fetch --dry-run | head -c 1 | wc -l) -ne 0 ] && git -C ${bakery} pull && pip install ${bakery}
     pip install coconut \
                 cytoolz \
-                xonsh
+                xonsh || :
+    [ -d ${bakery} ] || git clone https://github.com/shadowrylander/bakery.git ${bakery} || :
+    [ $(git -C ${bakery} fetch --dry-run | head -c 1 | wc -l) -ne 0 ] && git -C ${bakery} pull && pip install ${bakery} || :
     chmod +x ${builtins.toString ./.}/nichtstrap
     exec xonsh
   '';
