@@ -36,12 +36,12 @@ stdenv.mkDerivation rec {
 #+begin_src py :tangle (meq/tangle-path)
 import hy
 from addict import Dict
-from .nichtstrap import nichtstrap
+from .nichtstrap_hy import nichtstrap
 if __name__ == "__main__":
     nichtstrap(obj=Dict(dict()))
 #+end_src
 
-* nichtstrap.hy
+* nichtstrap_hy.hy
 :PROPERTIES:
 :header-args:hy+: :noweb-ref nwr20220129201318455450756
 :END:
