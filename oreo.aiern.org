@@ -1965,7 +1965,7 @@ in {
                     { directory = ".ssh"; mode = "0700"; }
                 ]
                 redRepoDirectories
-            ])}) allUsers);
+            ]);}) allUsers);
     };
 };
 #+end_src
