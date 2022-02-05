@@ -163,7 +163,7 @@ in {
                 group = user;
             };
             userFileSet.parentDirectory = userDirSet;
-        nameValuePair user {
+        in nameValuePair user {
             files = map (file: if ((typeOf file) == "string") then ({ inherit file; } // userFileSet) else (userFileSet // file)) (flatten [
                 [
                     ".bash-history"
