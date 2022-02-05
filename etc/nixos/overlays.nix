@@ -36,9 +36,11 @@ in flatten [
 ]
 [
     (final: prev: { caddy = pkgs.callPackage ./callPackages/caddy.nix {
-        "github.com/mholt/caddy-l4@latest"
-        "github.com/abiosoft/caddy-yaml@latest"
-        "github.com/caddy-dns/cloudflare@latest"
+        plugins = [
+            "github.com/mholt/caddy-l4@latest"
+            "github.com/abiosoft/caddy-yaml@latest"
+            "github.com/caddy-dns/cloudflare@latest"
+        ];
     }; })
 ]
 (let
