@@ -42,21 +42,14 @@
                                             "sylveon": { "mountpoint": "/home/shadowrylander/sylveon", "options": [ "snapdir=visible" ] },
                                             "sylvorg": { "mountpoint": "/home/shadowrylander/sylvorg", "options": [ "snapdir=visible" ] },
                                             "syvlorg": { "mountpoint": "/home/shadowrylander/syvlorg", "options": [ "snapdir=visible" ] },
-                                            "shadowrylander": { "mountpoint": "/home/shadowrylander/shadowrylander", "options": [ "snapdir=visible" ] }},
+                                            "dross": { "mountpoint": "/home/shadowrylander/dross", "options": [ "snapdir=visible" ] },
+                                            "uru": { "mountpoint": "/home/shadowrylander/uru", "options": [ "snapdir=visible" ] }},
                                         "options": [ "mountpoint=legacy" ]},
                                     "system": {
                                         "datasets": {
                                             "home": { "datasets": { "root": { "mountpoint": "/root" }}},
                                             "nix": {  },
-                                            "persist": {
-                                                "datasets": {
-                                                    "cache": {
-                                                        "datasets": { "root": {  }},
-                                                        "options": [ "sync=disabled" ]
-                                                    },
-                                                    "home": { "datasets": { "root": {  }}}
-                                                }
-                                            },
+                                            "persist": {  },
                                             "root": {  },
                                             "tmp": { "datasets": { "nix": {  }}, "options": [ "sync=disabled" ] },
                                             "etc": {  },
@@ -88,13 +81,11 @@
                                     "nightingale": "curtis"
                                 }
                          ]]))))
-      (assoc datasets host { "datasets" { "jails" { "datasets" { "base" (dict)}}}
-                             "options" [ ml ]})
+      (assoc datasets host (D { "datasets" { "jails" { "datasets" { "base" (dict)}}}
+                                "options" [ ml ]}))
       (for [user (.values users)]
            (assoc (. datasets [s] [d] home [d]) user (dict))
-           (assoc (. datasets virt [d] podman [d]) user (dict))
-           (for [dataset (.keys (. datasets [s] [d] persist [d]))]
-                (assoc (. datasets [s] [d] persist [d] [dataset] [d]) user (dict))))
+           (assoc (. datasets virt [d] podman [d]) user (dict)))
       (with [dnix (open (+ resources "/datasets.nix") "w")]
             (.write dnix "{\n")
             (defn recurse [ddict dname droot [mountpoint ""]]

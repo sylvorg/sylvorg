@@ -20,7 +20,7 @@ inAndroid {
 }
 
 GIT_SSL_NO_VERIFY=1 $ylv submodule update --init --depth 1 --recursive --remote --force
-git clone --recurse-submodule git@github.com:shadowrylander/shadowrylander.git $root/one
+git clone --recurse-submodule git@github.com:shadowrylander/shadowrylander.git $root/dross
 $ylv remote set-url --push origin git@github.com:shadowrylander/shadowrylander.git
 $ylv config include.path "$root/.gitconfig"
 

@@ -9,7 +9,7 @@ pkgs = import nixpkgs { inherit overlays; };
 in with lib; {
 imports = [
     ./hardware-configuration.nix
-    # "${fetchGit { url = "https://github.com/nix-community/impermanence"; }}/nixos.nix"
+    "${fetchGit { url = "https://github.com/nix-community/impermanence"; }}/nixos.nix"
     "${fetchGit { url = "https://github.com/${j.attrs.users.primary}/nixpkgs"; ref = "guix"; }}/nixos/modules/services/development/guix.nix"
 ];
 boot = {
@@ -104,6 +104,116 @@ systemPackages = with pkgs; [
 ]) ++ (with pkgs.gnome; [
     # dconf-editor
 ]);
+persistence = let
+    rootDirSet = {
+        user = "root";
+        group = "root";
+    };
+    rootFileSet.parentDirectory = rootDirSet;
+in {
+    # "/root" = {
+    #     directories = map (directory: if ((typeOf directory) == "string") then ({ inherit directory; } // rootSet) else (rootDirSet // directory)) (flatten [
+    #         [
+    #             "/etc/nix"
+    #             "/etc/nixos"
+    #             "/etc/zsh"
+    #         ]
+    #     ]);
+    # };
+    "/persist" = let
+        dir = "${j.attrs.homes.${j.attrs.users.primary}}/.local/share/yadm/repo.git";
+        repo = fetchGit {
+            url = if (pathExists dir) then "file://${dir}" else "https://github.com/${j.attrs.users.primary}/${j.attrs.users.primary}"; };
+        redRepo = readDir repo;
+        redRepoFiles = flatten [
+            (attrNames (filterAttrs (n: v: v != "directory") redRepo))
+            [ "configuration.nix" "hardware-configuration.nix" ]
+        ];
+        redRepoDirectories = flatten [
+            (attrNames (filterAttrs (n: v: v == "directory") redRepo))
+        ];
+    in {
+        hideMounts = true;
+        files = map (file: if ((typeOf file) == "string") then ({ inherit file; } // rootFileSet) else (rootFileSet // file)) (flatten [
+            [
+                "/etc/host"
+                "/etc/machine-id"
+            ]
+        ]);
+        directories = map (directory: if ((typeOf directory) == "string") then ({ inherit directory; } // rootSet) else (rootDirSet // directory)) (flatten [
+            [
+                "/bin"
+                "/etc/containers"
+                "/etc/NetworkManager/system-connections"
+                "/etc/ssh"
+                "/etc/wireguard"
+                "/sbin"
+                "/snap"
+                "/usr"
+                "/var/lib/acme"
+                "/var/lib/bluetooth"
+                "/var/lib/systemd/coredump"
+                "/var/log"
+            ]
+        ]);
+        users = listToAttrs (map (user: let
+            userDirSet = {
+                inherit user;
+                group = user;
+            };
+            userFileSet.parentDirectory = userDirSet;
+        nameValuePair user {
+            files = map (file: if ((typeOf file) == "string") then ({ inherit file; } // userFileSet) else (userFileSet // file)) (flatten [
+                [
+                    ".bash-history"
+                    ".emacs-profile"
+                    ".gitignore"
+                    ".globalignore"
+                    ".nix-channels"
+                    ".python-history"
+                    ".viminfo"
+                    ".zsh-history"
+                    ".screenrc"
+                ]
+                redRepoFiles
+            ]);
+            directories = map (directory: if ((typeOf directory) == "string") then ({ inherit directory; } // userSet) else (userDirSet // directory)) (flatten [
+                [
+                    ".atom"
+                    ".byobu"
+                    ".cache"
+                    ".caddy"
+                    ".config"
+                    ".linuxbrew"
+                    ".local"
+                    ".mozilla"
+                    ".peru"
+                    ".pki"
+                    ".vim_runtime"
+                    ".virtualenvs"
+                    ".vscode-oss"
+                    ".vscode"
+                    ".yubico"
+                    ".z"
+                    "Documents"
+                    "Downloads"
+                    "keybase"
+                    "Music"
+                    "nix-plugins"
+                    "Pictures"
+                    "Public"
+                    "Templates"
+                    "tests"
+                    "Videos"
+                    "VirtualBox VMs"
+                    { directory = ".gnupg"; mode = "0700"; }
+                    { directory = ".nixops"; mode = "0700"; }
+                    { directory = ".ssh"; mode = "0700"; }
+                ]
+                redRepoDirectories
+            ])}) allUsers);
+    };
+};
 };
 fileSystems = let
     inherit (j.attrs.fileSystems) base;
@@ -172,11 +282,6 @@ in {
     # noProxy = "127.0.0.1,localhost,internal.domain";
     # };
 
-    # Open ports in the firewall.
-    # firewall = {
-    # allowedTCPPorts = [ ... ];
-    # allowedUDPPorts = [ ... ];
-
     # Or disable the firewall altogether.
     # enable = false;
     # };
@@ -187,6 +292,16 @@ in {
     };
 
     # hostId = substring 0 8 (readFile "/etc/machine-id");
+
+    firewall = mkIf (elem config.networking.hostName j.attrs.relays) {
+        allowedTCPPorts = [ 22 80 222 443 2022 8080 9418 ];
+        allowedUDPPortRanges = [
+            {
+                from = 60000;
+                to = 61000;
+            }
+        ];
+    };
 };
 nix = rec {
     gc = j.functions.foldToSet [
@@ -357,10 +472,36 @@ in {
 };
 };
 systemd = {
-    packages = with pkgs; [ runit ly ];
+    # packages = with pkgs; [ runit ];
     services = {
-        runit.enable = true;
-        ly.enable = true;
+        # runit.enable = true;
+        caddy = mkIf (elem config.networking.hostName j.attrs.relays) (j.attrs.configs.services.base // {
+            serviceConfig = {
+                ExecStart = ''
+                    ${pkgs.caddy}/bin/caddy run --config ${j.attrs.homes.${j.attrs.users.primary}}/.config/caddy/files/${config.networking.hostName} --adapter yaml 2>&1
+                '';
+                ExecStop = ''
+                    pkill caddy
+                '';
+            };
+        });
+        emacs = j.attrs.configs.services.base // rec {
+            description = "Emacs text editor";
+            documentation = "info:emacs man:emacs(1) https://gnu.org/software/emacs/";
+            serviceConfig = {
+                ExecStart = ''
+                    ${pkgs.emacs}/bin/emacs --bg-daemon=damascus --update
+                '';
+                ExecStop = ''
+                    ${pkgs.emacs}/bin/emacsclient -s damascus -e "(kill-emacs)"
+                '';
+                Type = "forking";
+                TimeoutSec = 900;
+            };
+            environment = {
+                SSH_AUTH_SOCK = "%t/keyring/ssh";
+            };
+        };
     };
 };
 users = with j.attrs.users; let
@@ -385,7 +526,7 @@ in rec {
         {
             "${primary}" = {
                 uid = 4362;
-                home = j.attrs.allHomes.${primary};
+                home = j.attrs.homes.${primary};
                 description = "Jeet Ray";
                 group = primary;
                 extraGroups = [ secondary ];
@@ -393,7 +534,7 @@ in rec {
             };
             "${secondary}" = {
                 uid = 1111;
-                home = j.attrs.allHomes.${secondary};
+                home = j.attrs.homes.${secondary};
                 description = "Alicia Summers";
                 group = secondary;
                 extraGroups = [ primary ];
@@ -401,7 +542,7 @@ in rec {
             };
             "${nightingale}" = {
                 uid = 8888;
-                home = j.attrs.allHomes.${nightingale};
+                home = j.attrs.homes.${nightingale};
                 description = "Curtis Nightingale";
                 group = "root";
                 extraGroups = [ primary secondary ];

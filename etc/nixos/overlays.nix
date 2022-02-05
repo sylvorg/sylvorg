@@ -34,6 +34,13 @@ in flatten [
         in pkgs.callPackage pkgSrc { inherit pkgSrc; };
     })
 ]
+[
+    (final: prev: { caddy = pkgs.callPackage ./callPackages/caddy.nix {
+        "github.com/mholt/caddy-l4@latest"
+        "github.com/abiosoft/caddy-yaml@latest"
+        "github.com/caddy-dns/cloudflare@latest"
+    }; })
+]
 (let
     mozilla = fetchGit { url = "https://github.com/mozilla/nixpkgs-mozilla"; };
     mozilla-overlays = import "${mozilla}/overlays.nix";

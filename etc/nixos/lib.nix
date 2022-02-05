@@ -24,11 +24,6 @@ toCapital = string: concatImapStrings (
     i: v: if (i == 0) then (toUpper v) else v
 ) (stringToCharacters string);
 sequence = list: end: foldr (a: b: deepSeq a b) end list;
-genPersistentFD = filtered: persistentDirectory: let
-    _ = type: filter (n: !elem n filtered) (
-        mapAttrsToList (n: v: removePrefix persistentDirectory n)
-    (filterAttrs (n: v: v == type) (readDir persistentDirectory)));
-in { directories = _ "directories"; files = _ "regular"; };
 args = {
     suffix = "";
     ignores = [];
@@ -104,86 +99,7 @@ in zipToSet
     (map (file: import file (foldToSet [ modules inputs ])) files);
 };
 attrs = rec {
-persistent = let
-    dir = "${allHomes.${j.attrs.users.primary}}/.local/share/yadm/repo.git";
-    repo = fetchGit {
-        url = if (pathExists dir) then "file://${dir}" else "https://github.com/${j.attrs.users.primary}/${j.attrs.users.primary}"; };
-    redRepo = readDir repo;
-    redRepoFiles = attrNames (filterAttrs (n: v: v != "directory") redRepo);
-    redRepoDirectories = attrNames (filterAttrs (n: v: v == "directory") redRepo);
-in {
-    files = flatten [
-        [ "/etc/host" ]
-        redRepoFiles
-    ];
-    directories = flatten [
-        [
-            "/etc/containers"
-            "/etc/NetworkManager/system-connections"
-            "/etc/nix"
-            "/etc/nixos"
-            "/etc/ssh"
-            "/etc/wireguard"
-            "/var/lib/acme"
-            "/var/lib/bluetooth"
-            "/usr"
-            "/bin"
-            "/sbin"
-            "/snap"
-        ]
-        redRepoDirectories
-    ];
-    users = listToAttrs ((user: nameValuePair user {
-        files = flatten [
-            [
-                ".bash-history"
-                ".emacs-profile"
-                ".gitignore"
-                ".globalignore"
-                ".nix-channels"
-                ".python-history"
-                ".viminfo"
-                ".zsh-history"
-                ".screenrc"
-            ]
-            redRepoFiles
-        ];
-        directories = flatten [
-            [
-                ".atom"
-                ".byobu"
-                ".cache"
-                ".caddy"
-                ".config"
-                ".linuxbrew"
-                ".local"
-                ".mozilla"
-                ".peru"
-                ".pki"
-                ".vim_runtime"
-                ".virtualenvs"
-                ".vscode-oss"
-                ".vscode"
-                ".yubico"
-                ".z"
-                "Documents"
-                "Downloads"
-                "keybase"
-                "Music"
-                "nix-plugins"
-                "Pictures"
-                "Public"
-                "Templates"
-                "tests"
-                "Videos"
-                "VirtualBox VMs"
-                { directory = ".gnupg"; mode = "0700"; }
-                { directory = ".nixops"; mode = "0700"; }
-                { directory = ".ssh"; mode = "0700"; }
-            ]
-            redRepoDirectories
-        ]}) allUsers);
-};
+relays = [ "argus" "bastiodon" ];
 configs = {
     nixpkgs = {
         allowUnfree = true;
@@ -214,13 +130,14 @@ configs = {
     services = rec {
         mkBase = User: {
             enable = true;
-            serviceConfig = {
+            serviceConfig = rec {
                 Restart = "on-failure";
                 inherit User;
+                Group = User;
             };
             wantedBy = [ "multi-user.target" ];
         };
-        base = mkBase "shadowrylander";
+        base = mkBase users.primary;
         mkdir = path: "mkdir -p /persist/${path} &> /dev/null";
     };
 };

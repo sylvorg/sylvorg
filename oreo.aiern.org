@@ -112,6 +112,16 @@ if __name__ == "__main__":
 #+call: hash() :exports none
 
 #+RESULTS:
+: 20220205031620372930929
+
+#+name: 20220205031620372930929
+#+begin_src text
+dross
+#+end_src
+
+#+call: hash() :exports none
+
+#+RESULTS:
 : 20210601190015343762700
 
 #+name: 20210601190015343762700
@@ -125,21 +135,14 @@ if __name__ == "__main__":
             "sylveon": { "mountpoint": "/home/<<username>>/sylveon", "options": [ "snapdir=visible" ] },
             "sylvorg": { "mountpoint": "/home/<<username>>/sylvorg", "options": [ "snapdir=visible" ] },
             "syvlorg": { "mountpoint": "/home/<<username>>/syvlorg", "options": [ "snapdir=visible" ] },
-            "<<username>>": { "mountpoint": "/home/<<username>>/<<username>>", "options": [ "snapdir=visible" ] }},
+            "<<20220205031620372930929>>": { "mountpoint": "/home/<<username>>/<<20220205031620372930929>>", "options": [ "snapdir=visible" ] },
+            "uru": { "mountpoint": "/home/<<username>>/uru", "options": [ "snapdir=visible" ] }},
         "options": [ "mountpoint=legacy" ]},
     "system": {
         "datasets": {
             "home": { "datasets": { "root": { "mountpoint": "/root" }}},
             "nix": {  },
-            "persist": {
-                "datasets": {
-                    "cache": {
-                        "datasets": { "root": {  }},
-                        "options": [ "sync=disabled" ]
-                    },
-                    "home": { "datasets": { "root": {  }}}
-                }
-            },
+            "persist": {  },
             "root": {  },
             "tmp": { "datasets": { "nix": {  }}, "options": [ "sync=disabled" ] },
             "etc": {  },
@@ -181,13 +184,11 @@ if __name__ == "__main__":
             users        (D (.loads json (.strip #[[
                                 <<20210601185359809444000>>
                          ]]))))
-      (assoc datasets host { "datasets" { "jails" { "datasets" { "base" (dict)}}}
-                             "options" [ ml ]})
+      (assoc datasets host (D { "datasets" { "jails" { "datasets" { "base" (dict)}}}
+                                "options" [ ml ]}))
       (for [user (.values users)]
            (assoc (. datasets [s] [d] home [d]) user (dict))
-           (assoc (. datasets virt [d] podman [d]) user (dict))
-           (for [dataset (.keys (. datasets [s] [d] persist [d]))]
-                (assoc (. datasets [s] [d] persist [d] [dataset] [d]) user (dict))))
+           (assoc (. datasets virt [d] podman [d]) user (dict)))
       (with [dnix (open (+ resources "/datasets.nix") "w")]
             (.write dnix "{\n")
             (defn recurse [ddict dname droot [mountpoint ""]]
@@ -1069,16 +1070,6 @@ toCapital = string: concatImapStrings (
 sequence = list: end: foldr (a: b: deepSeq a b) end list;
 #+end_src
 
-******* Generate Persistent Directories
-
-#+begin_src nix
-genPersistentFD = filtered: persistentDirectory: let
-    _ = type: filter (n: !elem n filtered) (
-        mapAttrsToList (n: v: removePrefix persistentDirectory n)
-    (filterAttrs (n: v: v == type) (readDir persistentDirectory)));
-in { directories = _ "directories"; files = _ "regular"; };
-#+end_src
-
 ******* Import Stuff
 
 #+begin_src nix
@@ -1182,89 +1173,10 @@ allow-unsafe-native-code-during-evaluation = true
 attrs = rec {
 #+end_src
 
-******* Persistence
+******* Relay Machines
 
 #+begin_src nix
-persistent = let
-    dir = "${allHomes.${j.attrs.users.primary}}/.local/share/yadm/repo.git";
-    repo = fetchGit {
-        url = if (pathExists dir) then "file://${dir}" else "https://github.com/${j.attrs.users.primary}/${j.attrs.users.primary}"; };
-    redRepo = readDir repo;
-    redRepoFiles = attrNames (filterAttrs (n: v: v != "directory") redRepo);
-    redRepoDirectories = attrNames (filterAttrs (n: v: v == "directory") redRepo);
-in {
-    files = flatten [
-        [ "/etc/host" ]
-        redRepoFiles
-    ];
-    directories = flatten [
-        [
-            "/etc/containers"
-            "/etc/NetworkManager/system-connections"
-            "/etc/nix"
-            "/etc/nixos"
-            "/etc/ssh"
-            "/etc/wireguard"
-            "/var/lib/acme"
-            "/var/lib/bluetooth"
-            "/usr"
-            "/bin"
-            "/sbin"
-            "/snap"
-        ]
-        redRepoDirectories
-    ];
-    users = listToAttrs ((user: nameValuePair user {
-        files = flatten [
-            [
-                ".bash-history"
-                ".emacs-profile"
-                ".gitignore"
-                ".globalignore"
-                ".nix-channels"
-                ".python-history"
-                ".viminfo"
-                ".zsh-history"
-                ".screenrc"
-            ]
-            redRepoFiles
-        ];
-        directories = flatten [
-            [
-                ".atom"
-                ".byobu"
-                ".cache"
-                ".caddy"
-                ".config"
-                ".linuxbrew"
-                ".local"
-                ".mozilla"
-                ".peru"
-                ".pki"
-                ".vim_runtime"
-                ".virtualenvs"
-                ".vscode-oss"
-                ".vscode"
-                ".yubico"
-                ".z"
-                "Documents"
-                "Downloads"
-                "keybase"
-                "Music"
-                "nix-plugins"
-                "Pictures"
-                "Public"
-                "Templates"
-                "tests"
-                "Videos"
-                "VirtualBox VMs"
-                { directory = ".gnupg"; mode = "0700"; }
-                { directory = ".nixops"; mode = "0700"; }
-                { directory = ".ssh"; mode = "0700"; }
-            ]
-            redRepoDirectories
-        ]}) allUsers);
-};
+relays = [ <<relays>> ];
 #+end_src
 
 ******* Configs
@@ -1297,13 +1209,14 @@ configs = {
     services = rec {
         mkBase = User: {
             enable = true;
-            serviceConfig = {
+            serviceConfig = rec {
                 Restart = "on-failure";
                 inherit User;
+                Group = User;
             };
             wantedBy = [ "multi-user.target" ];
         };
-        base = mkBase "<<username>>";
+        base = mkBase users.primary;
         mkdir = path: "mkdir -p /persist/${path} &> /dev/null";
     };
 };
@@ -1426,6 +1339,73 @@ extension = makeExtensible newLib;
 in with lib; extension.extend (final: prev: foldr (new: old: recursiveUpdate new old) {} (attrValues prev))
 #+end_src
 
+*** callPackages
+**** caddy.nix
+
+Taken from [[https://github.com/NixOS/nixpkgs/issues/14671#issuecomment-1016376290][here]]; allows me to build caddy with plugins:
+
+#+begin_src nix :tangle (meq/tangle-path)
+{ lib, fetchFromGitHub, buildGoModule, plugins ? [], vendorSha256 ? "" }:
+
+with lib;
+
+let imports = flip concatMapStrings plugins (pkg: "\t\t\t_ \"${pkg}\"\n");
+
+	main = ''
+		package main
+
+		import (
+			caddycmd "github.com/caddyserver/caddy/v2/cmd"
+
+			_ "github.com/caddyserver/caddy/v2/modules/standard"
+${imports}
+		)
+
+		func main() {
+			caddycmd.Main()
+		}
+	'';
+
+
+in buildGoModule rec {
+	pname = "caddy";
+	version = "2.4.6";
+  runVend = true;
+	subPackages = [ "cmd/caddy" ];
+
+  src = fetchFromGitHub {
+    owner = "caddyserver";
+    repo = "caddy";
+    rev = "v${version}";
+    sha256 = "sha256-xNCxzoNpXkj8WF9+kYJfO18ux8/OhxygkGjA49+Q4vY=";
+  };
+
+	inherit vendorSha256;
+
+	overrideModAttrs = (_: {
+		preBuild    = "echo '${main}' > cmd/caddy/main.go";
+		postInstall = "cp go.sum go.mod $out/ && ls $out/";
+	});
+
+	postPatch = ''
+		echo '${main}' > cmd/caddy/main.go
+		cat cmd/caddy/main.go
+	'';
+
+	postConfigure = ''
+		cp vendor/go.sum ./
+		cp vendor/go.mod ./
+	'';
+
+	meta = {
+		homepage = https://caddyserver.com;
+		description = "Fast, cross-platform HTTP/2 web server with automatic HTTPS";
+		license = licenses.asl20;
+    maintainers = with maintainers; [ Br1ght0ne ];
+	};
+}
+#+end_src
+
 *** overlays.nix
 :PROPERTIES:
 :header-args:nix+: :noweb-ref overlays.nix
@@ -1542,6 +1522,18 @@ in flatten [
 ]
 #+end_src
 
+**** Caddy With Plugins
+
+#+begin_src nix
+[
+    (final: prev: { caddy = pkgs.callPackage ./callPackages/caddy.nix {
+        "github.com/mholt/caddy-l4@latest"
+        "github.com/abiosoft/caddy-yaml@latest"
+        "github.com/caddy-dns/cloudflare@latest"
+    }; })
+]
+#+end_src
+
 **** Mozilla
 
 #+begin_src nix
@@ -1648,7 +1640,7 @@ in with lib; {
 #+begin_src nix
 imports = [
     ./hardware-configuration.nix
-    # "${fetchGit { url = "https://github.com/nix-community/impermanence"; }}/nixos.nix"
+    "${fetchGit { url = "https://github.com/nix-community/impermanence"; }}/nixos.nix"
     "${fetchGit { url = "https://github.com/${j.attrs.users.primary}/nixpkgs"; ref = "guix"; }}/nixos/modules/services/development/guix.nix"
 ];
 #+end_src
@@ -1858,8 +1850,117 @@ systemPackages = with pkgs; [
 
 ****** ZFS
 
-#+begin_src nix :noweb-ref no
-persistence."/persistent" = { inherit (j.attrs.persistent) files directories users; };
+#+begin_src nix
+persistence = let
+    rootDirSet = {
+        user = "root";
+        group = "root";
+    };
+    rootFileSet.parentDirectory = rootDirSet;
+in {
+    # "/root" = {
+    #     directories = map (directory: if ((typeOf directory) == "string") then ({ inherit directory; } // rootSet) else (rootDirSet // directory)) (flatten [
+    #         [
+    #             "/etc/nix"
+    #             "/etc/nixos"
+    #             "/etc/zsh"
+    #         ]
+    #     ]);
+    # };
+    "/persist" = let
+        dir = "${j.attrs.homes.${j.attrs.users.primary}}/.local/share/yadm/repo.git";
+        repo = fetchGit {
+            url = if (pathExists dir) then "file://${dir}" else "https://github.com/${j.attrs.users.primary}/${j.attrs.users.primary}"; };
+        redRepo = readDir repo;
+        redRepoFiles = flatten [
+            (attrNames (filterAttrs (n: v: v != "directory") redRepo))
+            [ "configuration.nix" "hardware-configuration.nix" ]
+        ];
+        redRepoDirectories = flatten [
+            (attrNames (filterAttrs (n: v: v == "directory") redRepo))
+        ];
+    in {
+        hideMounts = true;
+        files = map (file: if ((typeOf file) == "string") then ({ inherit file; } // rootFileSet) else (rootFileSet // file)) (flatten [
+            [
+                "/etc/host"
+                "/etc/machine-id"
+            ]
+        ]);
+        directories = map (directory: if ((typeOf directory) == "string") then ({ inherit directory; } // rootSet) else (rootDirSet // directory)) (flatten [
+            [
+                "/bin"
+                "/etc/containers"
+                "/etc/NetworkManager/system-connections"
+                "/etc/ssh"
+                "/etc/wireguard"
+                "/sbin"
+                "/snap"
+                "/usr"
+                "/var/lib/acme"
+                "/var/lib/bluetooth"
+                "/var/lib/systemd/coredump"
+                "/var/log"
+            ]
+        ]);
+        users = listToAttrs (map (user: let
+            userDirSet = {
+                inherit user;
+                group = user;
+            };
+            userFileSet.parentDirectory = userDirSet;
+        nameValuePair user {
+            files = map (file: if ((typeOf file) == "string") then ({ inherit file; } // userFileSet) else (userFileSet // file)) (flatten [
+                [
+                    ".bash-history"
+                    ".emacs-profile"
+                    ".gitignore"
+                    ".globalignore"
+                    ".nix-channels"
+                    ".python-history"
+                    ".viminfo"
+                    ".zsh-history"
+                    ".screenrc"
+                ]
+                redRepoFiles
+            ]);
+            directories = map (directory: if ((typeOf directory) == "string") then ({ inherit directory; } // userSet) else (userDirSet // directory)) (flatten [
+                [
+                    ".atom"
+                    ".byobu"
+                    ".cache"
+                    ".caddy"
+                    ".config"
+                    ".linuxbrew"
+                    ".local"
+                    ".mozilla"
+                    ".peru"
+                    ".pki"
+                    ".vim_runtime"
+                    ".virtualenvs"
+                    ".vscode-oss"
+                    ".vscode"
+                    ".yubico"
+                    ".z"
+                    "Documents"
+                    "Downloads"
+                    "keybase"
+                    "Music"
+                    "nix-plugins"
+                    "Pictures"
+                    "Public"
+                    "Templates"
+                    "tests"
+                    "Videos"
+                    "VirtualBox VMs"
+                    { directory = ".gnupg"; mode = "0700"; }
+                    { directory = ".nixops"; mode = "0700"; }
+                    { directory = ".ssh"; mode = "0700"; }
+                ]
+                redRepoDirectories
+            ])}) allUsers);
+    };
+};
 #+end_src
 
 ****** End of Environment
@@ -1969,11 +2070,6 @@ in {
     # noProxy = "127.0.0.1,localhost,internal.domain";
     # };
 
-    # Open ports in the firewall.
-    # firewall = {
-    # allowedTCPPorts = [ ... ];
-    # allowedUDPPorts = [ ... ];
-
     # Or disable the firewall altogether.
     # enable = false;
     # };
@@ -1984,6 +2080,16 @@ in {
     };
 
     # hostId = substring 0 8 (readFile "/etc/machine-id");
+
+    firewall = mkIf (elem config.networking.hostName j.attrs.relays) {
+        allowedTCPPorts = [ 22 80 222 443 2022 8080 9418 ];
+        allowedUDPPortRanges = [
+            {
+                from = 60000;
+                to = 61000;
+            }
+        ];
+    };
 };
 #+end_src
 
@@ -2246,10 +2352,36 @@ in {
 
 #+begin_src nix
 systemd = {
-    packages = with pkgs; [ runit ly ];
+    # packages = with pkgs; [ runit ];
     services = {
-        runit.enable = true;
-        ly.enable = true;
+        # runit.enable = true;
+        caddy = mkIf (elem config.networking.hostName j.attrs.relays) (j.attrs.configs.services.base // {
+            serviceConfig = {
+                ExecStart = ''
+                    ${pkgs.caddy}/bin/caddy run --config ${j.attrs.homes.${j.attrs.users.primary}}/.config/caddy/files/${config.networking.hostName} --adapter yaml 2>&1
+                '';
+                ExecStop = ''
+                    pkill caddy
+                '';
+            };
+        });
+        emacs = j.attrs.configs.services.base // rec {
+            description = "Emacs text editor";
+            documentation = "info:emacs man:emacs(1) https://gnu.org/software/emacs/";
+            serviceConfig = {
+                ExecStart = ''
+                    ${pkgs.emacs}/bin/emacs --bg-daemon=damascus --update
+                '';
+                ExecStop = ''
+                    ${pkgs.emacs}/bin/emacsclient -s damascus -e "(kill-emacs)"
+                '';
+                Type = "forking";
+                TimeoutSec = 900;
+            };
+            environment = {
+                SSH_AUTH_SOCK = "%t/keyring/ssh";
+            };
+        };
     };
 };
 #+end_src
@@ -2279,7 +2411,7 @@ in rec {
         {
             "${primary}" = {
                 uid = 4362;
-                home = j.attrs.allHomes.${primary};
+                home = j.attrs.homes.${primary};
                 description = "Jeet Ray";
                 group = primary;
                 extraGroups = [ secondary ];
@@ -2287,7 +2419,7 @@ in rec {
             };
             "${secondary}" = {
                 uid = 1111;
-                home = j.attrs.allHomes.${secondary};
+                home = j.attrs.homes.${secondary};
                 description = "Alicia Summers";
                 group = secondary;
                 extraGroups = [ primary ];
@@ -2295,7 +2427,7 @@ in rec {
             };
             "${nightingale}" = {
                 uid = 8888;
-                home = j.attrs.allHomes.${nightingale};
+                home = j.attrs.homes.${nightingale};
                 description = "Curtis Nightingale";
                 group = "root";
                 extraGroups = [ primary secondary ];
@@ -2394,17 +2526,20 @@ max-free = 1073741824
 #+end_src
 
 ** sv
+
+I just keeping these here for reference.
+
 *** caddy
 **** log
 ***** run
 
-#+begin_src zsh :tangle (meq/tangle-on-relay) :shebang "#!/usr/bin/env zsh"
+#+begin_src zsh :shebang "#!/usr/bin/env zsh"
 exec svlogd -tt /etc/sv/caddy/log
 #+end_src
 
 **** run
 
-#+begin_src zsh :tangle (meq/tangle-on-relay) :shebang "#!/usr/bin/env zsh"
+#+begin_src zsh :shebang "#!/usr/bin/env zsh"
 for port in 22 80 222 443 2022 8080 9418 60000:61000/udp; do
     ufw allow $port &> /dev/null
 done
@@ -2414,89 +2549,8 @@ exec /usr/bin/caddy run --config /.config/caddy/files/<<hostname>> --adapter yam
 
 **** finish
 
-#+begin_src zsh :tangle (meq/tangle-on-relay) :shebang "#!/usr/bin/env zsh"
+#+begin_src zsh :shebang "#!/usr/bin/env zsh"
 killall caddy
-#+end_src
-
-*** stow-runit
-**** log
-***** run
-
-#+begin_src zsh :tangle (meq/tangle-path) :shebang "#!/usr/bin/env zsh"
-exec svlogd -tt /etc/sv/stow-runit/log
-#+end_src
-
-**** run
-
-#+begin_src zsh :tangle (meq/tangle-path) :shebang "#!/usr/bin/env zsh"
-stow-sv() { stow --adopt --restow -d /etc -t $1 sv }
-stow-runit() {
-    for dir in /services /etc/service /var/service; do
-        mkdir -p $dir
-        stow-sv $dir
-    done
-    if [[ -n "$SVDIR" ]]; then
-        mkdir -p $SVDIR
-        stow-sv $SVDIR
-    fi
-}
-if [[ "$1" == "--bootstrap" ]]; then
-    stow-runit
-else
-    exec snooze -M/15 stow-runit
-fi
-#+end_src
-
-**** finish
-
-#+call: hash() :exports none
-
-#+RESULTS:
-: 20211201115756956646307
-
-#+name: 20211201115756956646307
-#+begin_src zsh :tangle (meq/tangle-path) :shebang "#!/usr/bin/env zsh"
-killall snooze
-#+end_src
-
-*** git-sunc
-**** log
-***** run
-
-#+begin_src zsh :tangle (meq/tangle-path) :shebang "#!/usr/bin/env zsh"
-exec svlogd -tt /etc/sv/git-sunc/log
-#+end_src
-
-**** run
-
-#+begin_src zsh :tangle (meq/tangle-path) :shebang "#!/usr/bin/env zsh"
-exec snooze -M/15 git-sunc
-#+end_src
-
-**** finish
-
-#+begin_src zsh :tangle (meq/tangle-path) :shebang "#!/usr/bin/env zsh"
-<<20211201115756956646307>>
-#+end_src
-
-*** git-senc
-**** log
-***** run
-
-#+begin_src zsh :tangle (meq/tangle-path) :shebang "#!/usr/bin/env zsh"
-exec svlogd -tt /etc/sv/git-senc/log
-#+end_src
-
-**** run
-
-#+begin_src zsh :tangle (meq/tangle-path) :shebang "#!/usr/bin/env zsh"
-exec snooze -M/15 git-senc
-#+end_src
-
-**** finish
-
-#+begin_src zsh :tangle (meq/tangle-path) :shebang "#!/usr/bin/env zsh"
-<<20211201115756956646307>>
 #+end_src
 
 * resources
@@ -3419,7 +3473,7 @@ inAndroid {
 }
 
 GIT_SSL_NO_VERIFY=1 $ylv submodule update --init --depth 1 --recursive --remote --force
-git clone --recurse-submodule git@github.com:<<username>>/<<username>>.git $root/one
+git clone --recurse-submodule git@github.com:<<username>>/<<username>>.git $root/<<20220205031620372930929>>
 $ylv remote set-url --push origin git@github.com:<<username>>/<<username>>.git
 $ylv config include.path "$root/.gitconfig"
 
