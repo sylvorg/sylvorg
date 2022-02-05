@@ -144,12 +144,7 @@ dross
             "nix": {  },
             "persist": {  },
             "root": {  },
-            "tmp": { "datasets": { "nix": {  }}, "options": [ "sync=disabled" ] },
-            "etc": {  },
-            "var": {  },
-            "usr": {  },
-            "srv": {  },
-            "opt": {  }
+            "tmp": { "datasets": { "nix": {  }}, "options": [ "sync=disabled" ] }
         },
         "options": [ "mountpoint=legacy" ]
     },
@@ -1787,6 +1782,7 @@ initrd = {
     postDeviceCommands = mkAfter ''
         zfs rollback -r ${config.networking.hostName}/system/root@blank
         zfs rollback -r ${config.networking.hostName}/system/home@blank
+        zfs rollback -r ${config.networking.hostName}/system/tmp@blank
     '';
     kernelModules = [ "zfs" ];
     availableKernelModules = [ "zfs" ];

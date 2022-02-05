@@ -75,6 +75,7 @@ initrd = {
     postDeviceCommands = mkAfter ''
         zfs rollback -r ${config.networking.hostName}/system/root@blank
         zfs rollback -r ${config.networking.hostName}/system/home@blank
+        zfs rollback -r ${config.networking.hostName}/system/tmp@blank
     '';
     kernelModules = [ "zfs" ];
     availableKernelModules = [ "zfs" ];

@@ -51,12 +51,7 @@
                                             "nix": {  },
                                             "persist": {  },
                                             "root": {  },
-                                            "tmp": { "datasets": { "nix": {  }}, "options": [ "sync=disabled" ] },
-                                            "etc": {  },
-                                            "var": {  },
-                                            "usr": {  },
-                                            "srv": {  },
-                                            "opt": {  }
+                                            "tmp": { "datasets": { "nix": {  }}, "options": [ "sync=disabled" ] }
                                         },
                                         "options": [ "mountpoint=legacy" ]
                                     },
