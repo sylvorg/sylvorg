@@ -301,32 +301,30 @@ if __name__ == "__main__":
    (.option click "-g" "--generate" :is-flag True)
    (.option click "-i" "--install" :is-flag True)
    (.option click "-r" "--replace" :is-flag True)
-   (.option click "-R" "--rebuild")
+   (.option click "-R" "--rebuild" :default "switch")
    click.pass-context
    (defn main [ ctx all copy generate install program-arguments rebuild replace ]
          (.bake-all- getconf :m/sudo True)
          (setv copy-partial (partial rsync :m/run True :a True :v { "repeat" 2 } :c True :z { "repeat" 2 } f"{resources}/"))
          (if rebuild
-             (do (if all
-                     (raise (NameError "Sorry! `all' and `rebuild' cannot be used together!")))
-                 (if copy
+             (do (if copy
                      (copy-partial "/etc/nixos/"))
-                 (nixos-rebuild rebuild #* ctx.args :show-trace True)))
-         (if (or copy all)
-             (copy-partial "/mnt/etc/nixos/"))
-         (if (or generate all)
-             (nixos-generate-config :m/run True :root "/mnt" :m/dazzle True))
-         (if (or replace all)
-             (if ctx.obj.host
-                 (sd :m/run True
-                     "./hardware-configuration.nix"
-                     (+ "./configs/" ctx.obj.host)
-                     "/mnt/etc/nixos/configuration.nix")
-                 (raise (NameError no-host-error-message))))
-         (if (or install all)
-             (nixos-install #* ctx.args
-                            :m/run True
-                            :show-trace True
+                 (nixos-rebuild rebuild #* ctx.args :show-trace True))
+             (do (if (or copy all)
+                     (copy-partial "/mnt/etc/nixos/"))
+                 (if (or generate all)
+                     (nixos-generate-config :m/run True :root "/mnt" :m/dazzle True))
+                 (if (or replace all)
+                     (if ctx.obj.host
+                         (sd :m/run True
+                             "./hardware-configuration.nix"
+                             (+ "./configs/" ctx.obj.host)
+                             "/mnt/etc/nixos/configuration.nix")
+                         (raise (NameError no-host-error-message))))
+                 (if (or install all)
+                     (nixos-install #* ctx.args
+                                    :m/run True
+                                    :show-trace True
 #+end_src
 
 From [[https://github.com/NixOS/nix/issues/2293#issuecomment-405339738][here]], and documented [[https://nixos.org/manual/nix/stable/expressions/builtins.html#:~:text=The%20fetched%20tarball%20is%20cached%20for%20a%20certain%20amount%20of%20time%20(1%20hour%20by%20default)%20in%20~/.cache/nix/tarballs/.%20You%20can%20change%20the%20cache%20timeout%20either%20on%20the%20command%20line%20with%20%2D%2Dtarball%2Dttl%20number%2Dof%2Dseconds%20or%20in%20the%20Nix%20configuration%20file%20by%20adding%20the%20line%20tarball%2Dttl%20%3D%20number%2Dof%2Dseconds.][here]]:
@@ -338,11 +336,11 @@ or in the Nix configuration file by adding the line tarball-ttl = number-of-seco
 #+end_quote
 
 #+begin_src hy :noweb-ref no
-                            :option "tarball-ttl 0"
+                                    :option "tarball-ttl 0"
 #+end_src
 
 #+begin_src hy
-))))
+))))))
 #+end_src
 
 *** Create
