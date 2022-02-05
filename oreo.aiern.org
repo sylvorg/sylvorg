@@ -297,7 +297,15 @@ dross
    (.option click "-g" "--generate" :is-flag True)
    (.option click "-i" "--install" :is-flag True)
    (.option click "-r" "--replace" :is-flag True)
-   (.option click "-R" "--rebuild" :default "switch")
+#+end_src
+
+This can't use a default value, as that would trigger a rebuild all the time.
+
+#+begin_src hy
+   (.option click "-R" "--rebuild")
+#+end_src
+
+#+begin_src hy
    click.pass-context
    (defn main [ ctx all copy generate install program-arguments rebuild replace ]
          (.bake-all- getconf :m/sudo True)
@@ -1674,8 +1682,6 @@ extraModprobeConfig = '' options kvm_intel_nested=1 '';
 #+end_src
 
 ****** Loader
-
-# TODO
 
 #+begin_src nix
 loader = {

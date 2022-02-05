@@ -184,30 +184,30 @@
    (.option click "-g" "--generate" :is-flag True)
    (.option click "-i" "--install" :is-flag True)
    (.option click "-r" "--replace" :is-flag True)
-   (.option click "-R" "--rebuild" :default "switch")
-   click.pass-context
-   (defn main [ ctx all copy generate install program-arguments rebuild replace ]
-         (.bake-all- getconf :m/sudo True)
-         (setv copy-partial (partial rsync :m/run True :a True :v { "repeat" 2 } :c True :z { "repeat" 2 } f"{resources}/"))
-         (if rebuild
-             (do (if copy
-                     (copy-partial "/etc/nixos/"))
-                 (nixos-rebuild rebuild #* ctx.args :show-trace True))
-             (do (if (or copy all)
-                     (copy-partial "/mnt/etc/nixos/"))
-                 (if (or generate all)
-                     (nixos-generate-config :m/run True :root "/mnt" :m/dazzle True))
-                 (if (or replace all)
-                     (if ctx.obj.host
-                         (sd :m/run True
-                             "./hardware-configuration.nix"
-                             (+ "./configs/" ctx.obj.host)
-                             "/mnt/etc/nixos/configuration.nix")
-                         (raise (NameError no-host-error-message))))
-                 (if (or install all)
-                     (nixos-install #* ctx.args
-                                    :m/run True
-                                    :show-trace True
+(.option click "-R" "--rebuild")
+click.pass-context
+(defn main [ ctx all copy generate install program-arguments rebuild replace ]
+      (.bake-all- getconf :m/sudo True)
+      (setv copy-partial (partial rsync :m/run True :a True :v { "repeat" 2 } :c True :z { "repeat" 2 } f"{resources}/"))
+      (if rebuild
+          (do (if copy
+                  (copy-partial "/etc/nixos/"))
+              (nixos-rebuild rebuild #* ctx.args :show-trace True))
+          (do (if (or copy all)
+                  (copy-partial "/mnt/etc/nixos/"))
+              (if (or generate all)
+                  (nixos-generate-config :m/run True :root "/mnt" :m/dazzle True))
+              (if (or replace all)
+                  (if ctx.obj.host
+                      (sd :m/run True
+                          "./hardware-configuration.nix"
+                          (+ "./configs/" ctx.obj.host)
+                          "/mnt/etc/nixos/configuration.nix")
+                      (raise (NameError no-host-error-message))))
+              (if (or install all)
+                  (nixos-install #* ctx.args
+                                 :m/run True
+                                 :show-trace True
 ))))))
 #@((.command nichtstrap :no-args-is-help True)
    (.option click "-d" "--deduplicated" :is-flag True)
