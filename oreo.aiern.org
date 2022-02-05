@@ -90,9 +90,9 @@ if __name__ == "__main__":
 [[https://github.com/pytoolz/toolz][Toolz]] and [[https://github.com/pytoolz/cytoolz/][CyToolz]]:
 
 #+begin_src hy
-(try (import cytoolz [first])
+(try (import cytoolz [last])
      (except [ImportError]
-             (import toolz [first])))
+             (import toolz [last])))
 #+end_src
 
 ** Requires

@@ -20,9 +20,9 @@
 (import sys [argv])
 (try (import coconut *)
      (except [ImportError] None))
-(try (import cytoolz [first])
+(try (import cytoolz [last])
      (except [ImportError]
-             (import toolz [first])))
+             (import toolz [last])))
 (require hyrule [-> assoc])
 (setv resources (+ (.dirname os.path (.realpath os.path __file__)) "/etc/nixos/"))
 (defn update-datasets [host swap encrypted deduplicated [pool False]]
