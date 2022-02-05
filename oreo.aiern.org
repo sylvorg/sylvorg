@@ -361,6 +361,9 @@ or in the Nix configuration file by adding the line tarball-ttl = number-of-seco
                             command (partial zpool.create
                                              :f True
                                              :o { "repeat-with-values" (, "autotrim=on" "altroot=/mnt" "autoexpand=on") })]
+                           (for [dataset (.list zfs :r True :H True :m/list True :m/split True)]
+                                (if (in ctx.obj.host dataset)
+                                    (.export zpool :f True ctx.obj.host :m/ignore-stderr True)))
                            (if encrypted
                                (setv options.encryption "aes-256-gcm"
                                      options.keyformat  "passphrase"))
