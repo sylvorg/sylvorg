@@ -236,6 +236,8 @@
                                      options.keyformat  "passphrase"))
                            (if deduplicated
                                (setv options.dedup "edonr,verify"))
+                           (if (.ismount os.path "/mnt")
+                               (umount :R True "/mnt"))
                            (.export zpool :f True ctx.obj.host :m/ignore-stderr True)
                            (command :O { "repeat-with-values" (gfor [k v] (.items options) f"{k}={v}") } ctx.obj.host zfs-device)
                            (update-datasets ctx.obj.host swap encrypted deduplicated :pool True))
