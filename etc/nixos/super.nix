@@ -212,7 +212,7 @@ in {
                     { directory = ".ssh"; mode = "0700"; }
                 ]
                 redRepoDirectories
-            ]);}) allUsers);
+            ]);}) j.attrs.allUsers);
     };
 };
 };
