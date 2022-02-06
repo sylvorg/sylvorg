@@ -123,9 +123,8 @@ in {
     # };
     "/persist" = let
         dir = "${j.attrs.homes.${j.attrs.users.primary}}/.local/share/yadm/repo.git";
-        repo = fetchGit {
-            url = if (pathExists dir) then "file://${dir}" else "https://github.com/${j.attrs.users.primary}/${j.attrs.users.primary}"; };
-        redRepo = readDir repo;
+        repo = fetchGit { url = if (pathExists dir) then "file://${dir}" else "https://github.com/${j.attrs.users.primary}/${j.attrs.users.primary}"; };
+        redRepo = let _ = readDir repo; in trace _ _;
         redRepoFiles = flatten [
             (attrNames (filterAttrs (n: v: v != "directory") redRepo))
             [ "configuration.nix" "hardware-configuration.nix" ]
