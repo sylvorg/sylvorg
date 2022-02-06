@@ -49,7 +49,7 @@
                                         "datasets": {
                                             "home": { "datasets": { "root": { "mountpoint": "/root" }}},
                                             "nix": {  },
-                                            "persist": {  },
+                                            "persist": { "datasets": { "root": { "mountpoint": "/persist/root" }}},
                                             "root": {  },
                                             "tmp": { "datasets": { "nix": {  }}, "options": [ "sync=disabled" ] }
                                         },

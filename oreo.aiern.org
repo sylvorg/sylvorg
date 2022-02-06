@@ -140,7 +140,7 @@ dross
         "datasets": {
             "home": { "datasets": { "root": { "mountpoint": "/root" }}},
             "nix": {  },
-            "persist": {  },
+            "persist": { "datasets": { "root": { "mountpoint": "/persist/root" }}},
             "root": {  },
             "tmp": { "datasets": { "nix": {  }}, "options": [ "sync=disabled" ] }
         },
@@ -1880,7 +1880,7 @@ persistence = let
     };
     rootFileSet.parentDirectory = rootDirSet;
 in {
-    "/persist/root" = mkAfter {
+    "/persist/root" = {
         directories = unique (map (directory: if ((typeOf directory) == "string") then ({ inherit directory; } // rootDirSet) else (rootDirSet // directory)) (flatten [
             [
                 "/etc/nix"

@@ -118,7 +118,7 @@ persistence = let
     };
     rootFileSet.parentDirectory = rootDirSet;
 in {
-    "/persist/root" = mkAfter {
+    "/persist/root" = {
         directories = unique (map (directory: if ((typeOf directory) == "string") then ({ inherit directory; } // rootDirSet) else (rootDirSet // directory)) (flatten [
             [
                 "/etc/nix"
