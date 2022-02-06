@@ -9,27 +9,25 @@ which was written by [[https://emacs.stackexchange.com/users/2710/andrew-swann][
 #+begin_src nix :tangle (meq/tangle-path)
 let
     name = "nichtstrap";
-in with import <nixpkgs> {};
-stdenv.mkDerivation rec {
-  inherit name;
-  buildInputs = with pkgs; [ python310 sd gcc rsync ];
-  nativeBuildInputs = buildInputs;
-  shellHook = ''
-    python3 -m venv ~/.local/${name}
-    source ~/.local/${name}/bin/activate
-    pip install https://github.com/<<username>>/bakery/archive/main.tar.gz \
-                coconut \
-                cytoolz \
-                xonsh || :
-    chmod +x ${builtins.toString ./.}/nichtstrap 2> /dev/null || chmod +x ${builtins.toString ./.}/nichtstrap.py
-    exec xonsh
-  '';
-}
+    pkgs = import <nixpkgs> {};
+in (pkgs.buildFHSUserEnv {
+    inherit name;
+    targetPkgs = pkgs: with pkgs; [ python310 sd gcc rsync ];
+    runScript = ''
+        pip install --upgrade pip
+        pip install https://github.com/<<username>>/bakery/archive/main.tar.gz \
+                    coconut \
+                    cytoolz \
+                    xonsh || :
+        chmod +x ${builtins.toString ./.}/nichtstrap 2> /dev/null || chmod +x ${builtins.toString ./.}/nichtstrap.py
+        exec xonsh
+    '';
+}).env
 #+end_src
 
 * nichtstrap.py
 
-#+begin_src py :tangle (meq/tangle-path)
+#+begin_src py :tangle (meq/tangle-path) :shebang "#!/usr/bin/env python3"
 import hy, os
 from addict import Dict
 from nanite import module_installed
@@ -166,7 +164,7 @@ dross
 ** Update Datasets
 
 #+begin_src hy
-(defn update-datasets [host swap encrypted deduplicated [pool False]]
+(defn update-datasets [host [swap 0] [encrypted False] [deduplicated False] [pool False]]
       (setv snap-dir     [ "snapdir=visible" ]
             extra-copies (+ snap-dir [ "copies=3" ])
             cache        [ "sync=disabled" ]
@@ -315,6 +313,7 @@ This can't use a default value, as that would trigger a rebuild all the time.
                      (copy-partial "/etc/nixos/"))
                  (nixos-rebuild rebuild #* ctx.args :show-trace True))
              (do (if (or copy all)
+                     (update-datasets ctx.obj.host)
                      (copy-partial "/mnt/etc/nixos/"))
                  (if (or generate all)
                      (nixos-generate-config :m/run True :root "/mnt" :m/dazzle True))
@@ -1029,6 +1028,12 @@ newLib = self: rec {
 
 #+begin_src nix
 functions = rec {
+#+end_src
+
+******* Convert Path To Mount
+
+#+begin_src nix
+mntConvert = dir: let mntDir = "/mnt/" + dir; in if (pathExists mntDir) then mntDir else dir;
 #+end_src
 
 ******* Zip To Set
@@ -1878,11 +1883,14 @@ in {
     # };
     "/persist" = let
         dir = "${j.attrs.homes.${j.attrs.users.primary}}/.local/share/yadm/repo.git";
-        repo = let _ = fetchGit { url = if (pathExists dir) then "file://${dir}" else "https://github.com/${j.attrs.users.primary}/${j.attrs.users.primary}"; }; in trace _ _;
+        dirExists = pathExists dir;
+        repo = j.functions.mntConvert (fetchGit {
+            url = if dirExists then "file://${dir}" else "https://github.com/${j.attrs.users.primary}/${j.attrs.users.primary}";
+        });
         redRepo = readDir repo;
         redRepoFiles = flatten [
             (attrNames (filterAttrs (n: v: v != "directory") redRepo))
-            [ "configuration.nix" "hardware-configuration.nix" ]
+            [ "configuration.nix" "hardware-configuration.nix" "datasets.nix" ]
         ];
         redRepoDirectories = flatten [
             (attrNames (filterAttrs (n: v: v == "directory") redRepo))
@@ -4945,6 +4953,7 @@ temp
 #+end_src
 
 #+begin_src gitignore
+<<20210601185925524999600>>
 #+end_src
 
 * .hgignore

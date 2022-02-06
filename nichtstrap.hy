@@ -25,7 +25,7 @@
              (import toolz [last])))
 (require hyrule [-> assoc])
 (setv resources (+ (.dirname os.path (.realpath os.path __file__)) "/etc/nixos/"))
-(defn update-datasets [host swap encrypted deduplicated [pool False]]
+(defn update-datasets [host [swap 0] [encrypted False] [deduplicated False] [pool False]]
       (setv snap-dir     [ "snapdir=visible" ]
             extra-copies (+ snap-dir [ "copies=3" ])
             cache        [ "sync=disabled" ]
@@ -194,6 +194,7 @@ click.pass-context
                   (copy-partial "/etc/nixos/"))
               (nixos-rebuild rebuild #* ctx.args :show-trace True))
           (do (if (or copy all)
+                  (update-datasets ctx.obj.host)
                   (copy-partial "/mnt/etc/nixos/"))
               (if (or generate all)
                   (nixos-generate-config :m/run True :root "/mnt" :m/dazzle True))

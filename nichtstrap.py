@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 import hy, os
 from addict import Dict
 from nanite import module_installed
