@@ -337,7 +337,7 @@ powerManagement = {
 };
 programs = {
     xonsh.enable = true;
-    fish.enable = true;
+    # fish.enable = true;
     zsh.enable = true;
 };
 # For Yubikey SSH-GPG Authentication
@@ -530,7 +530,7 @@ in rec {
                 description = "Alicia Summers";
                 group = secondary;
                 extraGroups = [ primary ];
-                shell = if (!elem currentSystem [ "aarch64-linux" ]) then pkgs.fish else pkgs.zsh;
+                # shell = if (!elem currentSystem [ "aarch64-linux" ]) then pkgs.fish else pkgs.zsh;
             };
             "${nightingale}" = {
                 uid = 8888;
