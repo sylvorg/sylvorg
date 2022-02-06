@@ -111,7 +111,7 @@ persistence = let
         group = "root";
     };
     rootFileSet.parentDirectory = rootDirSet;
-in {
+in mkBefore {
     # "/root" = {
     #     directories = unique (map (directory: if ((typeOf directory) == "string") then ({ inherit directory; } // rootDirSet) else (rootDirSet // directory)) (flatten [
     #         [
@@ -179,7 +179,10 @@ in {
                     ".zsh-history"
                     ".screenrc"
                 ]
+
+                # TODO
                 # redRepoFiles
+
             ]));
             directories = unique (map (directory: if ((typeOf directory) == "string") then ({ inherit directory; } // userDirSet) else (userDirSet // directory)) (flatten [
                 [
