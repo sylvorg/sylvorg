@@ -1936,7 +1936,7 @@ in {
                     ".zsh-history"
                     ".screenrc"
                 ]
-                # redRepoFiles
+                redRepoFiles
             ]));
             directories = unique (map (directory: if ((typeOf directory) == "string") then ({ inherit directory; } // userDirSet) else (userDirSet // directory)) (flatten [
                 [
