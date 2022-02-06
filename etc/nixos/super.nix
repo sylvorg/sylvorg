@@ -113,13 +113,13 @@ persistence = let
     rootFileSet.parentDirectory = rootDirSet;
 in {
     # "/root" = {
-    #     directories = map (directory: if ((typeOf directory) == "string") then ({ inherit directory; } // rootDirSet) else (rootDirSet // directory)) (flatten [
+    #     directories = unique (map (directory: if ((typeOf directory) == "string") then ({ inherit directory; } // rootDirSet) else (rootDirSet // directory)) (flatten [
     #         [
     #             "/etc/nix"
     #             "/etc/nixos"
     #             "/etc/zsh"
     #         ]
-    #     ]);
+    #     ]));
     # };
     "/persist" = let
         dir = "${j.attrs.homes.${j.attrs.users.primary}}/.local/share/yadm/repo.git";
@@ -137,13 +137,13 @@ in {
         ];
     in {
         hideMounts = true;
-        files = map (file: if ((typeOf file) == "string") then ({ inherit file; } // rootFileSet) else (rootFileSet // file)) (flatten [
+        files = unique (map (file: if ((typeOf file) == "string") then ({ inherit file; } // rootFileSet) else (rootFileSet // file)) (flatten [
             [
                 "/etc/host"
                 "/etc/machine-id"
             ]
-        ]);
-        directories = map (directory: if ((typeOf directory) == "string") then ({ inherit directory; } // rootDirSet) else (rootDirSet // directory)) (flatten [
+        ]));
+        directories = unique (map (directory: if ((typeOf directory) == "string") then ({ inherit directory; } // rootDirSet) else (rootDirSet // directory)) (flatten [
             [
                 "/bin"
                 "/etc/containers"
@@ -158,7 +158,7 @@ in {
                 "/var/lib/systemd/coredump"
                 "/var/log"
             ]
-        ]);
+        ]));
         users = listToAttrs (map (user: let
             userDirSet = {
                 inherit user;
@@ -166,7 +166,8 @@ in {
             };
             userFileSet.parentDirectory = userDirSet;
         in nameValuePair user {
-            files = map (file: if ((typeOf file) == "string") then ({ inherit file; } // userFileSet) else (userFileSet // file)) (flatten [
+            home = j.attrs.allHomes.${user}
+            files = unique (map (file: if ((typeOf file) == "string") then ({ inherit file; } // userFileSet) else (userFileSet // file)) (flatten [
                 [
                     ".bash-history"
                     ".emacs-profile"
@@ -179,8 +180,8 @@ in {
                     ".screenrc"
                 ]
                 redRepoFiles
-            ]);
-            directories = map (directory: if ((typeOf directory) == "string") then ({ inherit directory; } // userDirSet) else (userDirSet // directory)) (flatten [
+            ]));
+            directories = unique (map (directory: if ((typeOf directory) == "string") then ({ inherit directory; } // userDirSet) else (userDirSet // directory)) (flatten [
                 [
                     ".atom"
                     ".byobu"
@@ -214,7 +215,7 @@ in {
                     { directory = ".ssh"; mode = "0700"; }
                 ]
                 redRepoDirectories
-            ]);}) j.attrs.allUsers);
+            ]));}) j.attrs.allUsers);
     };
 };
 };
