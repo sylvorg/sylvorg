@@ -1893,7 +1893,7 @@ in {
             (attrNames (filterAttrs (n: v: v == "directory") redRepo))
         ];
     in {
-        # hideMounts = true;
+        hideMounts = true;
         files = unique (map (file: if ((typeOf file) == "string") then ({ inherit file; } // rootFileSet) else (rootFileSet // file)) (flatten [
             [
                 "/etc/host"
@@ -1936,7 +1936,7 @@ in {
                     ".zsh-history"
                     ".screenrc"
                 ]
-                redRepoFiles
+                # redRepoFiles
             ]));
             directories = unique (map (directory: if ((typeOf directory) == "string") then ({ inherit directory; } // userDirSet) else (userDirSet // directory)) (flatten [
                 [
