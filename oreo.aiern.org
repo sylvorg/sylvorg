@@ -1926,7 +1926,7 @@ in {
             };
             userFileSet.parentDirectory = userDirSet;
         in nameValuePair user {
-            home = j.attrs.allHomes.${user}
+            home = j.attrs.allHomes.${user};
             files = unique (map (file: if ((typeOf file) == "string") then ({ inherit file; } // userFileSet) else (userFileSet // file)) (flatten [
                 [
                     ".bash-history"
