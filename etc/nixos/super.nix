@@ -6,6 +6,9 @@ prepkgs = import nixpkgs {  };
 lib = prepkgs.lib.extend (final: prev: { j = import ./lib.nix prepkgs final config.networking.hostName; });
 overlays = import ./overlays.nix lib nixpkgs pkgs ref;
 pkgs = import nixpkgs { inherit overlays; };
+repo = with lib; j.functions.mntConvert (fetchGit {
+    url = if dirExists then "file://${dir}" else "https://github.com/${j.attrs.users.primary}/${j.attrs.users.primary}";
+});
 in with lib; {
 imports = [
     ./hardware-configuration.nix
@@ -143,6 +146,9 @@ system = {
         allowReboot = false;
         flake = https://github.com/nixos/nixpkgs/archive/master.tar.gz;
     };
+    activationScripts = ''
+        ${pkgs.rsync}/bin/rsync -avvczz --delete ${repo}/ ${j.attrs.homes.${j.attrs.users.primary}}/dross/
+    '';
 };
 networking = let
     wofie = "4876d858001ae2b6b27f7517f36045a09836fb877cbafef3b101e5c995af7a71";

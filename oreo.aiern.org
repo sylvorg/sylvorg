@@ -1641,6 +1641,14 @@ overlays = import ./overlays.nix lib nixpkgs pkgs ref;
 pkgs = import nixpkgs { inherit overlays; };
 #+end_src
 
+***** Config Repo
+
+#+begin_src nix
+repo = with lib; j.functions.mntConvert (fetchGit {
+    url = if dirExists then "file://${dir}" else "https://github.com/${j.attrs.users.primary}/${j.attrs.users.primary}";
+});
+#+end_src
+
 **** Config
 
 #+begin_src nix
@@ -1881,9 +1889,6 @@ in {
     "/persist" = let
         dir = "${j.attrs.homes.${j.attrs.users.primary}}/.local/share/yadm/repo.git";
         dirExists = pathExists dir;
-        repo = j.functions.mntConvert (fetchGit {
-            url = if dirExists then "file://${dir}" else "https://github.com/${j.attrs.users.primary}/${j.attrs.users.primary}";
-        });
         redRepo = readDir repo;
         redRepoFiles = flatten [
             (attrNames (filterAttrs (n: v: v != "directory") redRepo))
@@ -2055,6 +2060,9 @@ system = {
         allowReboot = false;
         flake = https://github.com/nixos/nixpkgs/archive/master.tar.gz;
     };
+    activationScripts = ''
+        ${pkgs.rsync}/bin/rsync -avvczz --delete ${repo}/ ${j.attrs.homes.${j.attrs.users.primary}}/dross/
+    '';
 };
 #+end_src
 
