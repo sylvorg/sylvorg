@@ -1861,7 +1861,7 @@ systemPackages = with pkgs; [
 
 ****** ZFS
 
-#+begin_src nix :noweb-ref no
+#+begin_src nix
 persistence = let
     rootDirSet = {
         user = "root";
