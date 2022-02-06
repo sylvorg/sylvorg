@@ -1903,17 +1903,17 @@ in {
         directories = unique (map (directory: if ((typeOf directory) == "string") then ({ inherit directory; } // rootDirSet) else (rootDirSet // directory)) (flatten [
             [
                 "/bin"
-                # "/etc/containers"
-                # "/etc/NetworkManager/system-connections"
-                # "/etc/ssh"
-                # "/etc/wireguard"
-                # "/sbin"
-                # "/snap"
-                # "/usr"
-                # "/var/lib/acme"
-                # "/var/lib/bluetooth"
-                # "/var/lib/systemd/coredump"
-                # "/var/log"
+                "/etc/containers"
+                "/etc/NetworkManager/system-connections"
+                "/etc/ssh"
+                "/etc/wireguard"
+                "/sbin"
+                "/snap"
+                "/usr"
+                "/var/lib/acme"
+                "/var/lib/bluetooth"
+                "/var/lib/systemd/coredump"
+                "/var/log"
             ]
         ]));
         # users = listToAttrs (map (user: let
