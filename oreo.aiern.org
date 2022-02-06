@@ -338,7 +338,7 @@ You can change the cache timeout either on the command line with --tarball-ttl n
 or in the Nix configuration file by adding the line tarball-ttl = number-of-seconds.
 #+end_quote
 
-#+begin_src hy :noweb-ref no
+#+begin_src hy
                                     :option "tarball-ttl 0"
 #+end_src
 

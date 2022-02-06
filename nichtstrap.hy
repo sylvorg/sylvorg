@@ -209,6 +209,7 @@ click.pass-context
                   (nixos-install #* ctx.args
                                  :m/run True
                                  :show-trace True
+:option "tarball-ttl 0"
 ))))))
 #@((.command nichtstrap :no-args-is-help True)
    (.option click "-d" "--deduplicated" :is-flag True)
