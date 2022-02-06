@@ -1861,7 +1861,7 @@ systemPackages = with pkgs; [
 
 ****** ZFS
 
-#+begin_src nix
+#+begin_src nix :noweb-ref no
 persistence = let
     rootDirSet = {
         user = "root";
@@ -2155,7 +2155,7 @@ powerManagement = {
 #+begin_src nix
 programs = {
     xonsh.enable = true;
-    # fish.enable = true;
+    fish.enable = true;
     zsh.enable = true;
 };
 #+end_src
@@ -2430,7 +2430,7 @@ in rec {
                 description = "Alicia Summers";
                 group = secondary;
                 extraGroups = [ primary ];
-                # shell = if (!elem currentSystem [ "aarch64-linux" ]) then pkgs.fish else pkgs.zsh;
+                shell = if (!elem currentSystem [ "aarch64-linux" ]) then pkgs.fish else pkgs.zsh;
             };
             "${nightingale}" = {
                 uid = 8888;
