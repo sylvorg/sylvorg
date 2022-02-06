@@ -113,7 +113,7 @@ persistence = let
     rootFileSet.parentDirectory = rootDirSet;
 in {
     # "/root" = {
-    #     directories = map (directory: if ((typeOf directory) == "string") then ({ inherit directory; } // rootSet) else (rootDirSet // directory)) (flatten [
+    #     directories = map (directory: if ((typeOf directory) == "string") then ({ inherit directory; } // rootDirSet) else (rootDirSet // directory)) (flatten [
     #         [
     #             "/etc/nix"
     #             "/etc/nixos"
@@ -143,7 +143,7 @@ in {
                 "/etc/machine-id"
             ]
         ]);
-        directories = map (directory: if ((typeOf directory) == "string") then ({ inherit directory; } // rootSet) else (rootDirSet // directory)) (flatten [
+        directories = map (directory: if ((typeOf directory) == "string") then ({ inherit directory; } // rootDirSet) else (rootDirSet // directory)) (flatten [
             [
                 "/bin"
                 "/etc/containers"
