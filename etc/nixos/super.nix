@@ -15,7 +15,7 @@ in with lib; {
 imports = [
     ./hardware-configuration.nix
     "${fetchGit { url = "https://github.com/nix-community/home-manager"; }}/nixos"
-    "${fetchGit { url = "https://github.com/nix-community/impermanence"; }}/nixos.nix"
+    "${fetchGit { url = "https://github.com/${j.attrs.users.primary}/impermanence"; }}/nixos.nix"
     "${fetchGit { url = "https://github.com/${j.attrs.users.primary}/nixpkgs"; ref = "guix"; }}/nixos/modules/services/development/guix.nix"
 ];
 boot = {
@@ -138,12 +138,15 @@ in {
         ];
     in {
         hideMounts = true;
-        # files = unique (map (file: if ((typeOf file) == "string") then ({ inherit file; } // rootFileSet) else (rootFileSet // file)) (flatten [
-        #     [
-        #         "/etc/host"
-        #         "/etc/machine-id"
-        #     ]
-        # ]));
+
+        # TODO
+        files = unique (map (file: if ((typeOf file) == "string") then ({ inherit file; } // rootFileSet) else (rootFileSet // file)) (flatten [
+            [
+                "/etc/host"
+                "/etc/machine-id"
+            ]
+        ]));
+
         directories = unique (map (directory: if ((typeOf directory) == "string") then ({ inherit directory; } // rootDirSet) else (rootDirSet // directory)) (flatten [
             [
                 "/bin"
@@ -170,23 +173,23 @@ in {
             home = j.attrs.allHomes.${user};
 
             # TODO
-            # files = unique (map (file: if ((typeOf file) == "string") then ({ inherit file; } // userFileSet) else (userFileSet // file)) (flatten [
-            #     [
-            #         ".bash-history"
-            #         ".emacs-profile"
-            #         ".gitignore"
-            #         ".globalignore"
-            #         ".nix-channels"
-            #         ".python-history"
-            #         ".viminfo"
-            #         ".zsh-history"
-            #         ".screenrc"
-            #     ]
+            files = unique (map (file: if ((typeOf file) == "string") then ({ inherit file; } // userFileSet) else (userFileSet // file)) (flatten [
+                [
+                    ".bash-history"
+                    ".emacs-profile"
+                    ".gitignore"
+                    ".globalignore"
+                    ".nix-channels"
+                    ".python-history"
+                    ".viminfo"
+                    ".zsh-history"
+                    ".screenrc"
+                ]
 
-            #     # TODO
-            #     # redRepoFiles
+                # TODO
+                # redRepoFiles
 
-            # ]));
+            ]));
 
             directories = unique (map (directory: if ((typeOf directory) == "string") then ({ inherit directory; } // userDirSet) else (userDirSet // directory)) (flatten [
                 [
