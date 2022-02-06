@@ -111,7 +111,7 @@ persistence = let
         group = "root";
     };
     rootFileSet.parentDirectory = rootDirSet;
-in mkBefore {
+in {
     # "/root" = {
     #     directories = unique (map (directory: if ((typeOf directory) == "string") then ({ inherit directory; } // rootDirSet) else (rootDirSet // directory)) (flatten [
     #         [
@@ -173,7 +173,7 @@ in mkBefore {
                     ".emacs-profile"
                     ".gitignore"
                     ".globalignore"
-                    ".nix-channels"
+                    # ".nix-channels"
                     ".python-history"
                     ".viminfo"
                     ".zsh-history"
