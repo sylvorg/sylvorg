@@ -7,6 +7,6 @@
     ];
     networking = {
         hostName = baseNameOf (toString ./.);
-        hostId = "20d28b14";
+        hostId = "7ae7f24b";
     };
 }

@@ -481,8 +481,11 @@ in {
 };
 };
 systemd = {
+    # tmpfiles.rules = [ "d /tmp 1777 root root 10d" ];
     # packages = with pkgs; [ runit ];
     services = {
+        systemd-tmpfiles-setup.before = [ "sysinit.target" ];
+        systemd-update-utmp.after = [ "systemd-tmpfiles-setup.service" ];
         # runit.enable = true;
         caddy = mkIf (elem config.networking.hostName j.attrs.relays) (j.attrs.configs.services.base // {
             serviceConfig = {
