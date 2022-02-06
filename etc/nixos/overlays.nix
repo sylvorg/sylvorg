@@ -24,8 +24,6 @@ in flatten [
 [( final: prev: { nur = import (fetchGit { url = "https://github.com/nix-community/nur"; }) { nurpkgs = nixpkgs; pkgs = prev; }; })]
 [
     (import (fetchGit { url = "https://github.com/nix-community/emacs-overlay"; }))
-    (final: prev: { emacs-nox = prev.emacsGit-nox; })
-    (final: prev: { emacs = prev.emacsGit; })
 ]
 [
     (final: prev: {
