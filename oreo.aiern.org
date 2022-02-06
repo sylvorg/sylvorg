@@ -1861,7 +1861,7 @@ systemPackages = with pkgs; [
 
 ****** ZFS
 
-#+begin_src nix
+#+begin_src nix :noweb-ref no
 persistence = let
     rootDirSet = {
         user = "root";
@@ -1930,7 +1930,10 @@ in {
                     ".emacs-profile"
                     ".gitignore"
                     ".globalignore"
+
+                    # TODO
                     # ".nix-channels"
+
                     ".python-history"
                     ".viminfo"
                     ".zsh-history"
