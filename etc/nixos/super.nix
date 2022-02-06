@@ -246,7 +246,7 @@ home-manager.users = j.functions.foldToSet [
             source = repo;
             recursive = true;
         };
-    }) allUsers
+    }) j.attrs.allUsers
 ];
 zramSwap = {
     enable = true;
