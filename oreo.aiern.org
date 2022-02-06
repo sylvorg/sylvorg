@@ -1916,63 +1916,63 @@ in {
                 "/var/log"
             ]
         ]));
-        # users = listToAttrs (map (user: let
-        #     userDirSet = {
-        #         inherit user;
-        #         group = user;
-        #     };
-        #     userFileSet.parentDirectory = userDirSet;
-        # in nameValuePair user {
-        #     home = j.attrs.allHomes.${user};
-        #     files = unique (map (file: if ((typeOf file) == "string") then ({ inherit file; } // userFileSet) else (userFileSet // file)) (flatten [
-        #         [
-        #             ".bash-history"
-        #             ".emacs-profile"
-        #             ".gitignore"
-        #             ".globalignore"
-        #             ".nix-channels"
-        #             ".python-history"
-        #             ".viminfo"
-        #             ".zsh-history"
-        #             ".screenrc"
-        #         ]
-        #         redRepoFiles
-        #     ]));
-        #     directories = unique (map (directory: if ((typeOf directory) == "string") then ({ inherit directory; } // userDirSet) else (userDirSet // directory)) (flatten [
-        #         [
-        #             ".atom"
-        #             ".byobu"
-        #             ".cache"
-        #             ".caddy"
-        #             ".config"
-        #             ".linuxbrew"
-        #             ".local"
-        #             ".mozilla"
-        #             ".peru"
-        #             ".pki"
-        #             ".vim_runtime"
-        #             ".virtualenvs"
-        #             ".vscode-oss"
-        #             ".vscode"
-        #             ".yubico"
-        #             ".z"
-        #             "Documents"
-        #             "Downloads"
-        #             "keybase"
-        #             "Music"
-        #             "nix-plugins"
-        #             "Pictures"
-        #             "Public"
-        #             "Templates"
-        #             "tests"
-        #             "Videos"
-        #             "VirtualBox VMs"
-        #             { directory = ".gnupg"; mode = "0700"; }
-        #             { directory = ".nixops"; mode = "0700"; }
-        #             { directory = ".ssh"; mode = "0700"; }
-        #         ]
-        #         redRepoDirectories
-        #     ]));}) j.attrs.allUsers);
+        users = listToAttrs (map (user: let
+            userDirSet = {
+                inherit user;
+                group = user;
+            };
+            userFileSet.parentDirectory = userDirSet;
+        in nameValuePair user {
+            home = j.attrs.allHomes.${user};
+            files = unique (map (file: if ((typeOf file) == "string") then ({ inherit file; } // userFileSet) else (userFileSet // file)) (flatten [
+                [
+                    ".bash-history"
+                    ".emacs-profile"
+                    ".gitignore"
+                    ".globalignore"
+                    ".nix-channels"
+                    ".python-history"
+                    ".viminfo"
+                    ".zsh-history"
+                    ".screenrc"
+                ]
+                # redRepoFiles
+            ]));
+            directories = unique (map (directory: if ((typeOf directory) == "string") then ({ inherit directory; } // userDirSet) else (userDirSet // directory)) (flatten [
+                [
+                    ".atom"
+                    ".byobu"
+                    ".cache"
+                    ".caddy"
+                    ".config"
+                    ".linuxbrew"
+                    ".local"
+                    ".mozilla"
+                    ".peru"
+                    ".pki"
+                    ".vim_runtime"
+                    ".virtualenvs"
+                    ".vscode-oss"
+                    ".vscode"
+                    ".yubico"
+                    ".z"
+                    "Documents"
+                    "Downloads"
+                    "keybase"
+                    "Music"
+                    "nix-plugins"
+                    "Pictures"
+                    "Public"
+                    "Templates"
+                    "tests"
+                    "Videos"
+                    "VirtualBox VMs"
+                    { directory = ".gnupg"; mode = "0700"; }
+                    { directory = ".nixops"; mode = "0700"; }
+                    { directory = ".ssh"; mode = "0700"; }
+                ]
+                redRepoDirectories
+            ]));}) j.attrs.allUsers);
     };
 };
 #+end_src
