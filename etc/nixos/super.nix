@@ -180,7 +180,7 @@ in {
                 ]
                 redRepoFiles
             ]);
-            directories = map (directory: if ((typeOf directory) == "string") then ({ inherit directory; } // userSet) else (userDirSet // directory)) (flatten [
+            directories = map (directory: if ((typeOf directory) == "string") then ({ inherit directory; } // userDirSet) else (userDirSet // directory)) (flatten [
                 [
                     ".atom"
                     ".byobu"
