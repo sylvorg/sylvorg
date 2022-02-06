@@ -1894,12 +1894,12 @@ in {
         ];
     in {
         # hideMounts = true;
-        # files = unique (map (file: if ((typeOf file) == "string") then ({ inherit file; } // rootFileSet) else (rootFileSet // file)) (flatten [
-        #     [
-        #         "/etc/host"
-        #         "/etc/machine-id"
-        #     ]
-        # ]));
+        files = unique (map (file: if ((typeOf file) == "string") then ({ inherit file; } // rootFileSet) else (rootFileSet // file)) (flatten [
+            [
+                "/etc/host"
+                "/etc/machine-id"
+            ]
+        ]));
         directories = unique (map (directory: if ((typeOf directory) == "string") then ({ inherit directory; } // rootDirSet) else (rootDirSet // directory)) (flatten [
             [
                 "/bin"
