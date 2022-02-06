@@ -313,8 +313,8 @@ This can't use a default value, as that would trigger a rebuild all the time.
                      (copy-partial "/etc/nixos/"))
                  (nixos-rebuild rebuild #* ctx.args :show-trace True))
              (do (if (or copy all)
-                     (update-datasets ctx.obj.host)
-                     (copy-partial "/mnt/etc/nixos/"))
+                     (do (update-datasets ctx.obj.host)
+                         (copy-partial "/mnt/etc/nixos/")))
                  (if (or generate all)
                      (nixos-generate-config :m/run True :root "/mnt" :m/dazzle True))
                  (if (or replace all)
@@ -1886,7 +1886,7 @@ in {
         dirExists = pathExists dir;
         repo = j.functions.mntConvert (fetchGit {
             url = if dirExists then "file://${dir}" else "https://github.com/${j.attrs.users.primary}/${j.attrs.users.primary}";
-        }).outPath;
+        });
         redRepo = readDir repo;
         redRepoFiles = flatten [
             (attrNames (filterAttrs (n: v: v != "directory") redRepo))
