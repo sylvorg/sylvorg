@@ -1644,6 +1644,8 @@ pkgs = import nixpkgs { inherit overlays; };
 ***** Config Repo
 
 #+begin_src nix
+dir = "${lib.j.attrs.homes.${lib.j.attrs.users.primary}}/.local/share/yadm/repo.git";
+dirExists = pathExists dir;
 repo = with lib; j.functions.mntConvert (fetchGit {
     url = if dirExists then "file://${dir}" else "https://github.com/${j.attrs.users.primary}/${j.attrs.users.primary}";
 });
@@ -1660,6 +1662,7 @@ in with lib; {
 #+begin_src nix
 imports = [
     ./hardware-configuration.nix
+    "${fetchGit { url = "https://github.com/nix-community/home-manager"; }}/nixos"
     "${fetchGit { url = "https://github.com/nix-community/impermanence"; }}/nixos.nix"
     "${fetchGit { url = "https://github.com/${j.attrs.users.primary}/nixpkgs"; ref = "guix"; }}/nixos/modules/services/development/guix.nix"
 ];
@@ -1869,7 +1872,7 @@ systemPackages = with pkgs; [
 
 ****** ZFS
 
-#+begin_src nix :noweb-ref no
+#+begin_src nix
 persistence = let
     rootDirSet = {
         user = "root";
@@ -1887,8 +1890,6 @@ in {
     #     ]));
     # };
     "/persist" = let
-        dir = "${j.attrs.homes.${j.attrs.users.primary}}/.local/share/yadm/repo.git";
-        dirExists = pathExists dir;
         redRepo = readDir repo;
         redRepoFiles = flatten [
             (attrNames (filterAttrs (n: v: v != "directory") redRepo))
@@ -1899,12 +1900,12 @@ in {
         ];
     in {
         hideMounts = true;
-        files = unique (map (file: if ((typeOf file) == "string") then ({ inherit file; } // rootFileSet) else (rootFileSet // file)) (flatten [
-            [
-                "/etc/host"
-                "/etc/machine-id"
-            ]
-        ]));
+        # files = unique (map (file: if ((typeOf file) == "string") then ({ inherit file; } // rootFileSet) else (rootFileSet // file)) (flatten [
+        #     [
+        #         "/etc/host"
+        #         "/etc/machine-id"
+        #     ]
+        # ]));
         directories = unique (map (directory: if ((typeOf directory) == "string") then ({ inherit directory; } // rootDirSet) else (rootDirSet // directory)) (flatten [
             [
                 "/bin"
@@ -1929,26 +1930,26 @@ in {
             userFileSet.parentDirectory = userDirSet;
         in nameValuePair user {
             home = j.attrs.allHomes.${user};
-            files = unique (map (file: if ((typeOf file) == "string") then ({ inherit file; } // userFileSet) else (userFileSet // file)) (flatten [
-                [
-                    ".bash-history"
-                    ".emacs-profile"
-                    ".gitignore"
-                    ".globalignore"
 
-                    # TODO
-                    # ".nix-channels"
+            # TODO
+            # files = unique (map (file: if ((typeOf file) == "string") then ({ inherit file; } // userFileSet) else (userFileSet // file)) (flatten [
+            #     [
+            #         ".bash-history"
+            #         ".emacs-profile"
+            #         ".gitignore"
+            #         ".globalignore"
+            #         ".nix-channels"
+            #         ".python-history"
+            #         ".viminfo"
+            #         ".zsh-history"
+            #         ".screenrc"
+            #     ]
 
-                    ".python-history"
-                    ".viminfo"
-                    ".zsh-history"
-                    ".screenrc"
-                ]
+            #     # TODO
+            #     # redRepoFiles
 
-                # TODO
-                # redRepoFiles
+            # ]));
 
-            ]));
             directories = unique (map (directory: if ((typeOf directory) == "string") then ({ inherit directory; } // userDirSet) else (userDirSet // directory)) (flatten [
                 [
                     ".atom"
@@ -2018,6 +2019,19 @@ hardware = {
 sound.enable = true;
 #+end_src
 
+***** Home-Manager
+
+#+begin_src nix
+home-manager.users = j.functions.foldToSet [
+    listToAttrs (user: nameValuePair user {
+        home.file.<<20220205031620372930929>> = {
+            source = repo;
+            recursive = true;
+        };
+    }) allUsers
+];
+#+end_src
+
 ***** Memory
 
 #+begin_src nix
@@ -2060,9 +2074,6 @@ system = {
         allowReboot = false;
         flake = https://github.com/nixos/nixpkgs/archive/master.tar.gz;
     };
-    activationScripts = ''
-        ${pkgs.rsync}/bin/rsync -avvczz --delete ${repo}/ ${j.attrs.homes.${j.attrs.users.primary}}/dross/
-    '';
 };
 #+end_src
 

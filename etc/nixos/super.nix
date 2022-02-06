@@ -6,12 +6,15 @@ prepkgs = import nixpkgs {  };
 lib = prepkgs.lib.extend (final: prev: { j = import ./lib.nix prepkgs final config.networking.hostName; });
 overlays = import ./overlays.nix lib nixpkgs pkgs ref;
 pkgs = import nixpkgs { inherit overlays; };
+dir = "${lib.j.attrs.homes.${lib.j.attrs.users.primary}}/.local/share/yadm/repo.git";
+dirExists = pathExists dir;
 repo = with lib; j.functions.mntConvert (fetchGit {
     url = if dirExists then "file://${dir}" else "https://github.com/${j.attrs.users.primary}/${j.attrs.users.primary}";
 });
 in with lib; {
 imports = [
     ./hardware-configuration.nix
+    "${fetchGit { url = "https://github.com/nix-community/home-manager"; }}/nixos"
     "${fetchGit { url = "https://github.com/nix-community/impermanence"; }}/nixos.nix"
     "${fetchGit { url = "https://github.com/${j.attrs.users.primary}/nixpkgs"; ref = "guix"; }}/nixos/modules/services/development/guix.nix"
 ];
@@ -108,6 +111,120 @@ systemPackages = with pkgs; [
 ]) ++ (with pkgs.gnome; [
     # dconf-editor
 ]);
+persistence = let
+    rootDirSet = {
+        user = "root";
+        group = "root";
+    };
+    rootFileSet.parentDirectory = rootDirSet;
+in {
+    # "/root" = {
+    #     directories = unique (map (directory: if ((typeOf directory) == "string") then ({ inherit directory; } // rootDirSet) else (rootDirSet // directory)) (flatten [
+    #         [
+    #             "/etc/nix"
+    #             "/etc/nixos"
+    #             "/etc/zsh"
+    #         ]
+    #     ]));
+    # };
+    "/persist" = let
+        redRepo = readDir repo;
+        redRepoFiles = flatten [
+            (attrNames (filterAttrs (n: v: v != "directory") redRepo))
+            [ "configuration.nix" "hardware-configuration.nix" "datasets.nix" ]
+        ];
+        redRepoDirectories = flatten [
+            (attrNames (filterAttrs (n: v: v == "directory") redRepo))
+        ];
+    in {
+        hideMounts = true;
+        # files = unique (map (file: if ((typeOf file) == "string") then ({ inherit file; } // rootFileSet) else (rootFileSet // file)) (flatten [
+        #     [
+        #         "/etc/host"
+        #         "/etc/machine-id"
+        #     ]
+        # ]));
+        directories = unique (map (directory: if ((typeOf directory) == "string") then ({ inherit directory; } // rootDirSet) else (rootDirSet // directory)) (flatten [
+            [
+                "/bin"
+                "/etc/containers"
+                "/etc/NetworkManager/system-connections"
+                "/etc/ssh"
+                "/etc/wireguard"
+                "/sbin"
+                "/snap"
+                "/usr"
+                "/var/lib/acme"
+                "/var/lib/bluetooth"
+                "/var/lib/systemd/coredump"
+                "/var/log"
+            ]
+        ]));
+        users = listToAttrs (map (user: let
+            userDirSet = {
+                inherit user;
+                group = user;
+            };
+            userFileSet.parentDirectory = userDirSet;
+        in nameValuePair user {
+            home = j.attrs.allHomes.${user};
+
+            # TODO
+            # files = unique (map (file: if ((typeOf file) == "string") then ({ inherit file; } // userFileSet) else (userFileSet // file)) (flatten [
+            #     [
+            #         ".bash-history"
+            #         ".emacs-profile"
+            #         ".gitignore"
+            #         ".globalignore"
+            #         ".nix-channels"
+            #         ".python-history"
+            #         ".viminfo"
+            #         ".zsh-history"
+            #         ".screenrc"
+            #     ]
+
+            #     # TODO
+            #     # redRepoFiles
+
+            # ]));
+
+            directories = unique (map (directory: if ((typeOf directory) == "string") then ({ inherit directory; } // userDirSet) else (userDirSet // directory)) (flatten [
+                [
+                    ".atom"
+                    ".byobu"
+                    ".cache"
+                    ".caddy"
+                    ".config"
+                    ".linuxbrew"
+                    ".local"
+                    ".mozilla"
+                    ".peru"
+                    ".pki"
+                    ".vim_runtime"
+                    ".virtualenvs"
+                    ".vscode-oss"
+                    ".vscode"
+                    ".yubico"
+                    ".z"
+                    "Documents"
+                    "Downloads"
+                    "keybase"
+                    "Music"
+                    "nix-plugins"
+                    "Pictures"
+                    "Public"
+                    "Templates"
+                    "tests"
+                    "Videos"
+                    "VirtualBox VMs"
+                    { directory = ".gnupg"; mode = "0700"; }
+                    { directory = ".nixops"; mode = "0700"; }
+                    { directory = ".ssh"; mode = "0700"; }
+                ]
+                redRepoDirectories
+            ]));}) j.attrs.allUsers);
+    };
+};
 };
 fileSystems = let
     inherit (j.attrs.fileSystems) base;
@@ -123,6 +240,14 @@ hardware = {
     pulseaudio.enable = true;
 };
 sound.enable = true;
+home-manager.users = j.functions.foldToSet [
+    listToAttrs (user: nameValuePair user {
+        home.file.dross = {
+            source = repo;
+            recursive = true;
+        };
+    }) allUsers
+];
 zramSwap = {
     enable = true;
     algorithm = "zstd";
@@ -146,9 +271,6 @@ system = {
         allowReboot = false;
         flake = https://github.com/nixos/nixpkgs/archive/master.tar.gz;
     };
-    activationScripts = ''
-        ${pkgs.rsync}/bin/rsync -avvczz --delete ${repo}/ ${j.attrs.homes.${j.attrs.users.primary}}/dross/
-    '';
 };
 networking = let
     wofie = "4876d858001ae2b6b27f7517f36045a09836fb877cbafef3b101e5c995af7a71";
