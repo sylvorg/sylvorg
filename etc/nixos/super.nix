@@ -138,15 +138,12 @@ in {
         ];
     in {
         hideMounts = true;
-
-        # TODO
         files = unique (map (file: if ((typeOf file) == "string") then ({ inherit file; } // rootFileSet) else (rootFileSet // file)) (flatten [
             [
                 "/etc/host"
                 "/etc/machine-id"
             ]
         ]));
-
         directories = unique (map (directory: if ((typeOf directory) == "string") then ({ inherit directory; } // rootDirSet) else (rootDirSet // directory)) (flatten [
             [
                 "/bin"
@@ -171,8 +168,6 @@ in {
             userFileSet.parentDirectory = userDirSet;
         in nameValuePair user {
             home = j.attrs.allHomes.${user};
-
-            # TODO
             files = unique (map (file: if ((typeOf file) == "string") then ({ inherit file; } // userFileSet) else (userFileSet // file)) (flatten [
                 [
                     ".bash-history"
@@ -190,7 +185,6 @@ in {
                 # redRepoFiles
 
             ]));
-
             directories = unique (map (directory: if ((typeOf directory) == "string") then ({ inherit directory; } // userDirSet) else (userDirSet // directory)) (flatten [
                 [
                     ".atom"
