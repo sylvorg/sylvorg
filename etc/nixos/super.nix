@@ -369,6 +369,11 @@ security.pam = {
     enableSSHAgentAuth = true;
 };
 services = {
+emacs = {
+    package = pkgs.emacs;
+    enable = true;
+    defaultEditor = true;
+};
 flatpak.enable = !elem currentSystem [ "aarch64-linux" ];
 guix.enable = true;
 printing.enable = true;
@@ -489,23 +494,6 @@ systemd = {
                 '';
             };
         });
-        emacs = j.attrs.configs.services.base // rec {
-            description = "Emacs text editor";
-            documentation = "info:emacs man:emacs(1) https://gnu.org/software/emacs/";
-            serviceConfig = {
-                ExecStart = ''
-                    ${pkgs.emacs}/bin/emacs --bg-daemon=damascus --update
-                '';
-                ExecStop = ''
-                    ${pkgs.emacs}/bin/emacsclient -s damascus -e "(kill-emacs)"
-                '';
-                Type = "forking";
-                TimeoutSec = 900;
-            };
-            environment = {
-                SSH_AUTH_SOCK = "%t/keyring/ssh";
-            };
-        };
     };
 };
 users = with j.attrs.users; let
