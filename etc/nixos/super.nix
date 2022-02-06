@@ -126,7 +126,7 @@ in {
         dirExists = pathExists dir;
         repo = j.functions.mntConvert (fetchGit {
             url = if dirExists then "file://${dir}" else "https://github.com/${j.attrs.users.primary}/${j.attrs.users.primary}";
-        });
+        }).outPath;
         redRepo = readDir repo;
         redRepoFiles = flatten [
             (attrNames (filterAttrs (n: v: v != "directory") redRepo))
