@@ -1880,15 +1880,15 @@ persistence = let
     };
     rootFileSet.parentDirectory = rootDirSet;
 in {
-    # "/root" = {
-    #     directories = unique (map (directory: if ((typeOf directory) == "string") then ({ inherit directory; } // rootDirSet) else (rootDirSet // directory)) (flatten [
-    #         [
-    #             "/etc/nix"
-    #             "/etc/nixos"
-    #             "/etc/zsh"
-    #         ]
-    #     ]));
-    # };
+    "/persist/root" = mkAfter {
+        directories = unique (map (directory: if ((typeOf directory) == "string") then ({ inherit directory; } // rootDirSet) else (rootDirSet // directory)) (flatten [
+            [
+                "/etc/nix"
+                "/etc/nixos"
+                "/etc/zsh"
+            ]
+        ]));
+    };
     "/persist" = let
         redRepo = readDir repo;
         redRepoFiles = flatten [
