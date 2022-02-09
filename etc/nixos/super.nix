@@ -8,8 +8,7 @@ overlays = import ./overlays.nix lib nixpkgs pkgs ref;
 pkgs = import nixpkgs { inherit overlays; };
 dir = "${lib.j.attrs.homes.${lib.j.attrs.users.primary}}/.local/share/yadm/repo.git";
 dirExists = pathExists dir;
-# repo = with lib; j.functions.mntConvert (fetchGit {
-repo = with lib; (fetchGit {
+repo = with lib; j.functions.mntConvert (fetchGit {
     url = if dirExists then "file://${dir}" else "https://github.com/${j.attrs.users.primary}/${j.attrs.users.primary}";
 });
 in with lib; {
