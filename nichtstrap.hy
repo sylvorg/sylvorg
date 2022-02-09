@@ -199,7 +199,7 @@ click.pass-context
                   (do (update-datasets ctx.obj.host)
                       (copy-partial "/mnt/etc/nixos/")))
               (if (or generate all)
-                  (nixos-generate-config :m/run True :root "/mnt" :m/dazzle True))
+                  (nixos-generate-config :m/run True :root "/mnt"))
               (if (or replace all)
                   (if ctx.obj.host
                       (sd :m/run True

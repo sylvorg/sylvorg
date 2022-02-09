@@ -8,7 +8,8 @@ overlays = import ./overlays.nix lib nixpkgs pkgs ref;
 pkgs = import nixpkgs { inherit overlays; };
 dir = "${lib.j.attrs.homes.${lib.j.attrs.users.primary}}/.local/share/yadm/repo.git";
 dirExists = pathExists dir;
-repo = with lib; j.functions.mntConvert (fetchGit {
+# repo = with lib; j.functions.mntConvert (fetchGit {
+repo = with lib; (fetchGit {
     url = if dirExists then "file://${dir}" else "https://github.com/${j.attrs.users.primary}/${j.attrs.users.primary}";
 });
 in with lib; {
@@ -269,22 +270,10 @@ system = {
         flake = https://github.com/nixos/nixpkgs/archive/master.tar.gz;
     };
 };
-networking = let
-    wofie = "4876d858001ae2b6b27f7517f36045a09836fb877cbafef3b101e5c995af7a71";
-in {
+networking = {
     # interfaces = map (interface:
     #     { inherit interface; method = "magicpacket"; }
     # ) (attrNames config.networking.interfaces);
-    wireless = {
-        # enable = true; # Enables wireless support via wpa_supplicant.
-        enable = false; # Enables wireless support via wpa_supplicant.
-        networks = {
-            "Wofie" = {
-                pskRaw = wofie;
-                priority = 0;
-            };
-        };
-    };
     networkmanager.enable = mkForce true;
 
     # The global useDHCP flag is deprecated, therefore explicitly set to false here.

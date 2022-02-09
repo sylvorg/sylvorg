@@ -1,11 +1,15 @@
 let
-    name = "nichtstrap";
+    name = "20220208045251000973158";
     pkgs = import <nixpkgs> {};
-in (pkgs.buildFHSUserEnv {
+    venv = "~/.local/nix-shells/${name}/venv";
+in (pkgs.mkShell rec {
     inherit name;
-    targetPkgs = pkgs: with pkgs; [ python310 sd gcc rsync ];
-    runScript = ''
-        pip install --upgrade pip
+    buildInputs = with pkgs; [ python310 sd gcc rsync ];
+    nativeBuildInputs = buildInputs;
+    shellHook = ''
+        python3 -m venv ${venv}
+        source ${venv}/bin/activate
+        pip install --upgrade pip || :
         pip install https://github.com/shadowrylander/bakery/archive/main.tar.gz \
                     coconut \
                     cytoolz \
@@ -13,4 +17,4 @@ in (pkgs.buildFHSUserEnv {
         chmod +x ${builtins.toString ./.}/nichtstrap 2> /dev/null || chmod +x ${builtins.toString ./.}/nichtstrap.py
         exec xonsh
     '';
-}).env
+})

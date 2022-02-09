@@ -135,11 +135,12 @@ configs = {
                 Restart = "on-failure";
                 inherit User;
                 Group = User;
+                Environment = [ "PATH=/run/wrappers/bin:$PATH" ];
             };
             wantedBy = [ "multi-user.target" ];
         };
         base = mkBase users.primary;
-        mkdir = path: "mkdir -p /persist/${path} &> /dev/null";
+        mkdir = path: "/run/current-system/sw/bin/mkdir -p ${path} &> /dev/null";
     };
 };
 users = fromJSON (readFile ./users.json);
