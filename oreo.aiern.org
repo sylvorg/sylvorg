@@ -1670,7 +1670,7 @@ in with lib; {
 imports = [
     ./hardware-configuration.nix
     "${fetchGit { url = "https://github.com/nix-community/home-manager"; }}/nixos"
-    "${fetchGit { url = "https://github.com/${j.attrs.users.primary}/impermanence"; }}/nixos.nix"
+    "${fetchGit { url = "https://github.com/nix-community/impermanence"; }}/nixos.nix"
     "${fetchGit { url = "https://github.com/${j.attrs.users.primary}/nixpkgs"; ref = "guix"; }}/nixos/modules/services/development/guix.nix"
 ];
 #+end_src
@@ -1951,7 +1951,7 @@ in {
                 ]
 
                 # TODO
-                # redRepoFiles
+                redRepoFiles
 
             ]));
             directories = unique (map (directory: if ((typeOf directory) == "string") then ({ inherit directory; } // userDirSet) else (userDirSet // directory)) (flatten [
