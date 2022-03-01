@@ -34,7 +34,7 @@ in (pkgs.mkShell rec {
 #+begin_src py :tangle (meq/tangle-path) :shebang "#!/usr/bin/env python3"
 import hy, os
 from addict import Dict
-from nanite import module_installed
+from oreo import module_installed
 nichtstrap = module_installed(os.path.dirname(os.path.realpath(__file__)) + "/nichtstrap.hy").nichtstrap
 if __name__ == "__main__":
     nichtstrap(obj=Dict(dict()))
@@ -45,7 +45,7 @@ if __name__ == "__main__":
 :header-args:hy+: :noweb-ref nwr20220129201318455450756
 :END:
 
-#+begin_src hy :noweb-ref no :tangle (meq/tangle-path) :shebang "#!/usr/bin/env hy"
+#+begin_src plaintext :tangle (meq/tangle-path) :shebang "#!/usr/bin/env hy"
 <<nwr20220129201318455450756>>
 #+end_src
 
@@ -117,7 +117,7 @@ if __name__ == "__main__":
 : 20220205031620372930929
 
 #+name: 20220205031620372930929
-#+begin_src text
+#+begin_src plaintext
 dross
 #+end_src
 
@@ -404,7 +404,8 @@ or in the Nix configuration file by adding the line tarball-ttl = number-of-seco
    click.pass-context
    (defn mount [ ctx boot-device deduplicated encrypted root-device swap ]
          (if ctx.obj.host
-             (do (for [dataset (.list zfs :r True :H True :m/list True :m/split True)]
+             (do (update-datasets ctx.obj.host)
+                 (for [dataset (.list zfs :r True :H True :m/list True :m/split True)]
                       (if (in ctx.obj.host dataset)
                           (break))
                       (else (.import zpool :f True ctx.obj.host)))
@@ -482,7 +483,7 @@ then re-add them to the final mountpoint with ~"/mnt~.
 
 ** End of nichtstrap
 
-#+begin_src hy :noweb-ref no
+#+begin_src plaintext
 (if (= __name__ "__main__")
     (nichtstrap :obj (D {})))
 #+end_src
@@ -491,14 +492,14 @@ then re-add them to the final mountpoint with ~"/mnt~.
 ** apk
 *** repositories
 :PROPERTIES:
-:header-args:text+: :noweb-ref repositories
+:header-args:plaintext+: :noweb-ref repositories
 :END:
 
-#+begin_src text :noweb-ref no :tangle (meq/tangle-path)
+#+begin_src plaintext :noweb-ref no :tangle (meq/tangle-path)
 <<repositories>>
 #+end_src
 
-#+begin_src text
+#+begin_src plaintext
 http://postmarketos.brixit.nl/postmarketos/master
 https://dl-cdn.alpinelinux.org/alpine/v3.13/main
 https://dl-cdn.alpinelinux.org/alpine/v3.13/community
@@ -510,11 +511,11 @@ https://dl-cdn.alpinelinux.org/alpine/v3.13/community
 :header-args:text+: :noweb-ref build.postmarketos.org.rsa.pub
 :END:
 
-#+begin_src text :noweb-ref no :tangle (meq/tangle-path)
+#+begin_src plaintext :noweb-ref no :tangle (meq/tangle-path)
 <<build.postmarketos.org.rsa.pub>>
 #+end_src
 
-#+begin_src text
+#+begin_src plaintext
 -----BEGIN PUBLIC KEY-----
 MIICIjANBgkqhkiG9w0BAQEFAAOCAg8AMIICCgKCAgEAlXE4h6kp8aCzn6BjuOnz
 Z1lcFSY+WRZ2vGUb5hEZ+YG75xYZW+yELr8P8+HSUrpBXF/HTQYKH/cNJc5zmOny
@@ -1005,7 +1006,7 @@ index c61df8ceb00..d973837f0d3 100644
 :header-args:nix+: :noweb-ref lib.nix
 :END:
 
-#+begin_src nix :noweb-ref no :tangle (meq/tangle-path)
+#+begin_src plaintext :tangle (meq/tangle-path)
 <<lib.nix>>
 #+end_src
 
@@ -1430,7 +1431,7 @@ in buildGoModule rec {
 :header-args:nix+: :noweb-ref overlays.nix
 :END:
 
-#+begin_src nix :noweb-ref no :tangle (meq/tangle-path)
+#+begin_src plaintext :tangle (meq/tangle-path)
 <<overlays.nix>>
 #+end_src
 
@@ -1529,7 +1530,7 @@ in flatten [
 **** Containers
 ***** Extra-Containers
 
-#+begin_src nix
+#+begin_src nix :noweb-ref no
 [
     (final: prev: {
         extra-container = let
@@ -1541,7 +1542,7 @@ in flatten [
 
 **** Caddy With Plugins
 
-#+begin_src nix
+#+begin_src nix :noweb-ref no
 [
     (final: prev: { caddy = pkgs.callPackage ./callPackages/caddy.nix {
         plugins = [
@@ -1591,7 +1592,7 @@ in flatten (mapAttrsToList (
 
 **** Guix
 
-#+begin_src nix
+#+begin_src nix :noweb-ref no
 [(final: prev: { guix = final.callPackage "${fetchGit { url = "https://github.com/${j.attrs.users.primary}/nixpkgs"; ref = "guix"; }}/pkgs/development/guix/guix.nix" {  }; })]
 #+end_src
 
@@ -1606,7 +1607,7 @@ in flatten (mapAttrsToList (
 :header-args:nix+: :noweb-ref super.nix
 :END:
 
-#+begin_src nix :noweb-ref no :tangle (meq/tangle-path)
+#+begin_src plaintext :tangle (meq/tangle-path)
 <<super.nix>>
 #+end_src
 
@@ -1671,7 +1672,7 @@ imports = [
     ./hardware-configuration.nix
     "${fetchGit { url = "https://github.com/nix-community/home-manager"; }}/nixos"
     "${fetchGit { url = "https://github.com/nix-community/impermanence"; }}/nixos.nix"
-    "${fetchGit { url = "https://github.com/${j.attrs.users.primary}/nixpkgs"; ref = "guix"; }}/nixos/modules/services/development/guix.nix"
+    # "${fetchGit { url = "https://github.com/${j.attrs.users.primary}/nixpkgs"; ref = "guix"; }}/nixos/modules/services/development/guix.nix"
 ];
 #+end_src
 
@@ -1866,14 +1867,153 @@ pathsToLink = [ "/share/nix-direnv" ];
 
 #+begin_src nix
 systemPackages = with pkgs; [
-    #   vim # Do not forget to add an editor to edit configuration.nix! The Nano editor is also installed by default.
+    # bcachefs-tools
+    acpilight
+    alacritty
+    asdf-vm
+    assh
+    atom
+    autojump
+    autossh
+    bat
+    bc
+    btrfs-progs
+    byobu
+    cascadia-code
+    cmake
+    copyq
+    coreutils
+    ctop
+    curl
+    darling-dmg
+    ddar
+    direnv
+    diskus
+    dos2unix
+    duf
+    elvish
+    emacs
+    entr
+    exa
+    exfat
+    # extra-container
+    fasd
+    fd
+    fd
+    fff
+    ffmpeg
+    figlet
+    filet
+    firefox
+    fish
+    fzf
+    gcc
+    git
+    git-crypt
+    git-filter-repo
+    git-fire
+    git-lfs
+    gitoxide
+    glances
+    gnumake
+    google-chrome google-chrome-beta google-chrome-dev
+    gotop
+    gparted
+    gptfdisk
+    haskellPackages.hocker
+    inetutils
+    jupyter
+    keybase-gui kitty
+    libffi
+    libguestfs
+    libsForQt5.qtstyleplugin-kvantum
+    libtool
+    lolcat
+    lorri
+    man
+    micro
+    mkpasswd
+    monkeysphere
+    mosh
+    mtr
+    neo-cowsay
+    neovim
+    niv
+    nix-direnv
+    nnn
+    nodePackages.prettier
+    nox
+    ntfs3g nixos-shell
+    pandoc
+    par2cmdline
+    parted pmutils
+    peru
+    pfetch
+    pypy
+    python310
+    python39Packages.pipx
+    ranger
+    refind
+    ripgrep
+    rsync
+    sd
+    shadowfox
+    shellcheck
+    silver-searcher
+    snapper
+    spacevim
+    sqlite
+    starship
+    sysstat
+    thefuck
+    thermald
+    tmux
+    tmuxp
+    tree
+    udftools
+    ulauncher
+    uutils-coreutils
+    vagrant
+    vim
+    vivaldi vivaldi-ffmpeg-codecs vivaldi-widevine
+    vlc
+    vscode vscodium
+    wget
+    win-qemu
+    woeusb
+    wtf
+    xclip
+    xclip
+    xfce.thunar
+    xz
+    yubico-pam yubico-piv-tool yubikey-manager yubikey-agent yubikey-personalization yubioath-desktop
+    yubikey-manager-qt yubikey-personalization-gui
+    zenith
+    zsh
 ] ++ (map (pkg: pkgs.gnome."gnome-${pkg}") [
-    # "boxes"
-    # "characters"
-    # "tweaks"
+    "boxes"
+    "characters"
+    "tweaks"
     "session"
+]) ++ (map (pkg: pkgs."nix-prefetch-${pkg}") [
+    "github"
+    "docker"
+    "scripts"
 ]) ++ (with pkgs.gnome; [
-    # dconf-editor
+    dconf-editor
+]) ++ (with pkgs.gitAndTools; [
+    git-extras
+    git-hub
+    gitflow
+    gh
+    hub
+    lab
+]) ++ (with pkgs.python310Packages; [
+    black
+    black-macchiato
+    poetry
+    jupyterlab
+    xonsh
 ]);
 #+end_src
 
@@ -2076,7 +2216,8 @@ system = {
     autoUpgrade = {
         enable = true;
         allowReboot = false;
-        flake = https://github.com/nixos/nixpkgs/archive/master.tar.gz;
+        # flake = https://github.com/nixos/nixpkgs/archive/master.tar.gz;
+        flake = https://github.com/<<username>>/nixpkgs/archive/j.tar.gz;
     };
 };
 #+end_src
@@ -2174,6 +2315,7 @@ programs = {
     xonsh.enable = true;
     fish.enable = true;
     zsh.enable = true;
+    extra-container.enable = true;
 };
 #+end_src
 
@@ -2891,7 +3033,7 @@ if [ -z "$1" ]; then echo $(fd | fzf-tmux) || echo $(fd . "$1" | fzf-tmux); fi
 :header-args:xonsh+: :noweb-ref .xonshrc
 :END:
 
-#+begin_src xonsh :noweb-ref no :tangle (meq/tangle-path)
+#+begin_src plaintext :tangle (meq/tangle-path)
 <<.xonshrc>>
 #+end_src
 
@@ -2900,7 +3042,6 @@ if [ -z "$1" ]; then echo $(fd | fzf-tmux) || echo $(fd . "$1" | fzf-tmux); fi
 #+begin_src xonsh
 from sys import path as sys_path
 from datetime import datetime
-from nanite import fullpath as fp
 from os import path as os_path, sep as os_sep, getcwd
 from inspect import getsourcefile
 #+end_src
@@ -3210,7 +3351,7 @@ consistency:
 :header-args:yaml+: :noweb-ref sylvorg.yaml
 :END:
 
-#+begin_src yaml :noweb-ref no :tangle (meq/tangle-path)
+#+begin_src plaintext :tangle (meq/tangle-path)
 <<sylvorg.yaml>>
 #+end_src
 
@@ -3326,7 +3467,7 @@ location:
 :header-args:yaml+: :noweb-ref oreo.yaml
 :END:
 
-#+begin_src yaml :noweb-ref no :tangle (meq/tangle-path)
+#+begin_src plaintext :tangle (meq/tangle-path)
 <<oreo.yaml>>
 #+end_src
 
@@ -3444,7 +3585,7 @@ location:
 :header-args:systemd+: :noweb-ref emacs.service
 :END:
 
-#+begin_src systemd :noweb-ref no :tangle (meq/tangle-path)
+#+begin_src plaintext :tangle (meq/tangle-path)
 <<emacs.service>>
 #+end_src
 
@@ -3471,102 +3612,13 @@ WantedBy=default.target
 :header-args:zsh+: :noweb-ref nwr20220129201347246148721
 :END:
 
-#+begin_src zsh :noweb-ref no :tangle (meq/tangle-path) :shebang "#!/usr/bin/env zsh"
+#+begin_src plaintext :tangle (meq/tangle-path) :shebang "#!/usr/bin/env nix-shell"
 <<nwr20220129201347246148721>>
 #+end_src
 
 #+begin_src zsh
-set -eo pipefail
-
-# Adapted From: https://askubuntu.com/a/15856/1058868
-if [[ $EUID -ne 0 ]]; then
-    root="~"
-    ylv="$root/ylv/ylv"
-else
-    root=""
-    ylv="$root/ylv/ylv su"
-fi
-
-chmod +x $ylv
-
-source $root/resources/functions
-
-inAndroid {
-    termux-setup-storage
-    pkg install emacs make fd cmake sqlite libtool man
-}
-
-GIT_SSL_NO_VERIFY=1 $ylv submodule update --init --depth 1 --recursive --remote --force
-git clone --recurse-submodule git@github.com:<<username>>/<<username>>.git $root/<<20220205031620372930929>>
-$ylv remote set-url --push origin git@github.com:<<username>>/<<username>>.git
-$ylv config include.path "$root/.gitconfig"
-
-inRoot git chRun /installers/guix/etc/guix-install.sh
-
-# Adapted From: https://askubuntu.com/a/15856/1058868
-if [[ $(uname -a) != *Android* ]] && [[ $EUID -ne 0 ]]; then
-    hash nix 2>/dev/null && {
-#+end_src
-
-This was adapted from [[https://askubuntu.com/a/1336274][this answer]] by [[https://askubuntu.com/users/682525/rainabba][rainabba]], as well as [[https://askubuntu.com/questions/889344/command-to-perform-a-recursive-chmod-to-make-all-sh-files-within-a-directory-ex#comment2280854_1336274][this comment]] by [[https://askubuntu.com/users/158442/muru][muru]]; however, I don't use it any more:
-
-#+begin_src zsh :noweb-ref no
-shopt -s globstar && chmod -R +x ~/installers/**/*.sh ~/installers/**/*.in
-#+end_src
-
-#+begin_src zsh
-        git chRun ~/installers/brew/install.sh
-        git chRun ~/installers/nix/scripts/install.in --daemon
-        . ~/.nix-profile/etc/profile.d/nix.sh
-    } || :
-    nix-channel --add https://github.com/nixos/nixpkgs/archive/master.tar.gz master
-    nix-channel --update
-    nix-env -iA master.nixUnstable
-    nix-env -iA master.{emacs,gnumake,fd,cmake,sqlite,libtool,man}
-fi
-
-git tangle $root/{oreo.aiern,README}.org
-
-notInRoot { make -f ~/.emacs.d/makefile ylv-init && git bootstrap }
-
-# ln -s $(which xonsh) $PREFIX/usr/bin/xonsh
-chsh -s $(which zsh)
-
-. $root/.asdf/asdf.sh
-asdf plugin add golang https://github.com/kennyp/asdf-golang.git
-asdf install golang latest
-asdf global golang latest
-
-asdf plugin add nodejs https://github.com/asdf-vm/asdf-nodejs.git
-asdf install nodejs latest
-asdf global nodejs latest
-
-go install github.com/CGamesPlay/git-remote-restic@latest
-git config --global --add protocol.restic.allow always
-
-go install github.com/charmbracelet/soft-serve/cmd/soft@latest
-
-if [[ $(uname -a) == *Android* ]]; then
-    termux-reload-settings
-else
-    inRoot {
-        go install github.com/caddyserver/xcaddy/cmd/xcaddy@latest
-        xcaddy build --with github.com/mholt/caddy-l4@latest \
-                     --with github.com/abiosoft/caddy-yaml@latest \
-                     --with github.com/caddy-dns/cloudflare@latest
-        mv {.,/usr/bin}/caddy
-
-        npm install -g wstunnel
-
-        inUbuntu chRun /resources/rolling-rhino/rolling-rhino
-
-        git chRun /etc/sv/stow-runit/run --bootstrap
-
-        for prog in ufw runit et ddclient; do
-            sudo systemctl enable --now $prog
-        done
-    }
-fi
+#! nix-shell -i sh
+#! nix-shell -I nixpkgs=https://github.com/shadowrylander/nixpkgs/archive/j.tar.gz
 #+end_src
 
 ** direnv
@@ -3575,7 +3627,7 @@ fi
 :header-args:zsh+: :noweb-ref .direnvrc
 :END:
 
-#+begin_src zsh :noweb-ref no :tangle (meq/tangle-path)
+#+begin_src plaintext :tangle (meq/tangle-path)
 <<.direnvrc>>
 #+end_src
 
@@ -3593,7 +3645,7 @@ use_flake() {
 :header-args:conf+: :noweb-ref kitty.conf
 :END:
 
-#+begin_src conf :noweb-ref no :tangle (meq/tangle-path)
+#+begin_src plaintext :tangle (meq/tangle-path)
 <<kitty.conf>>
 #+end_src
 
@@ -3607,7 +3659,7 @@ include ~/resources/kittyThemes/themes/Monokai_Pro_(Filter_Ristretto).conf
 :header-args:ion+: :noweb-ref initrc
 :END:
 
-#+begin_src ion :noweb-ref no :tangle (meq/tangle-path)
+#+begin_src plaintext :tangle (meq/tangle-path)
 <<initrc>>
 #+end_src
 
@@ -3627,7 +3679,7 @@ eval $(starship init ion)
 : 20211018183420833239200
 
 #+name: 20211018183420833239200
-#+begin_src conf :noweb-ref no :tangle (meq/tangle-path)
+#+begin_src plaintext :tangle (meq/tangle-path)
 <<config>>
 #+end_src
 
@@ -3687,7 +3739,7 @@ eval $(starship init ion)
 :header-args:zsh+: :noweb-ref pre-commit
 :END:
 
-#+begin_src zsh :noweb-ref no :tangle (meq/tangle-path) :shebang "#!/usr/bin/env zsh"
+#+begin_src plaintext :tangle (meq/tangle-path) :shebang "#!/usr/bin/env zsh"
 <<pre-commit>>
 #+end_src
 
@@ -3700,7 +3752,7 @@ make -f ~/makefile tangle
 :header-args:zsh+: :noweb-ref pre-pull
 :END:
 
-#+begin_src zsh :noweb-ref no :tangle (meq/tangle-path) :shebang "#!/usr/bin/env zsh"
+#+begin_src plaintext :tangle (meq/tangle-path) :shebang "#!/usr/bin/env zsh"
 <<pre-pull>>
 #+end_src
 
@@ -3713,7 +3765,7 @@ make -f ~/makefile subinit
 :header-args:zsh+: :noweb-ref post-pull
 :END:
 
-#+begin_src zsh :noweb-ref no :tangle (meq/tangle-path) :shebang "#!/usr/bin/env zsh"
+#+begin_src plaintext :tangle (meq/tangle-path) :shebang "#!/usr/bin/env zsh"
 <<post-pull>>
 #+end_src
 
@@ -3727,7 +3779,7 @@ make -f ~/makefile tangle
 :header-args:zsh+: :noweb-ref tangle
 :END:
 
-#+begin_src zsh :noweb-ref no :tangle (meq/tangle-path) :shebang "#!/usr/bin/env zsh"
+#+begin_src plaintext :tangle (meq/tangle-path) :shebang "#!/usr/bin/env zsh"
 <<tangle>>
 #+end_src
 
@@ -3745,7 +3797,7 @@ $run /settings/org-tangle.sh $@
 :header-args:zsh+: :noweb-ref super
 :END:
 
-#+begin_src zsh :noweb-ref no :tangle (meq/tangle-path) :shebang "#!/usr/bin/env zsh"
+#+begin_src plaintext :tangle (meq/tangle-path) :shebang "#!/usr/bin/env zsh"
 <<super>>
 #+end_src
 
@@ -3766,7 +3818,7 @@ fi
 :header-args:xonsh+: :noweb-ref subinit
 :END:
 
-#+begin_src xonsh :noweb-ref no :tangle (meq/tangle-path) :shebang "#!/usr/bin/env xonsh"
+#+begin_src plaintext :tangle (meq/tangle-path) :shebang "#!/usr/bin/env xonsh"
 <<subinit>>
 #+end_src
 
@@ -3832,7 +3884,7 @@ for submodule, subdict in submodules.items():
 :header-args:zsh+: :noweb-ref wtt
 :END:
 
-#+begin_src zsh :noweb-ref no :tangle (meq/tangle-path) :shebang "#!/usr/bin/env zsh"
+#+begin_src plaintext :tangle (meq/tangle-path) :shebang "#!/usr/bin/env zsh"
 <<wtt>>
 #+end_src
 
@@ -3846,7 +3898,7 @@ git chRun ~/.emacs.d/wtt/wtt$ext
 :header-args:zsh+: :noweb-ref sunc
 :END:
 
-#+begin_src zsh :noweb-ref no :tangle (meq/tangle-path) :shebang "#!/usr/bin/env zsh"
+#+begin_src plaintext :tangle (meq/tangle-path) :shebang "#!/usr/bin/env zsh"
 <<sunc>>
 #+end_src
 
@@ -3862,7 +3914,7 @@ yadm sync root main
 :header-args:zsh+: :noweb-ref senc
 :END:
 
-#+begin_src zsh :noweb-ref no :tangle (meq/tangle-path) :shebang "#!/usr/bin/env zsh"
+#+begin_src plaintext :tangle (meq/tangle-path) :shebang "#!/usr/bin/env zsh"
 <<senc>>
 #+end_src
 
@@ -3878,7 +3930,7 @@ yadm se sync root main
 :header-args:zsh+: :noweb-ref se
 :END:
 
-#+begin_src zsh :noweb-ref no :tangle (meq/tangle-path) :shebang "#!/usr/bin/env zsh"
+#+begin_src plaintext :tangle (meq/tangle-path) :shebang "#!/usr/bin/env zsh"
 <<se>>
 #+end_src
 
@@ -3900,7 +3952,7 @@ $ylv -Y $root/.config/yadm-sec --yadm-dir $root/<<yadm-dir>>-sec
 :header-args:zsh+: :noweb-ref brew
 :END:
 
-#+begin_src zsh :noweb-ref no :tangle (meq/tangle-path) :shebang "#!/usr/bin/env zsh"
+#+begin_src plaintext :tangle (meq/tangle-path) :shebang "#!/usr/bin/env zsh"
 <<brew>>
 #+end_src
 
@@ -3915,7 +3967,7 @@ $ylv -Y $root/.config/yadm-sec --yadm-dir $root/<<yadm-dir>>-sec
 :header-args:zsh+: :noweb-ref nix
 :END:
 
-#+begin_src zsh :noweb-ref no :tangle (meq/tangle-path) :shebang "#!/usr/bin/env zsh"
+#+begin_src plaintext :tangle (meq/tangle-path) :shebang "#!/usr/bin/env zsh"
 <<nix>>
 #+end_src
 
@@ -3928,7 +3980,7 @@ $ylv -Y $root/.config/yadm-sec --yadm-dir $root/<<yadm-dir>>-sec
 :header-args:zsh+: :noweb-ref guix
 :END:
 
-#+begin_src zsh :noweb-ref no :tangle (meq/tangle-path) :shebang "#!/usr/bin/env zsh"
+#+begin_src plaintext :tangle (meq/tangle-path) :shebang "#!/usr/bin/env zsh"
 <<guix>>
 #+end_src
 
@@ -3941,7 +3993,7 @@ $ylv -Y $root/.config/yadm-sec --yadm-dir $root/<<yadm-dir>>-sec
 :header-args:zsh+: :noweb-ref asdf
 :END:
 
-#+begin_src zsh :noweb-ref no :tangle (meq/tangle-path) :shebang "#!/usr/bin/env zsh"
+#+begin_src plaintext :tangle (meq/tangle-path) :shebang "#!/usr/bin/env zsh"
 <<asdf>>
 #+end_src
 
@@ -3955,7 +4007,7 @@ $ylv -Y $root/.config/yadm-sec --yadm-dir $root/<<yadm-dir>>-sec
 :header-args:zsh+: :noweb-ref pacapt
 :END:
 
-#+begin_src zsh :noweb-ref no :tangle (meq/tangle-path) :shebang "#!/usr/bin/env zsh"
+#+begin_src plaintext :tangle (meq/tangle-path) :shebang "#!/usr/bin/env zsh"
 <<pacapt>>
 #+end_src
 
@@ -3968,7 +4020,7 @@ git sudoRun /resources/pacapt/pacapt $@
 :header-args:zsh+: :noweb-ref boom
 :END:
 
-#+begin_src zsh :noweb-ref no :tangle (meq/tangle-path) :shebang "#!/usr/bin/env zsh"
+#+begin_src plaintext :tangle (meq/tangle-path) :shebang "#!/usr/bin/env zsh"
 <<boom>>
 #+end_src
 
@@ -3982,7 +4034,7 @@ for pm in brew asdf nix guix pacapt; do git $pm $@ && break; done
 :header-args:powershell+: :noweb-ref Microsoft.PowerShell_profile.ps1
 :END:
 
-#+begin_src powershell :noweb-ref no :tangle (meq/tangle-path)
+#+begin_src plaintext :tangle (meq/tangle-path)
 <<Microsoft.PowerShell_profile.ps1>>
 #+end_src
 
@@ -3996,7 +4048,7 @@ Invoke-Expression (&starship init powershell)
 :header-args:fish+: :noweb-ref config.fish
 :END:
 
-#+begin_src fish :noweb-ref no :tangle (meq/tangle-path)
+#+begin_src plaintext :tangle (meq/tangle-path)
 <<config.fish>>
 #+end_src
 
@@ -4019,7 +4071,7 @@ starship init fish | source
 :header-args:python+: :noweb-ref config.py
 :END:
 
-#+begin_src python :noweb-ref no :tangle (meq/tangle-path)
+#+begin_src plaintext :tangle (meq/tangle-path)
 <<config.py>>
 #+end_src
 
@@ -4247,7 +4299,7 @@ wmname = "LG3D"
 :header-args:conf+: :noweb-ref init.toml
 :END:
 
-#+begin_src conf :noweb-ref no :tangle (meq/tangle-path)
+#+begin_src plaintext :tangle (meq/tangle-path)
 <<init.toml>>
 #+end_src
 
@@ -4463,7 +4515,7 @@ endfunction
 : 20211018140524183223400
 
 #+name: 20211018140524183223400
-#+begin_src conf :noweb-ref no :tangle (meq/tangle-path)
+#+begin_src plaintext :tangle (meq/tangle-path)
 <<20210601214303404504400()>>
 <<.tmux.conf>>
 #+end_src
@@ -4518,7 +4570,7 @@ From: https://man7.org/linux/man-pages/man1/tmux.1.html#KEY_BINDINGS
 : 20210601214314440746200
 
 #+name: 20210601214314440746200
-#+begin_src text :noweb-ref no
+#+begin_src plaintext :noweb-ref no
 C-b
 C-x
 C-z
@@ -4536,7 +4588,7 @@ unbind <<20210601214314440746200>>
 : 20210601214317258641300
 
 #+name: 20210601214317258641300
-#+begin_src text :noweb-ref no
+#+begin_src plaintext :noweb-ref no
 #+end_src
 
 #+begin_src conf
@@ -4551,7 +4603,7 @@ bind-key <<20210601214317258641300>>
 : 20210601214320148298300
 
 #+name: 20210601214320148298300
-#+begin_src text :noweb-ref no
+#+begin_src plaintext :noweb-ref no
 #+end_src
 
 #+begin_src conf
@@ -4566,7 +4618,7 @@ bind-key -n <<20210601214320148298300>>
 : 20210601214322950137300
 
 #+name: 20210601214322950137300
-#+begin_src text :noweb-ref no
+#+begin_src plaintext :noweb-ref no
 M-s send-prefix
 C-S-F5 send-keys M-F5
 C-S-Left send-keys M-Left
@@ -4585,7 +4637,7 @@ bind-key -nr <<20210601214322950137300>>
 : 20210601214325764323500
 
 #+name: 20210601214325764323500
-#+begin_src text :noweb-ref no
+#+begin_src plaintext :noweb-ref no
 #+end_src
 
 #+begin_src conf
@@ -4600,7 +4652,7 @@ bind-key -r <<20210601214325764323500>>
 : 20210601214331744518200
 
 #+name: 20210601214331744518200
-#+begin_src text :noweb-ref no
+#+begin_src plaintext :noweb-ref no
 #+end_src
 
 #+begin_src conf
@@ -4681,7 +4733,7 @@ setw -g aggressive-resize on
 : 20210601214334528396400
 
 #+name: 20210601214334528396400
-#+begin_src text :noweb-ref no
+#+begin_src plaintext :noweb-ref no
 tmux-plugins/tpm
 tmux-plugins/tmux-battery
 tmux-plugins/tmux-cpu
@@ -4728,7 +4780,7 @@ run "./resources/tpm/tpm"
 :header-args:conf+: :noweb-ref default.yaml
 :END:
 
-#+begin_src conf :noweb-ref no :tangle (meq/tangle-path)
+#+begin_src plaintext :tangle (meq/tangle-path)
 <<default.yaml>>
 #+end_src
 
@@ -4738,15 +4790,15 @@ session_name: default
 
 * .profile
 :PROPERTIES:
-:header-args:sh+: :noweb-ref .profile
+:header-args:shell+: :noweb-ref .profile
 :END:
 
-#+begin_src sh :noweb-ref no :tangle (meq/tangle-path)
+#+begin_src plaintext :tangle (meq/tangle-path)
 <<.profile>>
 #+end_src
 
 #+name: profile-sources
-#+begin_src sh
+#+begin_src shell
 . $HOME/.nix-profile/etc/profile.d/nix.sh
 . $HOME/.asdf/asdf.sh
 . $(fasd --init auto)
@@ -4754,7 +4806,7 @@ session_name: default
 #+end_src
 
 #+name: cd-home-and-profile-aliases
-#+begin_src sh
+#+begin_src shell
 cd $HOME
 alias c="clear"
 alias n="exit"
@@ -4771,14 +4823,14 @@ alias phy='PYTHONPATH="$HOME/.local/syvl/python/hy:$HOME/.local/syvl/python/bake
 #+end_src
 
 #+name: profile-functions
-#+begin_src sh
+#+begin_src shell
 ec() { { [ -z "$1" ] || [ "$1" != -* ]; } && emacsclient -s damascus -c $@ || emacsclient -s damascus $@; }
 emactl() { systemctl --user $1 emacs.service; }
 emacs-push() { make -f ~/.emacs.d/lib/$1/settings/makefile; }
 #+end_src
 
 #+name: profile-exports
-#+begin_src sh
+#+begin_src shell
 export EDITOR='ec'
 export VISUAL='ec'
 #+end_src
@@ -4810,7 +4862,7 @@ export VISUAL='ec'
 #+end_src
 
 #+name: profile-all-together
-#+begin_src sh :noweb-ref no
+#+begin_src plaintext
 <<profile-sources>>
 <<profile-functions>>
 <<profile-exports>>
@@ -4818,7 +4870,7 @@ export VISUAL='ec'
 <<profile-paths()>>
 #+end_src
 
-#+begin_src sh
+#+begin_src shell
 alias s="source $HOME/.profile"
 #+end_src
 
@@ -4827,7 +4879,7 @@ alias s="source $HOME/.profile"
 :header-args:bash+: :noweb-ref .bashrc
 :END:
 
-#+begin_src bash :noweb-ref no :tangle (meq/tangle-path)
+#+begin_src plaintext :tangle (meq/tangle-path)
 <<.bashrc>>
 #+end_src
 
@@ -4851,7 +4903,7 @@ eval "$(starship init bash)"
 :header-args:elvish+: :noweb-ref direnv.elv
 :END:
 
-#+begin_src elvish :noweb-ref no :tangle (meq/tangle-path)
+#+begin_src plaintext :tangle (meq/tangle-path)
 <<direnv.elv>>
 #+end_src
 
@@ -4864,7 +4916,7 @@ direnv hook elvish
 :header-args:elvish+: :noweb-ref rc.elv
 :END:
 
-#+begin_src elvish :noweb-ref no :tangle (meq/tangle-path)
+#+begin_src plaintext :tangle (meq/tangle-path)
 <<rc.elv>>
 #+end_src
 
@@ -4881,7 +4933,7 @@ eval (starship init elvish)
 :header-args:shell+: :noweb-ref .xinitrc
 :END:
 
-#+begin_src shell :noweb-ref no :tangle (meq/tangle-path)
+#+begin_src plaintext :tangle (meq/tangle-path)
 <<.xinitrc>>
 #+end_src
 
@@ -4891,14 +4943,14 @@ exec emacs
 
 * .direnvrc
 :PROPERTIES:
-:header-args:sh+: :noweb-ref .direnvrc
+:header-args:shell+: :noweb-ref .direnvrc
 :END:
 
-#+begin_src sh :noweb-ref no :tangle (meq/tangle-path)
+#+begin_src plaintext :tangle (meq/tangle-path)
 <<.direnvrc>>
 #+end_src
 
-#+begin_src sh
+#+begin_src shell
 source ~/resources/nix-direnv/direnvrc
 source ~/.config/direnv/direnvrc
 
@@ -4918,7 +4970,7 @@ fi
 : 20210601185925524999600
 
 #+name: 20210601185925524999600
-#+begin_src gitignore :noweb-ref no :tangle (meq/tangle-path)
+#+begin_src plaintext :tangle (meq/tangle-path)
 <<.globalignore>>
 #+end_src
 
@@ -4956,7 +5008,7 @@ temp
 :header-args:gitignore+: :noweb-ref .gitignore
 :END:
 
-#+begin_src gitignore :noweb-ref no :tangle (meq/tangle-path)
+#+begin_src plaintext :tangle (meq/tangle-path)
 <<.gitignore>>
 #+end_src
 
@@ -4969,7 +5021,7 @@ temp
 :header-args:gitignore+: :noweb-ref .hgignore
 :END:
 
-#+begin_src gitignore :noweb-ref no :tangle (meq/tangle-path)
+#+begin_src plaintext :tangle (meq/tangle-path)
 <<.hgignore>>
 #+end_src
 
@@ -4982,7 +5034,7 @@ temp
 :header-args:zsh+: :noweb-ref .zshrc
 :END:
 
-#+begin_src zsh :noweb-ref no :tangle (meq/tangle-path)
+#+begin_src plaintext :tangle (meq/tangle-path)
 <<.zshrc>>
 #+end_src
 
@@ -5000,7 +5052,7 @@ eval "$(starship init zsh)"
 :header-args:zsh+: :noweb-ref .zshenv
 :END:
 
-#+begin_src zsh :noweb-ref no :tangle (meq/tangle-path)
+#+begin_src plaintext :tangle (meq/tangle-path)
 <<.zshenv>>
 #+end_src
 
@@ -5013,7 +5065,7 @@ source ~/resources/grml/etc/zsh/zshenv
 :header-args:zsh+: :noweb-ref .zprofile
 :END:
 
-#+begin_src zsh :noweb-ref no :tangle (meq/tangle-path)
+#+begin_src plaintext :tangle (meq/tangle-path)
 <<.zprofile>>
 #+end_src
 
@@ -5026,7 +5078,7 @@ source ~/resources/grml/etc/zsh/zprofile
 :header-args:zsh+: :noweb-ref .zlogout
 :END:
 
-#+begin_src zsh :noweb-ref no :tangle (meq/tangle-path)
+#+begin_src plaintext :tangle (meq/tangle-path)
 <<.zlogout>>
 #+end_src
 
@@ -5040,7 +5092,7 @@ eval "$(direnv hook zsh)"
 :header-args:zsh+: :noweb-ref .zlogin
 :END:
 
-#+begin_src zsh :noweb-ref no :tangle (meq/tangle-path)
+#+begin_src plaintext :tangle (meq/tangle-path)
 <<.zlogin>>
 #+end_src
 
@@ -5054,7 +5106,7 @@ eval "$(direnv hook zsh)"
 :header-args:conf+: :noweb-ref .stow-global-ignore
 :END:
 
-#+begin_src conf :noweb-ref no :tangle (meq/tangle-path)
+#+begin_src plaintext :tangle (meq/tangle-path)
 <<.stow-global-ignore>>
 #+end_src
 
@@ -5068,7 +5120,7 @@ eval "$(direnv hook zsh)"
 :header-args:conf+: :noweb-ref termux.properties
 :END:
 
-#+begin_src conf :noweb-ref no :tangle (meq/tangle-path)
+#+begin_src plaintext :tangle (meq/tangle-path)
 <<termux.properties>>
 #+end_src
 
@@ -5172,7 +5224,7 @@ allow-external-apps = true
 
 Adapted From: https://github.com/keybase/client/blob/master/packaging/linux/run_keybase
 
-#+begin_src zsh :noweb-ref no :tangle (meq/tangle-path) :shebang "#!/usr/bin/env zsh"
+#+begin_src plaintext :tangle (meq/tangle-path) :shebang "#!/usr/bin/env zsh"
 <<run_keybase>>
 #+end_src
 

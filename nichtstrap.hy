@@ -257,7 +257,8 @@ click.pass-context
    click.pass-context
    (defn mount [ ctx boot-device deduplicated encrypted root-device swap ]
          (if ctx.obj.host
-             (do (for [dataset (.list zfs :r True :H True :m/list True :m/split True)]
+             (do (update-datasets ctx.obj.host)
+                 (for [dataset (.list zfs :r True :H True :m/list True :m/split True)]
                       (if (in ctx.obj.host dataset)
                           (break))
                       (else (.import zpool :f True ctx.obj.host)))

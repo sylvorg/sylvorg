@@ -16,7 +16,7 @@ imports = [
     ./hardware-configuration.nix
     "${fetchGit { url = "https://github.com/nix-community/home-manager"; }}/nixos"
     "${fetchGit { url = "https://github.com/nix-community/impermanence"; }}/nixos.nix"
-    "${fetchGit { url = "https://github.com/${j.attrs.users.primary}/nixpkgs"; ref = "guix"; }}/nixos/modules/services/development/guix.nix"
+    # "${fetchGit { url = "https://github.com/${j.attrs.users.primary}/nixpkgs"; ref = "guix"; }}/nixos/modules/services/development/guix.nix"
 ];
 boot = {
 supportedFilesystems = j.attrs.fileSystems.supported;
@@ -102,14 +102,153 @@ environment = {
 etc."nix/nix.conf".text = mkForce j.attrs.configs.nix;
 pathsToLink = [ "/share/nix-direnv" ];
 systemPackages = with pkgs; [
-    #   vim # Do not forget to add an editor to edit configuration.nix! The Nano editor is also installed by default.
+    # bcachefs-tools
+    acpilight
+    alacritty
+    asdf-vm
+    assh
+    atom
+    autojump
+    autossh
+    bat
+    bc
+    btrfs-progs
+    byobu
+    cascadia-code
+    cmake
+    copyq
+    coreutils
+    ctop
+    curl
+    darling-dmg
+    ddar
+    direnv
+    diskus
+    dos2unix
+    duf
+    elvish
+    emacs
+    entr
+    exa
+    exfat
+    # extra-container
+    fasd
+    fd
+    fd
+    fff
+    ffmpeg
+    figlet
+    filet
+    firefox
+    fish
+    fzf
+    gcc
+    git
+    git-crypt
+    git-filter-repo
+    git-fire
+    git-lfs
+    gitoxide
+    glances
+    gnumake
+    google-chrome google-chrome-beta google-chrome-dev
+    gotop
+    gparted
+    gptfdisk
+    haskellPackages.hocker
+    inetutils
+    jupyter
+    keybase-gui kitty
+    libffi
+    libguestfs
+    libsForQt5.qtstyleplugin-kvantum
+    libtool
+    lolcat
+    lorri
+    man
+    micro
+    mkpasswd
+    monkeysphere
+    mosh
+    mtr
+    neo-cowsay
+    neovim
+    niv
+    nix-direnv
+    nnn
+    nodePackages.prettier
+    nox
+    ntfs3g nixos-shell
+    pandoc
+    par2cmdline
+    parted pmutils
+    peru
+    pfetch
+    pypy
+    python310
+    python39Packages.pipx
+    ranger
+    refind
+    ripgrep
+    rsync
+    sd
+    shadowfox
+    shellcheck
+    silver-searcher
+    snapper
+    spacevim
+    sqlite
+    starship
+    sysstat
+    thefuck
+    thermald
+    tmux
+    tmuxp
+    tree
+    udftools
+    ulauncher
+    uutils-coreutils
+    vagrant
+    vim
+    vivaldi vivaldi-ffmpeg-codecs vivaldi-widevine
+    vlc
+    vscode vscodium
+    wget
+    win-qemu
+    woeusb
+    wtf
+    xclip
+    xclip
+    xfce.thunar
+    xz
+    yubico-pam yubico-piv-tool yubikey-manager yubikey-agent yubikey-personalization yubioath-desktop
+    yubikey-manager-qt yubikey-personalization-gui
+    zenith
+    zsh
 ] ++ (map (pkg: pkgs.gnome."gnome-${pkg}") [
-    # "boxes"
-    # "characters"
-    # "tweaks"
+    "boxes"
+    "characters"
+    "tweaks"
     "session"
+]) ++ (map (pkg: pkgs."nix-prefetch-${pkg}") [
+    "github"
+    "docker"
+    "scripts"
 ]) ++ (with pkgs.gnome; [
-    # dconf-editor
+    dconf-editor
+]) ++ (with pkgs.gitAndTools; [
+    git-extras
+    git-hub
+    gitflow
+    gh
+    hub
+    lab
+]) ++ (with pkgs.python310Packages; [
+    black
+    black-macchiato
+    poetry
+    jupyterlab
+    xonsh
 ]);
 persistence = let
     rootDirSet = {
@@ -266,7 +405,8 @@ system = {
     autoUpgrade = {
         enable = true;
         allowReboot = false;
-        flake = https://github.com/nixos/nixpkgs/archive/master.tar.gz;
+        # flake = https://github.com/nixos/nixpkgs/archive/master.tar.gz;
+        flake = https://github.com/shadowrylander/nixpkgs/archive/j.tar.gz;
     };
 };
 networking = {
@@ -339,6 +479,7 @@ programs = {
     xonsh.enable = true;
     fish.enable = true;
     zsh.enable = true;
+    extra-container.enable = true;
 };
 # For Yubikey SSH-GPG Authentication
 environment.shellInit = ''

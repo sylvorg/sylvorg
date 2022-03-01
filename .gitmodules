@@ -1,101 +1,81 @@
 [submodule ".emacs.d"]
     shallow = true
-    branch = main
     path = .emacs.d
     url = https://github.com/shadowrylander/.emacs.d.git
 [submodule "resources/bashCompletions"]
     shallow = true
-    branch = master
     path = resources/bashCompletions
     url = https://github.com/scop/bash-completion.git
 [submodule "resources/xeroFigletFonts"]
     shallow = true
-    branch = master
     path = resources/xeroFigletFonts
     url = https://github.com/xero/figlet-fonts.git
 [submodule "resources/grml"]
     shallow = true
-    branch = master
     path = resources/grml
     url = https://github.com/grml/grml-etc-core.git
 [submodule "resources/kittyThemes"]
     shallow = true
-    branch = master
     path = resources/kittyThemes
     url = https://github.com/dexpota/kitty-themes.git
 [submodule "resources/aleclearmind"]
     shallow = true
-    branch = master
     path = resources/aleclearmind
     url = https://github.com/aleclearmind/nested-tmux.git
 [submodule "resources/oh-my-tmux"]
     shallow = true
-    branch = master
     path = resources/oh-my-tmux
     url = https://github.com/gpakosz/.tmux.git
 [submodule "resources/powerline"]
     shallow = true
-    branch = master
     path = resources/powerline
     url = https://github.com/powerline/powerline.git
 [submodule "resources/tpm"]
     shallow = true
-    branch = master
     path = resources/tpm
     url = https://github.com/tmux-plugins/tpm.git
 [submodule ".vim"]
     shallow = true
-    branch = master
     path = .vim
     url = https://github.com/SpaceVim/SpaceVim.git
 [submodule ".config/neovim"]
     shallow = true
-    branch = master
     path = .config/neovim
     url = https://github.com/SpaceVim/SpaceVim.git
 [submodule "resources/nix-direnv"]
     shallow = true
-    branch = master
     path = resources/nix-direnv
     url = https://github.com/nix-community/nix-direnv.git
 [submodule "git-subtree"]
     shallow = true
-    branch = master
     path = git-subtree
     url = https://github.com/shadowrylander/git-subtree.git
 [submodule "resources/bass"]
     shallow = true
-    branch = master
     path = resources/bass
     url = https://github.com/edc/bass.git
 [submodule "resources/nix-env.fish"]
     shallow = true
-    branch = master
     path = resources/nix-env.fish
     url = https://github.com/lilyball/nix-env.fish.git
 [submodule "sylveon"]
     shallow = true
-    branch = main
     path = sylveon
     url = https://github.com/shadowrylander/sylveon.git
 [submodule "ylv"]
     shallow = true
-    branch = main
     path = ylv
     url = https://github.com/shadowrylander/ylv.git
 [submodule "sylvorg.github.io"]
     shallow = true
-    branch = master
     path = sylvorg.github.io
     url = https://github.com/sylvorg/sylvorg.github.io.git
 [submodule "syvlorg.github.io"]
     shallow = true
-    branch = master
     path = syvlorg.github.io
     url = https://github.com/syvlorg/syvlorg.github.io.git
 [submodule "resources/rolling-rhino"]
     shallow = true
-    branch = master
     path = resources/rolling-rhino
     url = https://github.com/wimpysworld/rolling-rhino.git
 [submodule "settings"]

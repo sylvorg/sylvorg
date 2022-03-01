@@ -25,22 +25,6 @@ in flatten [
 [
     (import (fetchGit { url = "https://github.com/nix-community/emacs-overlay"; }))
 ]
-[
-    (final: prev: {
-        extra-container = let
-            pkgSrc = fetchGit { url = "https://github.com/erikarvstedt/extra-container"; };
-        in pkgs.callPackage pkgSrc { inherit pkgSrc; };
-    })
-]
-[
-    (final: prev: { caddy = pkgs.callPackage ./callPackages/caddy.nix {
-        plugins = [
-            "github.com/mholt/caddy-l4@latest"
-            "github.com/abiosoft/caddy-yaml@latest"
-            "github.com/caddy-dns/cloudflare@latest"
-        ];
-    }; })
-]
 (let
     mozilla = fetchGit { url = "https://github.com/mozilla/nixpkgs-mozilla"; };
     mozilla-overlays = import "${mozilla}/overlays.nix";
@@ -62,5 +46,4 @@ in flatten (mapAttrsToList (
         })]
     ) pkglist
 ) pkgsets))
-[(final: prev: { guix = final.callPackage "${fetchGit { url = "https://github.com/${j.attrs.users.primary}/nixpkgs"; ref = "guix"; }}/pkgs/development/guix/guix.nix" {  }; })]
 ]

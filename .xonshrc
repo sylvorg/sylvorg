@@ -1,6 +1,5 @@
 from sys import path as sys_path
 from datetime import datetime
-from nanite import fullpath as fp
 from os import path as os_path, sep as os_sep, getcwd
 from inspect import getsourcefile
 # Note that type hints cannot be used
