@@ -1,7 +1,8 @@
 { config, ... }: with builtins;
 let
-ref = "master";
-nixpkgs = fetchGit { url = "https://github.com/nixos/nixpkgs"; inherit ref; };
+ref = "j";
+url = "https://github.com/shadowrylander/nixpkgs";
+nixpkgs = fetchGit { inherit url ref; };
 prepkgs = import nixpkgs {  };
 lib = prepkgs.lib.extend (final: prev: { j = import ./lib.nix prepkgs final config.networking.hostName; });
 overlays = import ./overlays.nix lib nixpkgs pkgs ref;
@@ -157,6 +158,7 @@ systemPackages = with pkgs; [
     gptfdisk
     haskellPackages.hocker
     inetutils
+    j-settings
     jupyter
     keybase-gui kitty
     libffi

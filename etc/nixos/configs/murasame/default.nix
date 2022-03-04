@@ -1,12 +1,9 @@
 { config, ... }:
 
 {
-    imports = [
-        ../../super.nix
-        ../../bcachefs.nix
-    ];
+    imports = import ../imports.nix;
     networking = {
         hostName = baseNameOf (toString ./.);
-        hostId = "61e57e52";
+        hostId = "89ebf1c4";
     };
 }
