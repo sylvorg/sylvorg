@@ -415,7 +415,9 @@ system = {
         flake = "https://github.com/${j.attrs.users.primary}/nixpkgs/archive/j.tar.gz";
     };
 };
-networking = {
+networking = let
+    Networking = import <nixpkgs/nixos> { configuration.imports = [ ./configuration.nix ]; };
+in (mapAttrs (n: v: v // { wakeOnLan.enable = true; }) Networking) // {
     # interfaces = map (interface:
     #     { inherit interface; method = "magicpacket"; }
     # ) (attrNames config.networking.interfaces);
