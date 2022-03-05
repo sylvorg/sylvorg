@@ -444,7 +444,14 @@ then re-add them to the final mountpoint with ~"/mnt~.
                        (for [[k v] (.items ordered-dataset-dict)]
                             (-> v (.strip "\"") (Path) (.mkdir :parents True :exist-ok True))
                             (Mount :t "zfs" k v)))
-                 (.mkdir (Path "/mnt/etc/nixos") :parents True :exist-ok True)
+
+                 (setv etc/nixos "/etc/nixos"
+                       men (+ "/mnt" etc/nixos)
+                       mpn (+ "/mnt/persist/root" etc/nixos))
+                 (.mkdir (Path men) :parents True :exist-ok True)
+                 (.mkdir (Path mpn) :parents True :exist-ok True)
+                 (Mount :bind True mpn men)
+
                  (if boot-device
                      (let [boot "/mnt/boot/efi"]
                           (.mkdir (Path boot) :parents True :exist-ok True)
@@ -2185,14 +2192,17 @@ sound.enable = true;
 ***** Home-Manager
 
 #+begin_src nix
-home-manager.users = j.functions.foldToSet [
-    listToAttrs (user: nameValuePair user {
-        home.file.<<20220205031620372930929>> = {
-            source = repo;
-            recursive = true;
-        };
-    }) j.attrs.allUsers
-];
+home-manager = {
+    useGlobalPkgs = true;
+    users = j.functions.foldToSet [
+        listToAttrs (user: nameValuePair user {
+            home = {
+                homeDirectory = j.attrs.homes.${user};
+                file.<<20220205031620372930929>>.source = repo;
+            };
+        }) j.attrs.allUsers
+    ];
+};
 #+end_src
 
 ***** Memory
@@ -2235,8 +2245,8 @@ system = {
     autoUpgrade = {
         enable = true;
         allowReboot = false;
-        # flake = https://github.com/nixos/nixpkgs/archive/master.tar.gz;
-        flake = https://github.com/<<username>>/nixpkgs/archive/j.tar.gz;
+        # flake = "https://github.com/nixos/nixpkgs/archive/master.tar.gz";
+        flake = "https://github.com/${j.attrs.users.primary}/nixpkgs/archive/j.tar.gz";
     };
 };
 #+end_src

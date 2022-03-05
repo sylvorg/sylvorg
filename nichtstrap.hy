@@ -288,7 +288,14 @@ click.pass-context
           (for [[k v] (.items ordered-dataset-dict)]
                (-> v (.strip "\"") (Path) (.mkdir :parents True :exist-ok True))
                (Mount :t "zfs" k v)))
-    (.mkdir (Path "/mnt/etc/nixos") :parents True :exist-ok True)
+
+    (setv etc/nixos "/etc/nixos"
+          men (+ "/mnt" etc/nixos)
+          mpn (+ "/mnt/persist/root" etc/nixos))
+    (.mkdir (Path men) :parents True :exist-ok True)
+    (.mkdir (Path mpn) :parents True :exist-ok True)
+    (Mount :bind True mpn men)
+
     (if boot-device
         (let [boot "/mnt/boot/efi"]
              (.mkdir (Path boot) :parents True :exist-ok True)

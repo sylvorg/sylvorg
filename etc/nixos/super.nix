@@ -378,14 +378,17 @@ hardware = {
     pulseaudio.enable = true;
 };
 sound.enable = true;
-home-manager.users = j.functions.foldToSet [
-    listToAttrs (user: nameValuePair user {
-        home.file.dross = {
-            source = repo;
-            recursive = true;
-        };
-    }) j.attrs.allUsers
-];
+home-manager = {
+    useGlobalPkgs = true;
+    users = j.functions.foldToSet [
+        listToAttrs (user: nameValuePair user {
+            home = {
+                homeDirectory = j.attrs.homes.${user};
+                file.dross.source = repo;
+            };
+        }) j.attrs.allUsers
+    ];
+};
 zramSwap = {
     enable = true;
     algorithm = "zstd";
@@ -407,8 +410,8 @@ system = {
     autoUpgrade = {
         enable = true;
         allowReboot = false;
-        # flake = https://github.com/nixos/nixpkgs/archive/master.tar.gz;
-        flake = https://github.com/shadowrylander/nixpkgs/archive/j.tar.gz;
+        # flake = "https://github.com/nixos/nixpkgs/archive/master.tar.gz";
+        flake = "https://github.com/${j.attrs.users.primary}/nixpkgs/archive/j.tar.gz";
     };
 };
 networking = {
