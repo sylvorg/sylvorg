@@ -2,11 +2,12 @@
 let
 ref = "j";
 url = "https://github.com/shadowrylander/nixpkgs";
-nixpkgs = fetchGit { inherit url ref; };
-prepkgs = import nixpkgs {  };
+Nixpkgs = fetchGit { inherit url ref; };
+prepkgs = import Nixpkgs {  };
 lib = prepkgs.lib.extend (final: prev: { j = import ./lib.nix prepkgs final config.networking.hostName; });
-overlays = import ./overlays.nix lib nixpkgs pkgs ref;
-pkgs = import nixpkgs { inherit overlays; };
+overlays = import ./overlays.nix lib Nixpkgs pkgs ref;
+nixpkgs = { inherit overlays; config = j.attrs.configs.nixpkgs; };
+pkgs = import Nixpkgs nixpkgs;
 dir = "${lib.j.attrs.homes.${lib.j.attrs.users.primary}}/.local/share/yadm/repo.git";
 dirExists = pathExists dir;
 repo = with lib; j.functions.mntConvert (fetchGit {
@@ -469,12 +470,14 @@ nix = rec {
         automatic = true;
         dates = [ "05:00" ];
     };
-    autoOptimiseStore = true;
     extraOptions = j.attrs.configs.nix;
-    useSandbox = true;
+    settings = {
+        auto-optimise-store = true;
+        sandbox = true;
+    };
     # sandboxPaths = [];
 };
-nixpkgs = { inherit overlays; };
+inherit nixpkgs;
 services.logind.lidSwitch = "hybrid-sleep";
 powerManagement = {
     enable = true;

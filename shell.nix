@@ -10,7 +10,7 @@ in (pkgs.mkShell rec {
         python3 -m venv ${venv}
         source ${venv}/bin/activate
         pip install --upgrade pip || :
-        pip install https://github.com/shadowrylander/bakery/archive/main.tar.gz \
+        pip install https://github.com/syvlorg/bakery/archive/main.tar.gz \
                     coconut \
                     cytoolz \
                     xonsh || :

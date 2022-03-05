@@ -19,7 +19,7 @@ in (pkgs.mkShell rec {
         python3 -m venv ${venv}
         source ${venv}/bin/activate
         pip install --upgrade pip || :
-        pip install https://github.com/<<username>>/bakery/archive/main.tar.gz \
+        pip install https://github.com/syvlorg/bakery/archive/main.tar.gz \
                     coconut \
                     cytoolz \
                     xonsh || :
@@ -1652,26 +1652,27 @@ let
 #+begin_src nix
 ref = "j";
 url = "https://github.com/shadowrylander/nixpkgs";
-nixpkgs = fetchGit { inherit url ref; };
+Nixpkgs = fetchGit { inherit url ref; };
 #+end_src
 
 ***** Lib
 
 #+begin_src nix
-prepkgs = import nixpkgs {  };
+prepkgs = import Nixpkgs {  };
 lib = prepkgs.lib.extend (final: prev: { j = import ./lib.nix prepkgs final config.networking.hostName; });
 #+end_src
 
 ***** Overlays
 
 #+begin_src nix
-overlays = import ./overlays.nix lib nixpkgs pkgs ref;
+overlays = import ./overlays.nix lib Nixpkgs pkgs ref;
 #+end_src
 
 ***** Pkgs
 
 #+begin_src nix
-pkgs = import nixpkgs { inherit overlays; };
+nixpkgs = { inherit overlays; config = j.attrs.configs.nixpkgs; };
+pkgs = import Nixpkgs nixpkgs;
 #+end_src
 
 ***** Config Repo
@@ -2314,9 +2315,11 @@ nix = rec {
         automatic = true;
         dates = [ "05:00" ];
     };
-    autoOptimiseStore = true;
     extraOptions = j.attrs.configs.nix;
-    useSandbox = true;
+    settings = {
+        auto-optimise-store = true;
+        sandbox = true;
+    };
     # sandboxPaths = [];
 };
 #+end_src
@@ -2324,7 +2327,7 @@ nix = rec {
 ***** Nixpkgs
 
 #+begin_src nix
-nixpkgs = { inherit overlays; };
+inherit nixpkgs;
 #+end_src
 
 ***** Power
