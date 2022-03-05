@@ -6,7 +6,7 @@ Nixpkgs = fetchGit { inherit url ref; };
 prepkgs = import Nixpkgs {  };
 lib = prepkgs.lib.extend (final: prev: { j = import ./lib.nix prepkgs final config.networking.hostName; });
 overlays = import ./overlays.nix lib Nixpkgs pkgs ref;
-nixpkgs = { inherit overlays; config = j.attrs.configs.nixpkgs; };
+nixpkgs = { inherit overlays; config = lib.j.attrs.configs.nixpkgs; };
 pkgs = import Nixpkgs nixpkgs;
 dir = "${lib.j.attrs.homes.${lib.j.attrs.users.primary}}/.local/share/yadm/repo.git";
 dirExists = pathExists dir;
@@ -123,7 +123,7 @@ systemPackages = with pkgs; [
     ctop
     curl
     darling-dmg
-    ddar
+    # ddar
     direnv
     diskus
     dos2unix
@@ -157,7 +157,7 @@ systemPackages = with pkgs; [
     gotop
     gparted
     gptfdisk
-    haskellPackages.hocker
+    # haskellPackages.hocker
     inetutils
     j-settings
     jupyter

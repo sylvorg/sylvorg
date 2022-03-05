@@ -1671,7 +1671,7 @@ overlays = import ./overlays.nix lib Nixpkgs pkgs ref;
 ***** Pkgs
 
 #+begin_src nix
-nixpkgs = { inherit overlays; config = j.attrs.configs.nixpkgs; };
+nixpkgs = { inherit overlays; config = lib.j.attrs.configs.nixpkgs; };
 pkgs = import Nixpkgs nixpkgs;
 #+end_src
 
@@ -1912,7 +1912,7 @@ systemPackages = with pkgs; [
     ctop
     curl
     darling-dmg
-    ddar
+    # ddar
     direnv
     diskus
     dos2unix
@@ -1946,7 +1946,7 @@ systemPackages = with pkgs; [
     gotop
     gparted
     gptfdisk
-    haskellPackages.hocker
+    # haskellPackages.hocker
     inetutils
     j-settings
     jupyter
