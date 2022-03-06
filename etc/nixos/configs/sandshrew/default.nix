@@ -7,7 +7,7 @@
     ];
     networking = {
         hostName = baseNameOf (toString ./.);
-        hostId = "a36302a5";
+        hostId = "b4beb563";
         networkmanager.extraConfig = ''
             [connection]
             wifi.powersave = 2

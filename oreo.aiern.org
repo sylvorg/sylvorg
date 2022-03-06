@@ -1710,13 +1710,7 @@ hardware-configuration = import <nixpkgs/nixos> { configuration.imports = [ ./ha
 in with lib; {
 #+end_src
 
-**** Config
-
-#+begin_src nix
-config = (removeAttrs hardware-configuration [ "fileSystems" ]) // {
-#+end_src
-
-***** Imports
+**** Imports
 
 #+begin_src nix
 imports = [
@@ -1724,6 +1718,12 @@ imports = [
     "${fetchGit { url = "https://github.com/nix-community/impermanence"; }}/nixos.nix"
     # "${fetchGit { url = "https://github.com/${j.attrs.users.primary}/nixpkgs"; ref = "guix"; }}/nixos/modules/services/development/guix.nix"
 ];
+#+end_src
+
+**** Config
+
+#+begin_src nix
+config = (removeAttrs hardware-configuration.config [ "fileSystems" ]) // {
 #+end_src
 
 ***** Boot
