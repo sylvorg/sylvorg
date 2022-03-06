@@ -16,7 +16,7 @@ repo = with lib; j.functions.mntConvert (fetchGit {
 configuration = import <nixpkgs/nixos> { configuration.imports = [ ./configuration.nix ]; };
 old-hardware-configuration = import <nixpkgs/nixos> { configuration.imports = [ ./hardware-configuration.nix ]; };
 new-hardware-configuration = import <nixpkgs/nixos> { configuration.imports = [ ./hardware-configuration.nix ]; };
-new-hardware-configuration.config.fileSystems = mkForce (filterAttrs (n: v: ! (builtins.elem "bind" v.options)) old-hardware-configuration.config.fileSystems);
+new-hardware-configuration.config.fileSystems = lib.mkForce (filterAttrs (n: v: ! (builtins.elem "bind" v.options)) old-hardware-configuration.config.fileSystems);
 in with lib;
 new-hardware-configuration // {
 imports = [
