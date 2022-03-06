@@ -25,7 +25,7 @@
              (import toolz [last])))
 (require hyrule [-> assoc])
 (setv resources (+ (.dirname os.path (.realpath os.path __file__)) "/etc/nixos/"))
-(defn update-datasets [host [swap 0] [encrypted False] [deduplicated False] [pool False]]
+(defn update-datasets [host [swap 0] [encrypted False] [deduplicated False] [pool False] [root-device None]]
       (setv snap-dir     [ "snapdir=visible" ]
             extra-copies (+ snap-dir [ "copies=3" ])
             cache        [ "sync=disabled" ]
@@ -82,7 +82,10 @@
            (assoc (. datasets [s] [d] home [d]) user (dict))
            (assoc (. datasets virt [d] podman [d]) user (dict)))
       (with [dnix (open (+ resources "/datasets.nix") "w")]
-            (.write dnix "host: {\n")
+            (.write dnix (+ "host: { \""
+                            (or root-device "${host}/system/root")
+                            "\" = \"\\\";"
+                            "\n"))
             (defn recurse [ddict dname droot [mountpoint ""]]
                   (setv recurse/datasets     (.list zfs :r True :o "name" :m/list True :m/ignore-stderr True)
                         recurse/datasets     (cut recurse/datasets 2 (len recurse/datasets))
@@ -102,7 +105,7 @@
                             snapshot-or-none (+ host "/base@root"))
                       (setv clone-or-create  "create"
                             snapshot-or-none ""))
-                  (if (not (in recurse/real-dataset (lfor dataset prefixes (+ host "/" dataset))))
+                  (if (not (in recurse/real-dataset (lfor prefix prefixes (+ host "/" prefix))))
                       (do (if (setx recurse/mountpoint (.get ddict "mountpoint" ""))
                               (setv mountpoint recurse/mountpoint)
                               (if mountpoint
@@ -258,7 +261,7 @@ click.pass-context
    click.pass-context
    (defn mount [ ctx boot-device deduplicated encrypted root-device swap ]
          (if ctx.obj.host
-             (do (update-datasets ctx.obj.host)
+             (do (update-datasets ctx.obj.host :root-device root-device :encrypted encrypted :deduplicated deduplicated :swap swap)
                  (for [dataset (.list zfs :r True :H True :m/list True :m/split True)]
                       (if (in ctx.obj.host dataset)
                           (break))
@@ -272,7 +275,7 @@ click.pass-context
                  (if root-device
                      (Mount root-device "/mnt")
                      (Mount :t "zfs" (+ ctx.obj.host "/system/root") "/mnt"))
-                 
+
                  (Mount :t "zfs" (+ ctx.obj.host "/system/nix") "/mnt/nix")
                  (Mount :t "zfs" (+ ctx.obj.host "/system/persist") "/mnt/persist")
 
@@ -302,11 +305,12 @@ click.pass-context
    (.option click "-e" "--encrypted" :is-flag True)
    (.option click "-f" "--files" :is-flag True :help "Update datasets.nix with any new datasets; the default")
    (.option click "-p" "--pool" :is-flag True :help "Update the pool and datasets.nix with any new datasets")
+   (.option click "-r" "--root-device")
    (.option click "-s" "--swap" :type int :default 0)
    click.pass-context
-   (defn update [ ctx deduplicated encrypted files pool swap ]
+   (defn update [ ctx deduplicated encrypted files pool root-device swap ]
          (if ctx.obj.host
-             (try (setv ud (partial update-datasets ctx.obj.host swap encrypted deduplicated))
+             (try (setv ud (partial update-datasets ctx.obj.host :swap swap :encrypted encrypted :deduplicated deduplicated :root-device root-device))
                   (cond [files (ud)]
                         [pool (ud :pool True)]
                         [True (ud)])
