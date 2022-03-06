@@ -16,7 +16,7 @@ repo = with lib; j.functions.mntConvert (fetchGit {
 configuration = import <nixpkgs/nixos> { configuration.imports = [ ./configuration.nix ]; };
 hardware-configuration = import <nixpkgs/nixos> { configuration.imports = [
     ./hardware-configuration.nix
-    ({config, ... }: { networking.hostId = "08300c16"; boot.loader.grub.devices = [ "nodev" ]; })
+    ({config, ... }: { networking.hostId = "8a8b7169"; boot.loader.grub.devices = [ "nodev" ]; })
 ]; };
 in with lib; {
 imports = [
@@ -24,7 +24,7 @@ imports = [
     "${fetchGit { url = "https://github.com/nix-community/impermanence"; }}/nixos.nix"
     # "${fetchGit { url = "https://github.com/${j.attrs.users.primary}/nixpkgs"; ref = "guix"; }}/nixos/modules/services/development/guix.nix"
 ];
-config = (removeAttrs hardware-configuration.config [ "fileSystems" "nesting" "jobs" "fonts" ]) // {
+config = (removeAttrs hardware-configuration.config [ "fileSystems" "nesting" "jobs" "fonts" "meta" "documentation" ]) // {
 boot = {
 supportedFilesystems = j.attrs.fileSystems.supported;
 initrd = {

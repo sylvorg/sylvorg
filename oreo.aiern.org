@@ -1730,7 +1730,7 @@ imports = [
 **** Config
 
 #+begin_src nix
-config = (removeAttrs hardware-configuration.config [ "fileSystems" "nesting" "jobs" "fonts" ]) // {
+config = (removeAttrs hardware-configuration.config [ "fileSystems" "nesting" "jobs" "fonts" "meta" "documentation" ]) // {
 #+end_src
 
 ***** Boot
