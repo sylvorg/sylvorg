@@ -1701,20 +1701,33 @@ repo = with lib; j.functions.mntConvert (fetchGit {
 
 #+begin_src nix
 configuration = import <nixpkgs/nixos> { configuration.imports = [ ./configuration.nix ]; };
-hardware-configuration = import <nixpkgs/nixos> { configuration.imports = [ ./hardware-configuration.nix ]; };
+old-hardware-configuration = import <nixpkgs/nixos> { configuration.imports = [ ./hardware-configuration.nix ]; };
+new-hardware-configuration = import <nixpkgs/nixos> { configuration.imports = [ ./hardware-configuration.nix ]; };
+#+end_src
+
+****** Remove Bind-Mounted FileSystems Devices from `hardware-configuration'
+
+#+begin_src nix
+new-hardware-configuration.config.fileSystems = mkForce (filterAttrs (n: v: ! (builtins.elem "bind" v.options)) old-hardware-configuration.config.fileSystems)
 #+end_src
 
 **** Config
+***** With Lib
 
 #+begin_src nix
-in with lib; {
+in with lib;
+#+end_src
+
+***** Merge Customized `hardware-configuration.nix' with Config
+
+#+begin_src nix
+new-hardware-configuration // {
 #+end_src
 
 ***** Imports
 
 #+begin_src nix
 imports = [
-    ./hardware-configuration.nix
     "${fetchGit { url = "https://github.com/nix-community/home-manager"; }}/nixos"
     "${fetchGit { url = "https://github.com/nix-community/impermanence"; }}/nixos.nix"
     # "${fetchGit { url = "https://github.com/${j.attrs.users.primary}/nixpkgs"; ref = "guix"; }}/nixos/modules/services/development/guix.nix"
@@ -2191,11 +2204,11 @@ in {
 fileSystems = let
     inherit (j.attrs.fileSystems) base;
     fileSystems' = j.attrs.datasets.fileSystems;
-in mkForce ((filterAttrs (n: v: ! (elem "bind" v.options)) hardware-configuration.config.fileSystems) // (mapAttrs' (dataset: mountpoint: nameValuePair mountpoint (
+in mapAttrs' (dataset: mountpoint: nameValuePair mountpoint (
     mkForce (base // { device = dataset; ${
         j.functions.myIf.knull ((hasInfix j.attrs.users.primary dataset) || (hasInfix "persist" dataset)) "neededForBoot"
     } = true; })
-)) fileSystems'));
+)) fileSystems';
 #+end_src
 
 ***** Hardware
