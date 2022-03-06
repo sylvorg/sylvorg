@@ -733,5 +733,5 @@ virtualisation = {
     };
     libvirtd.enable = true;
 };
+};
 }
-{

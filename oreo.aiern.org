@@ -2707,13 +2707,13 @@ virtualisation = {
 ***** End of super.nix
 
 #+begin_src nix
-}
+};
 #+end_src
 
 **** End of Set
 
 #+begin_src nix
-{
+}
 #+end_src
 
 ** nix
