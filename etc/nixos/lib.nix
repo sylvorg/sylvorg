@@ -152,7 +152,7 @@ homes = listToAttrs (map (
 ) mainUsers);
 allHomes = homes // { root = "/root"; };
 datasets = {
-    fileSystems = import ./datasets.nix;
+    fileSystems = import ./datasets.nix host;
     backup = [
         "system/persist"
         "virt"

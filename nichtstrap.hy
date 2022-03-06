@@ -82,11 +82,14 @@
            (assoc (. datasets [s] [d] home [d]) user (dict))
            (assoc (. datasets virt [d] podman [d]) user (dict)))
       (with [dnix (open (+ resources "/datasets.nix") "w")]
-            (.write dnix "{\n")
+            (.write dnix "host: {\n")
             (defn recurse [ddict dname droot [mountpoint ""]]
                   (setv recurse/datasets (.list zfs :r True :o "name" :m/list True :m/ignore-stderr True)
                         recurse/datasets (cut recurse/datasets 2 (len recurse/datasets))
                         recurse/dataset (+ droot "/" dname)
+                        recurse/real-dataset (if (.startswith recurse/dataset "${host}")
+                                                 (.replace recurse/dataset "${host}" host 1)
+                                                 recurse/dataset)
                         cloning         (and (!= dname "base")
                                              (and encrypted deduplicated))
                         prefixes        (, "system"
@@ -101,13 +104,13 @@
                             snapshot-or-none (+ host "/base@root"))
                       (setv clone-or-create  "create"
                             snapshot-or-none ""))
-                  (if (not (in recurse/dataset (lfor dataset prefixes (+ host "/" dataset))))
+                  (if (not (in recurse/real-dataset (lfor dataset prefixes (+ host "/" dataset))))
                       (do (if (setx recurse/mountpoint (.get ddict "mountpoint" ""))
                               (setv mountpoint recurse/mountpoint)
                               (if mountpoint
                                   (setv mountpoint (+ mountpoint "/" dname)
                                         recurse/mountpoint mountpoint)
-                                  (do (setv recurse/mountpoint (.removeprefix recurse/dataset (+ host "/")))
+                                  (do (setv recurse/mountpoint (.removeprefix recurse/dataset "${host}/"))
                                       (for [prefix prefixes]
                                            (setv recurse/mountpoint (.removeprefix recurse/mountpoint (+ prefix "/"))))
                                       (setv recurse/mountpoint (+ "/" recurse/mountpoint)))))
@@ -116,16 +119,16 @@
                                           "\" = \""
                                           recurse/mountpoint
                                           "\";\n"))))
-                  (if (and pool (not (in recurse/dataset recurse/datasets)))
+                  (if (and pool (not (in recurse/real-dataset recurse/datasets)))
                       (do (zfs :m/subcommand clone-or-create
                                :o { "repeat-with-values" (.get ddict "options" []) }
                                snapshot-or-none
-                               recurse/dataset)
-                          (.snapshot zfs :r True (+ recurse/dataset "@root"))))
+                               recurse/real-dataset)
+                          (.snapshot zfs :r True (+ recurse/real-dataset "@root"))))
                   (for [[key value] (.items (.get ddict d (D {  })))]
-                       (recurse value key recurse/dataset mountpoint)))
+                       (recurse value key recurse/real-dataset mountpoint)))
             (for [[key value] (.items datasets)]
-                 (recurse value key host))
+                 (recurse value key "${host}"))
             (.write dnix "}"))
       (if pool
           (let [pool-size-plus-metric (get (.get zpool :H True "size" host :m/list True :m/split True) 2)
@@ -271,45 +274,31 @@ click.pass-context
                  (if root-device
                      (Mount root-device "/mnt")
                      (Mount :t "zfs" (+ ctx.obj.host "/system/root") "/mnt"))
-                 (with [datasets (open (+ resources "/datasets.nix"))]
-                       (setv dataset-dict (dfor dm
-                                                (cut (.readlines datasets) 1 -1)
-                                                :setv [k v] (.split dm "=")
-                                                [(.strip k)
-(+ "\"/mnt"
-   (-> v
-       (.strip)
-       (.rstrip ";")
-       (.lstrip "\"")))])
-                ordered-dataset-dict (-> dataset-dict
-                                         (.items)
-                                         (sorted :key (fn [item] (get item 1)))
-                                         (dict)))
-          (for [[k v] (.items ordered-dataset-dict)]
-               (-> v (.strip "\"") (Path) (.mkdir :parents True :exist-ok True))
-               (Mount :t "zfs" k v)))
+                 
+                 (Mount :t "zfs" (+ ctx.obj.host "/system/nix") "/mnt/nix")
+                 (Mount :t "zfs" (+ ctx.obj.host "/system/persist") "/mnt/persist")
 
-    (setv etc/nixos "/etc/nixos"
-          men (+ "/mnt" etc/nixos)
-          mpn (+ "/mnt/persist/root" etc/nixos))
-    (.mkdir (Path men) :parents True :exist-ok True)
-    (.mkdir (Path mpn) :parents True :exist-ok True)
-    (Mount :bind True mpn men)
+                 (setv etc/nixos "/etc/nixos"
+                       men (+ "/mnt" etc/nixos)
+                       mpn (+ "/mnt/persist/root" etc/nixos))
+                 (.mkdir (Path men) :parents True :exist-ok True)
+                 (.mkdir (Path mpn) :parents True :exist-ok True)
+                 (Mount :bind True mpn men)
 
-    (if boot-device
-        (let [boot "/mnt/boot/efi"]
-             (.mkdir (Path boot) :parents True :exist-ok True)
-             (Mount boot-device boot)))
-    (if swap
-        (swapon (+ "/dev/zvol/" ctx.obj.host "/swap")))
+                 (if boot-device
+                     (let [boot "/mnt/boot/efi"]
+                          (.mkdir (Path boot) :parents True :exist-ok True)
+                          (Mount boot-device boot)))
+                 (if swap
+                     (swapon (+ "/dev/zvol/" ctx.obj.host "/swap")))
 
-    ;; (Mount :t "zfs" (+ ctx.obj.host "/system/tmp") "/tmp")
-    ;; (Mount :t "zfs" (+ ctx.obj.host "/system/tmp/nix") "/tmp/nix")
-    ;; (rsync :a True :v { "repeat" 2 } :c True :z { "repeat" 2 } :delete True "/nix/" "/tmp/nix/")
-    ;; (Mount :t "zfs" (+ ctx.obj.host "/system/tmp/nix") "/nix")
-
-    )
-(raise (NameError no-host-error-message)))))
+                 ;; (Mount :t "zfs" (+ ctx.obj.host "/system/tmp") "/tmp")
+                 ;; (Mount :t "zfs" (+ ctx.obj.host "/system/tmp/nix") "/tmp/nix")
+                 ;; (rsync :a True :v { "repeat" 2 } :c True :z { "repeat" 2 } :delete True "/nix/" "/tmp/nix/")
+                 ;; (Mount :t "zfs" (+ ctx.obj.host "/system/tmp/nix") "/nix")
+         
+                 )
+             (raise (NameError no-host-error-message)))))
 #@((.command nichtstrap :no-args-is-help True)
    (.option click "-d" "--deduplicated" :is-flag True)
    (.option click "-e" "--encrypted" :is-flag True)
