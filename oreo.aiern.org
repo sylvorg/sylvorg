@@ -189,7 +189,7 @@ dross
       (with [dnix (open (+ resources "/datasets.nix") "w")]
             (.write dnix "{\n")
             (defn recurse [ddict dname droot [mountpoint ""]]
-                  (setv recurse/datasets (.list zfs :r True :o "name" :m/list True)
+                  (setv recurse/datasets (.list zfs :r True :o "name" :m/list True :m/ignore-stderr True)
                         recurse/datasets (cut recurse/datasets 2 (len recurse/datasets))
                         recurse/dataset (+ droot "/" dname)
                         cloning         (and (!= dname "base")
@@ -1702,6 +1702,13 @@ repo = with lib; j.functions.mntConvert (fetchGit {
 });
 #+end_src
 
+***** Configurations
+
+#+begin_src nix
+configuration = import <nixpkgs/nixos> { configuration.imports = [ ./configuration.nix ]; };
+hardware-configuration = import <nixpkgs/nixos> { configuration.imports = [ ./hardware-configuration.nix ]; };
+#+end_src
+
 **** Config
 
 #+begin_src nix
@@ -2189,11 +2196,11 @@ in {
 fileSystems = let
     inherit (j.attrs.fileSystems) base;
     fileSystems' = j.attrs.datasets.fileSystems;
-in mapAttrs' (dataset: mountpoint: nameValuePair mountpoint (
+in mkForce ((mapAttrs (n: v: v) hardware-configuration.config.fileSystems) // (mapAttrs' (dataset: mountpoint: nameValuePair mountpoint (
     mkForce (base // { device = dataset; ${
         j.functions.myIf.knull ((hasInfix j.attrs.users.primary dataset) || (hasInfix "persist" dataset)) "neededForBoot"
     } = true; })
-)) fileSystems';
+)) fileSystems'));
 #+end_src
 
 ***** Hardware
@@ -2272,9 +2279,7 @@ system = {
 ***** Networking
 
 #+begin_src nix
-networking = let
-    Networking = import <nixpkgs/nixos> { configuration.imports = [ ./configuration.nix ]; };
-in (mapAttrs (n: v: v // { wakeOnLan.enable = true; }) Networking) // {
+networking = (mapAttrs (n: v: v // { wakeOnLan.enable = true; }) configuration.config.networking.interfaces) // {
     # interfaces = map (interface:
     #     { inherit interface; method = "magicpacket"; }
     # ) (attrNames config.networking.interfaces);

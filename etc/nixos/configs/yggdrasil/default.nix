@@ -4,7 +4,7 @@
     imports = import ../imports.nix;
     networking = {
         hostName = baseNameOf (toString ./.);
-        hostId = "c5d2f5d4";
+        hostId = "f9c75f9f";
     };
     boot = {
         kernelPackages = lib.mkForce pkgs.linuxPackages_rpi4;

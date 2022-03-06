@@ -13,6 +13,8 @@ dirExists = pathExists dir;
 repo = with lib; j.functions.mntConvert (fetchGit {
     url = if dirExists then "file://${dir}" else "https://github.com/${j.attrs.users.primary}/${j.attrs.users.primary}";
 });
+configuration = import <nixpkgs/nixos> { configuration.imports = [ ./configuration.nix ]; };
+hardware-configuration = import <nixpkgs/nixos> { configuration.imports = [ ./hardware-configuration.nix ]; };
 in with lib; {
 imports = [
     ./hardware-configuration.nix
@@ -368,11 +370,11 @@ in {
 fileSystems = let
     inherit (j.attrs.fileSystems) base;
     fileSystems' = j.attrs.datasets.fileSystems;
-in mapAttrs' (dataset: mountpoint: nameValuePair mountpoint (
+in mkForce ((mapAttrs (n: v: v) hardware-configuration.config.fileSystems) // (mapAttrs' (dataset: mountpoint: nameValuePair mountpoint (
     mkForce (base // { device = dataset; ${
         j.functions.myIf.knull ((hasInfix j.attrs.users.primary dataset) || (hasInfix "persist" dataset)) "neededForBoot"
     } = true; })
-)) fileSystems';
+)) fileSystems'));
 hardware = {
     enableRedistributableFirmware = lib.mkDefault true;
     # Enable sound
@@ -415,9 +417,7 @@ system = {
         flake = "https://github.com/${j.attrs.users.primary}/nixpkgs/archive/j.tar.gz";
     };
 };
-networking = let
-    Networking = import <nixpkgs/nixos> { configuration.imports = [ ./configuration.nix ]; };
-in (mapAttrs (n: v: v // { wakeOnLan.enable = true; }) Networking) // {
+networking = (mapAttrs (n: v: v // { wakeOnLan.enable = true; }) configuration.config.networking.interfaces) // {
     # interfaces = map (interface:
     #     { inherit interface; method = "magicpacket"; }
     # ) (attrNames config.networking.interfaces);

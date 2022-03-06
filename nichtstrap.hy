@@ -84,7 +84,7 @@
       (with [dnix (open (+ resources "/datasets.nix") "w")]
             (.write dnix "{\n")
             (defn recurse [ddict dname droot [mountpoint ""]]
-                  (setv recurse/datasets (.list zfs :r True :o "name" :m/list True)
+                  (setv recurse/datasets (.list zfs :r True :o "name" :m/list True :m/ignore-stderr True)
                         recurse/datasets (cut recurse/datasets 2 (len recurse/datasets))
                         recurse/dataset (+ droot "/" dname)
                         cloning         (and (!= dname "base")
