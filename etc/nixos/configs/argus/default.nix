@@ -14,6 +14,6 @@
         usePredictableInterfaceNames = false;
         interfaces.eth0.useDHCP = true;
         hostName = baseNameOf (toString ./.);
-        hostId = "c6d3e946";
+        hostId = "fe7c9833";
     };
 }

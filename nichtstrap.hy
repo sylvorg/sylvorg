@@ -211,8 +211,8 @@ click.pass-context
                               (+ "./configs/" ctx.obj.host)
                               "/mnt/etc/nixos/configuration.nix")
                           (sd :m/run True
-                              "device = \"\""
-                              "device = \"!\""
+                              "\"device = \"\"\""
+                              "\"device = \"!\"\""
                               "/mnt/etc/nixos/hardware-configuration.nix"))
                       (raise (NameError no-host-error-message))))
               (if (or install all)
