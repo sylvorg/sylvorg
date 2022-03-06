@@ -276,6 +276,35 @@ click.pass-context
                  (if root-device
                      (Mount root-device "/mnt")
                      (Mount :t "zfs" (+ ctx.obj.host "/system/root") "/mnt"))
+(try (.mkdir (Path "/mnt/mnt"))
+     (except [FileExistsError]
+             (if (.ismount os.path "/mnt/mnt")
+                 (umount :R True "/mnt/mnt"))))
+(Mount :bind True "/mnt" "/mnt/mnt")
+    (Mount :t "zfs" (+ ctx.obj.host "/system/nix") "/mnt/nix")
+    (Mount :t "zfs" (+ ctx.obj.host "/system/persist") "/mnt/persist")
+
+    (setv etc/nixos "/etc/nixos"
+          men (+ "/mnt" etc/nixos)
+          mpn (+ "/mnt/persist/root" etc/nixos))
+    (.mkdir (Path men) :parents True :exist-ok True)
+    (.mkdir (Path mpn) :parents True :exist-ok True)
+    (Mount :bind True mpn men)
+
+    (if boot-device
+        (let [boot "/mnt/boot/efi"]
+             (.mkdir (Path boot) :parents True :exist-ok True)
+             (Mount boot-device boot)))
+    (if swap
+        (swapon (+ "/dev/zvol/" ctx.obj.host "/swap")))
+
+    ;; (Mount :t "zfs" (+ ctx.obj.host "/system/tmp") "/tmp")
+    ;; (Mount :t "zfs" (+ ctx.obj.host "/system/tmp/nix") "/tmp/nix")
+    ;; (rsync :a True :v { "repeat" 2 } :c True :z { "repeat" 2 } :delete True "/nix/" "/tmp/nix/")
+    ;; (Mount :t "zfs" (+ ctx.obj.host "/system/tmp/nix") "/nix")
+
+    )
+(raise (NameError no-host-error-message)))))
 #@((.command nichtstrap :no-args-is-help True)
    (.option click "-d" "--deduplicated" :is-flag True)
    (.option click "-e" "--encrypted" :is-flag True)
