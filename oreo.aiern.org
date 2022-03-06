@@ -1705,7 +1705,10 @@ repo = with lib; j.functions.mntConvert (fetchGit {
 
 #+begin_src nix
 configuration = import <nixpkgs/nixos> { configuration.imports = [ ./configuration.nix ]; };
-hardware-configuration = import <nixpkgs/nixos> { configuration.imports = [ ./hardware-configuration.nix ]; };
+hardware-configuration = import <nixpkgs/nixos> { configuration.imports = [
+    ./hardware-configuration.nix
+    ({config, ... }: { networking.hostId = <<hostId()>>; boot.loader.grub.devices = [ "nodev" ]; })
+]; };
 #+end_src
 
 **** Begin Set
@@ -1727,7 +1730,7 @@ imports = [
 **** Config
 
 #+begin_src nix
-config = (removeAttrs hardware-configuration.config [ "fileSystems" ]) // {
+config = (removeAttrs hardware-configuration.config [ "fileSystems" "nesting" "jobs" "fonts" ]) // {
 #+end_src
 
 ***** Boot

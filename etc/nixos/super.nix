@@ -14,14 +14,17 @@ repo = with lib; j.functions.mntConvert (fetchGit {
     url = if dirExists then "file://${dir}" else "https://github.com/${j.attrs.users.primary}/${j.attrs.users.primary}";
 });
 configuration = import <nixpkgs/nixos> { configuration.imports = [ ./configuration.nix ]; };
-hardware-configuration = import <nixpkgs/nixos> { configuration.imports = [ ./hardware-configuration.nix ]; };
+hardware-configuration = import <nixpkgs/nixos> { configuration.imports = [
+    ./hardware-configuration.nix
+    ({config, ... }: { networking.hostId = "08300c16"; boot.loader.grub.devices = [ "nodev" ]; })
+]; };
 in with lib; {
 imports = [
     "${fetchGit { url = "https://github.com/nix-community/home-manager"; }}/nixos"
     "${fetchGit { url = "https://github.com/nix-community/impermanence"; }}/nixos.nix"
     # "${fetchGit { url = "https://github.com/${j.attrs.users.primary}/nixpkgs"; ref = "guix"; }}/nixos/modules/services/development/guix.nix"
 ];
-config = (removeAttrs hardware-configuration.config [ "fileSystems" ]) // {
+config = (removeAttrs hardware-configuration.config [ "fileSystems" "nesting" "jobs" "fonts" ]) // {
 boot = {
 supportedFilesystems = j.attrs.fileSystems.supported;
 initrd = {
