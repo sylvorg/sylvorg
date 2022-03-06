@@ -126,7 +126,7 @@
                                recurse/real-dataset)
                           (.snapshot zfs :r True (+ recurse/real-dataset "@root"))))
                   (for [[key value] (.items (.get ddict d (D {  })))]
-                       (recurse value key recurse/real-dataset mountpoint)))
+                       (recurse value key recurse/dataset mountpoint)))
             (for [[key value] (.items datasets)]
                  (recurse value key "${host}"))
             (.write dnix "}"))
