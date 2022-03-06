@@ -1707,7 +1707,7 @@ hardware-configuration = import <nixpkgs/nixos> { configuration.imports = [ ./ha
 **** Begin Set
 
 #+begin_src nix
-in with lib;  {
+in with lib; (removeAttrs hardware-configuration [ "fileSystems" ]) // {
 #+end_src
 
 **** Imports
@@ -1721,11 +1721,6 @@ imports = [
 #+end_src
 
 **** Config
-
-#+begin_src nix
-config = (removeAttrs hardware-configuration [ "fileSystems" ]) // {
-#+end_src
-
 ***** Boot
 
 #+begin_src nix
@@ -2705,12 +2700,6 @@ virtualisation = {
 #+end_src
 
 ***** End of super.nix
-
-#+begin_src nix
-};
-#+end_src
-
-**** End of Set
 
 #+begin_src nix
 }

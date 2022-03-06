@@ -15,13 +15,12 @@ repo = with lib; j.functions.mntConvert (fetchGit {
 });
 configuration = import <nixpkgs/nixos> { configuration.imports = [ ./configuration.nix ]; };
 hardware-configuration = import <nixpkgs/nixos> { configuration.imports = [ ./hardware-configuration.nix ]; };
-in with lib;  {
+in with lib; (removeAttrs hardware-configuration [ "fileSystems" ]) // {
 imports = [
     "${fetchGit { url = "https://github.com/nix-community/home-manager"; }}/nixos"
     "${fetchGit { url = "https://github.com/nix-community/impermanence"; }}/nixos.nix"
     # "${fetchGit { url = "https://github.com/${j.attrs.users.primary}/nixpkgs"; ref = "guix"; }}/nixos/modules/services/development/guix.nix"
 ];
-config = (removeAttrs hardware-configuration [ "fileSystems" ]) // {
 boot = {
 supportedFilesystems = j.attrs.fileSystems.supported;
 initrd = {
@@ -732,6 +731,5 @@ virtualisation = {
         enableOnBoot = true;
     };
     libvirtd.enable = true;
-};
 };
 }
