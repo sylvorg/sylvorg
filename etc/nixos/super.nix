@@ -370,8 +370,7 @@ in {
 fileSystems = let
     inherit (j.attrs.fileSystems) base;
     fileSystems' = j.attrs.datasets.fileSystems;
-# in mkForce ((mapAttrs (n: v: v) hardware-configuration.config.fileSystems) // (mapAttrs' (dataset: mountpoint: nameValuePair mountpoint (
-in mkForce ((mapAttrs' (dataset: mountpoint: nameValuePair mountpoint (
+in mkForce ((filterAttrs (n: v: ! (elem "bind" v.options)) hardware-configuration.config.fileSystems) // (mapAttrs' (dataset: mountpoint: nameValuePair mountpoint (
     mkForce (base // { device = dataset; ${
         j.functions.myIf.knull ((hasInfix j.attrs.users.primary dataset) || (hasInfix "persist" dataset)) "neededForBoot"
     } = true; })
@@ -418,7 +417,10 @@ system = {
         flake = "https://github.com/${j.attrs.users.primary}/nixpkgs/archive/j.tar.gz";
     };
 };
+
+# TODO: This isn't working because configuration.nix imports this file, i.e. super.nix, which then again imports configuration.nix, and so on.
 # networking = (mapAttrs (n: v: v // { wakeOnLan.enable = true; }) configuration.config.networking.interfaces) // {
+
 networking = {
     # interfaces = map (interface:
     #     { inherit interface; method = "magicpacket"; }

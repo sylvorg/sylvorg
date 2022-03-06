@@ -276,6 +276,12 @@ click.pass-context
                      (Mount root-device "/mnt")
                      (Mount :t "zfs" (+ ctx.obj.host "/system/root") "/mnt"))
 
+                 (try (.mkdir (Path "/mnt/mnt"))
+                      (except [FileExistsError]
+                              (if (.ismount os.path "/mnt/mnt")
+                                  (umount :R True "/mnt/mnt"))))
+                 (Mount :bind True "/mnt" "/mnt/mnt")
+
                  (Mount :t "zfs" (+ ctx.obj.host "/system/nix") "/mnt/nix")
                  (Mount :t "zfs" (+ ctx.obj.host "/system/persist") "/mnt/persist")
 
