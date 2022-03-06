@@ -181,29 +181,27 @@ dross
             users        (D (.loads json (.strip #[[
                                 <<20210601185359809444000>>
                          ]]))))
-      (assoc datasets host (D { "datasets" { "jails" { "datasets" { "base" (dict)}}}
-                                "options" [ ml ]}))
+      (assoc datasets "${host}" (D { "datasets" { "jails" { "datasets" { "base" (dict)}}}
+                                     "options" [ ml ]}))
       (for [user (.values users)]
            (assoc (. datasets [s] [d] home [d]) user (dict))
            (assoc (. datasets virt [d] podman [d]) user (dict)))
       (with [dnix (open (+ resources "/datasets.nix") "w")]
             (.write dnix "host: {\n")
             (defn recurse [ddict dname droot [mountpoint ""]]
-                  (setv recurse/datasets (.list zfs :r True :o "name" :m/list True :m/ignore-stderr True)
-                        recurse/datasets (cut recurse/datasets 2 (len recurse/datasets))
-                        recurse/dataset (+ droot "/" dname)
-                        recurse/real-dataset (if (.startswith recurse/dataset "${host}")
-                                                 (.replace recurse/dataset "${host}" host 1)
-                                                 recurse/dataset)
-                        cloning         (and (!= dname "base")
-                                             (and encrypted deduplicated))
-                        prefixes        (, "system"
-                                           "system/root"
-                                           "swap"
-                                           "base"
-                                           "hold"
-                                           "omniverse"
-                                           "reserved" ))
+                  (setv recurse/datasets     (.list zfs :r True :o "name" :m/list True :m/ignore-stderr True)
+                        recurse/datasets     (cut recurse/datasets 2 (len recurse/datasets))
+                        recurse/dataset      (+ droot "/" dname)
+                        recurse/real-dataset (.replace recurse/dataset "${host}" host)
+                        cloning              (and (!= dname "base")
+                                                  (and encrypted deduplicated))
+                        prefixes             (, "system"
+                                                "system/root"
+                                                "swap"
+                                                "base"
+                                                "hold"
+                                                "omniverse"
+                                                "reserved" ))
                   (if cloning
                       (setv clone-or-create  "clone"
                             snapshot-or-none (+ host "/base@root"))
