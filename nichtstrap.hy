@@ -213,7 +213,7 @@ click.pass-context
                       (raise (NameError no-host-error-message))))
               (if (or install all)
                   (nixos-install #* ctx.args
-                                 :I nixpkgs=https://github.com/shadowrylander/nixpkgs/archive/j.tar.gz
+                                 :I "nixpkgs=https://github.com/shadowrylander/nixpkgs/archive/j.tar.gz"
                                  :m/run True
                                  :show-trace True
 :option "tarball-ttl 0"
