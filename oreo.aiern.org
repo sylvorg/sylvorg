@@ -329,10 +329,14 @@ This can't use a default value, as that would trigger a rebuild all the time.
                      (nixos-generate-config :m/run True :root "/mnt"))
                  (if (or replace all)
                      (if ctx.obj.host
-                         (sd :m/run True
-                             "./hardware-configuration.nix"
-                             (+ "./configs/" ctx.obj.host)
-                             "/mnt/etc/nixos/configuration.nix")
+                         (do (sd :m/run True
+                                 "./hardware-configuration.nix"
+                                 (+ "./configs/" ctx.obj.host)
+                                 "/mnt/etc/nixos/configuration.nix")
+                             (sd :m/run True
+                                 "device = \"\""
+                                 "device = \"!\""
+                                 "/mnt/etc/nixos/hardware-configuration.nix"))
                          (raise (NameError no-host-error-message))))
                  (if (or install all)
                      (nixos-install #* ctx.args
@@ -2196,8 +2200,7 @@ in {
 fileSystems = let
     inherit (j.attrs.fileSystems) base;
     fileSystems' = j.attrs.datasets.fileSystems;
-    fileSystems'' = filterAttrs (n: v: ! (builtins.elem "bind" v.options)) hardware-configuration.config.fileSystems;
-in (trace fileSystems'' fileSystems'') // (mapAttrs' (dataset: mountpoint: nameValuePair mountpoint (
+in (filterAttrs (n: v: ! (builtins.elem "bind" v.options)) hardware-configuration.config.fileSystems) // (mapAttrs' (dataset: mountpoint: nameValuePair mountpoint (
     mkForce (base // { device = dataset; ${
         j.functions.myIf.knull ((hasInfix j.attrs.users.primary dataset) || (hasInfix "persist" dataset)) "neededForBoot"
     } = true; })

@@ -370,8 +370,7 @@ in {
 fileSystems = let
     inherit (j.attrs.fileSystems) base;
     fileSystems' = j.attrs.datasets.fileSystems;
-    fileSystems'' = filterAttrs (n: v: ! (builtins.elem "bind" v.options)) hardware-configuration.config.fileSystems;
-in (trace fileSystems'' fileSystems'') // (mapAttrs' (dataset: mountpoint: nameValuePair mountpoint (
+in (filterAttrs (n: v: ! (builtins.elem "bind" v.options)) hardware-configuration.config.fileSystems) // (mapAttrs' (dataset: mountpoint: nameValuePair mountpoint (
     mkForce (base // { device = dataset; ${
         j.functions.myIf.knull ((hasInfix j.attrs.users.primary dataset) || (hasInfix "persist" dataset)) "neededForBoot"
     } = true; })

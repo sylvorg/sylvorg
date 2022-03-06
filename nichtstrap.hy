@@ -206,10 +206,14 @@ click.pass-context
                   (nixos-generate-config :m/run True :root "/mnt"))
               (if (or replace all)
                   (if ctx.obj.host
-                      (sd :m/run True
-                          "./hardware-configuration.nix"
-                          (+ "./configs/" ctx.obj.host)
-                          "/mnt/etc/nixos/configuration.nix")
+                      (do (sd :m/run True
+                              "./hardware-configuration.nix"
+                              (+ "./configs/" ctx.obj.host)
+                              "/mnt/etc/nixos/configuration.nix")
+                          (sd :m/run True
+                              "device = \"\""
+                              "device = \"!\""
+                              "/mnt/etc/nixos/hardware-configuration.nix"))
                       (raise (NameError no-host-error-message))))
               (if (or install all)
                   (nixos-install #* ctx.args
