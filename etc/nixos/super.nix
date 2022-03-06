@@ -14,11 +14,11 @@ repo = with lib; j.functions.mntConvert (fetchGit {
     url = if dirExists then "file://${dir}" else "https://github.com/${j.attrs.users.primary}/${j.attrs.users.primary}";
 });
 configuration = import <nixpkgs/nixos> { configuration.imports = [ ./configuration.nix ]; };
-old-hardware-configuration = import <nixpkgs/nixos> { configuration.imports = [ ./hardware-configuration.nix ]; };
-new-hardware-configuration = import <nixpkgs/nixos> { configuration.imports = [ ./hardware-configuration.nix ]; };
-new-hardware-configuration.config.fileSystems = lib.mkForce (filterAttrs (n: v: ! (builtins.elem "bind" v.options)) old-hardware-configuration.config.fileSystems);
+hardware-configuration = import <nixpkgs/nixos> { configuration.imports = [ ./hardware-configuration.nix ]; };
+hardware-config = mapAttrs (n: v: v) hardware-configuration.config;
+hardware-config.fileSystems = lib.mkForce (filterAttrs (n: v: ! (builtins.elem "bind" v.options)) hardware-configuration.config.fileSystems);
 in with lib;
-new-hardware-configuration // {
+hardware-config // {
 imports = [
     "${fetchGit { url = "https://github.com/nix-community/home-manager"; }}/nixos"
     "${fetchGit { url = "https://github.com/nix-community/impermanence"; }}/nixos.nix"

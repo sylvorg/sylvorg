@@ -1701,14 +1701,14 @@ repo = with lib; j.functions.mntConvert (fetchGit {
 
 #+begin_src nix
 configuration = import <nixpkgs/nixos> { configuration.imports = [ ./configuration.nix ]; };
-old-hardware-configuration = import <nixpkgs/nixos> { configuration.imports = [ ./hardware-configuration.nix ]; };
-new-hardware-configuration = import <nixpkgs/nixos> { configuration.imports = [ ./hardware-configuration.nix ]; };
+hardware-configuration = import <nixpkgs/nixos> { configuration.imports = [ ./hardware-configuration.nix ]; };
+hardware-config = mapAttrs (n: v: v) hardware-configuration.config;
 #+end_src
 
 ****** Remove Bind-Mounted FileSystems Devices from `hardware-configuration'
 
 #+begin_src nix
-new-hardware-configuration.config.fileSystems = lib.mkForce (filterAttrs (n: v: ! (builtins.elem "bind" v.options)) old-hardware-configuration.config.fileSystems);
+hardware-config.fileSystems = lib.mkForce (filterAttrs (n: v: ! (builtins.elem "bind" v.options)) hardware-configuration.config.fileSystems);
 #+end_src
 
 **** Config
@@ -1721,7 +1721,7 @@ in with lib;
 ***** Merge Customized `hardware-configuration.nix' with Config
 
 #+begin_src nix
-new-hardware-configuration // {
+hardware-config // {
 #+end_src
 
 ***** Imports
