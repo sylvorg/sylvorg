@@ -15,15 +15,13 @@ repo = with lib; j.functions.mntConvert (fetchGit {
 });
 configuration = import <nixpkgs/nixos> { configuration.imports = [ ./configuration.nix ]; };
 hardware-configuration = import <nixpkgs/nixos> { configuration.imports = [ ./hardware-configuration.nix ]; };
-hardware-config = mapAttrs (n: v: v) hardware-configuration.config;
-hardware-config.fileSystems = lib.mkForce (filterAttrs (n: v: ! (builtins.elem "bind" v.options)) hardware-configuration.config.fileSystems);
-in with lib;
-hardware-config // {
+in with lib;  {
 imports = [
     "${fetchGit { url = "https://github.com/nix-community/home-manager"; }}/nixos"
     "${fetchGit { url = "https://github.com/nix-community/impermanence"; }}/nixos.nix"
     # "${fetchGit { url = "https://github.com/${j.attrs.users.primary}/nixpkgs"; ref = "guix"; }}/nixos/modules/services/development/guix.nix"
 ];
+config = (removeAttrs hardware-configuration [ "fileSystems" ]) // {
 boot = {
 supportedFilesystems = j.attrs.fileSystems.supported;
 initrd = {
@@ -372,11 +370,11 @@ in {
 fileSystems = let
     inherit (j.attrs.fileSystems) base;
     fileSystems' = j.attrs.datasets.fileSystems;
-in mapAttrs' (dataset: mountpoint: nameValuePair mountpoint (
+in (filterAttrs (n: v: ! (builtins.elem "bind" v.options)) hardware-configuration.config.fileSystems) // (mapAttrs' (dataset: mountpoint: nameValuePair mountpoint (
     mkForce (base // { device = dataset; ${
         j.functions.myIf.knull ((hasInfix j.attrs.users.primary dataset) || (hasInfix "persist" dataset)) "neededForBoot"
     } = true; })
-)) fileSystems';
+)) fileSystems');
 hardware = {
     enableRedistributableFirmware = lib.mkDefault true;
     # Enable sound
@@ -736,3 +734,4 @@ virtualisation = {
     libvirtd.enable = true;
 };
 }
+{

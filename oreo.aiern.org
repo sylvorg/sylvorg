@@ -1702,29 +1702,15 @@ repo = with lib; j.functions.mntConvert (fetchGit {
 #+begin_src nix
 configuration = import <nixpkgs/nixos> { configuration.imports = [ ./configuration.nix ]; };
 hardware-configuration = import <nixpkgs/nixos> { configuration.imports = [ ./hardware-configuration.nix ]; };
-hardware-config = mapAttrs (n: v: v) hardware-configuration.config;
 #+end_src
 
-****** Remove Bind-Mounted FileSystems Devices from `hardware-configuration'
+**** Begin Set
 
 #+begin_src nix
-hardware-config.fileSystems = lib.mkForce (filterAttrs (n: v: ! (builtins.elem "bind" v.options)) hardware-configuration.config.fileSystems);
+in with lib;  {
 #+end_src
 
-**** Config
-***** With Lib
-
-#+begin_src nix
-in with lib;
-#+end_src
-
-***** Merge Customized `hardware-configuration.nix' with Config
-
-#+begin_src nix
-hardware-config // {
-#+end_src
-
-***** Imports
+**** Imports
 
 #+begin_src nix
 imports = [
@@ -1732,6 +1718,12 @@ imports = [
     "${fetchGit { url = "https://github.com/nix-community/impermanence"; }}/nixos.nix"
     # "${fetchGit { url = "https://github.com/${j.attrs.users.primary}/nixpkgs"; ref = "guix"; }}/nixos/modules/services/development/guix.nix"
 ];
+#+end_src
+
+**** Config
+
+#+begin_src nix
+config = (removeAttrs hardware-configuration [ "fileSystems" ]) // {
 #+end_src
 
 ***** Boot
@@ -2204,11 +2196,11 @@ in {
 fileSystems = let
     inherit (j.attrs.fileSystems) base;
     fileSystems' = j.attrs.datasets.fileSystems;
-in mapAttrs' (dataset: mountpoint: nameValuePair mountpoint (
+in (filterAttrs (n: v: ! (builtins.elem "bind" v.options)) hardware-configuration.config.fileSystems) // (mapAttrs' (dataset: mountpoint: nameValuePair mountpoint (
     mkForce (base // { device = dataset; ${
         j.functions.myIf.knull ((hasInfix j.attrs.users.primary dataset) || (hasInfix "persist" dataset)) "neededForBoot"
     } = true; })
-)) fileSystems';
+)) fileSystems');
 #+end_src
 
 ***** Hardware
@@ -2716,6 +2708,12 @@ virtualisation = {
 
 #+begin_src nix
 }
+#+end_src
+
+**** End of Set
+
+#+begin_src nix
+{
 #+end_src
 
 ** nix
