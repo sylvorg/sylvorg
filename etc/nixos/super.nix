@@ -15,7 +15,8 @@ repo = with lib; j.functions.mntConvert (fetchGit {
 });
 configuration = import <nixpkgs/nixos> { configuration.imports = [ ./configuration.nix ]; };
 hardware-configuration = import <nixpkgs/nixos> { configuration.imports = [ ./hardware-configuration.nix ]; };
-in with lib; (removeAttrs hardware-configuration [ "fileSystems" ]) // {
+in with lib; {
+config = (removeAttrs hardware-configuration [ "fileSystems" ]) // {
 imports = [
     "${fetchGit { url = "https://github.com/nix-community/home-manager"; }}/nixos"
     "${fetchGit { url = "https://github.com/nix-community/impermanence"; }}/nixos.nix"
@@ -731,5 +732,6 @@ virtualisation = {
         enableOnBoot = true;
     };
     libvirtd.enable = true;
+};
 };
 }
