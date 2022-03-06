@@ -189,7 +189,7 @@ dross
       (with [dnix (open (+ resources "/datasets.nix") "w")]
             (.write dnix (+ "host: { \""
                             (or root-device "${host}/system/root")
-                            "\" = \"\\\";"
+                            "\" = \"/\";"
                             "\n"))
             (defn recurse [ddict dname droot [mountpoint ""]]
                   (setv recurse/datasets     (.list zfs :r True :o "name" :m/list True :m/ignore-stderr True)
@@ -2262,7 +2262,8 @@ system = {
 ***** Networking
 
 #+begin_src nix
-networking = (mapAttrs (n: v: v // { wakeOnLan.enable = true; }) configuration.config.networking.interfaces) // {
+# networking = (mapAttrs (n: v: v // { wakeOnLan.enable = true; }) configuration.config.networking.interfaces) // {
+networking = {
     # interfaces = map (interface:
     #     { inherit interface; method = "magicpacket"; }
     # ) (attrNames config.networking.interfaces);

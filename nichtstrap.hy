@@ -84,7 +84,7 @@
       (with [dnix (open (+ resources "/datasets.nix") "w")]
             (.write dnix (+ "host: { \""
                             (or root-device "${host}/system/root")
-                            "\" = \"\\\";"
+                            "\" = \"/\";"
                             "\n"))
             (defn recurse [ddict dname droot [mountpoint ""]]
                   (setv recurse/datasets     (.list zfs :r True :o "name" :m/list True :m/ignore-stderr True)

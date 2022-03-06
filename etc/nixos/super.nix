@@ -418,7 +418,8 @@ system = {
         flake = "https://github.com/${j.attrs.users.primary}/nixpkgs/archive/j.tar.gz";
     };
 };
-networking = (mapAttrs (n: v: v // { wakeOnLan.enable = true; }) configuration.config.networking.interfaces) // {
+# networking = (mapAttrs (n: v: v // { wakeOnLan.enable = true; }) configuration.config.networking.interfaces) // {
+networking = {
     # interfaces = map (interface:
     #     { inherit interface; method = "magicpacket"; }
     # ) (attrNames config.networking.interfaces);
