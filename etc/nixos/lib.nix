@@ -1,4 +1,4 @@
-pkgs: lib: host: with lib; with builtins;
+{ pkgs, lib, inputs ? {}, host ? "nixos" }: with lib; with builtins;
 let
 newLib = self: rec {
 functions = rec {
@@ -48,7 +48,8 @@ filterFunc = {
         (let
             _ignores' = (/. + "/${unsafeDiscardStringContext dir}/_ignores.nix");
         in if (pathExists _ignores') then (import _ignores') else [])
-        [ "default" "deprecated" ]
+        "default"
+        "deprecated"
     ];
 in file: value:
     (if noSuffix then (

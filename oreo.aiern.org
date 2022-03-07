@@ -29,6 +29,23 @@ in (pkgs.mkShell rec {
 })
 #+end_src
 
+* default.nix
+
+Taken from [[https://github.com/edolstra/flake-compat#usage][here]]:
+
+#+begin_src nix :tangle (meq/tangle-path)
+(import
+  (
+    let lock = builtins.fromJSON (builtins.readFile ./flake.lock); in
+    fetchTarball {
+      url = "https://github.com/edolstra/flake-compat/archive/${lock.nodes.flake-compat.locked.rev}.tar.gz";
+      sha256 = lock.nodes.flake-compat.locked.narHash;
+    }
+  )
+  { src = ./.; }
+).defaultNix
+#+end_src
+
 * nichtstrap.py
 
 #+begin_src py :tangle (meq/tangle-path) :shebang "#!/usr/bin/env python3"
@@ -45,7 +62,7 @@ if __name__ == "__main__":
 :header-args:hy+: :noweb-ref nwr20220129201318455450756
 :END:
 
-#+begin_src plaintext :tangle (meq/tangle-path) :shebang "#!/usr/bin/env hy"
+#+begin_src text :tangle (meq/tangle-path) :shebang "#!/usr/bin/env hy"
 <<nwr20220129201318455450756>>
 #+end_src
 
@@ -117,7 +134,7 @@ if __name__ == "__main__":
 : 20220205031620372930929
 
 #+name: 20220205031620372930929
-#+begin_src plaintext
+#+begin_src text
 dross
 #+end_src
 
@@ -331,7 +348,7 @@ This can't use a default value, as that would trigger a rebuild all the time.
                      (if ctx.obj.host
                          (do (sd :m/run True
                                  "./hardware-configuration.nix"
-                                 (+ "./configs/" ctx.obj.host)
+                                 (+ "./hosts/" ctx.obj.host)
                                  "/mnt/etc/nixos/configuration.nix")
                              (sd :m/run True
                                  "'device = \"\"'"
@@ -489,7 +506,7 @@ Taken from [[https://github.com/NixOS/nixpkgs/issues/73404#issuecomment-10114854
 
 ** End of nichtstrap
 
-#+begin_src plaintext
+#+begin_src hy :noweb-ref no
 (if (= __name__ "__main__")
     (nichtstrap :obj (D {})))
 #+end_src
@@ -498,14 +515,14 @@ Taken from [[https://github.com/NixOS/nixpkgs/issues/73404#issuecomment-10114854
 ** apk
 *** repositories
 :PROPERTIES:
-:header-args:plaintext+: :noweb-ref repositories
+:header-args:text+: :noweb-ref repositories
 :END:
 
-#+begin_src plaintext :noweb-ref no :tangle (meq/tangle-path)
+#+begin_src text :noweb-ref no :tangle (meq/tangle-path)
 <<repositories>>
 #+end_src
 
-#+begin_src plaintext
+#+begin_src text
 http://postmarketos.brixit.nl/postmarketos/master
 https://dl-cdn.alpinelinux.org/alpine/v3.13/main
 https://dl-cdn.alpinelinux.org/alpine/v3.13/community
@@ -517,11 +534,11 @@ https://dl-cdn.alpinelinux.org/alpine/v3.13/community
 :header-args:text+: :noweb-ref build.postmarketos.org.rsa.pub
 :END:
 
-#+begin_src plaintext :noweb-ref no :tangle (meq/tangle-path)
+#+begin_src text :noweb-ref no :tangle (meq/tangle-path)
 <<build.postmarketos.org.rsa.pub>>
 #+end_src
 
-#+begin_src plaintext
+#+begin_src text
 -----BEGIN PUBLIC KEY-----
 MIICIjANBgkqhkiG9w0BAQEFAAOCAg8AMIICCgKCAgEAlXE4h6kp8aCzn6BjuOnz
 Z1lcFSY+WRZ2vGUb5hEZ+YG75xYZW+yELr8P8+HSUrpBXF/HTQYKH/cNJc5zmOny
@@ -908,7 +925,7 @@ index c61df8ceb00..d973837f0d3 100644
 }
 #+end_src
 
-*** configs
+*** hosts
 
 #+name: hostId
 #+begin_src emacs-lisp
@@ -918,19 +935,19 @@ index c61df8ceb00..d973837f0d3 100644
 **** imports.nix
 
 #+begin_src nix :tangle (meq/tangle-path)
-[ ../super.nix ../bcachefs.nix ]
+[ ../minimal.nix ../bcachefs.nix ]
 #+end_src
 
 **** sandshrew
 ***** default.nix
 
 #+begin_src nix :tangle (meq/tangle-path)
-{ config, ... }:
+{ config, lib, ... }:
 
 {
-    imports = [
-        ../../super.nix
-        "${builtins.fetchGit { url = "https://github.com/nixos/nixos-hardware.git"; }}/microsoft/surface"
+    imports =  [
+        ../../minimal.nix
+        (import ./.).hardware.microsoft-surface
     ];
     networking = {
         hostName = baseNameOf (toString ./.);
@@ -1046,7 +1063,7 @@ index c61df8ceb00..d973837f0d3 100644
 :header-args:nix+: :noweb-ref lib.nix
 :END:
 
-#+begin_src plaintext :tangle (meq/tangle-path)
+#+begin_src text :tangle (meq/tangle-path)
 <<lib.nix>>
 #+end_src
 
@@ -1055,7 +1072,7 @@ With help from [[Henrik Lissner / hlissner][https://github.com/hlissner/dotfiles
 **** Arguments
 
 #+begin_src nix
-pkgs: lib: host: with lib; with builtins;
+{ pkgs, lib, inputs ? {}, host ? "nixos" }: with lib; with builtins;
 #+end_src
 
 **** Let
@@ -1155,7 +1172,8 @@ filterFunc = {
         (let
             _ignores' = (/. + "/${unsafeDiscardStringContext dir}/_ignores.nix");
         in if (pathExists _ignores') then (import _ignores') else [])
-        [ "default" "deprecated" ]
+        "default"
+        "deprecated"
     ];
 in file: value:
     (if noSuffix then (
@@ -1471,40 +1489,20 @@ in buildGoModule rec {
 :header-args:nix+: :noweb-ref overlays.nix
 :END:
 
-#+begin_src plaintext :tangle (meq/tangle-path)
+#+begin_src text :tangle (meq/tangle-path)
 <<overlays.nix>>
 #+end_src
 
 **** Arguments
 
 #+begin_src nix
-lib: nixpkgs: pkgs: channel: with builtins; with lib;
+args@{ lib, nixpkgs, inputs, pkgs }: with builtins; with lib;
 #+end_src
 
 **** Let
 
 #+begin_src nix
 let
-#+end_src
-
-***** Otherpkgs
-
-#+begin_src nix
-channels = (map (d: "nixos-" + d) (
-    "unstable"
-    "unstable-small"
-    "21.11"
-    "21.11-small"
-)) + (map (d: "release-" + d) (
-    "21.11"
-)) + (
-    "master"
-);
-othernixpkgs = listToAttrs (map (ref: nameValuePair
-    ref
-    (fetchGit { url = "https://github.com/nixos/nixpkgs"; inherit ref; })
-) channels);
-otherpkgs = mapAttrs (n: v: import v j.attrs.configs.nixpkgs) othernixpkgs;
 #+end_src
 
 ***** End of Let
@@ -1516,24 +1514,14 @@ in flatten [
 **** J
 
 #+begin_src nix
-[(final: prev: { j = {
-    nixpkgs = othernixpkgs;
-    pkgs = otherpkgs;
-    inherit channels;
-};})]
+(final: prev: { j = { inherit pkgs; };})
 #+end_src
 
 **** Patched Fetchers
 
 #+begin_src nix :noweb-ref no
-[(
-    final: prev: {
-        fetchurl = prev.fetchurl.overrideAttrs (attrs: { patches = j.attrs.patches ++ [ ./patches/fetchurl.patch ];}); }
-)]
-[(
-    final: prev: {
-        fetchpypi = prev.fetchpypi.overrideAttrs (attrs: { patches = j.attrs.patches ++ [ ./patches/fetchpypi.patch ];}); }
-)]
+(final: prev: { fetchurl = prev.fetchurl.overrideAttrs (attrs: { patches = j.attrs.patches ++ [ ./patches/fetchurl.patch ];}); })
+(final: prev: { fetchpypi = prev.fetchpypi.overrideAttrs (attrs: { patches = j.attrs.patches ++ [ ./patches/fetchpypi.patch ];}); })
 #+end_src
 
 **** NIX
@@ -1541,21 +1529,19 @@ in flatten [
 # TODO
 
 #+begin_src nix :noweb-ref no
-[( final: prev: { nix = import (fetchGit { url = "https://github.com/nixos/nix"; }); })]
+inputs.nix.overlay
 #+end_src
 
 **** NUR
 
 #+begin_src nix
-[( final: prev: { nur = import (fetchGit { url = "https://github.com/nix-community/nur"; }) { nurpkgs = nixpkgs; pkgs = prev; }; })]
+(final: prev: { nur = import inputs.nur { nurpkgs = nixpkgs; pkgs = prev; }; })
 #+end_src
 
 **** Emacs
 
 #+begin_src nix
-[
-    (import (fetchGit { url = "https://github.com/nix-community/emacs-overlay"; }))
-]
+inputs.emacs.overlay
 #+end_src
 
 **** Systemd
@@ -1564,55 +1550,42 @@ in flatten [
 # TODO
 
 #+begin_src nix :noweb-ref no
-[( final: prev: { systemd = prev.systemd.overrideAttrs (old: { withHomed = true; }); })]
+(final: prev: { systemd = prev.systemd.overrideAttrs (old: { withHomed = true; }); })
 #+end_src
 
 **** Containers
 ***** Extra-Containers
 
 #+begin_src nix :noweb-ref no
-[
-    (final: prev: {
-        extra-container = let
-            pkgSrc = fetchGit { url = "https://github.com/erikarvstedt/extra-container"; };
-        in pkgs.callPackage pkgSrc { inherit pkgSrc; };
-    })
-]
+inputs.extra-container.overlay
 #+end_src
 
 **** Caddy With Plugins
 
 #+begin_src nix :noweb-ref no
-[
-    (final: prev: { caddy = pkgs.callPackage ./callPackages/caddy.nix {
-        plugins = [
-            "github.com/mholt/caddy-l4@latest"
-            "github.com/abiosoft/caddy-yaml@latest"
-            "github.com/caddy-dns/cloudflare@latest"
-        ];
-    }; })
-]
+(final: prev: { caddy = prev.callPackage ./callPackages/caddy.nix {
+    plugins = [
+        "github.com/mholt/caddy-l4@latest"
+        "github.com/abiosoft/caddy-yaml@latest"
+        "github.com/caddy-dns/cloudflare@latest"
+    ];
+}; })
 #+end_src
 
 **** Mozilla
 
 #+begin_src nix
-(let
-    mozilla = fetchGit { url = "https://github.com/mozilla/nixpkgs-mozilla"; };
-    mozilla-overlays = import "${mozilla}/overlays.nix";
-in (map import mozilla-overlays))
+inputs.mozilla.overlays
 #+end_src
 
 **** Overlays in Overlays Directory
 
 #+begin_src nix
-(flatten (map (file:
+(map (file:
     [(final: prev: {
-        "${j.functions.name { inherit file; }}" = import file {
-            inherit sources pkgs lib;
-        };
+        "${j.functions.name { inherit file; }}" = import file args;
     })]
-) (j.functions.list { dir = ./overlays; ignores = [ "nix" ]; })))
+) (j.functions.list { dir = ./overlays; ignores = [ "nix" ]; }))
 #+end_src
 
 **** Overrides from Older Channels
@@ -1621,19 +1594,19 @@ in (map import mozilla-overlays))
 (let pkgsets = {
     unstable = [  ];
 };
-in flatten (mapAttrsToList (
+in mapAttrsToList (
     pkgchannel: pkglist: map (
         pkg: [(final: prev: {
             "${pkg}" = if (pkgchannel == channel) then prev.${pkg} else final.j.pkgs.${pkgchannel}.${pkg};
         })]
     ) pkglist
-) pkgsets))
+) pkgsets)
 #+end_src
 
 **** Guix
 
 #+begin_src nix :noweb-ref no
-[(final: prev: { guix = final.callPackage "${fetchGit { url = "https://github.com/${j.attrs.users.primary}/nixpkgs"; ref = "guix"; }}/pkgs/development/guix/guix.nix" {  }; })]
+(final: prev: { guix = final.callPackage "${fetchGit { url = "https://github.com/${j.attrs.users.primary}/nixpkgs"; ref = "guix"; }}/pkgs/development/guix/guix.nix" {  }; })
 #+end_src
 
 **** End of overlays.nix
@@ -1642,19 +1615,105 @@ in flatten (mapAttrsToList (
 ]
 #+end_src
 
-*** super.nix
+*** flake.nix
+
+#+begin_src nix :tangle (meq/tangle-path)
+{
+    inputs = rec {
+        nixos-unstable.url = github:NixOS/nixpkgs/nixos-unstable;
+        nixos-unstable-small.url = github:NixOS/nixpkgs/nixos-unstable-small;
+        "nixos-21.11".url = github:NixOS/nixpkgs/nixos-21.11;
+        "nixos-21.11-small".url = github:NixOS/nixpkgs/nixos-21.11-small;
+
+        "release-21.11".url = github:NixOS/nixpkgs/release-21.11;
+
+        master = github:NixOS/nixpkgs/master;
+
+        j = github:NixOS/<<username>>/j;
+
+        nixpkgs.follows = "j";
+
+        hardware.url = github:nixos/nixos-hardware;
+
+        <<username>> = {
+            url = github:<<username>>/<<username>>;
+            flake = false;
+        };
+
+        flake-compat = {
+            url = github:edolstra/flake-compat;
+            flake = false;
+        };
+
+        home-manager.url = github:nix-community/home-manager;
+        impermanence.url = github:nix-community/impermanence;
+
+        nix.url = github:nixos/nix;
+        extra-container.url = github:erikarvstedt/extra-container;
+        nur.url = github:nix-community/nur;
+        emacs.url = github:nix-community/emacs-overlay;
+        mozilla.url = github:mozilla/nixpkgs-mozilla;
+
+        flake-utils.url = github:numtide/flake-utils;
+    };
+
+    output = inputs@{ self, nixpkgs, flake-utils, ... }: with builtins; with nixpkgs.lib; with flake-utils.lib; let
+        channel = "j";
+        make = {
+            lib = system: host: nixpkgs.lib.extend (final: prev: {
+                j = import ./lib.nix ({ pkgs = import nixpkgs { inherit system; }; lib = final; inherit inputs; } // (if (host == null) then {} else { inherit host; }));
+            });
+            overlays = lib: import ./overlays.nix {
+                inherit lib nixpkgs inputs;
+                pkgs = mapAttrs (n: v: import v lib.j.attrs.configs.nixpkgs) (
+                    (filterAttrs (n: v: (hasPrefix "nixos-" n) || (hasPrefix "release-" n)) inputs) //
+                    (with inputs; {
+                        inherit master j;
+                    })
+                );
+            };
+            nixpkgset = overlays: system: lib: { inherit overlays system; config = lib.j.attrs.configs.nixpkgs; };
+            pkgs = nixpkgset: import nixpkgs nixpkgset;
+            specialArgs = name: system: rec {
+                inherit inputs nixpkgs system;
+                lib = make.lib name system;
+                overlays = make.overlays lib;
+                nixpkgset = make.nixpkgset overlays system lib;
+                pkgs = make.pkgs nixpkgset;
+            };
+            config = name: system: lib.nixosSystem {
+                specialArgs = make.specialArgs name system;
+                modules = flatten [
+                    ./configuration.nix
+                    home-manager.nixosModules.home-manager
+                    impermanence.nixosModules.impermanence
+                    (j.functions.list { dir = ./modules; })
+                ];
+            };
+        };
+    in (make.specialArgs null "x86_64-linux") // {
+        inherit make channel;
+        nixosConfigurations = eachSystem allSystems (system: listToAttrs
+            (name: nameValuePair name (make.config name system))
+            (attrNames (filterAttrs (n: v: v == "directory") (readDir ./hosts)))
+        );
+    };
+}
+#+end_src
+
+*** minimal.nix
 :PROPERTIES:
-:header-args:nix+: :noweb-ref super.nix
+:header-args:nix+: :noweb-ref minimal.nix
 :END:
 
-#+begin_src plaintext :tangle (meq/tangle-path)
-<<super.nix>>
+#+begin_src text :tangle (meq/tangle-path)
+<<minimal.nix>>
 #+end_src
 
 **** Arguments
 
 #+begin_src nix
-{ config, ... }: with builtins;
+with builtins; args@{ config, system ? currentSystem ... }:
 #+end_src
 
 **** Config Let
@@ -1663,32 +1722,18 @@ in flatten (mapAttrsToList (
 let
 #+end_src
 
-***** Nixpkgs
+***** Flake
 
 #+begin_src nix
-ref = "j";
-url = "https://github.com/shadowrylander/nixpkgs";
-Nixpkgs = fetchGit { inherit url ref; };
+flake = import ./.;
 #+end_src
 
-***** Lib
+****** Inheritance and Make
 
 #+begin_src nix
-prepkgs = import Nixpkgs {  };
-lib = prepkgs.lib.extend (final: prev: { j = import ./lib.nix prepkgs final config.networking.hostName; });
-#+end_src
-
-***** Overlays
-
-#+begin_src nix
-overlays = import ./overlays.nix lib Nixpkgs pkgs ref;
-#+end_src
-
-***** Pkgs
-
-#+begin_src nix
-nixpkgs = { inherit overlays; config = lib.j.attrs.configs.nixpkgs; };
-pkgs = import Nixpkgs nixpkgs;
+inherit (flake) lib overlays make;
+nixpkgset = make.nixpkgset overlays system lib;
+pkgs = make.pkgs nixpkgset;
 #+end_src
 
 ***** Config Repo
@@ -1696,9 +1741,7 @@ pkgs = import Nixpkgs nixpkgs;
 #+begin_src nix
 dir = "${lib.j.attrs.homes.${lib.j.attrs.users.primary}}/.local/share/yadm/repo.git";
 dirExists = pathExists dir;
-repo = with lib; j.functions.mntConvert (fetchGit {
-    url = if dirExists then "file://${dir}" else "https://github.com/${j.attrs.users.primary}/${j.attrs.users.primary}";
-});
+repo = with lib; j.functions.mntConvert (if dirExists then (fetchGit { url = "file://${dir}"; ref = "main"; }) else flake.${j.attrs.users.primary})
 #+end_src
 
 ***** Configurations
@@ -1720,11 +1763,7 @@ in with lib; {
 **** Imports
 
 #+begin_src nix
-imports = [
-    "${fetchGit { url = "https://github.com/nix-community/home-manager"; }}/nixos"
-    "${fetchGit { url = "https://github.com/nix-community/impermanence"; }}/nixos.nix"
-    # "${fetchGit { url = "https://github.com/${j.attrs.users.primary}/nixpkgs"; ref = "guix"; }}/nixos/modules/services/development/guix.nix"
-];
+imports = flatten [ flake.home-manager.nixosModules.home-manager impermanence.nixosModules.impermanence ];
 #+end_src
 
 **** Config
@@ -1914,167 +1953,6 @@ environment = {
 etc."nix/nix.conf".text = mkForce j.attrs.configs.nix;
 #+end_src
 
-****** Paths to Link
-
-#+begin_src nix
-pathsToLink = [ "/share/nix-direnv" ];
-#+end_src
-
-****** System Packages
-
-#+begin_src nix
-systemPackages = with pkgs; [
-    # bcachefs-tools
-    acpilight
-    alacritty
-    asdf-vm
-    assh
-    atom
-    autojump
-    autossh
-    bat
-    bc
-    btrfs-progs
-    byobu
-    cascadia-code
-    cmake
-    copyq
-    coreutils
-    ctop
-    curl
-    darling-dmg
-    # ddar
-    direnv
-    diskus
-    dos2unix
-    duf
-    elvish
-    emacs
-    entr
-    exa
-    exfat
-    # extra-container
-    fasd
-    fd
-    fd
-    fff
-    ffmpeg
-    figlet
-    filet
-    firefox
-    fish
-    fzf
-    gcc
-    git
-    git-crypt
-    git-filter-repo
-    git-fire
-    git-lfs
-    gitoxide
-    glances
-    gnumake
-    google-chrome google-chrome-beta google-chrome-dev
-    gotop
-    gparted
-    gptfdisk
-    # haskellPackages.hocker
-    inetutils
-    j-settings
-    jupyter
-    keybase-gui kitty
-    libffi
-    libguestfs
-    libsForQt5.qtstyleplugin-kvantum
-    libtool
-    lolcat
-    lorri
-    man
-    micro
-    mkpasswd
-    monkeysphere
-    mosh
-    mtr
-    neo-cowsay
-    neovim
-    niv
-    nix-direnv
-    nnn
-    nodePackages.prettier
-    nox
-    ntfs3g nixos-shell
-    pandoc
-    par2cmdline
-    parted pmutils
-    peru
-    pfetch
-    pypy
-    python310
-    python39Packages.pipx
-    ranger
-    refind
-    ripgrep
-    rsync
-    sd
-    shadowfox
-    shellcheck
-    silver-searcher
-    snapper
-    spacevim
-    sqlite
-    starship
-    sysstat
-    thefuck
-    thermald
-    tmux
-    tmuxp
-    tree
-    udftools
-    ulauncher
-    uutils-coreutils
-    vagrant
-    vim
-    vivaldi vivaldi-ffmpeg-codecs vivaldi-widevine
-    vlc
-    vscode vscodium
-    wget
-    win-qemu
-    woeusb
-    wtf
-    xclip
-    xclip
-    xfce.thunar
-    xz
-    yubico-pam yubico-piv-tool yubikey-manager yubikey-agent yubikey-personalization yubioath-desktop
-    yubikey-manager-qt yubikey-personalization-gui
-    zenith
-    zsh
-] ++ (map (pkg: pkgs.gnome."gnome-${pkg}") [
-    "boxes"
-    "characters"
-    "tweaks"
-    "session"
-]) ++ (map (pkg: pkgs."nix-prefetch-${pkg}") [
-    "github"
-    "docker"
-    "scripts"
-]) ++ (with pkgs.gnome; [
-    dconf-editor
-]) ++ (with pkgs.gitAndTools; [
-    git-extras
-    git-hub
-    gitflow
-    gh
-    hub
-    lab
-]) ++ (with pkgs.python310Packages; [
-    black
-    black-macchiato
-    poetry
-    jupyterlab
-    xonsh
-]);
-#+end_src
-
 ****** ZFS
 
 #+begin_src nix
@@ -2087,11 +1965,9 @@ persistence = let
 in {
     "/persist/root" = {
         directories = unique (map (directory: if ((typeOf directory) == "string") then ({ inherit directory; } // rootDirSet) else (rootDirSet // directory)) (flatten [
-            [
-                "/etc/nix"
-                "/etc/nixos"
-                "/etc/zsh"
-            ]
+            "/etc/nix"
+            "/etc/nixos"
+            "/etc/zsh"
         ]));
     };
     "/persist" = let
@@ -2106,26 +1982,22 @@ in {
     in {
         hideMounts = true;
         files = unique (map (file: if ((typeOf file) == "string") then ({ inherit file; } // rootFileSet) else (rootFileSet // file)) (flatten [
-            [
-                "/etc/host"
-                "/etc/machine-id"
-            ]
+            "/etc/host"
+            "/etc/machine-id"
         ]));
         directories = unique (map (directory: if ((typeOf directory) == "string") then ({ inherit directory; } // rootDirSet) else (rootDirSet // directory)) (flatten [
-            [
-                "/bin"
-                "/etc/containers"
-                "/etc/NetworkManager/system-connections"
-                "/etc/ssh"
-                "/etc/wireguard"
-                "/sbin"
-                "/snap"
-                "/usr"
-                "/var/lib/acme"
-                "/var/lib/bluetooth"
-                "/var/lib/systemd/coredump"
-                "/var/log"
-            ]
+            "/bin"
+            "/etc/containers"
+            "/etc/NetworkManager/system-connections"
+            "/etc/ssh"
+            "/etc/wireguard"
+            "/sbin"
+            "/snap"
+            "/usr"
+            "/var/lib/acme"
+            "/var/lib/bluetooth"
+            "/var/lib/systemd/coredump"
+            "/var/log"
         ]));
         users = listToAttrs (map (user: let
             userDirSet = {
@@ -2136,55 +2008,48 @@ in {
         in nameValuePair user {
             home = j.attrs.allHomes.${user};
             files = unique (map (file: if ((typeOf file) == "string") then ({ inherit file; } // userFileSet) else (userFileSet // file)) (flatten [
-                [
-                    ".bash-history"
-                    ".emacs-profile"
-                    ".gitignore"
-                    ".globalignore"
-                    ".nix-channels"
-                    ".python-history"
-                    ".viminfo"
-                    ".zsh-history"
-                    ".screenrc"
-                ]
-
-                # TODO
+                ".bash-history"
+                ".emacs-profile"
+                ".gitignore"
+                ".globalignore"
+                ".nix-channels"
+                ".python-history"
+                ".viminfo"
+                ".zsh-history"
+                ".screenrc"
                 redRepoFiles
-
             ]));
             directories = unique (map (directory: if ((typeOf directory) == "string") then ({ inherit directory; } // userDirSet) else (userDirSet // directory)) (flatten [
-                [
-                    ".atom"
-                    ".byobu"
-                    ".cache"
-                    ".caddy"
-                    ".config"
-                    ".linuxbrew"
-                    ".local"
-                    ".mozilla"
-                    ".peru"
-                    ".pki"
-                    ".vim_runtime"
-                    ".virtualenvs"
-                    ".vscode-oss"
-                    ".vscode"
-                    ".yubico"
-                    ".z"
-                    "Documents"
-                    "Downloads"
-                    "keybase"
-                    "Music"
-                    "nix-plugins"
-                    "Pictures"
-                    "Public"
-                    "Templates"
-                    "tests"
-                    "Videos"
-                    "VirtualBox VMs"
-                    { directory = ".gnupg"; mode = "0700"; }
-                    { directory = ".nixops"; mode = "0700"; }
-                    { directory = ".ssh"; mode = "0700"; }
-                ]
+                ".atom"
+                ".byobu"
+                ".cache"
+                ".caddy"
+                ".config"
+                ".linuxbrew"
+                ".local"
+                ".mozilla"
+                ".peru"
+                ".pki"
+                ".vim_runtime"
+                ".virtualenvs"
+                ".vscode-oss"
+                ".vscode"
+                ".yubico"
+                ".z"
+                "Documents"
+                "Downloads"
+                "keybase"
+                "Music"
+                "nix-plugins"
+                "Pictures"
+                "Public"
+                "Templates"
+                "tests"
+                "Videos"
+                "VirtualBox VMs"
+                { directory = ".gnupg"; mode = "0700"; }
+                { directory = ".nixops"; mode = "0700"; }
+                { directory = ".ssh"; mode = "0700"; }
                 redRepoDirectories
             ]));}) j.attrs.allUsers);
     };
@@ -2194,6 +2059,15 @@ in {
 ****** End of Environment
 
 #+begin_src nix
+};
+#+end_src
+
+***** Memory
+
+#+begin_src nix
+zramSwap = {
+    enable = true;
+    algorithm = "zstd";
 };
 #+end_src
 
@@ -2219,68 +2093,6 @@ hardware = {
     pulseaudio.enable = true;
 };
 sound.enable = true;
-#+end_src
-
-***** Home-Manager
-
-#+begin_src nix
-home-manager = {
-    useGlobalPkgs = true;
-    users = j.functions.foldToSet [
-        listToAttrs (user: nameValuePair user {
-            home = {
-                homeDirectory = j.attrs.homes.${user};
-                file.<<20220205031620372930929>>.source = repo;
-            };
-        }) j.attrs.allUsers
-    ];
-};
-#+end_src
-
-***** Memory
-
-#+begin_src nix
-zramSwap = {
-    enable = true;
-    algorithm = "zstd";
-};
-#+end_src
-
-***** Miscellaneous
-
-#+begin_quote
-Help is available in the configuration.nix(5) man page and in the NixOS manual (accessible by running 'nixos-help').
-#+end_quote
-
-****** Flatpak
-
-#+begin_src nix
-xdg.portal.enable = mkForce (!elem currentSystem [ "aarch64-linux" ]);
-#+end_src
-
-****** Miscellaneous
-
-#+begin_src nix
-i18n = {
-    # Select internationalisation properties.
-    defaultLocale = "en_US.UTF-8";
-};
-time.timeZone = "America/Toronto";
-system = {
-    # This value determines the NixOS release from which the default
-    # settings for stateful data, like file locations and database versions
-    # on your system were taken. It's perfectly fine and recommended to leave
-    # this value at the release version of the first install of this system.
-    # Before changing this value read the documentation for this option
-    # (e.g. man configuration.nix or on https://nixos.org/nixos/options.html).
-    # stateVersion = "20.09"; # Did you read the comment?
-    autoUpgrade = {
-        enable = true;
-        allowReboot = false;
-        # flake = "https://github.com/nixos/nixpkgs/archive/master.tar.gz";
-        flake = "https://github.com/${j.attrs.users.primary}/nixpkgs/archive/j.tar.gz";
-    };
-};
 #+end_src
 
 ***** Networking
@@ -2362,7 +2174,7 @@ nix = rec {
 ***** Nixpkgs
 
 #+begin_src nix
-inherit nixpkgs;
+nixpkgs = nixpkgset;
 #+end_src
 
 ***** Power
@@ -2386,73 +2198,10 @@ programs = {
 };
 #+end_src
 
-***** Security
-
-This is mostly for Yubikey Authentication:
-
-#+begin_src nix
-# For Yubikey SSH-GPG Authentication
-environment.shellInit = ''
-    export GPG_TTY="$(tty)"
-    gpg-connect-agent /bye
-    export SSH_AUTH_SOCK="/run/user/$UID/gnupg/S.gpg-agent.ssh"
-    echo UPDATESTARTUPTTY | gpg-connect-agent
-'';
-programs = {
-    # Some programs need SUID wrappers, can be configured further or are
-    # started in user sessions.
-    # mtr.enable = true;
-    gnupg.agent = {
-        enable = true;
-        enableSSHSupport = false;
-        pinentryFlavor = "curses";
-    };
-
-    # For use with Yubikey SSH-GPG Authentication, set to false
-    ssh.startAgent = true;
-};
-security.pam = {
-    yubico = {
-        enable = true;
-        debug = true;
-        mode = "challenge-response";
-    };
-    enableSSHAgentAuth = true;
-};
-#+end_src
-
 ***** Services
 
 #+begin_src nix
 services = {
-#+end_src
-
-****** Emacs
-
-#+begin_src nix
-emacs = {
-    package = pkgs.emacs;
-    enable = true;
-    defaultEditor = true;
-};
-#+end_src
-
-****** Flatpak
-
-#+begin_src nix
-flatpak.enable = !elem currentSystem [ "aarch64-linux" ];
-#+end_src
-
-****** Guix
-
-#+begin_src nix
-guix.enable = true;
-#+end_src
-
-****** Printing
-
-#+begin_src nix
-printing.enable = true;
 #+end_src
 
 ****** SSH
@@ -2503,119 +2252,9 @@ xserver = {
 };
 #+end_src
 
-****** Yubikey
-
-#+begin_src nix
-udev.packages = with pkgs; [
-    yubikey-personalization
-    libu2f-host
-];
-pcscd.enable = true;
-#+end_src
-
-****** ZFS
-
-#+begin_src nix
-zfs = {
-    trim.enable = true;
-    autoScrub.enable = true;
-
-    # Managed by Sanoid
-    autoSnapshot.enable = false;
-};
-#+end_src
-
-******* Sanoid
-
-#+begin_src nix
-sanoid = let
-    sanoidBase = {
-        useTemplate = [ "base" ];
-        recursive = true;
-    };
-    disabled = { processChildrenOnly = true; };
-in {
-    enable = true;
-    templates."base" = {
-        autoprune = true;
-        autosnap = true;
-
-        # 6 snapshots an hour
-        daily = 144;
-
-        # 2 snapshots a minute
-        hourly = 120;
-
-        # 6 snapshots a day for 28 days
-        monthly = 168;
-
-        # Twice the weeks in a year
-        yearly = 104;
-    };
-
-    datasets = listToAttrs (map (dataset: nameValuePair "${config.networking.hostName}/${dataset}" sanoidBase) (flatten [
-        j.attrs.datasets.backup
-        [ config.networking.hostName ]
-    ]));
-};
-#+end_src
-
-******* Syncoid
-
-#+begin_src nix
-syncoid = let
-    syncoidBase = mkMerge [{
-        recursive = true;
-        commonArgs = [
-            "--compress zstd-slow"
-            "--no-stream"
-            "--no-sync-snap"
-            "--create-bookmark"
-        ];
-        }
-        # (mkIf vars.encrypted {
-        #     sendOptions = "vvwRI";
-        #     recvOptions = "vvFs";
-        # })
-        # (mkIf (!vars.encrypted) {
-        #     recvOptions = "vvFds";
-        #     sendOptions = "vvRI";
-        # })
-    ];
-in {
-    enable = false;
-    sshKey = "/root/.ssh/id_ecdsa";
-    commands = listToAttrs (map (dataset: nameValuePair "${host}/${dataset}" (syncoidBase // { target = ""; })) (flatten [
-        j.attrs.datasets.backup
-        [ config.networking.hostName ]
-    ]));
-};
-#+end_src
-
 ****** End of Services
 
 #+begin_src nix
-};
-#+end_src
-
-***** Systemd
-
-#+begin_src nix
-systemd = {
-    # packages = with pkgs; [ runit ];
-    services = {
-        # runit.enable = true;
-        caddy = mkIf (elem config.networking.hostName j.attrs.relays) (j.attrs.configs.services.base // {
-            serviceConfig = {
-                ExecStart = ''
-                    ${pkgs.caddy}/bin/caddy run --config ${j.attrs.homes.${j.attrs.users.primary}}/.config/caddy/files/${config.networking.hostName} --adapter yaml 2>&1
-                '';
-                ExecStop = ''
-                    pkill caddy
-                '';
-            };
-        });
-    };
 };
 #+end_src
 
@@ -2656,7 +2295,7 @@ in rec {
                 description = "Alicia Summers";
                 group = secondary;
                 extraGroups = [ primary ];
-                shell = if (!elem currentSystem [ "aarch64-linux" ]) then pkgs.fish else pkgs.zsh;
+                shell = if (!elem system [ "aarch64-linux" ]) then pkgs.fish else pkgs.zsh;
             };
             "${nightingale}" = {
                 uid = 8888;
@@ -2694,32 +2333,454 @@ in rec {
 };
 #+end_src
 
-***** Virtualisation
+***** End of Config
 
 #+begin_src nix
-virtualisation = {
-    xen.enable = false;
-    lxd.zfsSupport = true;
-    podman.enable = true;
-    docker = {
-        enable = true;
-        storageDriver = "zfs";
-        package = pkgs.docker;
-        enableOnBoot = true;
+};
+#+end_src
+
+**** End of minimal.nix
+
+#+begin_src nix
+}
+#+end_src
+
+*** modules
+**** environment.nix
+
+#+begin_src nix :tangle (meq/tangle-path)
+{ config, pkgs, ... }: with pkgs;
+
+{
+    environment = {
+        pathsToLink = [ "/share/nix-direnv" ];
+        systemPackages = [
+            # bcachefs-tools
+            acpilight
+            alacritty
+            asdf-vm
+            assh
+            atom
+            autojump
+            autossh
+            bat
+            bc
+            btrfs-progs
+            byobu
+            cascadia-code
+            cmake
+            copyq
+            coreutils
+            ctop
+            curl
+            darling-dmg
+            # ddar
+            direnv
+            diskus
+            dos2unix
+            duf
+            elvish
+            emacs
+            entr
+            exa
+            exfat
+            # extra-container
+            fasd
+            fd
+            fd
+            fff
+            ffmpeg
+            figlet
+            filet
+            firefox
+            fish
+            fzf
+            gcc
+            git
+            git-crypt
+            git-filter-repo
+            git-fire
+            git-lfs
+            gitoxide
+            glances
+            gnumake
+            google-chrome google-chrome-beta google-chrome-dev
+            gotop
+            gparted
+            gptfdisk
+            # haskellPackages.hocker
+            inetutils
+            j-settings
+            jupyter
+            keybase-gui kitty
+            libffi
+            libguestfs
+            libsForQt5.qtstyleplugin-kvantum
+            libtool
+            lolcat
+            lorri
+            man
+            micro
+            mkpasswd
+            monkeysphere
+            mosh
+            mtr
+            neo-cowsay
+            neovim
+            niv
+            nix-direnv
+            nnn
+            nodePackages.prettier
+            nox
+            ntfs3g nixos-shell
+            pandoc
+            par2cmdline
+            parted pmutils
+            peru
+            pfetch
+            pypy
+            python310
+            python39Packages.pipx
+            ranger
+            refind
+            ripgrep
+            rsync
+            sd
+            shadowfox
+            shellcheck
+            silver-searcher
+            snapper
+            spacevim
+            sqlite
+            starship
+            sysstat
+            thefuck
+            thermald
+            tmux
+            tmuxp
+            tree
+            udftools
+            ulauncher
+            uutils-coreutils
+            vagrant
+            vim
+            vivaldi vivaldi-ffmpeg-codecs vivaldi-widevine
+            vlc
+            vscode vscodium
+            wget
+            win-qemu
+            woeusb
+            wtf
+            xclip
+            xclip
+            xfce.thunar
+            xz
+            yubico-pam yubico-piv-tool yubikey-manager yubikey-agent yubikey-personalization yubioath-desktop
+            yubikey-manager-qt yubikey-personalization-gui
+            zenith
+            zsh
+        ] ++ (map (pkg: pkgs.gnome."gnome-${pkg}") [
+            "boxes"
+            "characters"
+            "tweaks"
+            "session"
+        ]) ++ (map (pkg: pkgs."nix-prefetch-${pkg}") [
+            "github"
+            "docker"
+            "scripts"
+        ]) ++ (with pkgs.gnome; [
+            dconf-editor
+        ]) ++ (with pkgs.gitAndTools; [
+            git-extras
+            git-hub
+            gitflow
+            gh
+            hub
+            lab
+        ]) ++ (with pkgs.python310Packages; [
+            black
+            black-macchiato
+            poetry
+            jupyterlab
+            xonsh
+        ]);
     };
-    libvirtd.enable = true;
+}
+#+end_src
+
+**** miscellaneous.nix
+
+#+begin_quote
+Help is available in the configuration.nix(5) man page and in the NixOS manual (accessible by running 'nixos-help').
+#+end_quote
+
+#+begin_src nix :tangle (meq/tangle-path)
+{ config, lib, system, ... }: with lib;
+
+{
+    xdg.portal.enable = mkForce (!elem system [ "aarch64-linux" ]);
+    i18n = {
+        # Select internationalisation properties.
+        defaultLocale = "en_US.UTF-8";
+    };
+    time.timeZone = "America/Toronto";
+    system = {
+        # This value determines the NixOS release from which the default
+        # settings for stateful data, like file locations and database versions
+        # on your system were taken. It's perfectly fine and recommended to leave
+        # this value at the release version of the first install of this system.
+        # Before changing this value read the documentation for this option
+        # (e.g. man configuration.nix or on https://nixos.org/nixos/options.html).
+        # stateVersion = "20.09"; # Did you read the comment?
+        autoUpgrade = {
+            enable = true;
+            allowReboot = false;
+            # flake = "https://github.com/nixos/nixpkgs/archive/master.tar.gz";
+            flake = "https://github.com/${j.attrs.users.primary}/nixpkgs/archive/j.tar.gz";
+        };
+    };
+}
+#+end_src
+
+**** home-manager.nix
+
+#+begin_src nix :tangle (meq/tangle-path)
+{ config, lib, ... }: with lib;
+
+{
+    home-manager = {
+        useGlobalPkgs = true;
+        users = j.functions.foldToSet [
+            listToAttrs (user: nameValuePair user {
+                home = {
+                    homeDirectory = j.attrs.homes.${user};
+                    file.<<20220205031620372930929>>.source = repo;
+                };
+            }) j.attrs.allUsers
+        ];
+    };
+}
+#+end_src
+
+**** security.nix
+
+#+begin_src nix :tangle (meq/tangle-path)
+{ config, ... }:
+
+{
+    # For Yubikey SSH-GPG Authentication
+    environment.shellInit = ''
+        export GPG_TTY="$(tty)"
+        gpg-connect-agent /bye
+        export SSH_AUTH_SOCK="/run/user/$UID/gnupg/S.gpg-agent.ssh"
+        echo UPDATESTARTUPTTY | gpg-connect-agent
+    '';
+    programs = {
+        # Some programs need SUID wrappers, can be configured further or are
+        # started in user sessions.
+        # mtr.enable = true;
+        gnupg.agent = {
+            enable = true;
+            enableSSHSupport = false;
+            pinentryFlavor = "curses";
+        };
+
+        # For use with Yubikey SSH-GPG Authentication, set to false
+        ssh.startAgent = true;
+    };
+    security.pam = {
+        yubico = {
+            enable = true;
+            debug = true;
+            mode = "challenge-response";
+        };
+        enableSSHAgentAuth = true;
+    };
+}
+#+end_src
+
+**** services.nix
+:PROPERTIES:
+:header-args:nix+: :noweb-ref services.nix
+:END:
+
+#+begin_src text :tangle (meq/tangle-path)
+<<services.nix>>
+#+end_src
+
+#+begin_src nix
+{ config, lib, ... }: with lib;
+
+{
+    services = {
+#+end_src
+
+***** Emacs
+
+#+begin_src nix
+emacs = {
+    package = pkgs.emacs;
+    enable = true;
+    defaultEditor = true;
 };
 #+end_src
 
-***** End of super.nix
+***** Flatpak
 
 #+begin_src nix
+flatpak.enable = !elem system [ "aarch64-linux" ];
+#+end_src
+
+***** Guix
+
+#+begin_src nix
+guix.enable = true;
+#+end_src
+
+***** Printing
+
+#+begin_src nix
+printing.enable = true;
+#+end_src
+
+***** Yubikey
+
+#+begin_src nix
+udev.packages = with pkgs; [
+    yubikey-personalization
+    libu2f-host
+];
+pcscd.enable = true;
+#+end_src
+
+***** ZFS
+
+#+begin_src nix
+zfs = {
+    trim.enable = true;
+    autoScrub.enable = true;
+
+    # Managed by Sanoid
+    autoSnapshot.enable = false;
 };
 #+end_src
 
-**** End of Set
+****** Sanoid
 
 #+begin_src nix
+sanoid = let
+    sanoidBase = {
+        useTemplate = [ "base" ];
+        recursive = true;
+    };
+    disabled = { processChildrenOnly = true; };
+in {
+    enable = true;
+    templates."base" = {
+        autoprune = true;
+        autosnap = true;
+
+        # 6 snapshots an hour
+        daily = 144;
+
+        # 2 snapshots a minute
+        hourly = 120;
+
+        # 6 snapshots a day for 28 days
+        monthly = 168;
+
+        # Twice the weeks in a year
+        yearly = 104;
+    };
+
+    datasets = listToAttrs (map (dataset: nameValuePair "${config.networking.hostName}/${dataset}" sanoidBase) (flatten [
+        j.attrs.datasets.backup
+        config.networking.hostName
+    ]));
+};
+#+end_src
+
+****** Syncoid
+
+#+begin_src nix
+syncoid = let
+    syncoidBase = mkMerge [{
+        recursive = true;
+        commonArgs = [
+            "--compress zstd-slow"
+            "--no-stream"
+            "--no-sync-snap"
+            "--create-bookmark"
+        ];
+        }
+        # (mkIf vars.encrypted {
+        #     sendOptions = "vvwRI";
+        #     recvOptions = "vvFs";
+        # })
+        # (mkIf (!vars.encrypted) {
+        #     recvOptions = "vvFds";
+        #     sendOptions = "vvRI";
+        # })
+    ];
+in {
+    enable = false;
+    sshKey = "/root/.ssh/id_ecdsa";
+    commands = listToAttrs (map (dataset: nameValuePair "${host}/${dataset}" (syncoidBase // { target = ""; })) (flatten [
+        j.attrs.datasets.backup
+        config.networking.hostName
+    ]));
+};
+#+end_src
+
+***** End of services.nix
+
+#+begin_src nix
+};}
+#+end_src
+
+**** systemd.nix
+
+#+begin_src nix :tangle (meq/tangle-path)
+{ config, lib, pkgs, ... }: with lib;
+
+{
+    systemd = {
+        # packages = with pkgs; [ runit ];
+        services = {
+            # runit.enable = true;
+            caddy = mkIf (elem config.networking.hostName j.attrs.relays) (j.attrs.configs.services.base // {
+                serviceConfig = {
+                    ExecStart = ''
+                        ${pkgs.caddy}/bin/caddy run --config ${j.attrs.homes.${j.attrs.users.primary}}/.config/caddy/files/${config.networking.hostName} --adapter yaml 2>&1
+                    '';
+                    ExecStop = ''
+                        pkill caddy
+                    '';
+                };
+            });
+        };
+    };
+}
+#+end_src
+
+**** virtualisation.nix
+
+#+begin_src nix
+{ config, pkgs, ... }:
+
+{
+    virtualisation = {
+        xen.enable = false;
+        lxd.zfsSupport = true;
+        podman.enable = true;
+        docker = {
+            enable = true;
+            storageDriver = "zfs";
+            package = pkgs.docker;
+            enableOnBoot = true;
+        };
+        libvirtd.enable = true;
+    };
 }
 #+end_src
 
@@ -3106,7 +3167,7 @@ if [ -z "$1" ]; then echo $(fd | fzf-tmux) || echo $(fd . "$1" | fzf-tmux); fi
 :header-args:xonsh+: :noweb-ref .xonshrc
 :END:
 
-#+begin_src plaintext :tangle (meq/tangle-path)
+#+begin_src text :tangle (meq/tangle-path)
 <<.xonshrc>>
 #+end_src
 
@@ -3424,7 +3485,7 @@ consistency:
 :header-args:yaml+: :noweb-ref sylvorg.yaml
 :END:
 
-#+begin_src plaintext :tangle (meq/tangle-path)
+#+begin_src text :tangle (meq/tangle-path)
 <<sylvorg.yaml>>
 #+end_src
 
@@ -3540,7 +3601,7 @@ location:
 :header-args:yaml+: :noweb-ref oreo.yaml
 :END:
 
-#+begin_src plaintext :tangle (meq/tangle-path)
+#+begin_src text :tangle (meq/tangle-path)
 <<oreo.yaml>>
 #+end_src
 
@@ -3658,7 +3719,7 @@ location:
 :header-args:systemd+: :noweb-ref emacs.service
 :END:
 
-#+begin_src plaintext :tangle (meq/tangle-path)
+#+begin_src text :tangle (meq/tangle-path)
 <<emacs.service>>
 #+end_src
 
@@ -3685,7 +3746,7 @@ WantedBy=default.target
 :header-args:zsh+: :noweb-ref nwr20220129201347246148721
 :END:
 
-#+begin_src plaintext :tangle (meq/tangle-path) :shebang "#!/usr/bin/env nix-shell"
+#+begin_src text :tangle (meq/tangle-path) :shebang "#!/usr/bin/env nix-shell"
 <<nwr20220129201347246148721>>
 #+end_src
 
@@ -3700,7 +3761,7 @@ WantedBy=default.target
 :header-args:zsh+: :noweb-ref .direnvrc
 :END:
 
-#+begin_src plaintext :tangle (meq/tangle-path)
+#+begin_src text :tangle (meq/tangle-path)
 <<.direnvrc>>
 #+end_src
 
@@ -3718,7 +3779,7 @@ use_flake() {
 :header-args:conf+: :noweb-ref kitty.conf
 :END:
 
-#+begin_src plaintext :tangle (meq/tangle-path)
+#+begin_src text :tangle (meq/tangle-path)
 <<kitty.conf>>
 #+end_src
 
@@ -3732,7 +3793,7 @@ include ~/resources/kittyThemes/themes/Monokai_Pro_(Filter_Ristretto).conf
 :header-args:ion+: :noweb-ref initrc
 :END:
 
-#+begin_src plaintext :tangle (meq/tangle-path)
+#+begin_src text :tangle (meq/tangle-path)
 <<initrc>>
 #+end_src
 
@@ -3752,7 +3813,7 @@ eval $(starship init ion)
 : 20211018183420833239200
 
 #+name: 20211018183420833239200
-#+begin_src plaintext :tangle (meq/tangle-path)
+#+begin_src text :tangle (meq/tangle-path)
 <<config>>
 #+end_src
 
@@ -3812,7 +3873,7 @@ eval $(starship init ion)
 :header-args:zsh+: :noweb-ref pre-commit
 :END:
 
-#+begin_src plaintext :tangle (meq/tangle-path) :shebang "#!/usr/bin/env zsh"
+#+begin_src text :tangle (meq/tangle-path) :shebang "#!/usr/bin/env zsh"
 <<pre-commit>>
 #+end_src
 
@@ -3825,7 +3886,7 @@ make -f ~/makefile tangle
 :header-args:zsh+: :noweb-ref pre-pull
 :END:
 
-#+begin_src plaintext :tangle (meq/tangle-path) :shebang "#!/usr/bin/env zsh"
+#+begin_src text :tangle (meq/tangle-path) :shebang "#!/usr/bin/env zsh"
 <<pre-pull>>
 #+end_src
 
@@ -3838,7 +3899,7 @@ make -f ~/makefile subinit
 :header-args:zsh+: :noweb-ref post-pull
 :END:
 
-#+begin_src plaintext :tangle (meq/tangle-path) :shebang "#!/usr/bin/env zsh"
+#+begin_src text :tangle (meq/tangle-path) :shebang "#!/usr/bin/env zsh"
 <<post-pull>>
 #+end_src
 
@@ -3852,7 +3913,7 @@ make -f ~/makefile tangle
 :header-args:zsh+: :noweb-ref tangle
 :END:
 
-#+begin_src plaintext :tangle (meq/tangle-path) :shebang "#!/usr/bin/env zsh"
+#+begin_src text :tangle (meq/tangle-path) :shebang "#!/usr/bin/env zsh"
 <<tangle>>
 #+end_src
 
@@ -3870,7 +3931,7 @@ $run /settings/org-tangle.sh $@
 :header-args:zsh+: :noweb-ref super
 :END:
 
-#+begin_src plaintext :tangle (meq/tangle-path) :shebang "#!/usr/bin/env zsh"
+#+begin_src text :tangle (meq/tangle-path) :shebang "#!/usr/bin/env zsh"
 <<super>>
 #+end_src
 
@@ -3891,7 +3952,7 @@ fi
 :header-args:xonsh+: :noweb-ref subinit
 :END:
 
-#+begin_src plaintext :tangle (meq/tangle-path) :shebang "#!/usr/bin/env xonsh"
+#+begin_src text :tangle (meq/tangle-path) :shebang "#!/usr/bin/env xonsh"
 <<subinit>>
 #+end_src
 
@@ -3957,7 +4018,7 @@ for submodule, subdict in submodules.items():
 :header-args:zsh+: :noweb-ref wtt
 :END:
 
-#+begin_src plaintext :tangle (meq/tangle-path) :shebang "#!/usr/bin/env zsh"
+#+begin_src text :tangle (meq/tangle-path) :shebang "#!/usr/bin/env zsh"
 <<wtt>>
 #+end_src
 
@@ -3971,7 +4032,7 @@ git chRun ~/.emacs.d/wtt/wtt$ext
 :header-args:zsh+: :noweb-ref sunc
 :END:
 
-#+begin_src plaintext :tangle (meq/tangle-path) :shebang "#!/usr/bin/env zsh"
+#+begin_src text :tangle (meq/tangle-path) :shebang "#!/usr/bin/env zsh"
 <<sunc>>
 #+end_src
 
@@ -3987,7 +4048,7 @@ yadm sync root main
 :header-args:zsh+: :noweb-ref senc
 :END:
 
-#+begin_src plaintext :tangle (meq/tangle-path) :shebang "#!/usr/bin/env zsh"
+#+begin_src text :tangle (meq/tangle-path) :shebang "#!/usr/bin/env zsh"
 <<senc>>
 #+end_src
 
@@ -4003,7 +4064,7 @@ yadm se sync root main
 :header-args:zsh+: :noweb-ref se
 :END:
 
-#+begin_src plaintext :tangle (meq/tangle-path) :shebang "#!/usr/bin/env zsh"
+#+begin_src text :tangle (meq/tangle-path) :shebang "#!/usr/bin/env zsh"
 <<se>>
 #+end_src
 
@@ -4025,7 +4086,7 @@ $ylv -Y $root/.config/yadm-sec --yadm-dir $root/<<yadm-dir>>-sec
 :header-args:zsh+: :noweb-ref brew
 :END:
 
-#+begin_src plaintext :tangle (meq/tangle-path) :shebang "#!/usr/bin/env zsh"
+#+begin_src text :tangle (meq/tangle-path) :shebang "#!/usr/bin/env zsh"
 <<brew>>
 #+end_src
 
@@ -4040,7 +4101,7 @@ $ylv -Y $root/.config/yadm-sec --yadm-dir $root/<<yadm-dir>>-sec
 :header-args:zsh+: :noweb-ref nix
 :END:
 
-#+begin_src plaintext :tangle (meq/tangle-path) :shebang "#!/usr/bin/env zsh"
+#+begin_src text :tangle (meq/tangle-path) :shebang "#!/usr/bin/env zsh"
 <<nix>>
 #+end_src
 
@@ -4053,7 +4114,7 @@ $ylv -Y $root/.config/yadm-sec --yadm-dir $root/<<yadm-dir>>-sec
 :header-args:zsh+: :noweb-ref guix
 :END:
 
-#+begin_src plaintext :tangle (meq/tangle-path) :shebang "#!/usr/bin/env zsh"
+#+begin_src text :tangle (meq/tangle-path) :shebang "#!/usr/bin/env zsh"
 <<guix>>
 #+end_src
 
@@ -4066,7 +4127,7 @@ $ylv -Y $root/.config/yadm-sec --yadm-dir $root/<<yadm-dir>>-sec
 :header-args:zsh+: :noweb-ref asdf
 :END:
 
-#+begin_src plaintext :tangle (meq/tangle-path) :shebang "#!/usr/bin/env zsh"
+#+begin_src text :tangle (meq/tangle-path) :shebang "#!/usr/bin/env zsh"
 <<asdf>>
 #+end_src
 
@@ -4080,7 +4141,7 @@ $ylv -Y $root/.config/yadm-sec --yadm-dir $root/<<yadm-dir>>-sec
 :header-args:zsh+: :noweb-ref pacapt
 :END:
 
-#+begin_src plaintext :tangle (meq/tangle-path) :shebang "#!/usr/bin/env zsh"
+#+begin_src text :tangle (meq/tangle-path) :shebang "#!/usr/bin/env zsh"
 <<pacapt>>
 #+end_src
 
@@ -4093,7 +4154,7 @@ git sudoRun /resources/pacapt/pacapt $@
 :header-args:zsh+: :noweb-ref boom
 :END:
 
-#+begin_src plaintext :tangle (meq/tangle-path) :shebang "#!/usr/bin/env zsh"
+#+begin_src text :tangle (meq/tangle-path) :shebang "#!/usr/bin/env zsh"
 <<boom>>
 #+end_src
 
@@ -4107,7 +4168,7 @@ for pm in brew asdf nix guix pacapt; do git $pm $@ && break; done
 :header-args:powershell+: :noweb-ref Microsoft.PowerShell_profile.ps1
 :END:
 
-#+begin_src plaintext :tangle (meq/tangle-path)
+#+begin_src text :tangle (meq/tangle-path)
 <<Microsoft.PowerShell_profile.ps1>>
 #+end_src
 
@@ -4121,7 +4182,7 @@ Invoke-Expression (&starship init powershell)
 :header-args:fish+: :noweb-ref config.fish
 :END:
 
-#+begin_src plaintext :tangle (meq/tangle-path)
+#+begin_src text :tangle (meq/tangle-path)
 <<config.fish>>
 #+end_src
 
@@ -4144,7 +4205,7 @@ starship init fish | source
 :header-args:python+: :noweb-ref config.py
 :END:
 
-#+begin_src plaintext :tangle (meq/tangle-path)
+#+begin_src text :tangle (meq/tangle-path)
 <<config.py>>
 #+end_src
 
@@ -4372,7 +4433,7 @@ wmname = "LG3D"
 :header-args:conf+: :noweb-ref init.toml
 :END:
 
-#+begin_src plaintext :tangle (meq/tangle-path)
+#+begin_src text :tangle (meq/tangle-path)
 <<init.toml>>
 #+end_src
 
@@ -4588,7 +4649,7 @@ endfunction
 : 20211018140524183223400
 
 #+name: 20211018140524183223400
-#+begin_src plaintext :tangle (meq/tangle-path)
+#+begin_src text :tangle (meq/tangle-path)
 <<20210601214303404504400()>>
 <<.tmux.conf>>
 #+end_src
@@ -4643,7 +4704,7 @@ From: https://man7.org/linux/man-pages/man1/tmux.1.html#KEY_BINDINGS
 : 20210601214314440746200
 
 #+name: 20210601214314440746200
-#+begin_src plaintext :noweb-ref no
+#+begin_src text :noweb-ref no
 C-b
 C-x
 C-z
@@ -4661,7 +4722,7 @@ unbind <<20210601214314440746200>>
 : 20210601214317258641300
 
 #+name: 20210601214317258641300
-#+begin_src plaintext :noweb-ref no
+#+begin_src text :noweb-ref no
 #+end_src
 
 #+begin_src conf
@@ -4676,7 +4737,7 @@ bind-key <<20210601214317258641300>>
 : 20210601214320148298300
 
 #+name: 20210601214320148298300
-#+begin_src plaintext :noweb-ref no
+#+begin_src text :noweb-ref no
 #+end_src
 
 #+begin_src conf
@@ -4691,7 +4752,7 @@ bind-key -n <<20210601214320148298300>>
 : 20210601214322950137300
 
 #+name: 20210601214322950137300
-#+begin_src plaintext :noweb-ref no
+#+begin_src text :noweb-ref no
 M-s send-prefix
 C-S-F5 send-keys M-F5
 C-S-Left send-keys M-Left
@@ -4710,7 +4771,7 @@ bind-key -nr <<20210601214322950137300>>
 : 20210601214325764323500
 
 #+name: 20210601214325764323500
-#+begin_src plaintext :noweb-ref no
+#+begin_src text :noweb-ref no
 #+end_src
 
 #+begin_src conf
@@ -4725,7 +4786,7 @@ bind-key -r <<20210601214325764323500>>
 : 20210601214331744518200
 
 #+name: 20210601214331744518200
-#+begin_src plaintext :noweb-ref no
+#+begin_src text :noweb-ref no
 #+end_src
 
 #+begin_src conf
@@ -4806,7 +4867,7 @@ setw -g aggressive-resize on
 : 20210601214334528396400
 
 #+name: 20210601214334528396400
-#+begin_src plaintext :noweb-ref no
+#+begin_src text :noweb-ref no
 tmux-plugins/tpm
 tmux-plugins/tmux-battery
 tmux-plugins/tmux-cpu
@@ -4853,7 +4914,7 @@ run "./resources/tpm/tpm"
 :header-args:conf+: :noweb-ref default.yaml
 :END:
 
-#+begin_src plaintext :tangle (meq/tangle-path)
+#+begin_src text :tangle (meq/tangle-path)
 <<default.yaml>>
 #+end_src
 
@@ -4866,7 +4927,7 @@ session_name: default
 :header-args:shell+: :noweb-ref .profile
 :END:
 
-#+begin_src plaintext :tangle (meq/tangle-path)
+#+begin_src text :tangle (meq/tangle-path)
 <<.profile>>
 #+end_src
 
@@ -4935,7 +4996,7 @@ export VISUAL='ec'
 #+end_src
 
 #+name: profile-all-together
-#+begin_src plaintext
+#+begin_src text
 <<profile-sources>>
 <<profile-functions>>
 <<profile-exports>>
@@ -4952,7 +5013,7 @@ alias s="source $HOME/.profile"
 :header-args:bash+: :noweb-ref .bashrc
 :END:
 
-#+begin_src plaintext :tangle (meq/tangle-path)
+#+begin_src text :tangle (meq/tangle-path)
 <<.bashrc>>
 #+end_src
 
@@ -4976,7 +5037,7 @@ eval "$(starship init bash)"
 :header-args:elvish+: :noweb-ref direnv.elv
 :END:
 
-#+begin_src plaintext :tangle (meq/tangle-path)
+#+begin_src text :tangle (meq/tangle-path)
 <<direnv.elv>>
 #+end_src
 
@@ -4989,7 +5050,7 @@ direnv hook elvish
 :header-args:elvish+: :noweb-ref rc.elv
 :END:
 
-#+begin_src plaintext :tangle (meq/tangle-path)
+#+begin_src text :tangle (meq/tangle-path)
 <<rc.elv>>
 #+end_src
 
@@ -5006,7 +5067,7 @@ eval (starship init elvish)
 :header-args:shell+: :noweb-ref .xinitrc
 :END:
 
-#+begin_src plaintext :tangle (meq/tangle-path)
+#+begin_src text :tangle (meq/tangle-path)
 <<.xinitrc>>
 #+end_src
 
@@ -5019,7 +5080,7 @@ exec emacs
 :header-args:shell+: :noweb-ref .direnvrc
 :END:
 
-#+begin_src plaintext :tangle (meq/tangle-path)
+#+begin_src text :tangle (meq/tangle-path)
 <<.direnvrc>>
 #+end_src
 
@@ -5043,7 +5104,7 @@ fi
 : 20210601185925524999600
 
 #+name: 20210601185925524999600
-#+begin_src plaintext :tangle (meq/tangle-path)
+#+begin_src text :tangle (meq/tangle-path)
 <<.globalignore>>
 #+end_src
 
@@ -5081,7 +5142,7 @@ temp
 :header-args:gitignore+: :noweb-ref .gitignore
 :END:
 
-#+begin_src plaintext :tangle (meq/tangle-path)
+#+begin_src text :tangle (meq/tangle-path)
 <<.gitignore>>
 #+end_src
 
@@ -5094,7 +5155,7 @@ temp
 :header-args:gitignore+: :noweb-ref .hgignore
 :END:
 
-#+begin_src plaintext :tangle (meq/tangle-path)
+#+begin_src text :tangle (meq/tangle-path)
 <<.hgignore>>
 #+end_src
 
@@ -5107,7 +5168,7 @@ temp
 :header-args:zsh+: :noweb-ref .zshrc
 :END:
 
-#+begin_src plaintext :tangle (meq/tangle-path)
+#+begin_src text :tangle (meq/tangle-path)
 <<.zshrc>>
 #+end_src
 
@@ -5125,7 +5186,7 @@ eval "$(starship init zsh)"
 :header-args:zsh+: :noweb-ref .zshenv
 :END:
 
-#+begin_src plaintext :tangle (meq/tangle-path)
+#+begin_src text :tangle (meq/tangle-path)
 <<.zshenv>>
 #+end_src
 
@@ -5138,7 +5199,7 @@ source ~/resources/grml/etc/zsh/zshenv
 :header-args:zsh+: :noweb-ref .zprofile
 :END:
 
-#+begin_src plaintext :tangle (meq/tangle-path)
+#+begin_src text :tangle (meq/tangle-path)
 <<.zprofile>>
 #+end_src
 
@@ -5151,7 +5212,7 @@ source ~/resources/grml/etc/zsh/zprofile
 :header-args:zsh+: :noweb-ref .zlogout
 :END:
 
-#+begin_src plaintext :tangle (meq/tangle-path)
+#+begin_src text :tangle (meq/tangle-path)
 <<.zlogout>>
 #+end_src
 
@@ -5165,7 +5226,7 @@ eval "$(direnv hook zsh)"
 :header-args:zsh+: :noweb-ref .zlogin
 :END:
 
-#+begin_src plaintext :tangle (meq/tangle-path)
+#+begin_src text :tangle (meq/tangle-path)
 <<.zlogin>>
 #+end_src
 
@@ -5179,7 +5240,7 @@ eval "$(direnv hook zsh)"
 :header-args:conf+: :noweb-ref .stow-global-ignore
 :END:
 
-#+begin_src plaintext :tangle (meq/tangle-path)
+#+begin_src text :tangle (meq/tangle-path)
 <<.stow-global-ignore>>
 #+end_src
 
@@ -5193,7 +5254,7 @@ eval "$(direnv hook zsh)"
 :header-args:conf+: :noweb-ref termux.properties
 :END:
 
-#+begin_src plaintext :tangle (meq/tangle-path)
+#+begin_src text :tangle (meq/tangle-path)
 <<termux.properties>>
 #+end_src
 
@@ -5297,7 +5358,7 @@ allow-external-apps = true
 
 Adapted From: https://github.com/keybase/client/blob/master/packaging/linux/run_keybase
 
-#+begin_src plaintext :tangle (meq/tangle-path) :shebang "#!/usr/bin/env zsh"
+#+begin_src text :tangle (meq/tangle-path) :shebang "#!/usr/bin/env zsh"
 <<run_keybase>>
 #+end_src
 

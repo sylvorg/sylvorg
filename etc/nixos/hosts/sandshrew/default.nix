@@ -1,13 +1,13 @@
-{ config, ... }:
+{ config, lib, ... }:
 
 {
-    imports = [
-        ../../super.nix
-        "${builtins.fetchGit { url = "https://github.com/nixos/nixos-hardware.git"; }}/microsoft/surface"
+    imports =  [
+        ../../minimal.nix
+        (import ./.).hardware.microsoft-surface
     ];
     networking = {
         hostName = baseNameOf (toString ./.);
-        hostId = "66fdd367";
+        hostId = "3559c125";
         networkmanager.extraConfig = ''
             [connection]
             wifi.powersave = 2

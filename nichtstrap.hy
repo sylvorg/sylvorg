@@ -208,7 +208,7 @@ click.pass-context
                   (if ctx.obj.host
                       (do (sd :m/run True
                               "./hardware-configuration.nix"
-                              (+ "./configs/" ctx.obj.host)
+                              (+ "./hosts/" ctx.obj.host)
                               "/mnt/etc/nixos/configuration.nix")
                           (sd :m/run True
                               "'device = \"\"'"

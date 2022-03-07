@@ -1,49 +1,23 @@
-lib: nixpkgs: pkgs: channel: with builtins; with lib;
+args@{ lib, nixpkgs, inputs, pkgs }: with builtins; with lib;
 let
-channels = (map (d: "nixos-" + d) (
-    "unstable"
-    "unstable-small"
-    "21.11"
-    "21.11-small"
-)) + (map (d: "release-" + d) (
-    "21.11"
-)) + (
-    "master"
-);
-othernixpkgs = listToAttrs (map (ref: nameValuePair
-    ref
-    (fetchGit { url = "https://github.com/nixos/nixpkgs"; inherit ref; })
-) channels);
-otherpkgs = mapAttrs (n: v: import v j.attrs.configs.nixpkgs) othernixpkgs;
 in flatten [
-[(final: prev: { j = {
-    nixpkgs = othernixpkgs;
-    pkgs = otherpkgs;
-    inherit channels;
-};})]
-[( final: prev: { nur = import (fetchGit { url = "https://github.com/nix-community/nur"; }) { nurpkgs = nixpkgs; pkgs = prev; }; })]
-[
-    (import (fetchGit { url = "https://github.com/nix-community/emacs-overlay"; }))
-]
-(let
-    mozilla = fetchGit { url = "https://github.com/mozilla/nixpkgs-mozilla"; };
-    mozilla-overlays = import "${mozilla}/overlays.nix";
-in (map import mozilla-overlays))
-(flatten (map (file:
+(final: prev: { j = { inherit pkgs; };})
+(final: prev: { nur = import inputs.nur { nurpkgs = nixpkgs; pkgs = prev; }; })
+inputs.emacs.overlay
+inputs.mozilla.overlays
+(map (file:
     [(final: prev: {
-        "${j.functions.name { inherit file; }}" = import file {
-            inherit sources pkgs lib;
-        };
+        "${j.functions.name { inherit file; }}" = import file args;
     })]
-) (j.functions.list { dir = ./overlays; ignores = [ "nix" ]; })))
+) (j.functions.list { dir = ./overlays; ignores = [ "nix" ]; }))
 (let pkgsets = {
     unstable = [  ];
 };
-in flatten (mapAttrsToList (
+in mapAttrsToList (
     pkgchannel: pkglist: map (
         pkg: [(final: prev: {
             "${pkg}" = if (pkgchannel == channel) then prev.${pkg} else final.j.pkgs.${pkgchannel}.${pkg};
         })]
     ) pkglist
-) pkgsets))
+) pkgsets)
 ]

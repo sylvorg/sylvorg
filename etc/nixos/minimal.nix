@@ -1,29 +1,19 @@
-{ config, ... }: with builtins;
+with builtins; args@{ config, system ? currentSystem ... }:
 let
-ref = "j";
-url = "https://github.com/shadowrylander/nixpkgs";
-Nixpkgs = fetchGit { inherit url ref; };
-prepkgs = import Nixpkgs {  };
-lib = prepkgs.lib.extend (final: prev: { j = import ./lib.nix prepkgs final config.networking.hostName; });
-overlays = import ./overlays.nix lib Nixpkgs pkgs ref;
-nixpkgs = { inherit overlays; config = lib.j.attrs.configs.nixpkgs; };
-pkgs = import Nixpkgs nixpkgs;
+flake = import ./.;
+inherit (flake) lib overlays make;
+nixpkgset = make.nixpkgset overlays system lib;
+pkgs = make.pkgs nixpkgset;
 dir = "${lib.j.attrs.homes.${lib.j.attrs.users.primary}}/.local/share/yadm/repo.git";
 dirExists = pathExists dir;
-repo = with lib; j.functions.mntConvert (fetchGit {
-    url = if dirExists then "file://${dir}" else "https://github.com/${j.attrs.users.primary}/${j.attrs.users.primary}";
-});
+repo = with lib; j.functions.mntConvert (if dirExists then (fetchGit { url = "file://${dir}"; ref = "main"; }) else flake.${j.attrs.users.primary})
 configuration = import <nixpkgs/nixos> { configuration.imports = [ ./configuration.nix ]; };
 hardware-configuration = import <nixpkgs/nixos> { configuration.imports = [
     ./hardware-configuration.nix
-    ({config, ... }: { networking.hostId = "8a8b7169"; boot.loader.grub.devices = [ "nodev" ]; })
+    ({config, ... }: { networking.hostId = "d7c068f6"; boot.loader.grub.devices = [ "nodev" ]; })
 ]; };
 in with lib; {
-imports = [
-    "${fetchGit { url = "https://github.com/nix-community/home-manager"; }}/nixos"
-    "${fetchGit { url = "https://github.com/nix-community/impermanence"; }}/nixos.nix"
-    # "${fetchGit { url = "https://github.com/${j.attrs.users.primary}/nixpkgs"; ref = "guix"; }}/nixos/modules/services/development/guix.nix"
-];
+imports = flatten [ flake.home-manager.nixosModules.home-manager impermanence.nixosModules.impermanence ];
 config = (removeAttrs hardware-configuration.config [ "fileSystems" "nesting" "jobs" "fonts" "meta" "documentation" ]) // {
 boot = {
 supportedFilesystems = j.attrs.fileSystems.supported;
@@ -107,157 +97,6 @@ console = {
 };
 environment = {
 etc."nix/nix.conf".text = mkForce j.attrs.configs.nix;
-pathsToLink = [ "/share/nix-direnv" ];
-systemPackages = with pkgs; [
-    # bcachefs-tools
-    acpilight
-    alacritty
-    asdf-vm
-    assh
-    atom
-    autojump
-    autossh
-    bat
-    bc
-    btrfs-progs
-    byobu
-    cascadia-code
-    cmake
-    copyq
-    coreutils
-    ctop
-    curl
-    darling-dmg
-    # ddar
-    direnv
-    diskus
-    dos2unix
-    duf
-    elvish
-    emacs
-    entr
-    exa
-    exfat
-    # extra-container
-    fasd
-    fd
-    fd
-    fff
-    ffmpeg
-    figlet
-    filet
-    firefox
-    fish
-    fzf
-    gcc
-    git
-    git-crypt
-    git-filter-repo
-    git-fire
-    git-lfs
-    gitoxide
-    glances
-    gnumake
-    google-chrome google-chrome-beta google-chrome-dev
-    gotop
-    gparted
-    gptfdisk
-    # haskellPackages.hocker
-    inetutils
-    j-settings
-    jupyter
-    keybase-gui kitty
-    libffi
-    libguestfs
-    libsForQt5.qtstyleplugin-kvantum
-    libtool
-    lolcat
-    lorri
-    man
-    micro
-    mkpasswd
-    monkeysphere
-    mosh
-    mtr
-    neo-cowsay
-    neovim
-    niv
-    nix-direnv
-    nnn
-    nodePackages.prettier
-    nox
-    ntfs3g nixos-shell
-    pandoc
-    par2cmdline
-    parted pmutils
-    peru
-    pfetch
-    pypy
-    python310
-    python39Packages.pipx
-    ranger
-    refind
-    ripgrep
-    rsync
-    sd
-    shadowfox
-    shellcheck
-    silver-searcher
-    snapper
-    spacevim
-    sqlite
-    starship
-    sysstat
-    thefuck
-    thermald
-    tmux
-    tmuxp
-    tree
-    udftools
-    ulauncher
-    uutils-coreutils
-    vagrant
-    vim
-    vivaldi vivaldi-ffmpeg-codecs vivaldi-widevine
-    vlc
-    vscode vscodium
-    wget
-    win-qemu
-    woeusb
-    wtf
-    xclip
-    xclip
-    xfce.thunar
-    xz
-    yubico-pam yubico-piv-tool yubikey-manager yubikey-agent yubikey-personalization yubioath-desktop
-    yubikey-manager-qt yubikey-personalization-gui
-    zenith
-    zsh
-] ++ (map (pkg: pkgs.gnome."gnome-${pkg}") [
-    "boxes"
-    "characters"
-    "tweaks"
-    "session"
-]) ++ (map (pkg: pkgs."nix-prefetch-${pkg}") [
-    "github"
-    "docker"
-    "scripts"
-]) ++ (with pkgs.gnome; [
-    dconf-editor
-]) ++ (with pkgs.gitAndTools; [
-    git-extras
-    git-hub
-    gitflow
-    gh
-    hub
-    lab
-]) ++ (with pkgs.python310Packages; [
-    black
-    black-macchiato
-    poetry
-    jupyterlab
-    xonsh
-]);
 persistence = let
     rootDirSet = {
         user = "root";
@@ -267,11 +106,9 @@ persistence = let
 in {
     "/persist/root" = {
         directories = unique (map (directory: if ((typeOf directory) == "string") then ({ inherit directory; } // rootDirSet) else (rootDirSet // directory)) (flatten [
-            [
-                "/etc/nix"
-                "/etc/nixos"
-                "/etc/zsh"
-            ]
+            "/etc/nix"
+            "/etc/nixos"
+            "/etc/zsh"
         ]));
     };
     "/persist" = let
@@ -286,26 +123,22 @@ in {
     in {
         hideMounts = true;
         files = unique (map (file: if ((typeOf file) == "string") then ({ inherit file; } // rootFileSet) else (rootFileSet // file)) (flatten [
-            [
-                "/etc/host"
-                "/etc/machine-id"
-            ]
+            "/etc/host"
+            "/etc/machine-id"
         ]));
         directories = unique (map (directory: if ((typeOf directory) == "string") then ({ inherit directory; } // rootDirSet) else (rootDirSet // directory)) (flatten [
-            [
-                "/bin"
-                "/etc/containers"
-                "/etc/NetworkManager/system-connections"
-                "/etc/ssh"
-                "/etc/wireguard"
-                "/sbin"
-                "/snap"
-                "/usr"
-                "/var/lib/acme"
-                "/var/lib/bluetooth"
-                "/var/lib/systemd/coredump"
-                "/var/log"
-            ]
+            "/bin"
+            "/etc/containers"
+            "/etc/NetworkManager/system-connections"
+            "/etc/ssh"
+            "/etc/wireguard"
+            "/sbin"
+            "/snap"
+            "/usr"
+            "/var/lib/acme"
+            "/var/lib/bluetooth"
+            "/var/lib/systemd/coredump"
+            "/var/log"
         ]));
         users = listToAttrs (map (user: let
             userDirSet = {
@@ -316,59 +149,56 @@ in {
         in nameValuePair user {
             home = j.attrs.allHomes.${user};
             files = unique (map (file: if ((typeOf file) == "string") then ({ inherit file; } // userFileSet) else (userFileSet // file)) (flatten [
-                [
-                    ".bash-history"
-                    ".emacs-profile"
-                    ".gitignore"
-                    ".globalignore"
-                    ".nix-channels"
-                    ".python-history"
-                    ".viminfo"
-                    ".zsh-history"
-                    ".screenrc"
-                ]
-
-                # TODO
+                ".bash-history"
+                ".emacs-profile"
+                ".gitignore"
+                ".globalignore"
+                ".nix-channels"
+                ".python-history"
+                ".viminfo"
+                ".zsh-history"
+                ".screenrc"
                 redRepoFiles
-
             ]));
             directories = unique (map (directory: if ((typeOf directory) == "string") then ({ inherit directory; } // userDirSet) else (userDirSet // directory)) (flatten [
-                [
-                    ".atom"
-                    ".byobu"
-                    ".cache"
-                    ".caddy"
-                    ".config"
-                    ".linuxbrew"
-                    ".local"
-                    ".mozilla"
-                    ".peru"
-                    ".pki"
-                    ".vim_runtime"
-                    ".virtualenvs"
-                    ".vscode-oss"
-                    ".vscode"
-                    ".yubico"
-                    ".z"
-                    "Documents"
-                    "Downloads"
-                    "keybase"
-                    "Music"
-                    "nix-plugins"
-                    "Pictures"
-                    "Public"
-                    "Templates"
-                    "tests"
-                    "Videos"
-                    "VirtualBox VMs"
-                    { directory = ".gnupg"; mode = "0700"; }
-                    { directory = ".nixops"; mode = "0700"; }
-                    { directory = ".ssh"; mode = "0700"; }
-                ]
+                ".atom"
+                ".byobu"
+                ".cache"
+                ".caddy"
+                ".config"
+                ".linuxbrew"
+                ".local"
+                ".mozilla"
+                ".peru"
+                ".pki"
+                ".vim_runtime"
+                ".virtualenvs"
+                ".vscode-oss"
+                ".vscode"
+                ".yubico"
+                ".z"
+                "Documents"
+                "Downloads"
+                "keybase"
+                "Music"
+                "nix-plugins"
+                "Pictures"
+                "Public"
+                "Templates"
+                "tests"
+                "Videos"
+                "VirtualBox VMs"
+                { directory = ".gnupg"; mode = "0700"; }
+                { directory = ".nixops"; mode = "0700"; }
+                { directory = ".ssh"; mode = "0700"; }
                 redRepoDirectories
             ]));}) j.attrs.allUsers);
     };
 };
+};
+zramSwap = {
+    enable = true;
+    algorithm = "zstd";
 };
 fileSystems = let
     inherit (j.attrs.fileSystems) base;
@@ -384,42 +214,6 @@ hardware = {
     pulseaudio.enable = true;
 };
 sound.enable = true;
-home-manager = {
-    useGlobalPkgs = true;
-    users = j.functions.foldToSet [
-        listToAttrs (user: nameValuePair user {
-            home = {
-                homeDirectory = j.attrs.homes.${user};
-                file.dross.source = repo;
-            };
-        }) j.attrs.allUsers
-    ];
-};
-zramSwap = {
-    enable = true;
-    algorithm = "zstd";
-};
-xdg.portal.enable = mkForce (!elem currentSystem [ "aarch64-linux" ]);
-i18n = {
-    # Select internationalisation properties.
-    defaultLocale = "en_US.UTF-8";
-};
-time.timeZone = "America/Toronto";
-system = {
-    # This value determines the NixOS release from which the default
-    # settings for stateful data, like file locations and database versions
-    # on your system were taken. It's perfectly fine and recommended to leave
-    # this value at the release version of the first install of this system.
-    # Before changing this value read the documentation for this option
-    # (e.g. man configuration.nix or on https://nixos.org/nixos/options.html).
-    # stateVersion = "20.09"; # Did you read the comment?
-    autoUpgrade = {
-        enable = true;
-        allowReboot = false;
-        # flake = "https://github.com/nixos/nixpkgs/archive/master.tar.gz";
-        flake = "https://github.com/${j.attrs.users.primary}/nixpkgs/archive/j.tar.gz";
-    };
-};
 
 # TODO: This isn't working because configuration.nix imports this file, i.e. super.nix, which then again imports configuration.nix, and so on.
 # networking = (mapAttrs (n: v: v // { wakeOnLan.enable = true; }) configuration.config.networking.interfaces) // {
@@ -486,7 +280,7 @@ nix = rec {
     };
     # sandboxPaths = [];
 };
-inherit nixpkgs;
+nixpkgs = nixpkgset;
 services.logind.lidSwitch = "hybrid-sleep";
 powerManagement = {
     enable = true;
@@ -498,43 +292,7 @@ programs = {
     zsh.enable = true;
     extra-container.enable = true;
 };
-# For Yubikey SSH-GPG Authentication
-environment.shellInit = ''
-    export GPG_TTY="$(tty)"
-    gpg-connect-agent /bye
-    export SSH_AUTH_SOCK="/run/user/$UID/gnupg/S.gpg-agent.ssh"
-    echo UPDATESTARTUPTTY | gpg-connect-agent
-'';
-programs = {
-    # Some programs need SUID wrappers, can be configured further or are
-    # started in user sessions.
-    # mtr.enable = true;
-    gnupg.agent = {
-        enable = true;
-        enableSSHSupport = false;
-        pinentryFlavor = "curses";
-    };
-
-    # For use with Yubikey SSH-GPG Authentication, set to false
-    ssh.startAgent = true;
-};
-security.pam = {
-    yubico = {
-        enable = true;
-        debug = true;
-        mode = "challenge-response";
-    };
-    enableSSHAgentAuth = true;
-};
 services = {
-emacs = {
-    package = pkgs.emacs;
-    enable = true;
-    defaultEditor = true;
-};
-flatpak.enable = !elem currentSystem [ "aarch64-linux" ];
-guix.enable = true;
-printing.enable = true;
 openssh = {
     enable = true;
     extraConfig = mkOrder 0 ''
@@ -568,91 +326,6 @@ xserver = {
     };
     autorun = false;
 };
-udev.packages = with pkgs; [
-    yubikey-personalization
-    libu2f-host
-];
-pcscd.enable = true;
-zfs = {
-    trim.enable = true;
-    autoScrub.enable = true;
-
-    # Managed by Sanoid
-    autoSnapshot.enable = false;
-};
-sanoid = let
-    sanoidBase = {
-        useTemplate = [ "base" ];
-        recursive = true;
-    };
-    disabled = { processChildrenOnly = true; };
-in {
-    enable = true;
-    templates."base" = {
-        autoprune = true;
-        autosnap = true;
-
-        # 6 snapshots an hour
-        daily = 144;
-
-        # 2 snapshots a minute
-        hourly = 120;
-
-        # 6 snapshots a day for 28 days
-        monthly = 168;
-
-        # Twice the weeks in a year
-        yearly = 104;
-    };
-
-    datasets = listToAttrs (map (dataset: nameValuePair "${config.networking.hostName}/${dataset}" sanoidBase) (flatten [
-        j.attrs.datasets.backup
-        [ config.networking.hostName ]
-    ]));
-};
-syncoid = let
-    syncoidBase = mkMerge [{
-        recursive = true;
-        commonArgs = [
-            "--compress zstd-slow"
-            "--no-stream"
-            "--no-sync-snap"
-            "--create-bookmark"
-        ];
-        }
-        # (mkIf vars.encrypted {
-        #     sendOptions = "vvwRI";
-        #     recvOptions = "vvFs";
-        # })
-        # (mkIf (!vars.encrypted) {
-        #     recvOptions = "vvFds";
-        #     sendOptions = "vvRI";
-        # })
-    ];
-in {
-    enable = false;
-    sshKey = "/root/.ssh/id_ecdsa";
-    commands = listToAttrs (map (dataset: nameValuePair "${host}/${dataset}" (syncoidBase // { target = ""; })) (flatten [
-        j.attrs.datasets.backup
-        [ config.networking.hostName ]
-    ]));
-};
-};
-systemd = {
-    # packages = with pkgs; [ runit ];
-    services = {
-        # runit.enable = true;
-        caddy = mkIf (elem config.networking.hostName j.attrs.relays) (j.attrs.configs.services.base // {
-            serviceConfig = {
-                ExecStart = ''
-                    ${pkgs.caddy}/bin/caddy run --config ${j.attrs.homes.${j.attrs.users.primary}}/.config/caddy/files/${config.networking.hostName} --adapter yaml 2>&1
-                '';
-                ExecStop = ''
-                    pkill caddy
-                '';
-            };
-        });
-    };
 };
 users = with j.attrs.users; let
     base = {
@@ -688,7 +361,7 @@ in rec {
                 description = "Alicia Summers";
                 group = secondary;
                 extraGroups = [ primary ];
-                shell = if (!elem currentSystem [ "aarch64-linux" ]) then pkgs.fish else pkgs.zsh;
+                shell = if (!elem system [ "aarch64-linux" ]) then pkgs.fish else pkgs.zsh;
             };
             "${nightingale}" = {
                 uid = 8888;
@@ -723,18 +396,6 @@ in rec {
             members = [ nightingale ];
         };
     };
-};
-virtualisation = {
-    xen.enable = false;
-    lxd.zfsSupport = true;
-    podman.enable = true;
-    docker = {
-        enable = true;
-        storageDriver = "zfs";
-        package = pkgs.docker;
-        enableOnBoot = true;
-    };
-    libvirtd.enable = true;
 };
 };
 }
