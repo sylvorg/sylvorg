@@ -1571,7 +1571,7 @@ inputs.extra-container.overlay
 **** Mozilla
 
 #+begin_src nix
-inputs.mozilla.overlays
+(final: prev: inputs.mozilla.overlays)
 #+end_src
 
 **** Overlays in Overlays Directory
@@ -1759,7 +1759,7 @@ in with lib; {
 **** Imports
 
 #+begin_src nix
-imports = flatten [ flake.home-manager.nixosModules.home-manager impermanence.nixosModules.impermanence ];
+imports = with flake.inputs; flatten [ home-manager.nixosModules.home-manager impermanence.nixosModules.impermanence ];
 #+end_src
 
 **** Config

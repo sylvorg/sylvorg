@@ -4,7 +4,7 @@ in flatten [
 (final: prev: { j = { inherit pkgs; };})
 (final: prev: { nur = import inputs.nur { nurpkgs = nixpkgs; pkgs = prev; }; })
 inputs.emacs.overlay
-inputs.mozilla.overlays
+(final: prev: inputs.mozilla.overlays)
 (map (file:
     (final: prev: {
         "${j.functions.name { inherit file; }}" = import file args;
