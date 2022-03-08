@@ -1,4 +1,8 @@
 {
+    nixConfig = {
+        substituters = [ "https://cache.nixos.org/" ];
+        trusted-public-keys = [ "cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY=" ];
+    };
     inputs = rec {
         # nixos-unstable.url = github:NixOS/nixpkgs/nixos-unstable;
         nixos-unstable.url = "https://nixos.org/channels/nixos-unstable/nixexprs.tar.xz";
