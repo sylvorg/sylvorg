@@ -6,18 +6,18 @@ in flatten [
 inputs.emacs.overlay
 inputs.mozilla.overlays
 (map (file:
-    [(final: prev: {
+    (final: prev: {
         "${j.functions.name { inherit file; }}" = import file args;
-    })]
+    })
 ) (j.functions.list { dir = ./overlays; ignores = [ "nix" ]; }))
 (let pkgsets = {
-    unstable = [  ];
+    unstable = [ "networkmanager" ];
 };
 in mapAttrsToList (
     pkgchannel: pkglist: map (
-        pkg: [(final: prev: {
+        pkg: (final: prev: {
             "${pkg}" = if (pkgchannel == channel) then prev.${pkg} else final.j.pkgs.${pkgchannel}.${pkg};
-        })]
+        })
     ) pkglist
 ) pkgsets)
 ]

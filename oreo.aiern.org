@@ -20,8 +20,8 @@ in (pkgs.mkShell rec {
         source ${venv}/bin/activate
         pip install --upgrade pip || :
         pip install https://github.com/syvlorg/bakery/archive/main.tar.gz \
-                    coconut \
-                    cytoolz \
+                    # coconut \
+                    # cytoolz \
                     xonsh || :
         chmod +x ${builtins.toString ./.}/nichtstrap 2> /dev/null || chmod +x ${builtins.toString ./.}/nichtstrap.py
         exec xonsh
@@ -457,15 +457,11 @@ Taken from [[https://github.com/NixOS/nixpkgs/issues/73404#issuecomment-10114854
 #+end_src
 
 #+begin_src hy
+                 (.mkdir (Path "/mnt/nix") :parents True :exist-ok True)
                  (Mount :t "zfs" (+ ctx.obj.host "/system/nix") "/mnt/nix")
-                 (Mount :t "zfs" (+ ctx.obj.host "/system/persist") "/mnt/persist")
 
-                 (setv etc/nixos "/etc/nixos"
-                       men (+ "/mnt" etc/nixos)
-                       mpn (+ "/mnt/persist/root" etc/nixos))
-                 (.mkdir (Path men) :parents True :exist-ok True)
-                 (.mkdir (Path mpn) :parents True :exist-ok True)
-                 (Mount :bind True mpn men)
+                 (.mkdir (Path "/mnt/persist") :parents True :exist-ok True)
+                 (Mount :t "zfs" (+ ctx.obj.host "/system/persist") "/mnt/persist")
 
                  (if boot-device
                      (let [boot "/mnt/boot/efi"]
@@ -1582,9 +1578,9 @@ inputs.mozilla.overlays
 
 #+begin_src nix
 (map (file:
-    [(final: prev: {
+    (final: prev: {
         "${j.functions.name { inherit file; }}" = import file args;
-    })]
+    })
 ) (j.functions.list { dir = ./overlays; ignores = [ "nix" ]; }))
 #+end_src
 
@@ -1592,13 +1588,13 @@ inputs.mozilla.overlays
 
 #+begin_src nix
 (let pkgsets = {
-    unstable = [  ];
+    unstable = [ "networkmanager" ];
 };
 in mapAttrsToList (
     pkgchannel: pkglist: map (
-        pkg: [(final: prev: {
+        pkg: (final: prev: {
             "${pkg}" = if (pkgchannel == channel) then prev.${pkg} else final.j.pkgs.${pkgchannel}.${pkg};
-        })]
+        })
     ) pkglist
 ) pkgsets)
 #+end_src
@@ -1627,9 +1623,9 @@ in mapAttrsToList (
 
         "release-21.11".url = github:NixOS/nixpkgs/release-21.11;
 
-        master = github:NixOS/nixpkgs/master;
+        master.url = github:NixOS/nixpkgs/master;
 
-        j = github:NixOS/<<username>>/j;
+        j.url = github:<<username>>/nixpkgs/j;
 
         nixpkgs.follows = "j";
 
@@ -1657,7 +1653,7 @@ in mapAttrsToList (
         flake-utils.url = github:numtide/flake-utils;
     };
 
-    output = inputs@{ self, nixpkgs, flake-utils, ... }: with builtins; with nixpkgs.lib; with flake-utils.lib; let
+    outputs = inputs@{ self, nixpkgs, flake-utils, ... }: with builtins; with nixpkgs.lib; with flake-utils.lib; let
         channel = "j";
         make = {
             lib = system: host: nixpkgs.lib.extend (final: prev: {

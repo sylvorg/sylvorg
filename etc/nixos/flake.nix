@@ -7,9 +7,9 @@
 
         "release-21.11".url = github:NixOS/nixpkgs/release-21.11;
 
-        master = github:NixOS/nixpkgs/master;
+        master.url = github:NixOS/nixpkgs/master;
 
-        j = github:NixOS/shadowrylander/j;
+        j.url = github:shadowrylander/nixpkgs/j;
 
         nixpkgs.follows = "j";
 
@@ -37,7 +37,7 @@
         flake-utils.url = github:numtide/flake-utils;
     };
 
-    output = inputs@{ self, nixpkgs, flake-utils, ... }: with builtins; with nixpkgs.lib; with flake-utils.lib; let
+    outputs = inputs@{ self, nixpkgs, flake-utils, ... }: with builtins; with nixpkgs.lib; with flake-utils.lib; let
         channel = "j";
         make = {
             lib = system: host: nixpkgs.lib.extend (final: prev: {

@@ -10,7 +10,7 @@ repo = with lib; j.functions.mntConvert (if dirExists then (fetchGit { url = "fi
 configuration = import <nixpkgs/nixos> { configuration.imports = [ ./configuration.nix ]; };
 hardware-configuration = import <nixpkgs/nixos> { configuration.imports = [
     ./hardware-configuration.nix
-    ({config, ... }: { networking.hostId = "d7c068f6"; boot.loader.grub.devices = [ "nodev" ]; })
+    ({config, ... }: { networking.hostId = "16f3d1b9"; boot.loader.grub.devices = [ "nodev" ]; })
 ]; };
 in with lib; {
 imports = flatten [ flake.home-manager.nixosModules.home-manager impermanence.nixosModules.impermanence ];

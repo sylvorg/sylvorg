@@ -285,15 +285,11 @@ click.pass-context
              (if (.ismount os.path "/mnt/mnt")
                  (umount :R True "/mnt/mnt"))))
 (Mount :bind True "/mnt" "/mnt/mnt")
+    (.mkdir (Path "/mnt/nix") :parents True :exist-ok True)
     (Mount :t "zfs" (+ ctx.obj.host "/system/nix") "/mnt/nix")
-    (Mount :t "zfs" (+ ctx.obj.host "/system/persist") "/mnt/persist")
 
-    (setv etc/nixos "/etc/nixos"
-          men (+ "/mnt" etc/nixos)
-          mpn (+ "/mnt/persist/root" etc/nixos))
-    (.mkdir (Path men) :parents True :exist-ok True)
-    (.mkdir (Path mpn) :parents True :exist-ok True)
-    (Mount :bind True mpn men)
+    (.mkdir (Path "/mnt/persist") :parents True :exist-ok True)
+    (Mount :t "zfs" (+ ctx.obj.host "/system/persist") "/mnt/persist")
 
     (if boot-device
         (let [boot "/mnt/boot/efi"]

@@ -11,8 +11,8 @@ in (pkgs.mkShell rec {
         source ${venv}/bin/activate
         pip install --upgrade pip || :
         pip install https://github.com/syvlorg/bakery/archive/main.tar.gz \
-                    coconut \
-                    cytoolz \
+                    # coconut \
+                    # cytoolz \
                     xonsh || :
         chmod +x ${builtins.toString ./.}/nichtstrap 2> /dev/null || chmod +x ${builtins.toString ./.}/nichtstrap.py
         exec xonsh
