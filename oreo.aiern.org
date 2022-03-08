@@ -29,23 +29,6 @@ in (pkgs.mkShell rec {
 })
 #+end_src
 
-* default.nix
-
-Taken from [[https://github.com/edolstra/flake-compat#usage][here]]:
-
-#+begin_src nix :tangle (meq/tangle-path)
-(import
-  (
-    let lock = builtins.fromJSON (builtins.readFile ./flake.lock); in
-    fetchTarball {
-      url = "https://github.com/edolstra/flake-compat/archive/${lock.nodes.flake-compat.locked.rev}.tar.gz";
-      sha256 = lock.nodes.flake-compat.locked.narHash;
-    }
-  )
-  { src = ./.; }
-).defaultNix
-#+end_src
-
 * nichtstrap.py
 
 #+begin_src py :tangle (meq/tangle-path) :shebang "#!/usr/bin/env python3"
@@ -552,6 +535,23 @@ Cw6JQoywUhR09tFwQrYZao0CAwEAAQ==
 #+end_src
 
 ** nixos
+*** default.nix
+
+Taken from [[https://github.com/edolstra/flake-compat#usage][here]]:
+
+#+begin_src nix :tangle (meq/tangle-path)
+(import
+  (
+    let lock = builtins.fromJSON (builtins.readFile ./flake.lock); in
+    fetchTarball {
+      url = "https://github.com/edolstra/flake-compat/archive/${lock.nodes.flake-compat.locked.rev}.tar.gz";
+      sha256 = lock.nodes.flake-compat.locked.narHash;
+    }
+  )
+  { src = ./.; }
+).defaultNix
+#+end_src
+
 *** patches
 **** BACKPORT-Linux-5.8-compat-__vmalloc.patch
 
