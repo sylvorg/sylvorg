@@ -1709,7 +1709,7 @@ in mapAttrsToList (
 **** Arguments
 
 #+begin_src nix
-with builtins; args@{ config, system ? currentSystem ... }:
+with builtins; args@{ config, system ? currentSystem, ... }:
 #+end_src
 
 **** Config Let
@@ -1737,7 +1737,7 @@ pkgs = make.pkgs nixpkgset;
 #+begin_src nix
 dir = "${lib.j.attrs.homes.${lib.j.attrs.users.primary}}/.local/share/yadm/repo.git";
 dirExists = pathExists dir;
-repo = with lib; j.functions.mntConvert (if dirExists then (fetchGit { url = "file://${dir}"; ref = "main"; }) else flake.${j.attrs.users.primary})
+repo = with lib; j.functions.mntConvert (if dirExists then (fetchGit { url = "file://${dir}"; ref = "main"; }) else flake.${j.attrs.users.primary});
 #+end_src
 
 ***** Configurations

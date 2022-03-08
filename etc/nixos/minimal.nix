@@ -1,4 +1,4 @@
-with builtins; args@{ config, system ? currentSystem ... }:
+with builtins; args@{ config, system ? currentSystem, ... }:
 let
 flake = import ./.;
 inherit (flake) lib overlays make;
@@ -6,11 +6,11 @@ nixpkgset = make.nixpkgset overlays system lib;
 pkgs = make.pkgs nixpkgset;
 dir = "${lib.j.attrs.homes.${lib.j.attrs.users.primary}}/.local/share/yadm/repo.git";
 dirExists = pathExists dir;
-repo = with lib; j.functions.mntConvert (if dirExists then (fetchGit { url = "file://${dir}"; ref = "main"; }) else flake.${j.attrs.users.primary})
+repo = with lib; j.functions.mntConvert (if dirExists then (fetchGit { url = "file://${dir}"; ref = "main"; }) else flake.${j.attrs.users.primary});
 configuration = import <nixpkgs/nixos> { configuration.imports = [ ./configuration.nix ]; };
 hardware-configuration = import <nixpkgs/nixos> { configuration.imports = [
     ./hardware-configuration.nix
-    ({config, ... }: { networking.hostId = "16f3d1b9"; boot.loader.grub.devices = [ "nodev" ]; })
+    ({config, ... }: { networking.hostId = "323035f5"; boot.loader.grub.devices = [ "nodev" ]; })
 ]; };
 in with lib; {
 imports = flatten [ flake.home-manager.nixosModules.home-manager impermanence.nixosModules.impermanence ];
