@@ -1,8 +1,8 @@
-with builtins; args@{ config, system ? currentSystem, ... }:
+with builtins; args@{ config, ... }:
 let
 flake = import ./.;
 inherit (flake) lib overlays make;
-nixpkgset = make.nixpkgset overlays system lib;
+nixpkgset = make.nixpkgset overlays (args.system or currentSystem) lib;
 pkgs = make.pkgs nixpkgset;
 dir = "${lib.j.attrs.homes.${lib.j.attrs.users.primary}}/.local/share/yadm/repo.git";
 dirExists = pathExists dir;
@@ -10,7 +10,7 @@ repo = with lib; j.functions.mntConvert (if dirExists then (fetchGit { url = "fi
 configuration = import <nixpkgs/nixos> { configuration.imports = [ ./configuration.nix ]; };
 hardware-configuration = import <nixpkgs/nixos> { configuration.imports = [
     ./hardware-configuration.nix
-    ({config, ... }: { networking.hostId = "962a187d"; boot.loader.grub.devices = [ "nodev" ]; })
+    ({config, ... }: { networking.hostId = "17ed74c3"; boot.loader.grub.devices = [ "nodev" ]; })
 ]; };
 in with lib; {
 imports = with flake.inputs; flatten [ home-manager.nixosModules.home-manager impermanence.nixosModules.impermanence ];
@@ -361,7 +361,7 @@ in rec {
                 description = "Alicia Summers";
                 group = secondary;
                 extraGroups = [ primary ];
-                shell = if (!elem system [ "aarch64-linux" ]) then pkgs.fish else pkgs.zsh;
+                shell = if (!elem (args.system or currentSystem) [ "aarch64-linux" ]) then pkgs.fish else pkgs.zsh;
             };
             "${nightingale}" = {
                 uid = 8888;
