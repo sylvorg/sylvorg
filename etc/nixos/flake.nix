@@ -73,9 +73,9 @@
         };
     in (make.specialArgs null "x86_64-linux") // {
         inherit make channel;
-        nixosConfigurations = eachSystem allSystems (system: listToAttrs
+        nixosConfigurations = eachSystem allSystems (system: listToAttrs (map
             (name: nameValuePair name (make.config name system))
             (attrNames (filterAttrs (n: v: v == "directory") (readDir ./hosts)))
-        );
+        ));
     };
 }

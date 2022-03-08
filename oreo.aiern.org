@@ -1689,10 +1689,10 @@ in mapAttrsToList (
         };
     in (make.specialArgs null "x86_64-linux") // {
         inherit make channel;
-        nixosConfigurations = eachSystem allSystems (system: listToAttrs
+        nixosConfigurations = eachSystem allSystems (system: listToAttrs (map
             (name: nameValuePair name (make.config name system))
             (attrNames (filterAttrs (n: v: v == "directory") (readDir ./hosts)))
-        );
+        ));
     };
 }
 #+end_src
@@ -2547,12 +2547,12 @@ Help is available in the configuration.nix(5) man page and in the NixOS manual (
     home-manager = {
         useGlobalPkgs = true;
         users = j.functions.foldToSet [
-            listToAttrs (user: nameValuePair user {
+            listToAttrs (map (user: nameValuePair user {
                 home = {
                     homeDirectory = j.attrs.homes.${user};
                     file.<<20220205031620372930929>>.source = repo;
                 };
-            }) j.attrs.allUsers
+            }) j.attrs.allUsers)
         ];
     };
 }

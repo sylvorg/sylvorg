@@ -11,7 +11,7 @@ let
   hardware-configuration = import <nixpkgs/nixos> {
     configuration.imports = [
       ./hardware-configuration.nix
-      ({ config, ... }: { networking.hostId = "a7fad804"; boot.loader.grub.devices = [ "nodev" ]; })
+      ({ config, ... }: { networking.hostId = "84abfcc5"; boot.loader.grub.devices = [ "nodev" ]; })
     ];
   };
 in
