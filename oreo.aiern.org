@@ -1765,7 +1765,8 @@ imports = with flake.inputs; flatten [ home-manager.nixosModules.home-manager im
 **** Config
 
 #+begin_src nix
-config = (removeAttrs hardware-configuration.config [ "fileSystems" "nesting" "jobs" "fonts" "meta" "documentation" ]) // {
+# config = (removeAttrs hardware-configuration.config [ "fileSystems" "nesting" "jobs" "fonts" "meta" "documentation" ]) // {
+config = (filterAttrs (n: v: elem v [ "boot" "network" "swapDevices" "powerManagement" "hardware" ]) hardware-configuration.config) // {
 #+end_src
 
 ***** Boot

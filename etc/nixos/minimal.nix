@@ -11,13 +11,14 @@ let
   hardware-configuration = import <nixpkgs/nixos> {
     configuration.imports = [
       ./hardware-configuration.nix
-      ({ config, ... }: { networking.hostId = "84abfcc5"; boot.loader.grub.devices = [ "nodev" ]; })
+      ({ config, ... }: { networking.hostId = "6b896547"; boot.loader.grub.devices = [ "nodev" ]; })
     ];
   };
 in
 with lib; {
   imports = with flake.inputs; flatten [ home-manager.nixosModules.home-manager impermanence.nixosModules.impermanence ];
-  config = (removeAttrs hardware-configuration.config [ "fileSystems" "nesting" "jobs" "fonts" "meta" "documentation" ]) // {
+  # config = (removeAttrs hardware-configuration.config [ "fileSystems" "nesting" "jobs" "fonts" "meta" "documentation" ]) // {
+  config = (filterAttrs (n: v: elem v [ "boot" "network" "swapDevices" "powerManagement" "hardware" ]) hardware-configuration.config) // {
     boot = {
       supportedFilesystems = j.attrs.fileSystems.supported;
       initrd = {
