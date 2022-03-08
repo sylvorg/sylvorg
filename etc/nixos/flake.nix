@@ -45,7 +45,7 @@
             });
             overlays = lib: import ./overlays.nix {
                 inherit lib nixpkgs inputs channel;
-                pkgs = mapAttrs (n: v: import v lib.j.attrs.configs.nixpkgs) (
+                pkgs = mapAttrs' (n: v: nameValuePair (replaceStrings [ "." ] [ "-" ] n) (import v lib.j.attrs.configs.nixpkgs)) (
                     (filterAttrs (n: v: (hasPrefix "nixos-" n) || (hasPrefix "release-" n)) inputs) //
                     (with inputs; { inherit master j; })
                 );
