@@ -8,7 +8,6 @@ emacs = {
     defaultEditor = true;
 };
 flatpak.enable = !elem system [ "aarch64-linux" ];
-guix.enable = true;
 printing.enable = true;
 udev.packages = with pkgs; [
     yubikey-personalization

@@ -10,7 +10,7 @@ repo = with lib; j.functions.mntConvert (if dirExists then (fetchGit { url = "fi
 configuration = import <nixpkgs/nixos> { configuration.imports = [ ./configuration.nix ]; };
 hardware-configuration = import <nixpkgs/nixos> { configuration.imports = [
     ./hardware-configuration.nix
-    ({config, ... }: { networking.hostId = "17ed74c3"; boot.loader.grub.devices = [ "nodev" ]; })
+    ({config, ... }: { networking.hostId = "5245a4cc"; boot.loader.grub.devices = [ "nodev" ]; })
 ]; };
 in with lib; {
 imports = with flake.inputs; flatten [ home-manager.nixosModules.home-manager impermanence.nixosModules.impermanence ];
@@ -305,27 +305,6 @@ openssh = {
 udev.extraRules = ''
     ACTION=="add|change", KERNEL=="sd[a-z]*[0-9]*|mmcblk[0-9]*p[0-9]*|nvme[0-9]*n[0-9]*p[0-9]*", ENV{ID_FS_TYPE}=="zfs_member", ATTR{../queue/scheduler}="none"
 ''; # zfs already has its own scheduler. without this my(@Artturin) computer froze for a second when i nix build something.
-xserver = {
-    enable = true;
-    layout = "us";
-    # xkbOptions = "eurosign:e";
-    # Enable touchpad support.
-    libinput = {
-        enable = true;
-        touchpad = {
-            naturalScrolling = true;
-            middleEmulation = true;
-            tapping = true;
-        };
-    };
-    # synaptics.enable = true;
-    desktopManager.gnome.enable = true;
-    displayManager = {
-        startx.enable = true;
-        lightdm.enable = mkForce false;
-    };
-    autorun = false;
-};
 };
 users = with j.attrs.users; let
     base = {
