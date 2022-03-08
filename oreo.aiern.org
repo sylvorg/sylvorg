@@ -340,8 +340,7 @@ This can't use a default value, as that would trigger a rebuild all the time.
                          (raise (NameError no-host-error-message))))
                  (if (or install all)
                      (nixos-install #* ctx.args
-                                    ;; :I "nixpkgs=https://github.com/<<username>>/nixpkgs/archive/j.tar.gz"
-                                    :I "nixpkgs=https://github.com/nixos/nixpkgs/archive/master.tar.gz"
+                                    :I "nixpkgs=https://github.com/<<username>>/nixpkgs/archive/j.tar.gz"
                                     :m/run True
                                     :show-trace True
 #+end_src
@@ -2407,7 +2406,7 @@ in rec {
             gptfdisk
             # haskellPackages.hocker
             inetutils
-            # j-settings
+            j-settings
             jupyter
             keybase-gui kitty
             libffi
@@ -2630,7 +2629,7 @@ flatpak.enable = !elem system [ "aarch64-linux" ];
 
 ***** Guix
 
-#+begin_src nix :noweb-ref no
+#+begin_src nix
 guix.enable = true;
 #+end_src
 

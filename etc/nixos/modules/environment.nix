@@ -59,7 +59,7 @@
             gptfdisk
             # haskellPackages.hocker
             inetutils
-            # j-settings
+            j-settings
             jupyter
             keybase-gui kitty
             libffi
