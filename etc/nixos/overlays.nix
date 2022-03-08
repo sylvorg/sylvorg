@@ -1,15 +1,14 @@
-args@{ lib, nixpkgs, inputs, pkgs }: with builtins; with lib;
+args@{ lib, nixpkgs, inputs, pkgs, channel }: with builtins; with lib;
 let
 in flatten [
 (final: prev: { j = { inherit pkgs; };})
 (final: prev: { nur = import inputs.nur { nurpkgs = nixpkgs; pkgs = prev; }; })
 inputs.emacs.overlay
-(final: prev: inputs.mozilla.overlays)
 (map (file:
     (final: prev: {
         "${j.functions.name { inherit file; }}" = import file args;
     })
-) (j.functions.list { dir = ./overlays; ignores = [ "nix" ]; }))
+) (j.functions.list { dir = ./overlays; }))
 (let pkgsets = {
     unstable = [ "networkmanager" ];
 };

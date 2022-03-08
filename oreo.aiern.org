@@ -1168,8 +1168,10 @@ filterFunc = {
         (let
             _ignores' = (/. + "/${unsafeDiscardStringContext dir}/_ignores.nix");
         in if (pathExists _ignores') then (import _ignores') else [])
-        "default"
+        "default" # triggers infinite recursion if modules are defined here
         "deprecated"
+        "nix" # niv
+        "shell" # nix-shell
     ];
 in file: value:
     (if noSuffix then (
@@ -1492,7 +1494,7 @@ in buildGoModule rec {
 **** Arguments
 
 #+begin_src nix
-args@{ lib, nixpkgs, inputs, pkgs }: with builtins; with lib;
+args@{ lib, nixpkgs, inputs, pkgs, channel }: with builtins; with lib;
 #+end_src
 
 **** Let
@@ -1570,7 +1572,9 @@ inputs.extra-container.overlay
 
 **** Mozilla
 
-#+begin_src nix
+# TODO
+
+#+begin_src nix :noweb-ref no
 (final: prev: inputs.mozilla.overlays)
 #+end_src
 
@@ -1581,7 +1585,7 @@ inputs.extra-container.overlay
     (final: prev: {
         "${j.functions.name { inherit file; }}" = import file args;
     })
-) (j.functions.list { dir = ./overlays; ignores = [ "nix" ]; }))
+) (j.functions.list { dir = ./overlays; }))
 #+end_src
 
 **** Overrides from Older Channels
@@ -1656,22 +1660,21 @@ in mapAttrsToList (
     outputs = inputs@{ self, nixpkgs, flake-utils, ... }: with builtins; with nixpkgs.lib; with flake-utils.lib; let
         channel = "j";
         make = {
-            lib = system: host: nixpkgs.lib.extend (final: prev: {
+            lib = host: system: nixpkgs.lib.extend (final: prev: {
                 j = import ./lib.nix ({ pkgs = import nixpkgs { inherit system; }; lib = final; inherit inputs; } // (if (host == null) then {} else { inherit host; }));
             });
             overlays = lib: import ./overlays.nix {
-                inherit lib nixpkgs inputs;
+                inherit lib nixpkgs inputs channel;
                 pkgs = mapAttrs (n: v: import v lib.j.attrs.configs.nixpkgs) (
                     (filterAttrs (n: v: (hasPrefix "nixos-" n) || (hasPrefix "release-" n)) inputs) //
-                    (with inputs; {
-                        inherit master j;
-                    })
+                    (with inputs; { inherit master j; })
                 );
             };
             nixpkgset = overlays: system: lib: { inherit overlays system; config = lib.j.attrs.configs.nixpkgs; };
             pkgs = nixpkgset: import nixpkgs nixpkgset;
             specialArgs = name: system: rec {
                 inherit inputs nixpkgs system;
+                host = name;
                 lib = make.lib name system;
                 overlays = make.overlays lib;
                 nixpkgset = make.nixpkgset overlays system lib;
@@ -1724,12 +1727,14 @@ let
 flake = import ./.;
 #+end_src
 
-****** Inheritance and Make
+****** Make
 
 #+begin_src nix
-inherit (flake) lib overlays make;
-nixpkgset = make.nixpkgset overlays (args.system or currentSystem) lib;
-pkgs = make.pkgs nixpkgset;
+inherit (flake) make;
+lib = if (args ? inputs) then args.lib else (make.lib (args.host or config.networking.hostName) (args.system or currentSystem));
+overlays = if (args ? inputs) then args.overlays else (make.overlays lib);
+nixpkgset = if (args ? inputs) then args.nixpkgset else (make.nixpkgset overlays (args.system or currentSystem) lib);
+pkgs = if (args ? inputs) then args.pkgs else (make.pkgs nixpkgset);
 #+end_src
 
 ***** Config Repo
@@ -1737,7 +1742,7 @@ pkgs = make.pkgs nixpkgset;
 #+begin_src nix
 dir = "${lib.j.attrs.homes.${lib.j.attrs.users.primary}}/.local/share/yadm/repo.git";
 dirExists = pathExists dir;
-repo = with lib; j.functions.mntConvert (if dirExists then (fetchGit { url = "file://${dir}"; ref = "main"; }) else flake.${j.attrs.users.primary});
+repo = with lib; j.functions.mntConvert (if dirExists then (fetchGit { url = "file://${dir}"; ref = "main"; }) else flake.inputs.${j.attrs.users.primary});
 #+end_src
 
 ***** Configurations
@@ -1746,7 +1751,7 @@ repo = with lib; j.functions.mntConvert (if dirExists then (fetchGit { url = "fi
 configuration = import <nixpkgs/nixos> { configuration.imports = [ ./configuration.nix ]; };
 hardware-configuration = import <nixpkgs/nixos> { configuration.imports = [
     ./hardware-configuration.nix
-    ({config, ... }: { networking.hostId = <<hostId()>>; boot.loader.grub.devices = [ "nodev" ]; })
+    ({config, ... }: { networking.hostId = substring 0 8 (readFile "/etc/machine-id"); boot.loader.grub.devices = [ "nodev" ]; })
 ]; };
 #+end_src
 
@@ -1766,7 +1771,7 @@ imports = with flake.inputs; flatten [ home-manager.nixosModules.home-manager im
 
 #+begin_src nix
 # config = (removeAttrs hardware-configuration.config [ "fileSystems" "nesting" "jobs" "fonts" "meta" "documentation" ]) // {
-config = (filterAttrs (n: v: elem v [ "boot" "network" "swapDevices" "powerManagement" "hardware" ]) hardware-configuration.config) // {
+config = (filterAttrs (n: v: elem n [ "boot" "network" "swapDevices" "powerManagement" "hardware" ]) hardware-configuration.config) // {
 #+end_src
 
 ***** Boot
@@ -2074,7 +2079,7 @@ zramSwap = {
 fileSystems = let
     inherit (j.attrs.fileSystems) base;
     fileSystems' = j.attrs.datasets.fileSystems;
-in (filterAttrs (n: v: ! (builtins.elem "bind" v.options)) hardware-configuration.config.fileSystems) // (mapAttrs' (dataset: mountpoint: nameValuePair mountpoint (
+in (filterAttrs (n: v: ! (elem "bind" v.options)) hardware-configuration.config.fileSystems) // (mapAttrs' (dataset: mountpoint: nameValuePair mountpoint (
     mkForce (base // { device = dataset; ${
         j.functions.myIf.knull ((hasInfix j.attrs.users.primary dataset) || (hasInfix "persist" dataset)) "neededForBoot"
     } = true; })
@@ -2124,8 +2129,6 @@ networking = {
         generatePrivateKeyFile = true;
         privateKeyFile = "/persist/etc/wireguard/wg0";
     };
-
-    # hostId = substring 0 8 (readFile "/etc/machine-id");
 
     firewall = mkIf (elem config.networking.hostName j.attrs.relays) {
         allowedTCPPorts = [ 22 80 222 443 2022 8080 9418 ];

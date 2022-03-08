@@ -40,22 +40,21 @@
     outputs = inputs@{ self, nixpkgs, flake-utils, ... }: with builtins; with nixpkgs.lib; with flake-utils.lib; let
         channel = "j";
         make = {
-            lib = system: host: nixpkgs.lib.extend (final: prev: {
+            lib = host: system: nixpkgs.lib.extend (final: prev: {
                 j = import ./lib.nix ({ pkgs = import nixpkgs { inherit system; }; lib = final; inherit inputs; } // (if (host == null) then {} else { inherit host; }));
             });
             overlays = lib: import ./overlays.nix {
-                inherit lib nixpkgs inputs;
+                inherit lib nixpkgs inputs channel;
                 pkgs = mapAttrs (n: v: import v lib.j.attrs.configs.nixpkgs) (
                     (filterAttrs (n: v: (hasPrefix "nixos-" n) || (hasPrefix "release-" n)) inputs) //
-                    (with inputs; {
-                        inherit master j;
-                    })
+                    (with inputs; { inherit master j; })
                 );
             };
             nixpkgset = overlays: system: lib: { inherit overlays system; config = lib.j.attrs.configs.nixpkgs; };
             pkgs = nixpkgset: import nixpkgs nixpkgset;
             specialArgs = name: system: rec {
                 inherit inputs nixpkgs system;
+                host = name;
                 lib = make.lib name system;
                 overlays = make.overlays lib;
                 nixpkgset = make.nixpkgset overlays system lib;

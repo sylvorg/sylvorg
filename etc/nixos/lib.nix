@@ -48,8 +48,10 @@ filterFunc = {
         (let
             _ignores' = (/. + "/${unsafeDiscardStringContext dir}/_ignores.nix");
         in if (pathExists _ignores') then (import _ignores') else [])
-        "default"
+        "default" # triggers infinite recursion if modules are defined here
         "deprecated"
+        "nix" # niv
+        "shell" # nix-shell
     ];
 in file: value:
     (if noSuffix then (
