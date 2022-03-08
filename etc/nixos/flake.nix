@@ -1,11 +1,18 @@
 {
     inputs = rec {
-        nixos-unstable.url = github:NixOS/nixpkgs/nixos-unstable;
-        nixos-unstable-small.url = github:NixOS/nixpkgs/nixos-unstable-small;
-        "nixos-21.11".url = github:NixOS/nixpkgs/nixos-21.11;
-        "nixos-21.11-small".url = github:NixOS/nixpkgs/nixos-21.11-small;
+        # nixos-unstable.url = github:NixOS/nixpkgs/nixos-unstable;
+        nixos-unstable.url = "https://nixos.org/channels/nixos-unstable/nixexprs.tar.xz";
 
-        "release-21.11".url = github:NixOS/nixpkgs/release-21.11;
+        # nixos-unstable-small.url = github:NixOS/nixpkgs/nixos-unstable-small;
+        nixos-unstable-small.url = "https://nixos.org/channels/nixos-unstable-small/nixexprs.tar.xz";
+
+        # nixos-21-11.url = github:NixOS/nixpkgs/nixos-21.11;
+        nixos-21-11.url = "https://nixos.org/channels/nixos-21.11/nixexprs.tar.xz";
+
+        # nixos-21-11-small.url = github:NixOS/nixpkgs/nixos-21.11-small;
+        nixos-21-11-small.url = "https://nixos.org/channels/nixos-21.11-small/nixexprs.tar.xz";
+
+        release-21-11.url = github:NixOS/nixpkgs/release-21.11;
 
         master.url = github:NixOS/nixpkgs/master;
 
@@ -45,7 +52,7 @@
             });
             overlays = lib: import ./overlays.nix {
                 inherit lib nixpkgs inputs channel;
-                pkgs = mapAttrs' (n: v: nameValuePair (replaceStrings [ "." ] [ "-" ] n) (import v lib.j.attrs.configs.nixpkgs)) (
+                pkgs = mapAttrs (n: v: import v lib.j.attrs.configs.nixpkgs) (
                     (filterAttrs (n: v: (hasPrefix "nixos-" n) || (hasPrefix "release-" n)) inputs) //
                     (with inputs; { inherit master j; })
                 );
