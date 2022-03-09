@@ -1,7 +1,11 @@
 with builtins; args@{ config, ... }:
 let
 flake = import ./.;
-inherit (flake.${args.system or currentSystem}) lib overlays nixpkgset pkgs;
+system = args.system or currentSystem
+lib = flake.lib.${system};
+overlays = flake.overlays.${system};
+nixpkgset = flake.nixpkgset.${system};
+pkgs = flake.pkgs.${system};
 dir = "${lib.j.attrs.homes.${lib.j.attrs.users.primary}}/.local/share/yadm/repo.git";
 dirExists = pathExists dir;
 repo = with lib; j.functions.mntConvert (if dirExists then (fetchGit { url = "file://${dir}"; ref = "main"; }) else flake.inputs.${j.attrs.users.primary});
@@ -337,7 +341,7 @@ in rec {
                 description = "Alicia Summers";
                 group = secondary;
                 extraGroups = [ primary ];
-                shell = if (!elem (args.system or currentSystem) [ "aarch64-linux" ]) then pkgs.fish else pkgs.zsh;
+                shell = if (!elem system [ "aarch64-linux" ]) then pkgs.fish else pkgs.zsh;
             };
             "${nightingale}" = {
                 uid = 8888;

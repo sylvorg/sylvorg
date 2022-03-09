@@ -1740,10 +1740,14 @@ let
 flake = import ./.;
 #+end_src
 
-****** Inheritance
+****** Lib, Overlays, Nixpkgset, Pkgs
 
 #+begin_src nix
-inherit (flake.${args.system or currentSystem}) lib overlays nixpkgset pkgs;
+system = args.system or currentSystem
+lib = flake.lib.${system};
+overlays = flake.overlays.${system};
+nixpkgset = flake.nixpkgset.${system};
+pkgs = flake.pkgs.${system};
 #+end_src
 
 ***** Config Repo
@@ -2304,7 +2308,7 @@ in rec {
                 description = "Alicia Summers";
                 group = secondary;
                 extraGroups = [ primary ];
-                shell = if (!elem (args.system or currentSystem) [ "aarch64-linux" ]) then pkgs.fish else pkgs.zsh;
+                shell = if (!elem system [ "aarch64-linux" ]) then pkgs.fish else pkgs.zsh;
             };
             "${nightingale}" = {
                 uid = 8888;
