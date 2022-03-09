@@ -1608,7 +1608,7 @@ in mapAttrsToList (
 #+begin_src nix :tangle (meq/tangle-path)
 {
     nixConfig = {
-        <<270d5d30-951e-4171-8c23-67fc45d20578(delim=";")>>
+        <<270d5d30-951e-4171-8c23-67fc45d20578(delim=";", comment="# ")>>
     };
 
     inputs = rec {
@@ -2787,16 +2787,18 @@ in {
 ** nix
 *** nix.conf
 
+Adapted from [[][here]]:
+
 #+name: 270d5d30-951e-4171-8c23-67fc45d20578
-#+begin_src emacs-lisp :var delim=""
-(format-spec "extra-substituters = \"https://cache.nixos.org/ https://hydra.nixos.org/\"%d
-extra-trusted-public-keys = \"cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= hydra.nixos.org-1:CNHJZBh9K4tP3EKF6FkkgeVYsS3ohTl+oS0Qa8bezVs=\"%d
-keep-derivations = true%d
-keep-outputs = true%d
-extra-experimental-features = nix-command flakes%d
-allow-unsafe-native-code-during-evaluation = true%d
-min-free = 262144000%d
-max-free = 1073741824%d" `((?d . ,delim)))
+#+begin_src emacs-lisp :var delim="" comment=""
+(format-spec "extra-substituters = \"https://cache.nixos.org https://hydra.nixos.org https://nrdxp.cachix.org https://nix-community.cachix.org\"%d
+extra-trusted-public-keys = \"cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= hydra.nixos.org-1:CNHJZBh9K4tP3EKF6FkkgeVYsS3ohTl+oS0Qa8bezVs= nrdxp.cachix.org-1:Fc5PSqY2Jm1TrWfm88l6cvGWwz3s93c6IOifQWnhNW4= nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs=\"%d
+%ckeep-derivations = true%d
+%ckeep-outputs = true%d
+extra-experimental-features = \"nix-command flakes\"%d
+%callow-unsafe-native-code-during-evaluation = true%d
+%cmin-free = 262144000%d
+%cmax-free = 1073741824%d" `((?d . ,delim) (?c . ,comment)))
 #+end_src
 
 #+begin_src conf :tangle (meq/tangle-path)
