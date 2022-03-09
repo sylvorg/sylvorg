@@ -1692,6 +1692,7 @@ in mapAttrsToList (
                 nixpkgset = make.nixpkgset overlays system lib;
                 pkgs = make.pkgs nixpkgset;
             };
+            nullArgs = system: make.specialArgs null system;
             config = name: system: lib.nixosSystem {
                 specialArgs = make.specialArgs name system;
                 modules = flatten [
@@ -1702,7 +1703,7 @@ in mapAttrsToList (
                 ];
             };
         };
-    in (make.specialArgs null "x86_64-linux") // {
+    in (eachSystem allSystems nullArgs) // {
         inherit make channel;
         nixosConfigurations = eachSystem allSystems (system: listToAttrs (map
             (name: nameValuePair name (make.config name system))
@@ -1739,14 +1740,10 @@ let
 flake = import ./.;
 #+end_src
 
-****** Make
+****** Inheritance
 
 #+begin_src nix
-inherit (flake) make;
-lib = if (args ? inputs) then args.lib else (make.lib (args.host or config.networking.hostName) (args.system or currentSystem));
-overlays = if (args ? inputs) then args.overlays else (make.overlays lib);
-nixpkgset = if (args ? inputs) then args.nixpkgset else (make.nixpkgset overlays (args.system or currentSystem) lib);
-pkgs = if (args ? inputs) then args.pkgs else (make.pkgs nixpkgset);
+inherit (flake.${args.system or currentSystem}) lib overlays nixpkgset pkgs;
 #+end_src
 
 ***** Config Repo

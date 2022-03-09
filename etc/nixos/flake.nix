@@ -71,6 +71,7 @@
                 nixpkgset = make.nixpkgset overlays system lib;
                 pkgs = make.pkgs nixpkgset;
             };
+            nullArgs = system: make.specialArgs null system;
             config = name: system: lib.nixosSystem {
                 specialArgs = make.specialArgs name system;
                 modules = flatten [
@@ -81,7 +82,7 @@
                 ];
             };
         };
-    in (make.specialArgs null "x86_64-linux") // {
+    in (eachSystem allSystems nullArgs) // {
         inherit make channel;
         nixosConfigurations = eachSystem allSystems (system: listToAttrs (map
             (name: nameValuePair name (make.config name system))
