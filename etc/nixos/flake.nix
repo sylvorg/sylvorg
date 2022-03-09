@@ -1,8 +1,15 @@
 {
     nixConfig = {
-        substituters = [ "https://cache.nixos.org/" ];
-        trusted-public-keys = [ "cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY=" ];
+        extra-substituters = "https://cache.nixos.org/ https://hydra.nixos.org/"
+        extra-trusted-public-keys = "cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= hydra.nixos.org-1:CNHJZBh9K4tP3EKF6FkkgeVYsS3ohTl+oS0Qa8bezVs="
+        keep-derivations = true;
+        keep-outputs = true;
+        extra-experimental-features = nix-command flakes;
+        allow-unsafe-native-code-during-evaluation = true;
+        min-free = 262144000;
+        max-free = 1073741824;
     };
+
     inputs = rec {
         # nixos-unstable.url = github:NixOS/nixpkgs/nixos-unstable;
         nixos-unstable.url = "https://nixos.org/channels/nixos-unstable/nixexprs.tar.xz";

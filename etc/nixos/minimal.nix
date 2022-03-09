@@ -1,7 +1,7 @@
 with builtins; args@{ config, ... }:
 let
 flake = import ./.;
-system = args.system or currentSystem
+system = args.system or currentSystem;
 lib = flake.lib.${system};
 overlays = flake.overlays.${system};
 nixpkgset = flake.nixpkgset.${system};
