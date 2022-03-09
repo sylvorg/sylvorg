@@ -82,7 +82,7 @@
                 ];
             };
         };
-    in (eachSystem allSystems nullArgs) // {
+    in (eachSystem allSystems make.nullArgs) // {
         inherit make channel;
         nixosConfigurations = eachSystem allSystems (system: listToAttrs (map
             (name: nameValuePair name (make.config name system))
