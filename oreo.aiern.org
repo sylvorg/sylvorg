@@ -1579,8 +1579,8 @@ inputs.extra-container.overlay
 
 #+begin_src nix
 (let pkgsets = {
-    nixos-unstable = [ "networkmanager" ];
-    nixos-21-11 = [ "gnome-control-center" ];
+    # nixos-unstable = [ "networkmanager" "gnome-control-center" "bash" ];
+    nixos-unstable = [ ];
 };
 in mapAttrsToList (
     pkgchannel: pkglist: map (
@@ -1608,7 +1608,7 @@ in mapAttrsToList (
 #+begin_src nix :tangle (meq/tangle-path)
 {
     nixConfig = {
-        <<270d5d30-951e-4171-8c23-67fc45d20578(delim=";", comment="# ", quoted='t)>>
+        <<270d5d30-951e-4171-8c23-67fc45d20578(flake='t)>>
     };
 
     inputs = rec {
@@ -1727,14 +1727,13 @@ let
 flake = import ./.;
 #+end_src
 
-****** Lib, Overlays, Nixpkgset, Pkgs
+****** Inheritance
 
 #+begin_src nix
 system = args.system or currentSystem;
-lib = flake.lib.${system};
-overlays = flake.overlays.${system};
-nixpkgset = flake.nixpkgset.${system};
-pkgs = flake.pkgs.${system};
+fromFlake = args ? inputs;
+inheritanceSet = if fromFlake then args else (flake.make.specialArgs (args.host or config.networking.hostName) system);
+inherit (inheritanceSet) lib overlays nixpkgset pkgs;
 #+end_src
 
 ***** Config Repo
@@ -2790,7 +2789,7 @@ in {
 Adapted from [[][here]]:
 
 #+name: 270d5d30-951e-4171-8c23-67fc45d20578
-#+begin_src emacs-lisp :var delim="" comment="" quoted='nil
+#+begin_src emacs-lisp :var delim="" comment="" quoted='nil flake='nil
 (format-spec "extra-substituters = %qhttps://cache.nixos.org https://hydra.nixos.org https://nrdxp.cachix.org https://nix-community.cachix.org%q%d
 extra-trusted-public-keys = %qcache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= hydra.nixos.org-1:CNHJZBh9K4tP3EKF6FkkgeVYsS3ohTl+oS0Qa8bezVs= nrdxp.cachix.org-1:Fc5PSqY2Jm1TrWfm88l6cvGWwz3s93c6IOifQWnhNW4= nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs=%q%d
 %ckeep-derivations = true%d
@@ -2798,7 +2797,7 @@ extra-trusted-public-keys = %qcache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPM
 extra-experimental-features = %qnix-command flakes%q%d
 %callow-unsafe-native-code-during-evaluation = true%d
 %cmin-free = 262144000%d
-%cmax-free = 1073741824%d" `((?d . ,delim) (?c . ,comment) (?q . ,(if quoted "\"" ""))))
+%cmax-free = 1073741824%d" `((?d . ,(if flake ";" delim)) (?c . ,(if flake "# " comment)) (?q . ,(if (or flake quoted) "\"" ""))))
 #+end_src
 
 #+begin_src conf :tangle (meq/tangle-path)

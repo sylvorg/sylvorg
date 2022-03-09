@@ -10,8 +10,8 @@ inputs.emacs.overlay
     })
 ) (j.functions.list { dir = ./overlays; }))
 (let pkgsets = {
-    nixos-unstable = [ "networkmanager" ];
-    nixos-21-11 = [ "gnome-control-center" ];
+    # nixos-unstable = [ "networkmanager" "gnome-control-center" "bash" ];
+    nixos-unstable = [ ];
 };
 in mapAttrsToList (
     pkgchannel: pkglist: map (

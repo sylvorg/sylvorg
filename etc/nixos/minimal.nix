@@ -2,10 +2,9 @@ with builtins; args@{ config, ... }:
 let
 flake = import ./.;
 system = args.system or currentSystem;
-lib = flake.lib.${system};
-overlays = flake.overlays.${system};
-nixpkgset = flake.nixpkgset.${system};
-pkgs = flake.pkgs.${system};
+fromFlake = args ? inputs;
+inheritanceSet = if fromFlake then args else (flake.make.specialArgs (args.host or config.networking.hostName) system);
+inherit (inheritanceSet) lib overlays nixpkgset pkgs;
 dir = "${lib.j.attrs.homes.${lib.j.attrs.users.primary}}/.local/share/yadm/repo.git";
 dirExists = pathExists dir;
 repo = with lib; j.functions.mntConvert (if dirExists then (fetchGit { url = "file://${dir}"; ref = "main"; }) else flake.inputs.${j.attrs.users.primary});
