@@ -2,8 +2,9 @@ with builtins; args@{ config, ... }:
 let
 flake = import ./.;
 system = args.system or currentSystem;
+host = args.host or config.networking.hostName;
 fromFlake = args ? inputs;
-inheritanceSet = if fromFlake then args else (flake.make.specialArgs (args.host or config.networking.hostName) system);
+inheritanceSet = if fromFlake then args else (flake.make.specialArgs host system);
 inherit (inheritanceSet) lib overlays nixpkgset pkgs;
 dir = "${lib.j.attrs.homes.${lib.j.attrs.users.primary}}/.local/share/yadm/repo.git";
 dirExists = pathExists dir;
@@ -75,17 +76,17 @@ binfmt.emulatedSystems = [
 ];
 kernelModules = [ "zfs" ];
 kernelParams = [ "nohibernate" ];
-# loader.grub.zfsSupport = true;
+# loader.grub.zfsSupport = mkIf j.attrs.zfs true;
 initrd = {
-    postDeviceCommands = mkAfter ''
+    postDeviceCommands = mkIf j.attrs.zfs (mkAfter ''
         zfs rollback -r ${config.networking.hostName}/system/root@blank
         zfs rollback -r ${config.networking.hostName}/system/home@blank
         zfs rollback -r ${config.networking.hostName}/system/tmp@blank
-    '';
+    '');
     kernelModules = [ "zfs" ];
     availableKernelModules = [ "zfs" ];
 };
-zfs = {
+zfs = mkIf j.attrs.zfs {
     requestEncryptionCredentials = true;
     enableUnstable = true;
     devNodes = "/dev/";
@@ -99,7 +100,7 @@ console = {
 };
 environment = {
 etc."nix/nix.conf".text = mkForce j.attrs.configs.nix;
-persistence = let
+persistence = mkIf j.attrs.zfs (let
     rootDirSet = {
         user = "root";
         group = "root";
@@ -195,7 +196,7 @@ in {
                 { directory = ".ssh"; mode = "0700"; }
                 redRepoDirectories
             ]));}) j.attrs.allUsers);
-    };
+    });
 };
 };
 zramSwap = {
@@ -205,11 +206,14 @@ zramSwap = {
 fileSystems = let
     inherit (j.attrs.fileSystems) base;
     fileSystems' = j.attrs.datasets.fileSystems;
-in (filterAttrs (n: v: ! (elem "bind" v.options)) hardware-configuration.config.fileSystems) // (mapAttrs' (dataset: mountpoint: nameValuePair mountpoint (
-    mkForce (base // { device = dataset; ${
-        j.functions.myIf.knull ((hasInfix j.attrs.users.primary dataset) || (hasInfix "persist" dataset)) "neededForBoot"
-    } = true; })
-)) fileSystems');
+in mkMerge [
+    (filterAttrs (n: v: ! (elem "bind" v.options)) hardware-configuration.config.fileSystems)
+    (mapAttrs' (dataset: mountpoint: nameValuePair mountpoint (
+        mkForce (base // { device = dataset; ${
+            j.functions.myIf.knull ((hasInfix j.attrs.users.primary dataset) || (hasInfix "persist" dataset)) "neededForBoot"
+        } = true; })
+    )) fileSystems')
+];
 hardware = {
     enableRedistributableFirmware = lib.mkDefault true;
     # Enable sound
@@ -246,7 +250,7 @@ networking = {
         privateKeyFile = "/persist/etc/wireguard/wg0";
     };
 
-    firewall = mkIf (elem config.networking.hostName j.attrs.relays) {
+    firewall = mkIf (elem config.networking.hostName j.attrs.machines.relays) {
         allowedTCPPorts = [ 22 80 222 443 2022 8080 9418 ];
         allowedUDPPortRanges = [
             {
@@ -302,7 +306,7 @@ openssh = {
     '';
     permitRootLogin = "yes";
 };
-udev.extraRules = ''
+udev.extraRules = mkIf j.attrs.zfs ''
     ACTION=="add|change", KERNEL=="sd[a-z]*[0-9]*|mmcblk[0-9]*p[0-9]*|nvme[0-9]*n[0-9]*p[0-9]*", ENV{ID_FS_TYPE}=="zfs_member", ATTR{../queue/scheduler}="none"
 ''; # zfs already has its own scheduler. without this my(@Artturin) computer froze for a second when i nix build something.
 };

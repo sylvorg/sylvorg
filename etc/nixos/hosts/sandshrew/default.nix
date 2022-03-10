@@ -3,11 +3,11 @@
 {
     imports =  [
         ../../minimal.nix
-        (import ./.).hardware.microsoft-surface
+        (import ./.).inputs.hardware.microsoft-surface
     ];
     networking = {
         hostName = baseNameOf (toString ./.);
-        hostId = "838df0d5";
+        hostId = "f83ab1ec";
         networkmanager.extraConfig = ''
             [connection]
             wifi.powersave = 2

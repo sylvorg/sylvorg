@@ -15,7 +15,7 @@ udev.packages = with pkgs; [
     libu2f-host
 ];
 pcscd.enable = true;
-zfs = {
+zfs = mkIf j.attrs.zfs {
     trim.enable = true;
     autoScrub.enable = true;
 

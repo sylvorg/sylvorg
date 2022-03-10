@@ -103,7 +103,12 @@ in zipToSet
     (map (file: import file (foldToSet [ modules inputs ])) files);
 };
 attrs = rec {
+machines = {
 relays = [ "argus" "bastiodon" ];
+no-zfs = "yggdrasil";
+};
+not-zfs = elem host no-zfs
+zfs = ! not-zfs;
 configs = {
     nixpkgs = {
         allowUnfree = true;

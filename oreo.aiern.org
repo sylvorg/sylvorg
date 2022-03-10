@@ -934,6 +934,20 @@ index c61df8ceb00..d973837f0d3 100644
 [ ../minimal.nix ../bcachefs.nix ]
 #+end_src
 
+**** rpi4.nix
+
+#+begin_src nix :tangle (meq/tangle-path)
+{ config, pkgs, lib, ... }:
+
+{
+    imports =  [
+        ../../minimal.nix
+        (import ./.).inputs.hardware.raspberry-pi-4
+    ];
+    boot.kernelPackages = lib.mkForce pkgs.linuxPackages_rpi4;
+}
+#+end_src
+
 **** sandshrew
 ***** default.nix
 
@@ -943,7 +957,7 @@ index c61df8ceb00..d973837f0d3 100644
 {
     imports =  [
         ../../minimal.nix
-        (import ./.).hardware.microsoft-surface
+        (import ./.).inputs.hardware.microsoft-surface
     ];
     networking = {
         hostName = baseNameOf (toString ./.);
@@ -1011,33 +1025,29 @@ index c61df8ceb00..d973837f0d3 100644
 ***** default.nix
 
 #+begin_src nix :tangle (meq/tangle-path)
-{ config, pkgs, lib, ... }:
+{ config, ... }:
 
 {
-    imports = import ../imports.nix;
+    imports = [ ../rpi4.nix ];
     networking = {
         hostName = baseNameOf (toString ./.);
         hostId = <<hostId()>>;
     };
-    boot = {
-        kernelPackages = lib.mkForce pkgs.linuxPackages_rpi4;
-        initrd.availableKernelModules = [ "usbhid" "usb_storage" ];
-        kernelParams = [
-            "8250.nr_uarts=1"
-            "console=ttyAMA0,115200"
-            "console=tty1"
-            "cma=128M"
-        ];
-        loader = {
-            raspberryPi = {
-                enable = true;
-                version = 4;
-            };
-            grub.enable = false;
-            generic-extlinux-compatible.enable = true;
-        };
+}
+#+end_src
+
+**** enterprise
+***** default.nix
+
+#+begin_src nix :tangle (meq/tangle-path)
+{ config, ... }:
+
+{
+    imports = [ ../rpi4.nix ];
+    networking = {
+        hostName = baseNameOf (toString ./.);
+        hostId = <<hostId()>>;
     };
-    hardware.enableRedistributableFirmware = true;
 }
 #+end_src
 
@@ -1235,10 +1245,35 @@ in zipToSet
 attrs = rec {
 #+end_src
 
-******* Relay Machines
+******* Machines
+
+#+begin_src nix
+machines = {
+#+end_src
+
+******** Relay
 
 #+begin_src nix
 relays = [ <<relays>> ];
+#+end_src
+
+******** No ZFS
+
+#+begin_src nix
+no-zfs = <<no-zfs>>;
+#+end_src
+
+******** End of Machines
+
+#+begin_src nix
+};
+#+end_src
+
+******* ZFS
+
+#+begin_src nix
+not-zfs = elem host no-zfs
+zfs = ! not-zfs;
 #+end_src
 
 ******* Configs
@@ -1579,7 +1614,7 @@ inputs.extra-container.overlay
 
 #+begin_src nix
 (let pkgsets = {
-    # nixos-unstable = [ "networkmanager" "gnome-control-center" "bash" ];
+    # nixos-unstable = [ "networkmanager" "gnome-control-center" "bash" "bootstrap-tools" ];
     nixos-unstable = [ ];
 };
 in mapAttrsToList (
@@ -1731,8 +1766,9 @@ flake = import ./.;
 
 #+begin_src nix
 system = args.system or currentSystem;
+host = args.host or config.networking.hostName;
 fromFlake = args ? inputs;
-inheritanceSet = if fromFlake then args else (flake.make.specialArgs (args.host or config.networking.hostName) system);
+inheritanceSet = if fromFlake then args else (flake.make.specialArgs host system);
 inherit (inheritanceSet) lib overlays nixpkgset pkgs;
 #+end_src
 
@@ -1908,17 +1944,17 @@ binfmt.emulatedSystems = [
 #+begin_src nix
 kernelModules = [ "zfs" ];
 kernelParams = [ "nohibernate" ];
-# loader.grub.zfsSupport = true;
+# loader.grub.zfsSupport = mkIf j.attrs.zfs true;
 initrd = {
-    postDeviceCommands = mkAfter ''
+    postDeviceCommands = mkIf j.attrs.zfs (mkAfter ''
         zfs rollback -r ${config.networking.hostName}/system/root@blank
         zfs rollback -r ${config.networking.hostName}/system/home@blank
         zfs rollback -r ${config.networking.hostName}/system/tmp@blank
-    '';
+    '');
     kernelModules = [ "zfs" ];
     availableKernelModules = [ "zfs" ];
 };
-zfs = {
+zfs = mkIf j.attrs.zfs {
     requestEncryptionCredentials = true;
     enableUnstable = true;
     devNodes = "/dev/";
@@ -1957,7 +1993,7 @@ etc."nix/nix.conf".text = mkForce j.attrs.configs.nix;
 ****** ZFS
 
 #+begin_src nix
-persistence = let
+persistence = mkIf j.attrs.zfs (let
     rootDirSet = {
         user = "root";
         group = "root";
@@ -2053,7 +2089,7 @@ in {
                 { directory = ".ssh"; mode = "0700"; }
                 redRepoDirectories
             ]));}) j.attrs.allUsers);
-    };
+    });
 };
 #+end_src
 
@@ -2078,11 +2114,14 @@ zramSwap = {
 fileSystems = let
     inherit (j.attrs.fileSystems) base;
     fileSystems' = j.attrs.datasets.fileSystems;
-in (filterAttrs (n: v: ! (elem "bind" v.options)) hardware-configuration.config.fileSystems) // (mapAttrs' (dataset: mountpoint: nameValuePair mountpoint (
-    mkForce (base // { device = dataset; ${
-        j.functions.myIf.knull ((hasInfix j.attrs.users.primary dataset) || (hasInfix "persist" dataset)) "neededForBoot"
-    } = true; })
-)) fileSystems');
+in mkMerge [
+    (filterAttrs (n: v: ! (elem "bind" v.options)) hardware-configuration.config.fileSystems)
+    (mapAttrs' (dataset: mountpoint: nameValuePair mountpoint (
+        mkForce (base // { device = dataset; ${
+            j.functions.myIf.knull ((hasInfix j.attrs.users.primary dataset) || (hasInfix "persist" dataset)) "neededForBoot"
+        } = true; })
+    )) fileSystems')
+];
 #+end_src
 
 ***** Hardware
@@ -2129,7 +2168,7 @@ networking = {
         privateKeyFile = "/persist/etc/wireguard/wg0";
     };
 
-    firewall = mkIf (elem config.networking.hostName j.attrs.relays) {
+    firewall = mkIf (elem config.networking.hostName j.attrs.machines.relays) {
         allowedTCPPorts = [ 22 80 222 443 2022 8080 9418 ];
         allowedUDPPortRanges = [
             {
@@ -2220,7 +2259,7 @@ openssh = {
 ****** UDEV
 
 #+begin_src nix
-udev.extraRules = ''
+udev.extraRules = mkIf j.attrs.zfs ''
     ACTION=="add|change", KERNEL=="sd[a-z]*[0-9]*|mmcblk[0-9]*p[0-9]*|nvme[0-9]*n[0-9]*p[0-9]*", ENV{ID_FS_TYPE}=="zfs_member", ATTR{../queue/scheduler}="none"
 ''; # zfs already has its own scheduler. without this my(@Artturin) computer froze for a second when i nix build something.
 #+end_src
@@ -2655,7 +2694,7 @@ pcscd.enable = true;
 ***** ZFS
 
 #+begin_src nix
-zfs = {
+zfs = mkIf j.attrs.zfs {
     trim.enable = true;
     autoScrub.enable = true;
 
@@ -2747,7 +2786,7 @@ in {
         # packages = with pkgs; [ runit ];
         services = {
             # runit.enable = true;
-            caddy = mkIf (elem config.networking.hostName j.attrs.relays) (j.attrs.configs.services.base // {
+            caddy = mkIf (elem config.networking.hostName j.attrs.machines.relays) (j.attrs.configs.services.base // {
                 serviceConfig = {
                     ExecStart = ''
                         ${pkgs.caddy}/bin/caddy run --config ${j.attrs.homes.${j.attrs.users.primary}}/.config/caddy/files/${config.networking.hostName} --adapter yaml 2>&1
@@ -2770,11 +2809,11 @@ in {
 {
     virtualisation = {
         xen.enable = false;
-        lxd.zfsSupport = true;
+        lxd.zfsSupport = mkIf j.attrs.zfs true;
         podman.enable = true;
         docker = {
             enable = true;
-            storageDriver = "zfs";
+            storageDriver = mkIf j.attrs.zfs "zfs";
             package = pkgs.docker;
             enableOnBoot = true;
         };

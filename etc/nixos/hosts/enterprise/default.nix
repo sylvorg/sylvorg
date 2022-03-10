@@ -1,9 +1,9 @@
 { config, ... }:
 
 {
-    imports = import ../imports.nix;
+    imports = [ ../rpi4.nix ];
     networking = {
         hostName = baseNameOf (toString ./.);
-        hostId = "2a58a38e";
+        hostId = "af80ee0e";
     };
 }
