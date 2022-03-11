@@ -192,7 +192,6 @@ in {
             ]));}) j.attrs.allUsers);
     };});
 };
-};
 zramSwap = {
     enable = true;
     algorithm = "zstd";
