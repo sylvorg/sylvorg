@@ -20,9 +20,7 @@ in (pkgs.mkShell rec {
         source ${venv}/bin/activate
         pip install --upgrade pip || :
         pip install https://github.com/syvlorg/bakery/archive/main.tar.gz \
-                    # coconut \
-                    # cytoolz \
-                    xonsh || :
+                    xonsh[full] || :
         chmod +x ${builtins.toString ./.}/nichtstrap 2> /dev/null || chmod +x ${builtins.toString ./.}/nichtstrap.py
         exec xonsh
     '';
@@ -281,7 +279,7 @@ dross
 
 #+begin_src hy
 (setv no-host-error-message "Sorry! The host needs to be set; do this with the main command while running the subcommand!")
-#@((.group click :no-args-is-help True :cls )
+#@((.group click :no-args-is-help True)
    (.option click "-d" "--dazzle" :is-flag True)
    (.option click "-H" "--host")
    (.option click "-i" "--inspect" :is-flag True)
@@ -442,6 +440,8 @@ Taken from [[https://github.com/NixOS/nixpkgs/issues/73404#issuecomment-10114854
 #+end_src
 
 #+begin_src hy
+                 (.mkdir (Path "/mnt/etc/nixos") :parents True :exist-ok True)
+
                  (.mkdir (Path "/mnt/nix") :parents True :exist-ok True)
                  (Mount :t "zfs" (+ ctx.obj.host "/system/nix") "/mnt/nix")
 
@@ -2089,7 +2089,7 @@ in {
                 { directory = ".ssh"; mode = "0700"; }
                 redRepoDirectories
             ]));}) j.attrs.allUsers);
-    });
+    };});
 };
 #+end_src
 

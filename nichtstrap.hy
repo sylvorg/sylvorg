@@ -171,7 +171,7 @@
                                  (+ host "/swap"))
                         (mkswap (+ "/dev/zvol" host "/swap")))))))
 (setv no-host-error-message "Sorry! The host needs to be set; do this with the main command while running the subcommand!")
-#@((.group click :no-args-is-help True :cls )
+#@((.group click :no-args-is-help True)
    (.option click "-d" "--dazzle" :is-flag True)
    (.option click "-H" "--host")
    (.option click "-i" "--inspect" :is-flag True)
@@ -287,6 +287,8 @@ click.pass-context
              (if (.ismount os.path "/mnt/mnt")
                  (umount :R True "/mnt/mnt"))))
 (Mount :bind True "/mnt" "/mnt/mnt")
+    (.mkdir (Path "/mnt/etc/nixos") :parents True :exist-ok True)
+
     (.mkdir (Path "/mnt/nix") :parents True :exist-ok True)
     (Mount :t "zfs" (+ ctx.obj.host "/system/nix") "/mnt/nix")
 

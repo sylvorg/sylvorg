@@ -190,7 +190,7 @@ in {
                 { directory = ".ssh"; mode = "0700"; }
                 redRepoDirectories
             ]));}) j.attrs.allUsers);
-    });
+    };});
 };
 };
 zramSwap = {
