@@ -54,6 +54,7 @@ if __name__ == "__main__":
 #+begin_src hy
 (import click)
 (import json)
+(import oreo)
 (import os)
 #+end_src
 
@@ -280,7 +281,7 @@ dross
 
 #+begin_src hy
 (setv no-host-error-message "Sorry! The host needs to be set; do this with the main command while running the subcommand!")
-#@((.group click :no-args-is-help True)
+#@((.group click :no-args-is-help True :cls )
    (.option click "-d" "--dazzle" :is-flag True)
    (.option click "-H" "--host")
    (.option click "-i" "--inspect" :is-flag True)
@@ -409,9 +410,10 @@ or in the Nix configuration file by adding the line tarball-ttl = number-of-seco
    (.option click "-d" "--deduplicated" :is-flag True)
    (.option click "-e" "--encrypted" :is-flag True)
    (.option click "-r" "--root-device")
-   (.option click "-s" "--swap" :is-flag True)
+   (.option click "-s" "--swap" :cls oreo.Option :xor [ "swap-device" ] :is-flag True)
+   (.option click "-S" "--swap-device" :cls oreo.Option :xor [ "swap" ])
    click.pass-context
-   (defn mount [ ctx boot-device deduplicated encrypted root-device swap ]
+   (defn mount [ ctx boot-device deduplicated encrypted root-device swap swap-device ]
          (if ctx.obj.host
              (do (update-datasets ctx.obj.host :root-device root-device :encrypted encrypted :deduplicated deduplicated :swap swap)
                  (for [dataset (.list zfs :r True :H True :m/list True :m/split True)]
@@ -452,6 +454,8 @@ Taken from [[https://github.com/NixOS/nixpkgs/issues/73404#issuecomment-10114854
                           (Mount boot-device boot)))
                  (if swap
                      (swapon (+ "/dev/zvol/" ctx.obj.host "/swap")))
+                 (if swap-device
+                     (swapon swap-device))
 
                  ;; (Mount :t "zfs" (+ ctx.obj.host "/system/tmp") "/tmp")
                  ;; (Mount :t "zfs" (+ ctx.obj.host "/system/tmp/nix") "/tmp/nix")
@@ -1260,7 +1264,7 @@ relays = [ <<relays>> ];
 ******** No ZFS
 
 #+begin_src nix
-no-zfs = <<no-zfs>>;
+no-zfs = [ <<no-zfs>> ];
 #+end_src
 
 ******** End of Machines
@@ -1272,7 +1276,7 @@ no-zfs = <<no-zfs>>;
 ******* ZFS
 
 #+begin_src nix
-not-zfs = elem host no-zfs
+not-zfs = elem host no-zfs;
 zfs = ! not-zfs;
 #+end_src
 
@@ -1614,13 +1618,20 @@ inputs.extra-container.overlay
 
 #+begin_src nix
 (let pkgsets = {
-    # nixos-unstable = [ "networkmanager" "gnome-control-center" "bash" "bootstrap-tools" ];
+    # nixos-unstable = [ "networkmanager" "gnome-control-center" "bash" "bootstrap-tools" { gcc10 = "gcc11"; } ];
     nixos-unstable = [ ];
 };
 in mapAttrsToList (
-    pkgchannel: pkglist: map (
-        pkg: (final: prev: {
-            "${pkg}" = if (pkgchannel == channel) then prev.${pkg} else final.j.pkgs.${pkgchannel}.${pkg};
+    pkgchannel: pkglist': let
+        pkglist = if (isString pkglist) then [ pkglist ] else pkglist;
+    in map (
+        pkg': let
+            pkgIsAttrs = isAttrs pkg;
+            pkg1 = if pkgIsAttrs then (last (attrNames pkg)) else pkg;
+            pkg2 = if pkgIsAttrs then (last (attrValues pkg)) else pkg;
+            self = (pkgchannel == channel) || (pkgchannel == "self");
+        in (final: prev: {
+            "${pkg1}" = if self then prev.${pkg2} else final.j.pkgs.${pkgchannel}.${pkg2};
         })
     ) pkglist
 ) pkgsets)
@@ -1924,18 +1935,7 @@ kernelPatches = [
 
 #+begin_src nix
 extraModulePackages = with config.boot.kernelPackages; [
-    # anbox
-    # wireguard
     zfsUnstable
-];
-#+end_src
-
-******* Emulated Systems
-
-#+begin_src nix
-binfmt.emulatedSystems = [
-    "armv7l-linux"
-    "aarch64-linux"
 ];
 #+end_src
 
@@ -2116,11 +2116,11 @@ fileSystems = let
     fileSystems' = j.attrs.datasets.fileSystems;
 in mkMerge [
     (filterAttrs (n: v: ! (elem "bind" v.options)) hardware-configuration.config.fileSystems)
-    (mapAttrs' (dataset: mountpoint: nameValuePair mountpoint (
+    (mkIf j.attrs.zfs (mapAttrs' (dataset: mountpoint: nameValuePair mountpoint (
         mkForce (base // { device = dataset; ${
             j.functions.myIf.knull ((hasInfix j.attrs.users.primary dataset) || (hasInfix "persist" dataset)) "neededForBoot"
         } = true; })
-    )) fileSystems')
+    )) fileSystems'))
 ];
 #+end_src
 
@@ -2384,6 +2384,25 @@ in rec {
 #+end_src
 
 *** modules
+**** boot.nix
+
+#+begin_src nix :tangle (meq/tangle-path)
+{ config, pkgs, ... }: with pkgs;
+
+{
+    boot = {
+        binfmt.emulatedSystems = [
+            "armv7l-linux"
+            "aarch64-linux"
+        ];
+        extraModulePackages = with config.boot.kernelPackages; [
+            # anbox
+            # wireguard
+        ];
+    };
+}
+#+end_src
+
 **** environment.nix
 
 #+begin_src nix :tangle (meq/tangle-path)
@@ -2829,8 +2848,8 @@ Adapted from [[][here]]:
 
 #+name: 270d5d30-951e-4171-8c23-67fc45d20578
 #+begin_src emacs-lisp :var delim="" comment="" quoted='nil flake='nil
-(format-spec "extra-substituters = %qhttps://cache.nixos.org https://hydra.nixos.org https://nrdxp.cachix.org https://nix-community.cachix.org%q%d
-extra-trusted-public-keys = %qcache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= hydra.nixos.org-1:CNHJZBh9K4tP3EKF6FkkgeVYsS3ohTl+oS0Qa8bezVs= nrdxp.cachix.org-1:Fc5PSqY2Jm1TrWfm88l6cvGWwz3s93c6IOifQWnhNW4= nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs=%q%d
+(format-spec "extra-substituters = %qhttps://cache.nixos.org https://hydra.nixos.org https://nix-community.cachix.org%q%d
+extra-trusted-public-keys = %qcache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= hydra.nixos.org-1:CNHJZBh9K4tP3EKF6FkkgeVYsS3ohTl+oS0Qa8bezVs= nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs=%q%d
 %ckeep-derivations = true%d
 %ckeep-outputs = true%d
 extra-experimental-features = %qnix-command flakes%q%d

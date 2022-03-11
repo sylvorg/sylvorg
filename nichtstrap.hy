@@ -1,6 +1,7 @@
 #!/usr/bin/env hy
 (import click)
 (import json)
+(import oreo)
 (import os)
 (import addict [Dict :as D])
 (import bakery [ getconf
@@ -170,7 +171,7 @@
                                  (+ host "/swap"))
                         (mkswap (+ "/dev/zvol" host "/swap")))))))
 (setv no-host-error-message "Sorry! The host needs to be set; do this with the main command while running the subcommand!")
-#@((.group click :no-args-is-help True)
+#@((.group click :no-args-is-help True :cls )
    (.option click "-d" "--dazzle" :is-flag True)
    (.option click "-H" "--host")
    (.option click "-i" "--inspect" :is-flag True)
@@ -262,9 +263,10 @@ click.pass-context
    (.option click "-d" "--deduplicated" :is-flag True)
    (.option click "-e" "--encrypted" :is-flag True)
    (.option click "-r" "--root-device")
-   (.option click "-s" "--swap" :is-flag True)
+   (.option click "-s" "--swap" :cls oreo.Option :xor [ "swap-device" ] :is-flag True)
+   (.option click "-S" "--swap-device" :cls oreo.Option :xor [ "swap" ])
    click.pass-context
-   (defn mount [ ctx boot-device deduplicated encrypted root-device swap ]
+   (defn mount [ ctx boot-device deduplicated encrypted root-device swap swap-device ]
          (if ctx.obj.host
              (do (update-datasets ctx.obj.host :root-device root-device :encrypted encrypted :deduplicated deduplicated :swap swap)
                  (for [dataset (.list zfs :r True :H True :m/list True :m/split True)]
@@ -297,6 +299,8 @@ click.pass-context
              (Mount boot-device boot)))
     (if swap
         (swapon (+ "/dev/zvol/" ctx.obj.host "/swap")))
+    (if swap-device
+        (swapon swap-device))
 
     ;; (Mount :t "zfs" (+ ctx.obj.host "/system/tmp") "/tmp")
     ;; (Mount :t "zfs" (+ ctx.obj.host "/system/tmp/nix") "/tmp/nix")

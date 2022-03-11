@@ -66,13 +66,7 @@ loader = {
 kernelPatches = [
 ];
 extraModulePackages = with config.boot.kernelPackages; [
-    # anbox
-    # wireguard
     zfsUnstable
-];
-binfmt.emulatedSystems = [
-    "armv7l-linux"
-    "aarch64-linux"
 ];
 kernelModules = [ "zfs" ];
 kernelParams = [ "nohibernate" ];
@@ -208,11 +202,11 @@ fileSystems = let
     fileSystems' = j.attrs.datasets.fileSystems;
 in mkMerge [
     (filterAttrs (n: v: ! (elem "bind" v.options)) hardware-configuration.config.fileSystems)
-    (mapAttrs' (dataset: mountpoint: nameValuePair mountpoint (
+    (mkIf j.attrs.zfs (mapAttrs' (dataset: mountpoint: nameValuePair mountpoint (
         mkForce (base // { device = dataset; ${
             j.functions.myIf.knull ((hasInfix j.attrs.users.primary dataset) || (hasInfix "persist" dataset)) "neededForBoot"
         } = true; })
-    )) fileSystems')
+    )) fileSystems'))
 ];
 hardware = {
     enableRedistributableFirmware = lib.mkDefault true;

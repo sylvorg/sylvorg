@@ -10,13 +10,20 @@ inputs.emacs.overlay
     })
 ) (j.functions.list { dir = ./overlays; }))
 (let pkgsets = {
-    # nixos-unstable = [ "networkmanager" "gnome-control-center" "bash" "bootstrap-tools" ];
+    # nixos-unstable = [ "networkmanager" "gnome-control-center" "bash" "bootstrap-tools" { gcc10 = "gcc11"; } ];
     nixos-unstable = [ ];
 };
 in mapAttrsToList (
-    pkgchannel: pkglist: map (
-        pkg: (final: prev: {
-            "${pkg}" = if (pkgchannel == channel) then prev.${pkg} else final.j.pkgs.${pkgchannel}.${pkg};
+    pkgchannel: pkglist': let
+        pkglist = if (isString pkglist) then [ pkglist ] else pkglist;
+    in map (
+        pkg': let
+            pkgIsAttrs = isAttrs pkg;
+            pkg1 = if pkgIsAttrs then (last (attrNames pkg)) else pkg;
+            pkg2 = if pkgIsAttrs then (last (attrValues pkg)) else pkg;
+            self = (pkgchannel == channel) || (pkgchannel == "self");
+        in (final: prev: {
+            "${pkg1}" = if self then prev.${pkg2} else final.j.pkgs.${pkgchannel}.${pkg2};
         })
     ) pkglist
 ) pkgsets)
