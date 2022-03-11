@@ -1623,7 +1623,7 @@ inputs.extra-container.overlay
 };
 in mapAttrsToList (
     pkgchannel: pkglist': let
-        pkglist = if (isString pkglist) then [ pkglist ] else pkglist;
+        pkglist = if (isString pkglist') then [ pkglist' ] else pkglist';
     in map (
         pkg': let
             pkgIsAttrs = isAttrs pkg;
@@ -2089,7 +2089,8 @@ in {
                 { directory = ".ssh"; mode = "0700"; }
                 redRepoDirectories
             ]));}) j.attrs.allUsers);
-    };});
+    };
+});
 #+end_src
 
 ****** End of Environment

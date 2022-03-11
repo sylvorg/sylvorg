@@ -15,7 +15,7 @@ inputs.emacs.overlay
 };
 in mapAttrsToList (
     pkgchannel: pkglist': let
-        pkglist = if (isString pkglist) then [ pkglist ] else pkglist;
+        pkglist = if (isString pkglist') then [ pkglist' ] else pkglist';
     in map (
         pkg': let
             pkgIsAttrs = isAttrs pkg;
