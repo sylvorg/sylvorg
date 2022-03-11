@@ -17,7 +17,7 @@ hardware-configuration = import <nixpkgs/nixos> { configuration.imports = [
 in with lib; {
 imports = with flake.inputs; flatten [ home-manager.nixosModules.home-manager impermanence.nixosModules.impermanence ];
 # config = (removeAttrs hardware-configuration.config [ "fileSystems" "nesting" "jobs" "fonts" "meta" "documentation" ]) // {
-config = (filterAttrs (n: v: elem n [ "boot" "network" "swapDevices" "powerManagement" "hardware" ]) hardware-configuration.config) // {
+config = (filterAttrs (n: v: elem n [ "boot" "network" "powerManagement" "hardware" ]) hardware-configuration.config) // {
 boot = {
 supportedFilesystems = j.attrs.fileSystems.supported;
 initrd = {

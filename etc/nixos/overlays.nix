@@ -11,16 +11,16 @@ inputs.emacs.overlay
 ) (j.functions.list { dir = ./overlays; }))
 (let pkgsets = {
     # nixos-unstable = [ "networkmanager" "gnome-control-center" "bash" "bootstrap-tools" { gcc10 = "gcc11"; } ];
-    nixos-unstable = [ ];
+    nixos-unstable = "nix";
 };
 in mapAttrsToList (
     pkgchannel: pkglist': let
         pkglist = if (isString pkglist') then [ pkglist' ] else pkglist';
     in map (
         pkg': let
-            pkgIsAttrs = isAttrs pkg;
-            pkg1 = if pkgIsAttrs then (last (attrNames pkg)) else pkg;
-            pkg2 = if pkgIsAttrs then (last (attrValues pkg)) else pkg;
+            pkgIsAttrs = isAttrs pkg';
+            pkg1 = if pkgIsAttrs then (last (attrNames pkg')) else pkg';
+            pkg2 = if pkgIsAttrs then (last (attrValues pkg')) else pkg';
             self = (pkgchannel == channel) || (pkgchannel == "self");
         in (final: prev: {
             "${pkg1}" = if self then prev.${pkg2} else final.j.pkgs.${pkgchannel}.${pkg2};
