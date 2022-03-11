@@ -107,7 +107,7 @@ machines = {
 relays = [ "argus" "bastiodon" ];
 no-zfs = [ "yggdrasil" ];
 };
-not-zfs = elem host no-zfs;
+not-zfs = elem host machines.no-zfs;
 zfs = ! not-zfs;
 configs = {
     nixpkgs = {

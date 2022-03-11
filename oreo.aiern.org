@@ -1276,7 +1276,7 @@ no-zfs = [ <<no-zfs>> ];
 ******* ZFS
 
 #+begin_src nix
-not-zfs = elem host no-zfs;
+not-zfs = elem host machines.no-zfs;
 zfs = ! not-zfs;
 #+end_src
 
