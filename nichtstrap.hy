@@ -126,7 +126,7 @@
                                :o { "repeat-with-values" (.get ddict "options" []) }
                                snapshot-or-none
                                recurse/real-dataset)
-                          (.snapshot zfs :r True (+ recurse/real-dataset "@root"))))
+                          (.snapshot zfs :r True (+ recurse/real-dataset "@blank"))))
                   (for [[key value] (.items (.get ddict d (D {  })))]
                        (recurse value key recurse/dataset mountpoint)))
             (for [[key value] (.items datasets)]
