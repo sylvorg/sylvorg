@@ -91,9 +91,9 @@
         };
     in (eachSystem allSystems make.nullArgs) // {
         inherit make channel;
-        nixosConfigurations = eachSystem allSystems (system: listToAttrs (map
+        packages = eachSystem allSystems (system: { nixosConfigurations = listToAttrs (map
             (name: nameValuePair name (make.config name system))
             (attrNames (filterAttrs (n: v: v == "directory") (readDir ./hosts)))
-        ));
+        )); };
     };
 }

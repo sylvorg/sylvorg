@@ -4,6 +4,6 @@
     imports = [ ../rpi4.nix ];
     networking = {
         hostName = baseNameOf (toString ./.);
-        hostId = "0ef31d0a";
+        hostId = "1b49f151";
     };
 }

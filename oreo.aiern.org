@@ -1728,10 +1728,10 @@ in mapAttrsToList (
         };
     in (eachSystem allSystems make.nullArgs) // {
         inherit make channel;
-        nixosConfigurations = eachSystem allSystems (system: listToAttrs (map
+        packages = eachSystem allSystems (system: { nixosConfigurations = listToAttrs (map
             (name: nameValuePair name (make.config name system))
             (attrNames (filterAttrs (n: v: v == "directory") (readDir ./hosts)))
-        ));
+        )); };
     };
 }
 #+end_src
@@ -2942,10 +2942,6 @@ The LFS filter are from both
 [[https://rehansaeed.com/gitattributes-best-practices/#final-form][here]]:
 
 #+begin_src gitattributes :tangle (meq/tangle-path)
-*.sec filter=git-crypt diff=git-crypt
-id_* filter=git-crypt diff=git-crypt
-.gnupg/** filter=git-crypt diff=git-crypt
-
 *.3dm filter=lfs diff=lfs merge=lfs -text
 *.3ds filter=lfs diff=lfs merge=lfs -text
 *.3g2 filter=lfs diff=lfs merge=lfs -text
@@ -3806,6 +3802,13 @@ WantedBy=default.target
 #+begin_src zsh
 #! nix-shell -i sh -p hello
 #! nix-shell -I nixpkgs=https://github.com/shadowrylander/nixpkgs/archive/j.tar.gz
+#+end_src
+
+*** encrypt
+
+#+begin_src text
+.ssh/**/*
+.gnupg/**/*
 #+end_src
 
 ** direnv
