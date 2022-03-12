@@ -1731,7 +1731,7 @@ in mapAttrsToList (
         packages = eachSystem allSystems (system: { nixosConfigurations = listToAttrs (map
             (name: nameValuePair name (make.config name system))
             (attrNames (filterAttrs (n: v: v == "directory") (readDir ./hosts)))
-        )); };
+        ); });
     };
 }
 #+end_src
@@ -3802,13 +3802,6 @@ WantedBy=default.target
 #+begin_src zsh
 #! nix-shell -i sh -p hello
 #! nix-shell -I nixpkgs=https://github.com/shadowrylander/nixpkgs/archive/j.tar.gz
-#+end_src
-
-*** encrypt
-
-#+begin_src text
-.ssh/**/*
-.gnupg/**/*
 #+end_src
 
 ** direnv
