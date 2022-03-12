@@ -88,12 +88,11 @@
                     (j.functions.list { dir = ./modules; })
                 ];
             };
+            nixosConfiguration = system: { packages.nixosConfigurations = listToAttrs (map
+                (name: nameValuePair name (make.config name system))
+                (attrNames (filterAttrs (n: v: v == "directory") (readDir ./hosts)))
+            ); };
+            all = system: (make.nullArgs system) // (make.nixosConfiguration system);
         };
-    in (eachSystem allSystems make.nullArgs) // {
-        inherit make channel;
-        packages = eachSystem allSystems (system: { nixosConfigurations = listToAttrs (map
-            (name: nameValuePair name (make.config name system))
-            (attrNames (filterAttrs (n: v: v == "directory") (readDir ./hosts)))
-        ); });
-    };
+    in (eachSystem allSystems make.all) // { inherit make channel; };
 }
