@@ -2838,8 +2838,8 @@ Adapted from [[][here]]:
 
 #+name: 270d5d30-951e-4171-8c23-67fc45d20578
 #+begin_src emacs-lisp :var delim="" comment="" quoted='nil flake='nil
-(format-spec "extra-substituters = %qhttps://cache.nixos.org https://hydra.nixos.org https://nix-community.cachix.org%q%d
-extra-trusted-public-keys = %qcache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= hydra.nixos.org-1:CNHJZBh9K4tP3EKF6FkkgeVYsS3ohTl+oS0Qa8bezVs= nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs=%q%d
+(format-spec "extra-substituters = %qhttps://cache.nixos.org https://nix-community.cachix.org%q%d
+extra-trusted-public-keys = %qcache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs=%q%d
 %ckeep-derivations = true%d
 %ckeep-outputs = true%d
 extra-experimental-features = %qnix-command flakes%q%d
