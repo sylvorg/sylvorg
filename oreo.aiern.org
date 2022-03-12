@@ -3804,7 +3804,7 @@ WantedBy=default.target
 #+end_src
 
 #+begin_src zsh
-#! nix-shell -i sh
+#! nix-shell -i sh -p hello
 #! nix-shell -I nixpkgs=https://github.com/shadowrylander/nixpkgs/archive/j.tar.gz
 #+end_src
 
