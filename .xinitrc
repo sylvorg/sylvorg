@@ -1,1 +1,2 @@
-exec emacs
+# exec emacs
+exec emacsclient -a "" -c

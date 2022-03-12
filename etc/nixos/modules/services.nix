@@ -3,7 +3,7 @@
 {
     services = {
 emacs = {
-    package = pkgs.emacs;
+    package = pkgs.emacsGcc;
     enable = true;
     defaultEditor = true;
 };

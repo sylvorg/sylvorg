@@ -19,8 +19,7 @@ in (pkgs.mkShell rec {
         python3 -m venv ${venv}
         source ${venv}/bin/activate
         pip install --upgrade pip || :
-        pip install https://github.com/syvlorg/bakery/archive/main.tar.gz \
-                    xonsh[full] || :
+        pip install https://github.com/syvlorg/bakery/archive/main.tar.gz xonsh || :
         chmod +x ${builtins.toString ./.}/nichtstrap 2> /dev/null || chmod +x ${builtins.toString ./.}/nichtstrap.py
         exec xonsh
     '';
@@ -1394,15 +1393,6 @@ commands = {
 };
 #+end_src
 
-******* Versions
-
-#+begin_src nix
-versions = {
-    python = "310";
-    emacs = "28";
-};
-#+end_src
-
 ******* End of Attrs
 
 #+begin_src nix
@@ -2676,7 +2666,7 @@ Help is available in the configuration.nix(5) man page and in the NixOS manual (
 
 #+begin_src nix
 emacs = {
-    package = pkgs.emacs;
+    package = pkgs.emacsGcc;
     enable = true;
     defaultEditor = true;
 };
@@ -5135,7 +5125,8 @@ eval (starship init elvish)
 #+end_src
 
 #+begin_src shell
-exec emacs
+# exec emacs
+exec emacsclient -a "" -c
 #+end_src
 
 * .direnvrc

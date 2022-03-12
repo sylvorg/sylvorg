@@ -190,10 +190,6 @@ commands = {
     rebuild = "nixos-rebuild --impure";
     install = "nixos-install --impure --show-trace";
 };
-versions = {
-    python = "310";
-    emacs = "28";
-};
 };
 paths = rec {
     nixos = toString (./. + "/..");

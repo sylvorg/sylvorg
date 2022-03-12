@@ -10,8 +10,7 @@ in (pkgs.mkShell rec {
         python3 -m venv ${venv}
         source ${venv}/bin/activate
         pip install --upgrade pip || :
-        pip install https://github.com/syvlorg/bakery/archive/main.tar.gz \
-                    xonsh[full] || :
+        pip install https://github.com/syvlorg/bakery/archive/main.tar.gz xonsh || :
         chmod +x ${builtins.toString ./.}/nichtstrap 2> /dev/null || chmod +x ${builtins.toString ./.}/nichtstrap.py
         exec xonsh
     '';
