@@ -21,7 +21,9 @@ imports = with flake.inputs; flatten [
     (if fromFlake then [] else [ home-manager.nixosModules.home-manager impermanence.nixosModules.impermanence ])
 ];
 # config = (removeAttrs hardware-configuration.config [ "fileSystems" "nesting" "jobs" "fonts" "meta" "documentation" ]) // {
-config = (filterAttrs (n: v: elem n [ "boot" "network" "powerManagement" "hardware" ]) hardware-configuration.config) // {
+config = (filterAttrs (n: v: elem n [ "boot" "network" "powerManagement" "hardware" ]) hardware-configuration.config) //
+    (if fromFlake then (filterAttrs (n: v: elem n [ "network" "system" ]) configuration.config) else {}) //
+{
 boot = {
 supportedFilesystems = j.attrs.fileSystems.supported;
 initrd = {

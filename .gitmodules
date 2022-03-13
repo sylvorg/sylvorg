@@ -62,10 +62,6 @@
     shallow = true
     path = sylveon
     url = https://github.com/shadowrylander/sylveon.git
-[submodule "ylv"]
-    shallow = true
-    path = ylv
-    url = https://github.com/shadowrylander/ylv.git
 [submodule "sylvorg.github.io"]
     shallow = true
     path = sylvorg.github.io

@@ -1,0 +1,3 @@
+#!/usr/bin/env sh
+command="yadm --yadm-data \"$HOME/.local/share/yadm-sec\""
+[ -d "$HOME/.config/yadm-sec" ] && $command --yadm-dir "$HOME/.config/yadm-sec" $@ || $command $@

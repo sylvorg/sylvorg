@@ -5,8 +5,8 @@
     hookPath = ~/.config/git/hooks
 
 [user]
-    email = aiern@protonmail.com
-    name = shadowrylander
+    email = jeet.ray@syvl.org
+    name = Jeet Ray
 
 [alias]
     cnm = commit --allow-empty-message -am ""
@@ -14,31 +14,9 @@
     curlRun = !curl --create-dirs -fsSLo $2 $1 && shift && git chRun
     sudoRun = !sudo chRun
     sudoCurl = !sudo curlRun
-    subinit = chRun ~/.config/git/scripts/subinit
-    noggin = !git push origin HEAD:$(git remote show origin | grep "HEAD branch" | sed 's/.*: //')
-    make = !make -f ~/makefile
-    emake = !make -f home/.emacs.d/makefile $@ || make -f ~/.emacs.d/makefile
-    stow = make stow
-    mangle = make tangle
-    tangle = chRun ~/.config/git/scripts/tangle
-    super = chRun ~/.config/git/scripts/super
-    wtt = chRun ~/.config/git/scripts/wtt
-    sunc = chRun ~/.config/git/scripts/sunc
-    senc = chRun ~/.config/git/scripts/senc
-    keybase = chRun ~/run_keybase
-    sylveon = !git -C ~/sylveon subinit
-    bootstrap = emake bootstrap
-    su = !sudo yadm -C / $@ || sudo yadm -w /
-    se = chRun ~/.config/git/scripts/se
-    clone-init = !mv .git/hooks/post-update.sample .git/hooks/post-update && chmod a+x .git/hooks/post-update && git update-server-info
     exa = !exa -la --octal-permissions -I .git
     exat = exa -T
-    brew = chRun ~/.config/git/scripts/brew
-    nix = chRun ~/.config/git/scripts/nix
-    guix = chRun ~/.config/git/scripts/guix
-    asdf = chRun ~/.config/git/scripts/asdf
-    pacapt = chRun ~/.config/git/scripts/pacapt
-    boom = chRun ~/.config/git/scripts/boom
+    sec = chRun ~/.config/git/scripts/sec
 
 [protocol "keybase"]
 	allow = always

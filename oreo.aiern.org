@@ -456,12 +456,10 @@ Taken from [[https://github.com/NixOS/nixpkgs/issues/73404#issuecomment-10114854
                  (if swap-device
                      (swapon swap-device))
 
-                 ;; (Mount :t "zfs" (+ ctx.obj.host "/system/tmp") "/tmp")
-                 ;; (Mount :t "zfs" (+ ctx.obj.host "/system/tmp/nix") "/tmp/nix")
-                 ;; (rsync :a True :v { "repeat" 2 } :c True :z { "repeat" 2 } :delete True "/nix/" "/tmp/nix/")
-                 ;; (Mount :t "zfs" (+ ctx.obj.host "/system/tmp/nix") "/nix")
-         
-                 )
+                 (Mount :t "zfs" (+ ctx.obj.host "/system/tmp") "/tmp")
+                 (Mount :t "zfs" (+ ctx.obj.host "/system/tmp/nix") "/tmp/nix")
+                 (rsync :a True :v { "repeat" 2 } :c True :z { "repeat" 2 } :delete True "/nix/" "/tmp/nix/")
+                 (Mount :t "zfs" (+ ctx.obj.host "/system/tmp/nix") "/nix"))
              (raise (NameError no-host-error-message)))))
 #+end_src
 
@@ -1720,10 +1718,10 @@ in mapAttrsToList (
             nullArgs = system: make.specialArgs null system;
             config = name: system: nixosSystem rec {
                 specialArgs = make.specialArgs name system;
-                modules = flatten [
-                    ./configuration.nix
-                    inputs.home-manager.nixosModules.home-manager
-                    inputs.impermanence.nixosModules.impermanence
+                modules = with inputs; flatten [
+                    "./host/${name}"
+                    home-manager.nixosModules.home-manager
+                    impermanence.nixosModules.impermanence
                     (specialArgs.lib.j.functions.list { dir = ./modules; })
                 ];
             };
@@ -1812,7 +1810,9 @@ imports = with flake.inputs; flatten [
 
 #+begin_src nix
 # config = (removeAttrs hardware-configuration.config [ "fileSystems" "nesting" "jobs" "fonts" "meta" "documentation" ]) // {
-config = (filterAttrs (n: v: elem n [ "boot" "network" "powerManagement" "hardware" ]) hardware-configuration.config) // {
+config = (filterAttrs (n: v: elem n [ "boot" "network" "powerManagement" "hardware" ]) hardware-configuration.config) //
+    (if fromFlake then (filterAttrs (n: v: elem n [ "network" "system" ]) configuration.config) else {}) //
+{
 #+end_src
 
 ***** Boot
@@ -2661,7 +2661,7 @@ Help is available in the configuration.nix(5) man page and in the NixOS manual (
 #+end_src
 
 #+begin_src nix
-{ config, lib, system, ... }: with lib;
+{ config, lib, pkgs, system, ... }: with lib;
 
 {
     services = {
@@ -3800,7 +3800,7 @@ WantedBy=default.target
 :header-args:zsh+: :noweb-ref nwr20220129201347246148721
 :END:
 
-#+begin_src text :tangle (meq/tangle-path) :shebang "#!/usr/bin/env nix-shell"
+#+begin_src text :tangle (meq/tangle-path) :shebang "#! /usr/bin/env nix-shell"
 <<nwr20220129201347246148721>>
 #+end_src
 
@@ -3879,8 +3879,8 @@ eval $(starship init ion)
     hookPath = ~/.config/git/hooks
 
 [user]
-    email = aiern@protonmail.com
-    name = <<username>>
+    email = jeet.ray@syvl.org
+    name = Jeet Ray
 
 [alias]
     cnm = commit --allow-empty-message -am ""
@@ -3888,31 +3888,9 @@ eval $(starship init ion)
     curlRun = !curl --create-dirs -fsSLo $2 $1 && shift && git chRun
     sudoRun = !sudo chRun
     sudoCurl = !sudo curlRun
-    subinit = chRun ~/.config/git/scripts/subinit
-    noggin = !git push origin HEAD:$(git remote show origin | grep "HEAD branch" | sed 's/.*: //')
-    make = !make -f ~/makefile
-    emake = !make -f home/.emacs.d/makefile $@ || make -f ~/.emacs.d/makefile
-    stow = make stow
-    mangle = make tangle
-    tangle = chRun ~/.config/git/scripts/tangle
-    super = chRun ~/.config/git/scripts/super
-    wtt = chRun ~/.config/git/scripts/wtt
-    sunc = chRun ~/.config/git/scripts/sunc
-    senc = chRun ~/.config/git/scripts/senc
-    keybase = chRun ~/run_keybase
-    sylveon = !git -C ~/sylveon subinit
-    bootstrap = emake bootstrap
-    su = !sudo yadm -C / $@ || sudo yadm -w /
-    se = chRun ~/.config/git/scripts/se
-    clone-init = !mv .git/hooks/post-update.sample .git/hooks/post-update && chmod a+x .git/hooks/post-update && git update-server-info
     exa = !exa -la --octal-permissions -I .git
     exat = exa -T
-    brew = chRun ~/.config/git/scripts/brew
-    nix = chRun ~/.config/git/scripts/nix
-    guix = chRun ~/.config/git/scripts/guix
-    asdf = chRun ~/.config/git/scripts/asdf
-    pacapt = chRun ~/.config/git/scripts/pacapt
-    boom = chRun ~/.config/git/scripts/boom
+    sec = chRun ~/.config/git/scripts/sec
 
 [protocol "keybase"]
 	allow = always
@@ -3962,258 +3940,18 @@ make -f ~/makefile tangle
 #+end_src
 
 *** scripts
-**** tangle
+**** sec
 :PROPERTIES:
-:header-args:zsh+: :noweb-ref tangle
+:header-args:zsh+: :noweb-ref sec
 :END:
 
-#+begin_src text :tangle (meq/tangle-path) :shebang "#!/usr/bin/env zsh"
-<<tangle>>
+#+begin_src text :tangle (meq/tangle-path) :shebang "#!/usr/bin/env sh"
+<<sec>>
 #+end_src
 
 #+begin_src zsh
-run="yes yes | git chRun"
-$run settings/org-tangle.sh $@ || \
-$run home/.emacs.d/settings/org-tangle.sh $@ || \
-$run ~/settings/org-tangle.sh $@ || \
-$run ~/.emacs.d/settings/org-tangle.sh $@ || \
-$run /settings/org-tangle.sh $@
-#+end_src
-
-**** super
-:PROPERTIES:
-:header-args:zsh+: :noweb-ref super
-:END:
-
-#+begin_src text :tangle (meq/tangle-path) :shebang "#!/usr/bin/env zsh"
-<<super>>
-#+end_src
-
-#+begin_src zsh
-if [[ -n "$1" ]]; then
-    if [[ -n "$2" ]]; then
-        ($1 cnm && $1 $2) || $1 $2
-    else
-        ($1 cnm && $1 push) || $1 push
-    fi
-else
-    (git cnm && git push) || git push || (git cnm && git noggin) || git noggin || (yadm cnm && yadm push) || yadm push
-fi
-#+end_src
-
-**** subinit
-:PROPERTIES:
-:header-args:xonsh+: :noweb-ref subinit
-:END:
-
-#+begin_src text :tangle (meq/tangle-path) :shebang "#!/usr/bin/env xonsh"
-<<subinit>>
-#+end_src
-
-#+begin_src xonsh
-import os, sys
-from addict import Dict
-currentDir = os.getcwd()
-for line in $(yadm --help).split("\n"):
-    if "yadm's Git repository" in line:
-        yadmRepoDir = os.path.expandvars(line.split()[0].strip())
-
-# Adapted From:
-# Answer: https://stackoverflow.com/a/957978/10827766
-# User: https://stackoverflow.com/users/10738/baudtack
-yadmRootDir = $(git -C @(yadmRepoDir) rev-parse --show-toplevel).strip()
-
-if len(sys.argv) > 1:
-    command = sys.argv[1]
-    repoDir = yadmRepoDir if command == "yadm" else currentDir
-else:
-    if yadmRootDir == currentDir:
-        repoDir = yadmRepoDir
-        command = "yadm"
-    else:
-        repoDir = currentDir
-        command = f"git -C {repoDir}".split()
-
-# Adapted From:
-# Answer: https://stackoverflow.com/a/12142066/10827766
-# User: https://stackoverflow.com/users/1426193/jistanidiot
-currentBranch = $(@(command) rev-parse --abbrev-ref HEAD).strip()
-mainBranch = "main" if currentBranch == "HEAD" else currentBranch
-masterBranch = "master" if currentBranch == "HEAD" else currentBranch
-git pull origin @(mainBranch) || git pull origin @(masterBranch)
-
-_submodules = [line.strip() for line in $(cat .gitmodules).split("\n") if line]
-submodule = None
-submodules = Dict()
-for line in _submodules:
-    if '[submodule "' in line:
-        submodule = line.split('"')[1]
-        submodules[submodule] = Dict()
-    elif not submodule:
-        pass
-    else:
-        splitLine = line.split(" = ")
-        submodules[submodule][splitLine[0]] = splitLine[1]
-
-for submodule, subdict in submodules.items():
-    subpath = os.path.join(currentDir, subdict.path)
-    
-    # Adapted From:
-    # Answer: https://stackoverflow.com/a/66481406/10827766
-    # User: https://stackoverflow.com/users/1434495/flair
-    if (os.path.exists(subpath) and (not any(os.scandir(subpath)))) or (not os.path.exists(subpath)):
-
-        rm -rf @(subpath)
-        @(command) submodule add --force --depth 1 @(subdict.url) @(subdict.path)
-#+end_src
-
-**** wtt
-:PROPERTIES:
-:header-args:zsh+: :noweb-ref wtt
-:END:
-
-#+begin_src text :tangle (meq/tangle-path) :shebang "#!/usr/bin/env zsh"
-<<wtt>>
-#+end_src
-
-#+begin_src zsh
-[[ -n "$1" ]] && ext=".$1.sh" || ext=".sh"
-git chRun ~/.emacs.d/wtt/wtt$ext
-#+end_src
-
-**** sunc
-:PROPERTIES:
-:header-args:zsh+: :noweb-ref sunc
-:END:
-
-#+begin_src text :tangle (meq/tangle-path) :shebang "#!/usr/bin/env zsh"
-<<sunc>>
-#+end_src
-
-#+begin_src zsh
-yadm su remote add user $HOME/<<yadm-dir>>/repo.git
-yadm su sync user main
-yadm remote add root /root/<<yadm-dir>>/repo.git
-yadm sync root main
-#+end_src
-
-**** senc
-:PROPERTIES:
-:header-args:zsh+: :noweb-ref senc
-:END:
-
-#+begin_src text :tangle (meq/tangle-path) :shebang "#!/usr/bin/env zsh"
-<<senc>>
-#+end_src
-
-#+begin_src zsh
-yadm su se remote add user $HOME/<<yadm-dir>>-sec/repo.git
-yadm su se sync user main
-yadm se remote add root /root/<<yadm-dir>>-sec/repo.git
-yadm se sync root main
-#+end_src
-
-**** se
-:PROPERTIES:
-:header-args:zsh+: :noweb-ref se
-:END:
-
-#+begin_src text :tangle (meq/tangle-path) :shebang "#!/usr/bin/env zsh"
-<<se>>
-#+end_src
-
-#+begin_src zsh
-# Adapted From: https://askubuntu.com/a/15856/1058868
-if [[ $EUID -ne 0 ]]; then
-    root="~"
-    ylv="$root/ylv/ylv"
-else
-    root="/root"
-    ylv="/ylv/ylv su"
-fi
-
-$ylv -Y $root/.config/yadm-sec --yadm-dir $root/<<yadm-dir>>-sec
-#+end_src
-
-**** brew
-:PROPERTIES:
-:header-args:zsh+: :noweb-ref brew
-:END:
-
-#+begin_src text :tangle (meq/tangle-path) :shebang "#!/usr/bin/env zsh"
-<<brew>>
-#+end_src
-
-#+begin_src zsh
-/home/linuxbrew/.linuxbrew/bin/brew $@ || \
-/home/linuxbrew/.linuxbrew/bin/$@ || \
-/home/linuxbrew/.linuxbrew/sbin/$@
-#+end_src
-
-**** nix
-:PROPERTIES:
-:header-args:zsh+: :noweb-ref nix
-:END:
-
-#+begin_src text :tangle (meq/tangle-path) :shebang "#!/usr/bin/env zsh"
-<<nix>>
-#+end_src
-
-#+begin_src zsh
-/nix/var/nix/profiles/default/bin/nix-env $@ || /nix/var/nix/profiles/default/bin/$@
-#+end_src
-
-**** guix
-:PROPERTIES:
-:header-args:zsh+: :noweb-ref guix
-:END:
-
-#+begin_src text :tangle (meq/tangle-path) :shebang "#!/usr/bin/env zsh"
-<<guix>>
-#+end_src
-
-#+begin_src zsh
-/usr/local/bin/guix $@ || /home/linuxbrew/.guix-profile/bin/$@
-#+end_src
-
-**** asdf
-:PROPERTIES:
-:header-args:zsh+: :noweb-ref asdf
-:END:
-
-#+begin_src text :tangle (meq/tangle-path) :shebang "#!/usr/bin/env zsh"
-<<asdf>>
-#+end_src
-
-#+begin_src zsh
-/home/linuxbrew/.linuxbrew/opt/asdf/bin/asdf $@ || \
-/home/linuxbrew/.linuxbrew/opt/asdf/bin/$@
-#+end_src
-
-**** pacapt
-:PROPERTIES:
-:header-args:zsh+: :noweb-ref pacapt
-:END:
-
-#+begin_src text :tangle (meq/tangle-path) :shebang "#!/usr/bin/env zsh"
-<<pacapt>>
-#+end_src
-
-#+begin_src zsh
-git sudoRun /resources/pacapt/pacapt $@
-#+end_src
-
-**** boom
-:PROPERTIES:
-:header-args:zsh+: :noweb-ref boom
-:END:
-
-#+begin_src text :tangle (meq/tangle-path) :shebang "#!/usr/bin/env zsh"
-<<boom>>
-#+end_src
-
-#+begin_src zsh
-for pm in brew asdf nix guix pacapt; do git $pm $@ && break; done
+command="yadm --yadm-data \"$HOME/.local/share/yadm-sec\""
+[ -d "$HOME/.config/yadm-sec" ] && $command --yadm-dir "$HOME/.config/yadm-sec" $@ || $command $@
 #+end_src
 
 ** powershell
