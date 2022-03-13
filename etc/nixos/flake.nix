@@ -61,9 +61,10 @@
             lib = host: system: nixpkgs.lib.extend (final: prev: {
                 j = import ./lib.nix ({ pkgs = import nixpkgs { inherit system; }; lib = final; inherit inputs; } // (if (host == null) then {} else { inherit host; }));
             });
-            overlays = lib: import ./overlays.nix {
+            pre-nixpkgset = system: lib: { inherit system; config = lib.j.attrs.configs.nixpkgs; };
+            overlays = system: lib: import ./overlays.nix {
                 inherit lib nixpkgs inputs channel;
-                pkgs = mapAttrs (n: v: import v lib.j.attrs.configs.nixpkgs) (
+                pkgs = mapAttrs (n: v: import v (make.pre-nixpkgset system lib)) (
                     (filterAttrs (n: v: (hasPrefix "nixos-" n) || (hasPrefix "release-" n)) inputs) //
                     (with inputs; { inherit master j; })
                 );
@@ -74,7 +75,8 @@
                 inherit inputs nixpkgs system;
                 host = name;
                 lib = make.lib name system;
-                overlays = make.overlays lib;
+                pre-nixpkgset = make.pre-nixpkgset system lib;
+                overlays = make.overlays system lib;
                 nixpkgset = make.nixpkgset overlays system lib;
                 pkgs = make.pkgs nixpkgset;
             };
