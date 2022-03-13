@@ -9,9 +9,10 @@ inherit (inheritanceSet) lib overlays nixpkgset pkgs;
 dir = "${lib.j.attrs.homes.${lib.j.attrs.users.primary}}/.local/share/yadm/repo.git";
 dirExists = pathExists dir;
 repo = with lib; j.functions.mntConvert (if dirExists then (fetchGit { url = "file://${dir}"; ref = "main"; }) else flake.inputs.${j.attrs.users.primary});
-nixos = "${(args.inputs.nixpkgs or <nixpkgs>)}/nixos";
-configuration = import nixos { configuration.imports = [ ./configuration.nix ]; };
-hardware-configuration = import nixos { configuration.imports = [
+nixos = "${(args.nixpkgs or <nixpkgs>)}/nixos";
+nixos-configuration = attrset: import nixos (attrset // { inherit system; });
+configuration = nixos-configuration { configuration.imports = [ ./configuration.nix ]; };
+hardware-configuration = nixos-configuration { configuration.imports = [
     ./hardware-configuration.nix
     ({config, ... }: { networking.hostId = substring 0 8 (readFile "/etc/machine-id"); boot.loader.grub.devices = [ "nodev" ]; })
 ]; };

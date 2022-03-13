@@ -1785,9 +1785,10 @@ repo = with lib; j.functions.mntConvert (if dirExists then (fetchGit { url = "fi
 ***** Configurations
 
 #+begin_src nix
-nixos = "${(args.inputs.nixpkgs or <nixpkgs>)}/nixos";
-configuration = import nixos { configuration.imports = [ ./configuration.nix ]; };
-hardware-configuration = import nixos { configuration.imports = [
+nixos = "${(args.nixpkgs or <nixpkgs>)}/nixos";
+nixos-configuration = attrset: import nixos (attrset // { inherit system; });
+configuration = nixos-configuration { configuration.imports = [ ./configuration.nix ]; };
+hardware-configuration = nixos-configuration { configuration.imports = [
     ./hardware-configuration.nix
     ({config, ... }: { networking.hostId = substring 0 8 (readFile "/etc/machine-id"); boot.loader.grub.devices = [ "nodev" ]; })
 ]; };
