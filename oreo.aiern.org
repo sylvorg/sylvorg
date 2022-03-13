@@ -3797,16 +3797,29 @@ WantedBy=default.target
 ** yadm
 *** bootstrap
 :PROPERTIES:
-:header-args:zsh+: :noweb-ref nwr20220129201347246148721
+:header-args:zsh+: :noweb-ref 879a83d3-17ad-446f-8ad2-9945ac588f07
 :END:
 
 #+begin_src text :tangle (meq/tangle-path) :shebang "#! /usr/bin/env nix-shell"
-<<nwr20220129201347246148721>>
+<<879a83d3-17ad-446f-8ad2-9945ac588f07>>
 #+end_src
 
 #+begin_src zsh
 #! nix-shell -i sh -p hello
 #! nix-shell -I nixpkgs=https://github.com/shadowrylander/nixpkgs/archive/j.tar.gz
+#+end_src
+
+*** config
+
+#+begin_src conf :tangle (meq/tangle-path)
+<<c635d49e-5f0e-4245-bc91-81e9f8de0a12>>
+#+end_src
+
+** yadm-sec
+*** config
+
+#+begin_src conf :tangle (meq/tangle-path)
+<<c635d49e-5f0e-4245-bc91-81e9f8de0a12>>
 #+end_src
 
 ** direnv
@@ -3858,17 +3871,12 @@ eval $(starship init ion)
 ** git
 *** config
 :PROPERTIES:
-:header-args:conf+: :noweb-ref config
+:header-args:conf+: :noweb-ref ee416303-b507-49b2-9e6b-8dc71a97c171
 :END:
 
-#+call: hash() :exports none
-
-#+RESULTS:
-: 20211018183420833239200
-
-#+name: 20211018183420833239200
+#+name: c635d49e-5f0e-4245-bc91-81e9f8de0a12
 #+begin_src text :tangle (meq/tangle-path)
-<<config>>
+<<ee416303-b507-49b2-9e6b-8dc71a97c171>>
 #+end_src
 
 #+begin_src conf
@@ -3951,7 +3959,7 @@ make -f ~/makefile tangle
 
 #+begin_src zsh
 command="yadm --yadm-data \"$HOME/.local/share/yadm-sec\""
-[ -d "$HOME/.config/yadm-sec" ] && $command --yadm-dir "$HOME/.config/yadm-sec" $@ || $command $@
+$command --yadm-dir "$HOME/.config/yadm-sec" $@ || $command $@
 #+end_src
 
 ** powershell
