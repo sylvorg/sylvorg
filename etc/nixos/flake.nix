@@ -79,13 +79,13 @@
                 pkgs = make.pkgs nixpkgset;
             };
             nullArgs = system: make.specialArgs null system;
-            config = name: system: lib.nixosSystem {
+            config = name: system: nixosSystem rec {
                 specialArgs = make.specialArgs name system;
                 modules = flatten [
                     ./configuration.nix
-                    home-manager.nixosModules.home-manager
-                    impermanence.nixosModules.impermanence
-                    (j.functions.list { dir = ./modules; })
+                    inputs.home-manager.nixosModules.home-manager
+                    inputs.impermanence.nixosModules.impermanence
+                    (specialArgs.lib.j.functions.list { dir = ./modules; })
                 ];
             };
             nixosConfiguration = system: { packages.nixosConfigurations = listToAttrs (map
