@@ -1803,7 +1803,9 @@ in with lib; {
 **** Imports
 
 #+begin_src nix
-imports = with flake.inputs; flatten [ home-manager.nixosModules.home-manager impermanence.nixosModules.impermanence ];
+imports = with flake.inputs; flatten [
+    (if fromFlake then [] else [ home-manager.nixosModules.home-manager impermanence.nixosModules.impermanence ])
+];
 #+end_src
 
 **** Config

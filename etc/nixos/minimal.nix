@@ -17,7 +17,9 @@ hardware-configuration = nixos-configuration { configuration.imports = [
     ({config, ... }: { networking.hostId = substring 0 8 (readFile "/etc/machine-id"); boot.loader.grub.devices = [ "nodev" ]; })
 ]; };
 in with lib; {
-imports = with flake.inputs; flatten [ home-manager.nixosModules.home-manager impermanence.nixosModules.impermanence ];
+imports = with flake.inputs; flatten [
+    (if fromFlake then [] else [ home-manager.nixosModules.home-manager impermanence.nixosModules.impermanence ])
+];
 # config = (removeAttrs hardware-configuration.config [ "fileSystems" "nesting" "jobs" "fonts" "meta" "documentation" ]) // {
 config = (filterAttrs (n: v: elem n [ "boot" "network" "powerManagement" "hardware" ]) hardware-configuration.config) // {
 boot = {
