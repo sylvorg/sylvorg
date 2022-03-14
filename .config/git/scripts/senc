@@ -1,5 +1,0 @@
-#!/usr/bin/env zsh
-yadm su se remote add user $HOME/.local/share/yadm-sec/repo.git
-yadm su se sync user main
-yadm se remote add root /root/.local/share/yadm-sec/repo.git
-yadm se sync root main

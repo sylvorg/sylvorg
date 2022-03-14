@@ -8,7 +8,7 @@
     networking = {
         hostName = baseNameOf (toString ./.);
         hostId = "/home/shadowrylander/.zshenv:source:1: no such file or directory: /home/shadowrylander/resources/grml/etc/zsh/zshenv
-        hostId =  bcf4ee7f";
+        hostId =  21cede96";
         networkmanager.extraConfig = ''
             [connection]
             wifi.powersave = 2

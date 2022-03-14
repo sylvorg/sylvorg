@@ -5,6 +5,6 @@
     networking = {
         hostName = baseNameOf (toString ./.);
         hostId = "/home/shadowrylander/.zshenv:source:1: no such file or directory: /home/shadowrylander/resources/grml/etc/zsh/zshenv
-        hostId =  c00f668a";
+        hostId =  9ca6793f";
     };
 }

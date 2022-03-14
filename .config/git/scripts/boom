@@ -1,2 +1,0 @@
-#!/usr/bin/env zsh
-for pm in brew asdf nix guix pacapt; do git $pm $@ && break; done

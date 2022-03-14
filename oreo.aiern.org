@@ -3907,59 +3907,23 @@ eval $(starship init ion)
 	allow = always
 #+end_src
 
-*** hooks
-**** pre-commit
-:PROPERTIES:
-:header-args:zsh+: :noweb-ref pre-commit
-:END:
-
-#+begin_src text :tangle (meq/tangle-path) :shebang "#!/usr/bin/env zsh"
-<<pre-commit>>
-#+end_src
-
-#+begin_src zsh
-make -f ~/makefile tangle
-#+end_src
-
-**** pre-pull
-:PROPERTIES:
-:header-args:zsh+: :noweb-ref pre-pull
-:END:
-
-#+begin_src text :tangle (meq/tangle-path) :shebang "#!/usr/bin/env zsh"
-<<pre-pull>>
-#+end_src
-
-#+begin_src zsh
-make -f ~/makefile subinit
-#+end_src
-
-**** post-pull
-:PROPERTIES:
-:header-args:zsh+: :noweb-ref post-pull
-:END:
-
-#+begin_src text :tangle (meq/tangle-path) :shebang "#!/usr/bin/env zsh"
-<<post-pull>>
-#+end_src
-
-#+begin_src zsh
-make -f ~/makefile tangle
-#+end_src
-
 *** scripts
 **** sec
 :PROPERTIES:
-:header-args:zsh+: :noweb-ref sec
+:header-args:shell+: :noweb-ref sec
 :END:
 
 #+begin_src text :tangle (meq/tangle-path) :shebang "#!/usr/bin/env sh"
 <<sec>>
 #+end_src
 
-#+begin_src zsh
+#+begin_src shell
 command="yadm --yadm-data \"$HOME/.local/share/yadm-sec\""
-$command --yadm-dir "$HOME/.config/yadm-sec" $@ || $command $@
+if [ "$(yadm status 2>&1)" == "ERROR: Git repo does not exist. did you forget to run 'init' or 'clone'?" ]; then
+    $command $@
+else
+    $command --yadm-dir "$HOME/.config/yadm-sec" $@
+fi
 #+end_src
 
 ** powershell

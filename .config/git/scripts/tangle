@@ -1,7 +1,0 @@
-#!/usr/bin/env zsh
-run="yes yes | git chRun"
-$run settings/org-tangle.sh $@ || \
-$run home/.emacs.d/settings/org-tangle.sh $@ || \
-$run ~/settings/org-tangle.sh $@ || \
-$run ~/.emacs.d/settings/org-tangle.sh $@ || \
-$run /settings/org-tangle.sh $@

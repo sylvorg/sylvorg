@@ -1,4 +1,0 @@
-#!/usr/bin/env zsh
-/home/linuxbrew/.linuxbrew/bin/brew $@ || \
-/home/linuxbrew/.linuxbrew/bin/$@ || \
-/home/linuxbrew/.linuxbrew/sbin/$@

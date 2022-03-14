@@ -1,3 +1,0 @@
-#!/usr/bin/env zsh
-[[ -n "$1" ]] && ext=".$1.sh" || ext=".sh"
-git chRun ~/.emacs.d/wtt/wtt$ext

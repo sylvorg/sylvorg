@@ -1,3 +1,0 @@
-#!/usr/bin/env zsh
-/home/linuxbrew/.linuxbrew/opt/asdf/bin/asdf $@ || \
-/home/linuxbrew/.linuxbrew/opt/asdf/bin/$@
