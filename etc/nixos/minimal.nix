@@ -336,7 +336,7 @@ in rec {
                 description = "Jeet Ray";
                 group = primary;
                 extraGroups = [ secondary ];
-                shell = pkgs.zsh;
+                shell = pkgs.xonsh;
             };
             "${secondary}" = {
                 uid = 1111;
@@ -344,7 +344,7 @@ in rec {
                 description = "Alicia Summers";
                 group = secondary;
                 extraGroups = [ primary ];
-                shell = if (!elem system [ "aarch64-linux" ]) then pkgs.fish else pkgs.zsh;
+                shell = pkgs.fish;
             };
             "${nightingale}" = {
                 uid = 8888;
