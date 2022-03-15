@@ -1,5 +1,4 @@
 #+setupfile: ./settings/README.org
-#+include: ./settings/README.org
 
 The tangle functions are adapted from [[https://emacs.stackexchange.com/a/29884/31428][this answer on the emacs Stack Exchange]],
 which was written by [[https://emacs.stackexchange.com/users/2710/andrew-swann][Andrew Swann]].
@@ -7,23 +6,14 @@ which was written by [[https://emacs.stackexchange.com/users/2710/andrew-swann][
 * shell.nix
 
 #+begin_src nix :tangle (meq/tangle-path)
-let
-    name = "20220208045251000973158";
-    pkgs = import <nixpkgs> {};
-    venv = "~/.local/nix-shells/${name}/venv";
-in (pkgs.mkShell rec {
-    inherit name;
-    buildInputs = with pkgs; [ python310 sd gcc rsync ];
+with import (import ./etc/nixos).inputs.nixpkgs {}; mkShell rec {
+    buildInputs = [ python310 python310Packages.bakery xonsh sd gcc rsync ];
     nativeBuildInputs = buildInputs;
     shellHook = ''
-        python3 -m venv ${venv}
-        source ${venv}/bin/activate
-        pip install --upgrade pip || :
-        pip install https://github.com/syvlorg/bakery/archive/main.tar.gz xonsh || :
         chmod +x ${builtins.toString ./.}/nichtstrap 2> /dev/null || chmod +x ${builtins.toString ./.}/nichtstrap.py
         exec xonsh
     '';
-})
+}
 #+end_src
 
 * nichtstrap.py
@@ -1718,11 +1708,14 @@ in mapAttrsToList (
             nullArgs = system: make.specialArgs null system;
             config = name: system: nixosSystem rec {
                 specialArgs = make.specialArgs name system;
-                modules = with inputs; flatten [
+                modules = with inputs; let
+                    j-list = specialArgs.lib.j.functions.list;
+                in flatten [
                     "./host/${name}"
                     home-manager.nixosModules.home-manager
                     impermanence.nixosModules.impermanence
-                    (specialArgs.lib.j.functions.list { dir = ./modules; })
+                    (j-list { dir = ./modules; })
+                    (j-list { dir = ./secrets; })
                 ];
             };
             nixosConfiguration = system: { packages.nixosConfigurations = listToAttrs (map
@@ -2531,6 +2524,7 @@ in rec {
             yubikey-manager-qt yubikey-personalization-gui
             zenith
             zsh
+            zoxide
         ] ++ (map (pkg: pkgs.gnome."gnome-${pkg}") [
             "boxes"
             "characters"
@@ -3212,7 +3206,7 @@ The LFS filter are from both
 * .xonsh.d
 ** fzfdf.sh
 
-#+begin_src zsh :tangle (meq/tangle-path) :shebang "#!/usr/bin/env zsh"
+#+begin_src shell :tangle (meq/tangle-path) :shebang "#!/usr/bin/env sh"
 if [ -z "$1" ]; then echo $(fd | fzf-tmux) || echo $(fd . "$1" | fzf-tmux); fi
 #+end_src
 
@@ -3228,25 +3222,8 @@ if [ -z "$1" ]; then echo $(fd | fzf-tmux) || echo $(fd . "$1" | fzf-tmux); fi
 ** imports
 
 #+begin_src xonsh
-from sys import path as sys_path
-from datetime import datetime
-from os import path as os_path, sep as os_sep, getcwd
-from inspect import getsourcefile
-#+end_src
-
-** setup
-
-#+begin_src xonsh
-# Note that type hints cannot be used
-
-tmux attach 2> /dev/null
-# pfetch
-
-python_ver = "3.9"
-home = fp("~")
-xeroFigletFonts = fp("~/resources/xeroFigletFonts")
-
-# figlet -d @(xeroFigletFonts) -f smisome1.flf "Hello!" | lolcat
+import sys
+from pathlib import Path
 #+end_src
 
 ** environment
@@ -3256,7 +3233,7 @@ $AUTO_CD = True
 $AUTO_PUSHD = True
 $AUTO_SUGGEST = True
 $AUTO_SUGGEST_IN_COMPLETIONS = True
-$BASH_COMPLETIONS += [ fp("~/resources/bashCompletions") ]
+$BASH_COMPLETIONS += [ f"{Path.home()}/resources/bashCompletions" ]
 $COMPLETION_IN_THREAD = True
 $COMPLETIONS_CONFIRM = True
 $DOTGLOB = True
@@ -3285,26 +3262,16 @@ $RIGHT_PROMPT = "{BOLD_#E5004D} {prompt_end}{BOLD_#FC9F71} || {BOLD_#E5004D} {us
 # $BOTTOM_TOOLBAR = $RIGHT_PROMPT
 
 # Path
-sys_path.insert(0, "")
+sys.path.insert(0, "")
 <<profile-paths(shell="xonsh")>>
 
 # Shell
-# $EDITOR = "emacsclient --socket-name=spacemacsd -t"
-$EDITOR = "vim"
-$TERM = "xterm-kitty"
+$EDITOR = "emacsclient -t"
 $GPG_TTY=$(tty)
 
 # Etc
-# $DIRENV_WARN_TIMEOUT = "100y"
 $LESSOPEN = "| /usr/share/source-highlight/src-hilite-lesspipe.sh %s"
 $LESS = " -R "
-
-# Linuxbrew
-# $LINUXBREWHOME = "/home/linuxbrew/.linuxbrew"
-# $PATH.append("$LINUXBREWHOME/bin")
-# $MANPATH = ["$LINUXBREWHOME/man"]
-# $PKG_CONFIG_PATH = ["$LINUXBREWHOME/lib64/pkgconfig", "$LINUXBREWHOME/lib/pkgconfig"]
-# $LD_LIBRARY_PATH = ["$LINUXBREWHOME/lib64", "$LINUXBREWHOME/lib"]
 #+end_src
 
 ** functions
@@ -3313,14 +3280,6 @@ $LESS = " -R "
 def _mdg(args, stdin=None):
     mkdir -p @(args)
     cd @(args[0])
-
-def hgsetup(args, stdin=None):
-    hg bookmark master
-    hg checkout master
-    hg add .hgignore
-    hg ci -m .hgignore
-    hg ci -Am @(args)
-    hg push
 
 def _alacritty_change_themes(args, stdin=None):
     _alc = "alacritty"
@@ -3337,24 +3296,6 @@ def _alacritty_change_themes(args, stdin=None):
         _alc+".yml"
     )
     rsync @(_alc_theme) @(_alc_config)
-
-def _compile(args, stdin=None):
-    clear
-    name = args.pop(0)
-    g++ @(name + ".cpp")
-    ./a.out @(name) @(args)
-
-def _compile_only(args, stdin=None):
-    g++ @(args[0] + ".cpp")
-
-def _compile_header(args, stdin=None):
-    g++ @(args[0] + ".h")
-
-def _compile_link(args, stdin=None):
-    for arg in args:
-        g++ @(arg + ".cpp") -c
-    args = [arg + ".o" for arg in args]
-    g++ @(args) -o a.out
 
 def _direnv_allow(args, stdin=None):
     if args:
@@ -3379,7 +3320,6 @@ def _cdi(args, stdin=None):
 ** xontribs
 
 #+begin_src xonsh
-# xontrib load autojump
 # xontrib load coreutils
 # xontrib load docker_tabcomplete
 # xontrib load schedule
@@ -3390,15 +3330,11 @@ xontrib load abbrevs
 xontrib load autoxsh
 xontrib load bashisms
 xontrib load direnv
-xontrib load fzf-widgets
-xontrib load kitty
 xontrib load pipeliner
 xontrib load readable-traceback
 xontrib load sh
 xontrib load vox
 xontrib load whole_word_jumping
-xontrib load xlsd
-xontrib load zoxide
 
 # Jedi was what was causing the python function completions
 # instead of the path completions
@@ -3408,59 +3344,38 @@ xontrib load zoxide
 ** base
 
 #+begin_src xonsh
-# byobu attach -t <<username>> &> /dev/null
-
-if getcwd() == "/":
-    cd ~
-
-xtras = fp(home, ".xonsh.d")
-fzfdf = fp(xtras, "fzfdf.sh")
-
-# source @(fp(xtras, "passwords.xsh"))
+fzfdf = f"{Path.home()}/.xonsh.d/fzfdf.sh"
+chmod +x @(fzfdf)
 source-zsh $(fasd --init auto)
-source-zsh $HOME/.asdf/asdf.sh
+source-zsh ~/.asdf/asdf.sh
+execx($(zoxide init xonsh), 'exec', __xonsh__.ctx, filename='zoxide')
 
-# vox create base -p $(which @(f"python{python_ver}")) 2> /dev/null
-# vox enter base 2> /dev/null
-
-# aliases["act"] = _alacritty_change_themes
-aliases["evim"] = lambda args, stdin=None: $($(which -s emacsclient) --socket-name=damascus -t @(args))
-# aliases["hgsetup"] = hgsetup
+aliases["act"] = _alacritty_change_themes
+aliases["vim"] = lambda args, stdin=None: $(emacsclient -t @(args))
 aliases["-"] = "pushd"
 aliases[".."] = "cd .."
 aliases["."] = "la ."
-aliases["ba"] = "byobu attach"
-aliases["bd"] = "byobu detach"
-aliases["bda"] = "byobu detach-client -a"
 aliases["c"] = "clear"
-aliases["compile-header"] = _compile_header
-aliases["compile-link"] = _compile_link
-aliases["compile-only"] = _compile_only
-aliases["compile"] = _compile
 aliases["da"] = _direnv_allow
-aliases["emd"] = "emacs --bg-daemon=damascus"
-aliases["kemd"] = "emacsclient --socket-name=damascus -e '(kill-emacs)'"
+aliases["emd"] = "sudo systemctl start emacs"
+aliases["kemd"] = "sudo systemctl stop emacs"
 aliases["la"] = _la
 aliases["md"] = lambda args, stdin=None: $(mkdir -p @(args))
 aliases["mdg"] = _mdg
-aliases["mosh"] = lambda args, stdin=None: $($(which -s mosh) --experimental-remote-ip=remote @(args))
+aliases["mosh"] = lambda args, stdin=None: $(mosh --experimental-remote-ip=remote @(args))
 aliases["n"] = "exit"
-aliases["remd"] = "emacsclient --socket-name=damascus -e '(kill-emacs)' && emacs --bg-daemon=damascus"
-aliases["ssh"] = lambda args, stdin=None: $($(which -s assh) wrapper ssh @(args))
+aliases["remd"] = "sudo systemctl restart emacs"
+aliases["ssh"] = lambda args, stdin=None: $(assh wrapper ssh @(args))
 aliases["ve"] = lambda args, stdin=None: $(vox enter @(args)) if args else $(vox exit)
-aliases["git"] = lambda args, stdin=None: $($(which -s hub) @(args))
-aliases["xpip"] = lambda args, stdin=None: $(pipx inject --force --include-deps xonsh @(args))
+aliases["git"] = lambda args, stdin=None: $(hub @(args))
 aliases["s"] = "source ~/.xonshrc"
 aliases["cdi"] = _cdi
 
 # fasd aliases
 aliases["o"] = lambda args, stdin=None: $(fasd -ae xdg-open @(args)) # quick opening files with xdg-open
 
-# quick opening files with vim
-aliases["v"] = lambda args, stdin=None: $($(which -s fasd) -fe $(which -s vim) @(args))
-
 # quick opening files with emacs
-aliases["e"] = lambda args, stdin=None: $($(which -s fasd) -fe '$(which -s emacsclient) --socket-name=damascus -t' @(args))
+aliases["e"] = lambda args, stdin=None: $(fasd -fe 'emacsclient -t' @(args))
 
 _fzf_df_alias = "..."
 def _fzf(args, stdin=True):
@@ -3937,6 +3852,11 @@ fi
 #+end_src
 
 #+begin_src powershell
+# For zoxide v0.8.0+
+Invoke-Expression (& {
+    $hook = if ($PSVersionTable.PSVersion.Major -lt 6) { 'prompt' } else { 'pwd' }
+    (zoxide init --hook $hook powershell | Out-String)
+})
 Invoke-Expression (&starship init powershell)
 #+end_src
 
@@ -3960,6 +3880,7 @@ cd -
 <<profile-paths(shell="fish")>>
 alias s=source ~/.config/fish/config.fish
 direnv hook fish | source
+zoxide init fish | source
 starship init fish | source
 #+end_src
 
@@ -4791,6 +4712,7 @@ alias s="source $HOME/.profile"
 <<profile-all-together>>
 alias s="source ~/.bashrc"
 eval "$(direnv hook bash)"
+eval "$(zoxide init bash)"
 eval "$(starship init bash)"
 #+end_src
 
@@ -4823,6 +4745,7 @@ direnv hook elvish
 # epm:install github.com/tylerreckart/gondolin
 # use github.com/tylerreckart/gondolin/gondolin
 use direnv
+eval (zoxide init elvish | slurp)
 eval (starship init elvish)
 #+end_src
 
@@ -4942,6 +4865,7 @@ source ~/resources/grml/etc/zsh/zshrc
 <<profile-all-together>>
 alias s="source ~/.zshrc"
 eval "$(direnv hook zsh)"
+eval "$(zoxide init zsh)"
 prompt off
 eval "$(starship init zsh)"
 #+end_src

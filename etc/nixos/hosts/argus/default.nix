@@ -15,6 +15,6 @@
         interfaces.eth0.useDHCP = true;
         hostName = baseNameOf (toString ./.);
         hostId = "/home/shadowrylander/.zshenv:source:1: no such file or directory: /home/shadowrylander/resources/grml/etc/zsh/zshenv
-        hostId =  45c863b5";
+        hostId =  63d0df6f";
     };
 }

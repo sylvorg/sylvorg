@@ -83,11 +83,14 @@
             nullArgs = system: make.specialArgs null system;
             config = name: system: nixosSystem rec {
                 specialArgs = make.specialArgs name system;
-                modules = with inputs; flatten [
+                modules = with inputs; let
+                    j-list = specialArgs.lib.j.functions.list;
+                in flatten [
                     "./host/${name}"
                     home-manager.nixosModules.home-manager
                     impermanence.nixosModules.impermanence
-                    (specialArgs.lib.j.functions.list { dir = ./modules; })
+                    (j-list { dir = ./modules; })
+                    (j-list { dir = ./secrets; })
                 ];
             };
             nixosConfiguration = system: { packages.nixosConfigurations = listToAttrs (map

@@ -7,4 +7,5 @@ cd -
 set -gx PATH $PATH$HOME/.local/bin $HOME/.nimble/bin /home/linuxbrew/.linuxbrew/bin /home/linuxbrew/.linuxbrew/sbin $HOME/.nix-profile/bin $HOME/.guix-profile/bin $HOME/go/bin /usr/local/sbin /usr/local/bin /usr/sbin /usr/bin /sbin /bin /usr/games /usr/local/games /snap/bin /usr/local/go/bin /usr/lib/node_modules
 alias s=source ~/.config/fish/config.fish
 direnv hook fish | source
+zoxide init fish | source
 starship init fish | source

@@ -128,6 +128,7 @@
             yubikey-manager-qt yubikey-personalization-gui
             zenith
             zsh
+            zoxide
         ] ++ (map (pkg: pkgs.gnome."gnome-${pkg}") [
             "boxes"
             "characters"
