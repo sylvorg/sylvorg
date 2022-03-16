@@ -1,23 +1,30 @@
 . $HOME/.nix-profile/etc/profile.d/nix.sh
 . $HOME/.asdf/asdf.sh
-. $(fasd --init auto)
 . $HOME/resources/functions
-cd $HOME
+eval "$(fasd --init auto)"
+alias -="pushd"
+alias ..="cd .."
+alias .="exa -la"
 alias c="clear"
+alias emd="systemctl --user start emacs.service"
+alias git="hub"
+alias kemd="systemctl --user stop emacs.service"
+alias md="mkdir -p"
+alias mosh="mosh --experimental-remote-ip=remote"
 alias n="exit"
+alias remd="systemctl --user restart emacs.service"
+alias semd="systemctl status emacs"
 alias ssh="assh wrapper ssh --"
-alias vi='ec'
-alias vim='ec'
-alias e='ec'
-alias f='ec -t'
-alias r='systemctl --user restart emacs && ec'
-alias s='systemctl --user restart emacs && ec -t'
-alias p='emactl'
-alias ep='emacs-push'
-alias phy='PYTHONPATH="$HOME/.local/syvl/python/hy:$HOME/.local/syvl/python/bakery:$PYTHONPATH" ~/.local/syvl/python/hy/bin/hy'
-ec() { { [ -z "$1" ] || [ "$1" != -* ]; } && emacsclient -s damascus -c $@ || emacsclient -s damascus $@; }
-emactl() { systemctl --user $1 emacs.service; }
-emacs-push() { make -f ~/.emacs.d/lib/$1/settings/makefile; }
-export EDITOR='ec'
-export VISUAL='ec'
+alias vi="emacsclient -c"
+alias vim="emacsclient -c"
+alias mdg='mdg'
+
+# fasd
+alias o="fasd -ae xdg-open"
+alias e="fasd -fe 'emacsclient -t'"
+mdg () { mkdir -p "$@"; cd "$1"; }
+# export EDITOR='emacsclient -c'
+# export VISUAL='emacsclient -c'
+export LESSOPEN='| /usr/share/source-highlight/src-hilite-lesspipe.sh %s'
+export LESS=' -R '
 alias s="source $HOME/.profile"

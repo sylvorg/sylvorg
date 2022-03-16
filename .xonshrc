@@ -54,8 +54,8 @@ $PATH += [ "$HOME/.local/bin",
 	"/usr/lib/node_modules" ]
 
 # Shell
-$EDITOR = "emacsclient -t"
-$GPG_TTY=$(tty)
+# $EDITOR = "emacsclient -c"
+# $VISUAL = "emacsclient -c"
 
 # Etc
 $LESSOPEN = "| /usr/share/source-highlight/src-hilite-lesspipe.sh %s"
@@ -106,6 +106,9 @@ def _cdi(args, stdin=None):
 
 def _cdr(args, stdin=None):
     cd @($(zoxide query -l | fzf-tmux).strip("\n"))
+
+def _cdr(args, stdin=None):
+    cd @($(fasd -ld | fzf-tmux).strip("\n"))
 # xontrib load coreutils
 # xontrib load docker_tabcomplete
 # xontrib load schedule
@@ -129,40 +132,32 @@ xontrib load whole_word_jumping
 source-zsh ~/.asdf/asdf.sh
 execx($(zoxide init xonsh), 'exec', __xonsh__.ctx, filename='zoxide')
 
-aliases["act"] = _alacritty_change_themes
-aliases["vim"] = lambda args, stdin=None: $(emacsclient -t @(args))
 aliases["-"] = "pushd"
 aliases[".."] = "cd .."
-aliases["."] = "la ."
+aliases["."] = "exa -la"
+aliases["act"] = _alacritty_change_themes
 aliases["c"] = "clear"
+aliases["cdf"] = _cdf
+aliases["cdi"] = _cdi
+aliases["cdr"] = _cdr
 aliases["da"] = _direnv_allow
-aliases["emd"] = "sudo systemctl start emacs"
-aliases["kemd"] = "sudo systemctl stop emacs"
+aliases["emd"] = "systemctl --user start emacs.service"
+aliases["git"] = lambda args, stdin=None: $(hub @(args))
+aliases["kemd"] = "systemctl --user stop emacs.service"
 aliases["la"] = _la
 aliases["md"] = lambda args, stdin=None: $(mkdir -p @(args))
 aliases["mdg"] = _mdg
 aliases["mosh"] = lambda args, stdin=None: $(mosh --experimental-remote-ip=remote @(args))
 aliases["n"] = "exit"
-aliases["remd"] = "sudo systemctl restart emacs"
-aliases["ssh"] = lambda args, stdin=None: $(assh wrapper ssh @(args))
-aliases["ve"] = lambda args, stdin=None: $(vox enter @(args)) if args else $(vox exit)
-aliases["git"] = lambda args, stdin=None: $(hub @(args))
+aliases["remd"] = "systemctl --user restart emacs.service"
 aliases["s"] = "source ~/.xonshrc"
-aliases["cdi"] = _cdi
-aliases["cdr"] = _cdr
+aliases["semd"] = "systemctl status emacs"
+aliases["ssh"] = lambda args, stdin=None: $(assh wrapper ssh -- @(args))
+aliases["ve"] = lambda args, stdin=None: $(vox enter @(args)) if args else $(vox exit)
+aliases["vim"] = lambda args, stdin=None: $(emacsclient -c @(args))
 
 # fasd aliases
 aliases["o"] = lambda args, stdin=None: $(fasd -ae xdg-open @(args)) # quick opening files with xdg-open
 
 # quick opening files with emacs
-aliases["e"] = lambda args, stdin=None: $(fasd -fe 'emacsclient -t' @(args))
-
-_fzf_df_alias = "..."
-def _fzf(args, stdin=True):
-    args = list(args)
-    dir_file = $(zsh @(fzfdf) @(fp(args.pop(0)))).rstrip()
-    if args[0] == _fzf_df_alias:
-        _fzf([dir_file] + args[1::])
-    else:
-        @(args) @(dir_file)
-aliases[_fzf_df_alias] = _fzf
+aliases["e"] = lambda args, stdin=None: $(fasd -fe 'emacsclient -c' @(args))
