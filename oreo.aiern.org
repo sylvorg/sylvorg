@@ -2245,7 +2245,12 @@ programs = {
     xonsh.enable = true;
     fish.enable = true;
     zsh.enable = true;
-    extra-container.enable = true;
+    tmux = {
+        enable = true;
+        extraTmuxConf = ''
+            <<20211018140524183223400>>
+        '';
+    };
 };
 #+end_src
 
@@ -2609,6 +2614,18 @@ Help is available in the configuration.nix(5) man page and in the NixOS manual (
             # flake = "https://github.com/nixos/nixpkgs/archive/master.tar.gz";
             flake = "https://github.com/${j.attrs.users.primary}/nixpkgs/archive/j.tar.gz";
         };
+    };
+}
+#+end_src
+
+**** programs.nix
+
+#+begin_src nix :tangle (meq/tangle-path)
+{ config, ... }:
+
+{
+    programs = {
+        extra-container.enable = true;
     };
 }
 #+end_src
@@ -4349,14 +4366,12 @@ endfunction
 #+begin_src emacs-lisp :noweb-ref no
 (replace-regexp-in-string
     "set -g prefix C-a"
-    "# set -g prefix C-a"
+    "set -g prefix `"
     (replace-regexp-in-string
         "unbind C-b"
         "# unbind C-b"
-        (let
-            ((file "./resources/aleclearmind/active-row.conf"))
-            (if
-                (file-directory-p file)
+        (let ((file "./resources/aleclearmind/active-row.conf"))
+            (if (file-directory-p file)
                 (insert-file-contents file)
                 ""))))
 #+end_src
@@ -4480,7 +4495,7 @@ bind-key -T prefix <<20210601214331744518200>>
 ** base
 
 #+begin_src conf
-# set -g prefix2 S-Space
+set -g prefix2 S-Space
 
 # Mouse support - set to on if you want to use the mouse
 # setw -g mode-mouse on
