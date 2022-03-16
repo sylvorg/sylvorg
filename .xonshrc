@@ -61,24 +61,7 @@ $PATH += [ "$HOME/.local/bin",
 $LESSOPEN = "| /usr/share/source-highlight/src-hilite-lesspipe.sh %s"
 $LESS = " -R "
 def _mdg(args, stdin=None):
-    mkdir -p @(args)
-    cd @(args[0])
-
-def _alacritty_change_themes(args, stdin=None):
-    _alc = "alacritty"
-    _alc_theme = fullpath(
-        config_dir,
-        _alc,
-        "themes",
-        args[0]+".yaml"
-    )
-    _alc_config = fullpath(
-        "~",
-        ".config",
-        _alc,
-        _alc+".yml"
-    )
-    rsync @(_alc_theme) @(_alc_config)
+    mkdir -p @(args) && cd @(args[0])
 
 def _direnv_allow(args, stdin=None):
     if args:
@@ -86,14 +69,6 @@ def _direnv_allow(args, stdin=None):
             direnv allow @(argument)
     else:
         direnv allow
-
-def _la(args, stdin=None):
-    if "-t" in args:
-        args = list(args)
-        args.remove("-t")
-        exa -laT @(args)
-    else:
-        exa -la @(args)
 
 def _get_fzfdf_output(*args):
     if args:
@@ -107,8 +82,17 @@ def _cdi(args, stdin=None):
 def _cdr(args, stdin=None):
     cd @($(zoxide query -l | fzf-tmux).strip("\n"))
 
-def _cdr(args, stdin=None):
+def _cdf(args, stdin=None):
     cd @($(fasd -ld | fzf-tmux).strip("\n"))
+
+def _run(args, stdin=None):
+    args = list(args)
+    args[0] = Path(args[0]).absolute()
+    chmod +x @(args[0]) && @(args)
+
+def _Run(args, stdin=None):
+    curl --create-dirs -fsSLo @(args[1]) @(args[0])
+    _run(args[1:])
 # xontrib load coreutils
 # xontrib load docker_tabcomplete
 # xontrib load schedule
@@ -128,14 +112,12 @@ xontrib load whole_word_jumping
 # Jedi was what was causing the python function completions
 # instead of the path completions
 # xontrib load jedi
-# $(fasd --init auto)
 source-zsh ~/.asdf/asdf.sh
 execx($(zoxide init xonsh), 'exec', __xonsh__.ctx, filename='zoxide')
 
 aliases["-"] = "pushd"
 aliases[".."] = "cd .."
 aliases["."] = "exa -la"
-aliases["act"] = _alacritty_change_themes
 aliases["c"] = "clear"
 aliases["cdf"] = _cdf
 aliases["cdi"] = _cdi
@@ -144,12 +126,14 @@ aliases["da"] = _direnv_allow
 aliases["emd"] = "systemctl --user start emacs.service"
 aliases["git"] = lambda args, stdin=None: $(hub @(args))
 aliases["kemd"] = "systemctl --user stop emacs.service"
-aliases["la"] = _la
+aliases["la"] = lambda args, stdin=None: $(exa -la --octal-permissions @(args))
 aliases["md"] = lambda args, stdin=None: $(mkdir -p @(args))
 aliases["mdg"] = _mdg
 aliases["mosh"] = lambda args, stdin=None: $(mosh --experimental-remote-ip=remote @(args))
 aliases["n"] = "exit"
 aliases["remd"] = "systemctl --user restart emacs.service"
+aliases["Run"] = _Run
+aliases["run"] = _run
 aliases["s"] = "source ~/.xonshrc"
 aliases["semd"] = "systemctl status emacs"
 aliases["ssh"] = lambda args, stdin=None: $(assh wrapper ssh -- @(args))

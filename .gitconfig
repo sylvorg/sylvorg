@@ -1,1 +1,20 @@
+[core]
+    excludesfile = ~/.globalignore
+    attributesfile = ~/.gitattributes
+    fileMode = false
+    hookPath = ~/.config/git/hooks
 
+[user]
+    email = jeet.ray@syvl.org
+    name = Jeet Ray
+
+[alias]
+    cnm = commit --allow-empty-message -am ""
+    chRun = !chmod +x $1 &&
+    sec = chRun ~/.config/git/scripts/sec
+
+[protocol "keybase"]
+	allow = always
+
+[protocol "restic"]
+	allow = always

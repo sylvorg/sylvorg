@@ -11,11 +11,6 @@
 [alias]
     cnm = commit --allow-empty-message -am ""
     chRun = !chmod +x $1 &&
-    curlRun = !curl --create-dirs -fsSLo $2 $1 && shift && git chRun
-    sudoRun = !sudo chRun
-    sudoCurl = !sudo curlRun
-    exa = !exa -la --octal-permissions -I .git
-    exat = exa -T
     sec = chRun ~/.config/git/scripts/sec
 
 [protocol "keybase"]

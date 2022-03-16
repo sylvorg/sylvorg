@@ -86,7 +86,6 @@ listNames = {
     inherit suffix ignores dir;
     func = (n: v: baseNameNoSuffix { inherit suffix; file = n; });
 };
-
 set = _args@{
     suffix ? args.suffix,
     ignores ? args.ignores,
@@ -98,9 +97,10 @@ set = _args@{
 
 }: let
     files = list (filterAttrs (arg: v: !elem arg [ "modules" "self" ]) _args);
-in zipToSet
-    (map (file: name { inherit suffix file; }) files)
-    (map (file: import file (foldToSet [ modules inputs ])) files);
+in listToAttrs (map (file: nameValuePair
+    (baseNameNoSuffix { inherit suffix file; })
+    (import file (foldToSet [ modules inputs ]))
+) files);
 };
 attrs = rec {
 machines = {
