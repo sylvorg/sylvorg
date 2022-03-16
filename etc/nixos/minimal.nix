@@ -154,13 +154,14 @@ in {
             files = unique (map (file: if ((typeOf file) == "string") then ({ inherit file; } // userFileSet) else (userFileSet // file)) (flatten [
                 ".bash-history"
                 ".emacs-profile"
+                ".fasd"
                 ".gitignore"
                 ".globalignore"
                 ".nix-channels"
                 ".python-history"
+                ".screenrc"
                 ".viminfo"
                 ".zsh-history"
-                ".screenrc"
                 redRepoFiles
             ]));
             directories = unique (map (directory: if ((typeOf directory) == "string") then ({ inherit directory; } // userDirSet) else (userDirSet // directory)) (flatten [

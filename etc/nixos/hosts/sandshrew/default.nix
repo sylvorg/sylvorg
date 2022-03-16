@@ -7,8 +7,7 @@
     ];
     networking = {
         hostName = baseNameOf (toString ./.);
-        hostId = "/home/shadowrylander/.zshenv:source:1: no such file or directory: /home/shadowrylander/resources/grml/etc/zsh/zshenv
-        hostId =  40b3d7d3";
+        hostId = "b24f0c16";
         networkmanager.extraConfig = ''
             [connection]
             wifi.powersave = 2

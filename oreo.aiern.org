@@ -2035,13 +2035,14 @@ in {
             files = unique (map (file: if ((typeOf file) == "string") then ({ inherit file; } // userFileSet) else (userFileSet // file)) (flatten [
                 ".bash-history"
                 ".emacs-profile"
+                ".fasd"
                 ".gitignore"
                 ".globalignore"
                 ".nix-channels"
                 ".python-history"
+                ".screenrc"
                 ".viminfo"
                 ".zsh-history"
-                ".screenrc"
                 redRepoFiles
             ]));
             directories = unique (map (directory: if ((typeOf directory) == "string") then ({ inherit directory; } // userDirSet) else (userDirSet // directory)) (flatten [
@@ -3203,13 +3204,6 @@ The LFS filter are from both
 *.zipx filter=lfs diff=lfs merge=lfs -text
 #+end_src
 
-* .xonsh.d
-** fzfdf.sh
-
-#+begin_src shell :tangle (meq/tangle-path) :shebang "#!/usr/bin/env sh"
-if [ -z "$1" ]; then echo $(fd | fzf-tmux) || echo $(fd . "$1" | fzf-tmux); fi
-#+end_src
-
 * .xonshrc
 :PROPERTIES:
 :header-args:xonsh+: :noweb-ref .xonshrc
@@ -3222,7 +3216,7 @@ if [ -z "$1" ]; then echo $(fd | fzf-tmux) || echo $(fd . "$1" | fzf-tmux); fi
 ** imports
 
 #+begin_src xonsh
-import sys
+import sys, os
 from pathlib import Path
 #+end_src
 
@@ -3312,9 +3306,17 @@ def _la(args, stdin=None):
     else:
         exa -la @(args)
 
+def _get_fzfdf_output(*args):
+    if args:
+        return $(fd @((".", *args) if os.path.exists(args[0]) else args) | fzf-tmux).strip("\n")
+    else:
+        return $(fd | fzf-tmux).strip("\n")
+
 def _cdi(args, stdin=None):
-    output = $(zsh @(fzfdf) @(args))
-    cd @(output.strip("\n"))
+    cd @(_get_fzfdf_output(*args, "-t", "d"))
+
+def _cdr(args, stdin=None):
+    cd @($(zoxide query -l | fzf-tmux).strip("\n"))
 #+end_src
 
 ** xontribs
@@ -3344,9 +3346,7 @@ xontrib load whole_word_jumping
 ** base
 
 #+begin_src xonsh
-fzfdf = f"{Path.home()}/.xonsh.d/fzfdf.sh"
-chmod +x @(fzfdf)
-source-zsh $(fasd --init auto)
+# $(fasd --init auto)
 source-zsh ~/.asdf/asdf.sh
 execx($(zoxide init xonsh), 'exec', __xonsh__.ctx, filename='zoxide')
 
@@ -3370,6 +3370,7 @@ aliases["ve"] = lambda args, stdin=None: $(vox enter @(args)) if args else $(vox
 aliases["git"] = lambda args, stdin=None: $(hub @(args))
 aliases["s"] = "source ~/.xonshrc"
 aliases["cdi"] = _cdi
+aliases["cdr"] = _cdr
 
 # fasd aliases
 aliases["o"] = lambda args, stdin=None: $(fasd -ae xdg-open @(args)) # quick opening files with xdg-open
