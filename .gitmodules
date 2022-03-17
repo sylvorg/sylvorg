@@ -89,3 +89,6 @@
 [submodule "resources/zsh-autocomplete"]
 	path = resources/zsh-autocomplete
 	url = https://github.com/marlonrichert/zsh-autocomplete.git
+[submodule "resources/zsh-vi-mode"]
+	path = resources/zsh-vi-mode
+	url = https://github.com/jeffreytse/zsh-vi-mode.git
