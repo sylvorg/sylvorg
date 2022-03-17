@@ -77,3 +77,15 @@
 [submodule "settings"]
 	path = settings
 	url = https://github.com/sylvorg/settings.git
+[submodule "resources/zsh-syntax-highlighting"]
+	path = resources/zsh-syntax-highlighting
+	url = https://github.com/zsh-users/zsh-syntax-highlighting.git
+[submodule "resources/zsh-history-substring-search"]
+	path = resources/zsh-history-substring-search
+	url = https://github.com/zsh-users/zsh-history-substring-search.git
+[submodule "resources/zsh-autosuggestions"]
+	path = resources/zsh-autosuggestions
+	url = https://github.com/zsh-users/zsh-autosuggestions.git
+[submodule "resources/zsh-autocomplete"]
+	path = resources/zsh-autocomplete
+	url = https://github.com/marlonrichert/zsh-autocomplete.git
