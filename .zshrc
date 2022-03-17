@@ -92,7 +92,7 @@ setopt HIST_FIND_NO_DUPS
 setopt HIST_SAVE_NO_DUPS
 
 source ~/resources/zsh-autosuggestions/zsh-autosuggestions.zsh
-source ~/resources/zsh-autocomplete/zsh-autocomplete.plugin.zsh
+# source ~/resources/zsh-autocomplete/zsh-autocomplete.plugin.zsh
 
 # Adapted From: https://github.com/zsh-users/zsh-history-substring-search#usage
 source ~/resources/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
