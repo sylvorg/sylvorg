@@ -77,3 +77,4 @@ alias s="source ~/.bashrc"
 eval "$(direnv hook bash)"
 eval "$(zoxide init bash)"
 eval "$(starship init bash)"
+set -o vi

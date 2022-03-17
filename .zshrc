@@ -80,6 +80,8 @@ eval "$(zoxide init zsh)"
 prompt off
 eval "$(starship init zsh)"
 
+bindkey -v
+
 # From: https://leetschau.github.io/remove-duplicate-zsh-history.html
 setopt EXTENDED_HISTORY
 setopt HIST_EXPIRE_DUPS_FIRST
@@ -91,7 +93,6 @@ setopt HIST_SAVE_NO_DUPS
 
 source ~/resources/zsh-autosuggestions/zsh-autosuggestions.zsh
 source ~/resources/zsh-autocomplete/zsh-autocomplete.plugin.zsh
-source ~/resources/zsh-vi-mode/zsh-vi-mode.plugin.zsh
 
 # Adapted From: https://github.com/zsh-users/zsh-history-substring-search#usage
 source ~/resources/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
