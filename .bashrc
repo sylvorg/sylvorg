@@ -1,5 +1,4 @@
 source $HOME/.nix-profile/etc/profile.d/nix.sh
-source $HOME/.asdf/asdf.sh
 source $HOME/resources/functions
 eval "$(fasd --init auto)"
 cdf () { cd $(fasd -ld | fzf-tmux); }
@@ -26,10 +25,17 @@ getFzfdfOutput () {
     fi
 }
 mdg () { mkdir -p "$@" && cd "$1"; }
+
+# Adapted From:
+# Comment: https://stackoverflow.com/questions/7110119/bash-history-without-line-numbers#comment8517296_7110197
+# User: https://stackoverflow.com/users/827263/keith-thompson
+rc () { eval $(history 0 | sed 's/^ *[0-9]* *//' | fzf-tmux) }
+
 Run () { curl --create-dirs -fsSLo "$2" "$1" && shift && run "$@"; }
 run () { chmod +x "$1" && "$@"; }
 # export EDITOR='emacsclient -c'
 # export VISUAL='emacsclient -c'
+export HISTCONTROL='ignoreboth:erasedups'
 export LESSOPEN='| /usr/share/source-highlight/src-hilite-lesspipe.sh %s'
 export LESS=' -R '
 # Adapted From:
@@ -52,6 +58,7 @@ alias md="mkdir -p"
 alias mdg='mdg'
 alias mosh="mosh --experimental-remote-ip=remote"
 alias n="exit"
+alias rc="rc"
 alias remd="systemctl --user restart emacs.service"
 alias Run="Run"
 alias run="run"

@@ -3273,6 +3273,7 @@ $COMPLETION_IN_THREAD = True
 $COMPLETIONS_CONFIRM = True
 $DOTGLOB = True
 $FUZZY_PATH_COMPLETION = True
+$HISTCONTROL = { "ignoreboth", "erasedups", "ignoreerr" }
 $MOUSE_SUPPORT = True
 $PRETTY_PRINT_RESULTS = True
 $PROMPT_TOOLKIT_COLOR_DEPTH = "DEPTH_24_BIT"
@@ -3282,6 +3283,8 @@ $UPDATE_OS_ENVIRON = True
 $VI_MODE = True
 $XONSH_AUTOPAIR = True
 $XONSH_CACHE_EVERYTHING = True
+$XONSH_HISTORY_BACKEND = "sqlite"
+$XONSH_STORE_STDOUT = True
 
 # This enumerates all history files when set to true
 $XONSH_DEBUG = False
@@ -3337,6 +3340,12 @@ def _cdr(args, stdin=None):
 def _cdf(args, stdin=None):
     cd @($(fasd -ld | fzf-tmux).strip("\n"))
 
+def _rc(args, stdin=None):
+    hist = $(history show @(args))
+    command = $(echo @(hist) | fzf-tmux).strip("\n").split()
+    if command:
+        $(@(command))
+
 def _run(args, stdin=None):
     args = list(args)
     args[0] = Path(args[0]).absolute()
@@ -3374,7 +3383,6 @@ xontrib load whole_word_jumping
 ** base
 
 #+begin_src xonsh
-source-zsh ~/.asdf/asdf.sh
 execx($(zoxide init xonsh), 'exec', __xonsh__.ctx, filename='zoxide')
 
 aliases["-"] = "pushd"
@@ -3393,6 +3401,7 @@ aliases["md"] = lambda args, stdin=None: $(mkdir -p @(args))
 aliases["mdg"] = _mdg
 aliases["mosh"] = lambda args, stdin=None: $(mosh --experimental-remote-ip=remote @(args))
 aliases["n"] = "exit"
+aliases["rc"] = _rc
 aliases["remd"] = "systemctl --user restart emacs.service"
 aliases["Run"] = _Run
 aliases["run"] = _run
@@ -3888,7 +3897,6 @@ Invoke-Expression (&starship init powershell)
 
 #+begin_src fish
 source ~/resources/nix-env.fish/conf.d/nix-env.fish
-source ~/.asdf/asdf.fish
 cd ~/resources/bass
 make install &>/dev/null
 cd -
@@ -4633,7 +4641,6 @@ session_name: default
 #+name: profile-sources
 #+begin_src shell
 source $HOME/.nix-profile/etc/profile.d/nix.sh
-source $HOME/.asdf/asdf.sh
 source $HOME/resources/functions
 eval "$(fasd --init auto)"
 #+end_src
@@ -4660,6 +4667,7 @@ alias md="mkdir -p"
 alias mdg='mdg'
 alias mosh="mosh --experimental-remote-ip=remote"
 alias n="exit"
+alias rc="rc"
 alias remd="systemctl --user restart emacs.service"
 alias Run="Run"
 alias run="run"
@@ -4701,6 +4709,12 @@ getFzfdfOutput () {
     fi
 }
 mdg () { mkdir -p "$@" && cd "$1"; }
+
+# Adapted From:
+# Comment: https://stackoverflow.com/questions/7110119/bash-history-without-line-numbers#comment8517296_7110197
+# User: https://stackoverflow.com/users/827263/keith-thompson
+rc () { eval $(history 0 | sed 's/^ *[0-9]* *//' | fzf-tmux) }
+
 Run () { curl --create-dirs -fsSLo "$2" "$1" && shift && run "$@"; }
 run () { chmod +x "$1" && "$@"; }
 #+end_src
@@ -4709,6 +4723,7 @@ run () { chmod +x "$1" && "$@"; }
 #+begin_src shell
 # export EDITOR='emacsclient -c'
 # export VISUAL='emacsclient -c'
+export HISTCONTROL='ignoreboth:erasedups'
 export LESSOPEN='| /usr/share/source-highlight/src-hilite-lesspipe.sh %s'
 export LESS=' -R '
 #+end_src

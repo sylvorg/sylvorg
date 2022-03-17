@@ -1,5 +1,4 @@
 source ~/resources/nix-env.fish/conf.d/nix-env.fish
-source ~/.asdf/asdf.fish
 cd ~/resources/bass
 make install &>/dev/null
 cd -
