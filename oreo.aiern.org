@@ -7,7 +7,7 @@ which was written by [[https://emacs.stackexchange.com/users/2710/andrew-swann][
 
 #+begin_src nix :tangle (meq/tangle-path)
 with builtins; let flake = import ./etc/nixos;
-in with import flake.inputs.nixpkgs { inherit (flake.specialArgs."${currentSystem}") overlays config; }; mkShell rec {
+in with import flake.inputs.nixpkgs { inherit (flake.make.specialArgs null currentSystem) overlays config; }; mkShell rec {
     buildInputs = [ python310 python310Packages.bakery sd gcc rsync ];
     nativeBuildInputs = buildInputs;
     shellHook = ''
@@ -1764,7 +1764,6 @@ in mapAttrsToList (
                 nixpkgset = make.nixpkgset overlays system lib;
                 pkgs = make.pkgs nixpkgset;
             };
-            nullArgs = system: make.specialArgs null system;
             config = name: system: nixosSystem rec {
                 specialArgs = make.specialArgs name system;
                 modules = with inputs; let
@@ -1781,9 +1780,8 @@ in mapAttrsToList (
                 (name: nameValuePair name (make.config name system))
                 (attrNames (filterAttrs (n: v: v == "directory") (readDir ./hosts)))
             ); };
-            all = system: (make.nullArgs system) // (make.nixosConfiguration system);
         };
-    in (eachSystem allSystems make.all) // { inherit make channel; };
+    in (eachSystem allSystems make.nixosConfiguration) // { inherit make channel; };
 }
 #+end_src
 

@@ -81,7 +81,6 @@
                 nixpkgset = make.nixpkgset overlays system lib;
                 pkgs = make.pkgs nixpkgset;
             };
-            nullArgs = system: make.specialArgs null system;
             config = name: system: nixosSystem rec {
                 specialArgs = make.specialArgs name system;
                 modules = with inputs; let
@@ -98,7 +97,6 @@
                 (name: nameValuePair name (make.config name system))
                 (attrNames (filterAttrs (n: v: v == "directory") (readDir ./hosts)))
             ); };
-            all = system: (make.nullArgs system) // (make.nixosConfiguration system);
         };
-    in (eachSystem allSystems make.all) // { inherit make channel; };
+    in (eachSystem allSystems make.nixosConfiguration) // { inherit make channel; };
 }

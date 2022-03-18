@@ -1,5 +1,5 @@
 with builtins; let flake = import ./etc/nixos;
-in with import flake.inputs.nixpkgs { inherit (flake.specialArgs."${currentSystem}") overlays config; }; mkShell rec {
+in with import flake.inputs.nixpkgs { inherit (flake.make.specialArgs null currentSystem) overlays config; }; mkShell rec {
     buildInputs = [ python310 python310Packages.bakery sd gcc rsync ];
     nativeBuildInputs = buildInputs;
     shellHook = ''
