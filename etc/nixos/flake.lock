@@ -2,11 +2,11 @@
   "nodes": {
     "emacs": {
       "locked": {
-        "lastModified": 1647481712,
-        "narHash": "sha256-yugqz6b+j+/djeqIDluhuY03CayKgTN4H+ALRKbA8GQ=",
+        "lastModified": 1647623716,
+        "narHash": "sha256-WbOKNDcnpXrRzwF8EDfvuSvTA4Ujv3wszF+MW7mRD8U=",
         "owner": "nix-community",
         "repo": "emacs-overlay",
-        "rev": "d2739b4f1aeae7b7314548a2e1d852ac2fc612a7",
+        "rev": "2c58c215a5ddfa2be00e349ee38545aa0547fcf2",
         "type": "github"
       },
       "original": {
@@ -100,11 +100,11 @@
         "nixpkgs": "nixpkgs_2"
       },
       "locked": {
-        "lastModified": 1647210221,
-        "narHash": "sha256-mUWwEq+ReRQjIqj28ClqmBDyKV4fr6C5ufqlXLzZFsk=",
+        "lastModified": 1647644064,
+        "narHash": "sha256-RdZl1uIZslc8ViQwBJAJbkKpJN8J3y/U4xjZuLyFaMY=",
         "owner": "nix-community",
         "repo": "home-manager",
-        "rev": "8eb7c009f09f1f7b1ec151e5d537104acf42213a",
+        "rev": "7cf15b19a931b99f9a918887fc488d577fd07516",
         "type": "github"
       },
       "original": {
@@ -130,11 +130,11 @@
     },
     "j": {
       "locked": {
-        "lastModified": 1647487611,
-        "narHash": "sha256-fsmKpzCERmCkL86eKDyvnjYzKutHRvhkAzyjkuZTVP4=",
+        "lastModified": 1647647264,
+        "narHash": "sha256-vXaLoh4O5b5rCfFF0rpsuPsA27NbIGZgIyoXEY+HcYc=",
         "owner": "shadowrylander",
         "repo": "nixpkgs",
-        "rev": "4f37035d48b59148ede3df235de926477a377fa7",
+        "rev": "2fbff33074045b4c439d9689cc5b39a4e9f81b60",
         "type": "github"
       },
       "original": {
@@ -162,11 +162,11 @@
     },
     "master": {
       "locked": {
-        "lastModified": 1647481971,
-        "narHash": "sha256-tlbhGB4PVPmDiXU3l2XaE525UeoPmuk7DwbTwm0T6c0=",
+        "lastModified": 1647647171,
+        "narHash": "sha256-11OjbZYu7+Gmy6CKpUOhmgG8uG8ICd7ywYdMnChqvwU=",
         "owner": "NixOS",
         "repo": "nixpkgs",
-        "rev": "9cfedd0589cb727289b8d1c8e5b70d4eaae12c17",
+        "rev": "f18433bac5281dcbca6fee053fe658b4fcc64d15",
         "type": "github"
       },
       "original": {
@@ -198,11 +198,11 @@
         "nixpkgs-regression": "nixpkgs-regression"
       },
       "locked": {
-        "lastModified": 1647461894,
-        "narHash": "sha256-h73DYw2Nxv5Zh3S+c0ZAMz384AX+wa3Wwg6NUzLv1gY=",
+        "lastModified": 1647617792,
+        "narHash": "sha256-UpLDpu4kcyas0GVRkrBdLNEPWmQHijjq+5BSk470YD4=",
         "owner": "nixos",
         "repo": "nix",
-        "rev": "fe1ad9613561ea78b6d97cf82c03d2dd77e43f69",
+        "rev": "8ad485ea893862029e02cb560a15fd276753b04f",
         "type": "github"
       },
       "original": {
@@ -224,7 +224,7 @@
     },
     "nixos-21-11-small": {
       "locked": {
-        "narHash": "sha256-o4G/jFjErrFr4m33p3zlAx7oOcvGPwxhs7waPifhXsg=",
+        "narHash": "sha256-EdIJcBReD/u4PB7+cbkEs/ipSQN2h8p5rs7Sj3ZGLXE=",
         "type": "tarball",
         "url": "https://nixos.org/channels/nixos-21.11-small/nixexprs.tar.xz"
       },
@@ -316,11 +316,11 @@
     },
     "nur": {
       "locked": {
-        "lastModified": 1647483929,
-        "narHash": "sha256-oHR80rJJWzjFo/kRUCnCk1xfwxan25psfnytOjU7kGo=",
+        "lastModified": 1647644593,
+        "narHash": "sha256-R00EBcEZ0c038wB/xeJC98LZFHlhEFuMcJfQBTRNASg=",
         "owner": "nix-community",
         "repo": "nur",
-        "rev": "9865e68f7a3dabbb69d11268b94d950e76c49793",
+        "rev": "4fa30973755b7841b0a890ad5bb2718b92fff093",
         "type": "github"
       },
       "original": {
@@ -331,11 +331,11 @@
     },
     "release-21-11": {
       "locked": {
-        "lastModified": 1647473367,
-        "narHash": "sha256-U6mkTQGOy6aQ9R0jL5O3uaLtrjz733h3fpvBkEQDe0U=",
+        "lastModified": 1647624696,
+        "narHash": "sha256-6u7WHfTGPbo21p3j23hJmkE0CtJCklrRE/aHm0uavIg=",
         "owner": "NixOS",
         "repo": "nixpkgs",
-        "rev": "45c6038dfa441a874744c6dc50b8cbbe9622bfd3",
+        "rev": "60779b2fde21d3d48bc1999fc0ce6540eba07924",
         "type": "github"
       },
       "original": {
@@ -373,11 +373,11 @@
     "shadowrylander": {
       "flake": false,
       "locked": {
-        "lastModified": 1647463175,
-        "narHash": "sha256-hfhHdPD0q2xbsSH/bhnOiF/uFRyAN2Ju8VKEuhBWIdI=",
+        "lastModified": 1647646526,
+        "narHash": "sha256-bzdM7+disLwn2NIlkqtyJAEAjJmFymA2MT6kfe6Xjk4=",
         "owner": "shadowrylander",
         "repo": "shadowrylander",
-        "rev": "d1a027e18ad68c528f81e34fcba4b154de27fc72",
+        "rev": "b5b94cdd6e6bb9c8544a88ed22093f7c2feb22b2",
         "type": "github"
       },
       "original": {
