@@ -7,7 +7,6 @@
     ];
     networking = {
         hostName = baseNameOf (toString ./.);
-        hostId = "/home/shadowrylander/.zshenv:2: parse error near `\n'
-        hostId =  5772d776";
+        hostId = "d535e449";
     };
 }

@@ -7,8 +7,7 @@
     ];
     networking = {
         hostName = baseNameOf (toString ./.);
-        hostId = "/home/shadowrylander/.zshenv:2: parse error near `\n'
-        hostId =  4a965339";
+        hostId = "ab71b809";
         networkmanager.extraConfig = ''
             [connection]
             wifi.powersave = 2
