@@ -1,19 +1,13 @@
 { config, pkgs, lib, ... }:
 
 {
-    imports = import ../imports.nix;
-    boot = {
-        kernelParams = [ "console=ttyS0,19200n8" ];
-        loader.grub.extraConfig = ''
-            serial --speed=19200 --unit=0 --word=8 --parity=no --stop=1;
-            terminal_input serial;
-            terminal_output serial;
-        '';
-    };
+    imports = flatten [
+        ../../devices/linode.nix
+        import ../imports.nix
+    ];
     networking = {
-        usePredictableInterfaceNames = false;
-        interfaces.eth0.useDHCP = true;
         hostName = baseNameOf (toString ./.);
-        hostId = "b01e4134";
+        hostId = "/home/shadowrylander/.zshenv:2: parse error near `\n'
+        hostId =  5772d776";
     };
 }

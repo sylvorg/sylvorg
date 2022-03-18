@@ -176,8 +176,17 @@ platforms = {
     arm = [ "aarch64-linux" "armv7l-linux" "armv6l-linux" ];
     imd = [ "i686-linux" "x86_64-linux" ];
 };
-ssh.keys = {
-    master = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQDlwBJ7E2qeqw9kMW19indbeLdnEKs/Yrhn9HE0c/gZDzvXYBPQYyf5xr9I9kYxWcHlqp7XEI0LVT4DCA/mgemQtM8ulc1mxwekKtk64uWRi5wLi1E17NWKJfXWRn8XZejwi0iJa0twwVE8m8G2AuFOCSa86sYD3x5X5W+7spAuNET7kl0DLueUHu1u31c7HE1ciV2tIn/f60/bbgEJm9MPcRVZkRxkp+bouaZ1cjWRYDhvyJS30DRhBYtIIort2XVAshQs2Y58oKeCDnjt0gxotfqqWlt4nTQzKtbSN2M6/M+clFQBdT1oUJqpTUJbVxK8+xSEOJcBubupTj0USpmftDf/3WMoMwq+hNEc9C0EN1BYtKk68QWhAz8NROvnx7h6y3UKejhQOg0ueNZggmeNJLbebEs46QmA92khO8zc2pfBRsEa5yP0IgdvWpruTZ1QwjqhGQqGnCw3Oli1PK+5zgT2vXy5yHl3f3duPq8h+LOc+lSBbi2jjkC0gwTQDDDNyzFZ+U9xF7fCmL3V8DCEeO/4HqVxmLJir2TVEDo/3Ug/Q22Yp7P2EZrI2pikZIyBJc5aZJO3d7nGoDB/1BJp9Qm82wvyEpjiOnxHsL4osUqrf401XbiwNqpFkVUoRZkwGraJnrlsYkdHS2Mrrny9sr+PtgZhTjqIuW8z6iVIfQ== titaniumfiles@outlook.com";
+ssh.keys = rec {
+    "id_rsa.bak" = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQDlwBJ7E2qeqw9kMW19indbeLdnEKs/Yrhn9HE0c/gZDzvXYBPQYyf5xr9I9kYxWcHlqp7XEI0LVT4DCA/mgemQtM8ulc1mxwekKtk64uWRi5wLi1E17NWKJfXWRn8XZejwi0iJa0twwVE8m8G2AuFOCSa86sYD3x5X5W+7spAuNET7kl0DLueUHu1u31c7HE1ciV2tIn/f60/bbgEJm9MPcRVZkRxkp+bouaZ1cjWRYDhvyJS30DRhBYtIIort2XVAshQs2Y58oKeCDnjt0gxotfqqWlt4nTQzKtbSN2M6/M+clFQBdT1oUJqpTUJbVxK8+xSEOJcBubupTj0USpmftDf/3WMoMwq+hNEc9C0EN1BYtKk68QWhAz8NROvnx7h6y3UKejhQOg0ueNZggmeNJLbebEs46QmA92khO8zc2pfBRsEa5yP0IgdvWpruTZ1QwjqhGQqGnCw3Oli1PK+5zgT2vXy5yHl3f3duPq8h+LOc+lSBbi2jjkC0gwTQDDDNyzFZ+U9xF7fCmL3V8DCEeO/4HqVxmLJir2TVEDo/3Ug/Q22Yp7P2EZrI2pikZIyBJc5aZJO3d7nGoDB/1BJp9Qm82wvyEpjiOnxHsL4osUqrf401XbiwNqpFkVUoRZkwGraJnrlsYkdHS2Mrrny9sr+PtgZhTjqIuW8z6iVIfQ== titaniumfiles@outlook.com";
+    "id_ed25519.bak" = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIO8NzKV52dRBAir8ARoFJX/xQDVCNup6xe1ddX1YVXSO sylvorg@syvl.org";
+    jeet_ray_ecdsa = "ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBGsRy6rLDzmLNISdWahFLGDo+ZZLbndj6k8Q8MUQum/mPAzy8lsAQz/0XiicJz7LlM74tWGDYSJG1Ay2Iyc/ew4= jeet.ray@syvl.org"
+    jeet_ray_ed25519 = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAICor+WXoAypnk5rkgTljAN6kk8olvKWqtnmGWVuQu8z9 jeet.ray@syvl.org";
+    jeet_ray_rsa = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCs4zqEt/Fkjw0LVQTwJXlovmnqqGWC4UOVPvoLDvo0JD6WeVBDi4cFPX2mpNJYmYJsBLDXeUq5XrQ1ST3BkfVdspsragnD7O92tTEf3/VHfIC1L165pnB08FXQrtIjyLL7Ry4dloUGBYKLnHOtnXlpefKMQzRYUacc7Tr1o2wv+XRoDW9h+qDqJz1O61N68JFLgJWD3/nUkm8siTg1OLvqO9ATp+UgP/Lb08E6HfqYOiD8H+1ZJjz78mo5oZatknvgy8uJJPqEX7/aRM61YA9TG+tw/sf6wlrDtUQUik8Y4k1DLmkhE15wcgq/HF2Rqka/acA9GxA5smNGyjs6CS+H jeet.ray@syvl.org";
+    shadowrylander_ecdsa = "ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBNlVuY9reRuMloYvecJHHsOYkAPDyQwELOI3kfibslIKI5hY+o1jx5yVyAUomHynP6wulm5aziNc5kWdsRE9BE8= shadowrylander@syvl.org"
+    shadowrylander_ed25519 = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAINZ2FCMbnetAnDZ63Wzct+O3MYhtO9+BedATbtiHI9BT shadowrylander@syvl.org";
+    shadowrylander_rsa = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDP8ifT/3d6L2MzZPoTh0bUjQUXuPKfPP8Tp03E5En2x+iKhv+J/U0z0xk7IdPZ4qEO+ZWI5xWbwVkDdnRnJ/5HgA0/ZwmO5Zpj3llSr4dJMUVSSyO23fFIL2WqOpHyQDeexJWMxbU5SmIi+c855VwewCbGDcPnmDo0XgR/u4LRF2pwYGNGFtJ2/GICEIob/2w0ICwi7TMUEkDbUFcP5web81OzsNu80M60VaNl870uT1rwBeKuW7CXFtImYytZ0mOc5LC6d7ugkFS1zAbLOWjt3PJ8Op2MH9ncBj5jCsIlA/OqI72jKwEPOl8evYqWeEOzlVxA7/AkRj7haQqFE8r/ shadowrylander@syvl.org";
+    id_rsa = shadowrylander_rsa;
+    id_ed25519 = jeet_ray_ed25519;
 };
 fileSystems = {
     base = {

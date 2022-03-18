@@ -912,6 +912,52 @@ index c61df8ceb00..d973837f0d3 100644
 }
 #+end_src
 
+*** devices
+**** linode.nix
+
+Adapted from the following:
+
+- [[https://github.com/hlissner/dotfiles/blob/master/hosts/linode.nix][hlissner's dotfiles]]
+- [[https://www.linode.com/docs/guides/install-nixos-on-linode/#prepare-your-linode][Install and Configure NixOS on a Linode]]
+
+#+begin_src nix :tangle (meq/tangle-path)
+{ config, pkgs, lib, ... }:
+
+{
+    boot = {
+        kernelParams = [ "console=ttyS0,19200n8" ];
+        loader.grub.extraConfig = ''
+            serial --speed=19200 --unit=0 --word=8 --parity=no --stop=1;
+            terminal_input serial;
+            terminal_output serial;
+        '';
+        initrd.availableKernelModules = [ "virtio_pci" "ahci" "sd_mod" ];
+    };
+    networking = {
+        usePredictableInterfaceNames = false;
+        interfaces.eth0.useDHCP = true;
+    };
+    services = {
+        <<0bb9227f-334f-4581-8fc1-6dc5b12619ae>>
+    };
+    environment.systemPackages = with pkgs; [ inetutils mtr sysstat git ];
+}
+#+end_src
+
+**** rpi4.nix
+
+#+begin_src nix :tangle (meq/tangle-path)
+{ config, pkgs, lib, ... }:
+
+{
+    imports =  [
+        ../hosts/minimal.nix
+        (import ./.).inputs.hardware.raspberry-pi-4
+    ];
+    boot.kernelPackages = lib.mkForce pkgs.linuxPackages_rpi4;
+}
+#+end_src
+
 *** hosts
 
 #+name: hostId
@@ -923,20 +969,6 @@ index c61df8ceb00..d973837f0d3 100644
 
 #+begin_src nix :tangle (meq/tangle-path)
 [ ../minimal.nix ../bcachefs.nix ]
-#+end_src
-
-**** rpi4.nix
-
-#+begin_src nix :tangle (meq/tangle-path)
-{ config, pkgs, lib, ... }:
-
-{
-    imports =  [
-        ../../minimal.nix
-        (import ./.).inputs.hardware.raspberry-pi-4
-    ];
-    boot.kernelPackages = lib.mkForce pkgs.linuxPackages_rpi4;
-}
 #+end_src
 
 **** sandshrew
@@ -994,18 +1026,11 @@ index c61df8ceb00..d973837f0d3 100644
 { config, pkgs, lib, ... }:
 
 {
-    imports = import ../imports.nix;
-    boot = {
-        kernelParams = [ "console=ttyS0,19200n8" ];
-        loader.grub.extraConfig = ''
-            serial --speed=19200 --unit=0 --word=8 --parity=no --stop=1;
-            terminal_input serial;
-            terminal_output serial;
-        '';
-    };
+    imports = flatten [
+        ../../devices/linode.nix
+        import ../imports.nix
+    ];
     networking = {
-        usePredictableInterfaceNames = false;
-        interfaces.eth0.useDHCP = true;
         hostName = baseNameOf (toString ./.);
         hostId = <<hostId()>>;
     };
@@ -1019,7 +1044,7 @@ index c61df8ceb00..d973837f0d3 100644
 { config, ... }:
 
 {
-    imports = [ ../rpi4.nix ];
+    imports = [ ../../devices/rpi4.nix ];
     networking = {
         hostName = baseNameOf (toString ./.);
         hostId = <<hostId()>>;
@@ -1034,7 +1059,7 @@ index c61df8ceb00..d973837f0d3 100644
 { config, ... }:
 
 {
-    imports = [ ../rpi4.nix ];
+    imports = [ ../../devices/rpi4.nix ];
     networking = {
         hostName = baseNameOf (toString ./.);
         hostId = <<hostId()>>;
@@ -1379,8 +1404,17 @@ platforms = {
 ******* SSH
 
 #+begin_src nix
-ssh.keys = {
-    master = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQDlwBJ7E2qeqw9kMW19indbeLdnEKs/Yrhn9HE0c/gZDzvXYBPQYyf5xr9I9kYxWcHlqp7XEI0LVT4DCA/mgemQtM8ulc1mxwekKtk64uWRi5wLi1E17NWKJfXWRn8XZejwi0iJa0twwVE8m8G2AuFOCSa86sYD3x5X5W+7spAuNET7kl0DLueUHu1u31c7HE1ciV2tIn/f60/bbgEJm9MPcRVZkRxkp+bouaZ1cjWRYDhvyJS30DRhBYtIIort2XVAshQs2Y58oKeCDnjt0gxotfqqWlt4nTQzKtbSN2M6/M+clFQBdT1oUJqpTUJbVxK8+xSEOJcBubupTj0USpmftDf/3WMoMwq+hNEc9C0EN1BYtKk68QWhAz8NROvnx7h6y3UKejhQOg0ueNZggmeNJLbebEs46QmA92khO8zc2pfBRsEa5yP0IgdvWpruTZ1QwjqhGQqGnCw3Oli1PK+5zgT2vXy5yHl3f3duPq8h+LOc+lSBbi2jjkC0gwTQDDDNyzFZ+U9xF7fCmL3V8DCEeO/4HqVxmLJir2TVEDo/3Ug/Q22Yp7P2EZrI2pikZIyBJc5aZJO3d7nGoDB/1BJp9Qm82wvyEpjiOnxHsL4osUqrf401XbiwNqpFkVUoRZkwGraJnrlsYkdHS2Mrrny9sr+PtgZhTjqIuW8z6iVIfQ== titaniumfiles@outlook.com";
+ssh.keys = rec {
+    "id_rsa.bak" = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQDlwBJ7E2qeqw9kMW19indbeLdnEKs/Yrhn9HE0c/gZDzvXYBPQYyf5xr9I9kYxWcHlqp7XEI0LVT4DCA/mgemQtM8ulc1mxwekKtk64uWRi5wLi1E17NWKJfXWRn8XZejwi0iJa0twwVE8m8G2AuFOCSa86sYD3x5X5W+7spAuNET7kl0DLueUHu1u31c7HE1ciV2tIn/f60/bbgEJm9MPcRVZkRxkp+bouaZ1cjWRYDhvyJS30DRhBYtIIort2XVAshQs2Y58oKeCDnjt0gxotfqqWlt4nTQzKtbSN2M6/M+clFQBdT1oUJqpTUJbVxK8+xSEOJcBubupTj0USpmftDf/3WMoMwq+hNEc9C0EN1BYtKk68QWhAz8NROvnx7h6y3UKejhQOg0ueNZggmeNJLbebEs46QmA92khO8zc2pfBRsEa5yP0IgdvWpruTZ1QwjqhGQqGnCw3Oli1PK+5zgT2vXy5yHl3f3duPq8h+LOc+lSBbi2jjkC0gwTQDDDNyzFZ+U9xF7fCmL3V8DCEeO/4HqVxmLJir2TVEDo/3Ug/Q22Yp7P2EZrI2pikZIyBJc5aZJO3d7nGoDB/1BJp9Qm82wvyEpjiOnxHsL4osUqrf401XbiwNqpFkVUoRZkwGraJnrlsYkdHS2Mrrny9sr+PtgZhTjqIuW8z6iVIfQ== titaniumfiles@outlook.com";
+    "id_ed25519.bak" = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIO8NzKV52dRBAir8ARoFJX/xQDVCNup6xe1ddX1YVXSO sylvorg@syvl.org";
+    jeet_ray_ecdsa = "ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBGsRy6rLDzmLNISdWahFLGDo+ZZLbndj6k8Q8MUQum/mPAzy8lsAQz/0XiicJz7LlM74tWGDYSJG1Ay2Iyc/ew4= jeet.ray@syvl.org"
+    jeet_ray_ed25519 = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAICor+WXoAypnk5rkgTljAN6kk8olvKWqtnmGWVuQu8z9 jeet.ray@syvl.org";
+    jeet_ray_rsa = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCs4zqEt/Fkjw0LVQTwJXlovmnqqGWC4UOVPvoLDvo0JD6WeVBDi4cFPX2mpNJYmYJsBLDXeUq5XrQ1ST3BkfVdspsragnD7O92tTEf3/VHfIC1L165pnB08FXQrtIjyLL7Ry4dloUGBYKLnHOtnXlpefKMQzRYUacc7Tr1o2wv+XRoDW9h+qDqJz1O61N68JFLgJWD3/nUkm8siTg1OLvqO9ATp+UgP/Lb08E6HfqYOiD8H+1ZJjz78mo5oZatknvgy8uJJPqEX7/aRM61YA9TG+tw/sf6wlrDtUQUik8Y4k1DLmkhE15wcgq/HF2Rqka/acA9GxA5smNGyjs6CS+H jeet.ray@syvl.org";
+    shadowrylander_ecdsa = "ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBNlVuY9reRuMloYvecJHHsOYkAPDyQwELOI3kfibslIKI5hY+o1jx5yVyAUomHynP6wulm5aziNc5kWdsRE9BE8= shadowrylander@syvl.org"
+    shadowrylander_ed25519 = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAINZ2FCMbnetAnDZ63Wzct+O3MYhtO9+BedATbtiHI9BT shadowrylander@syvl.org";
+    shadowrylander_rsa = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDP8ifT/3d6L2MzZPoTh0bUjQUXuPKfPP8Tp03E5En2x+iKhv+J/U0z0xk7IdPZ4qEO+ZWI5xWbwVkDdnRnJ/5HgA0/ZwmO5Zpj3llSr4dJMUVSSyO23fFIL2WqOpHyQDeexJWMxbU5SmIi+c855VwewCbGDcPnmDo0XgR/u4LRF2pwYGNGFtJ2/GICEIob/2w0ICwi7TMUEkDbUFcP5web81OzsNu80M60VaNl870uT1rwBeKuW7CXFtImYytZ0mOc5LC6d7ugkFS1zAbLOWjt3PJ8Op2MH9ncBj5jCsIlA/OqI72jKwEPOl8evYqWeEOzlVxA7/AkRj7haQqFE8r/ shadowrylander@syvl.org";
+    id_rsa = shadowrylander_rsa;
+    id_ed25519 = jeet_ray_ed25519;
 };
 #+end_src
 
@@ -1656,6 +1690,7 @@ in mapAttrsToList (
 #+begin_src nix :tangle (meq/tangle-path)
 {
     nixConfig = {
+        # Adapted From: https://github.com/divnix/digga/blob/main/examples/devos/flake.nix#L4
         <<270d5d30-951e-4171-8c23-67fc45d20578(flake='t)>>
     };
 
@@ -1963,8 +1998,8 @@ initrd = {
         zfs rollback -r ${config.networking.hostName}/system/home@blank
         zfs rollback -r ${config.networking.hostName}/system/tmp@blank
     '');
-    kernelModules = [ "zfs" ];
-    availableKernelModules = [ "zfs" ];
+    kernelModules = [ "zfs" "r8169" ];
+    availableKernelModules = config.boot.initrd.kernelModules;
 };
 zfs = mkIf j.attrs.zfs {
     requestEncryptionCredentials = true;
@@ -2262,6 +2297,7 @@ services = {
 
 ****** SSH
 
+#+name: 0bb9227f-334f-4581-8fc1-6dc5b12619ae
 #+begin_src nix
 openssh = {
     enable = true;
@@ -2329,9 +2365,9 @@ users = with j.attrs.users; let
             "libvirtd"
             "docker"
         ];
-        openssh.authorizedKeys.keys = [
-            j.attrs.ssh.keys.master
-        ];
+        openssh.authorizedKeys.keys = unique (flatten [
+            (attrValues j.attrs.ssh.keys)
+        ]);
     };
 in rec {
     users = mkMerge [

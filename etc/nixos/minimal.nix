@@ -83,8 +83,8 @@ initrd = {
         zfs rollback -r ${config.networking.hostName}/system/home@blank
         zfs rollback -r ${config.networking.hostName}/system/tmp@blank
     '');
-    kernelModules = [ "zfs" ];
-    availableKernelModules = [ "zfs" ];
+    kernelModules = [ "zfs" "r8169" ];
+    availableKernelModules = config.boot.initrd.kernelModules;
 };
 zfs = mkIf j.attrs.zfs {
     requestEncryptionCredentials = true;
@@ -439,9 +439,9 @@ users = with j.attrs.users; let
             "libvirtd"
             "docker"
         ];
-        openssh.authorizedKeys.keys = [
-            j.attrs.ssh.keys.master
-        ];
+        openssh.authorizedKeys.keys = unique (flatten [
+            (attrValues j.attrs.ssh.keys)
+        ]);
     };
 in rec {
     users = mkMerge [

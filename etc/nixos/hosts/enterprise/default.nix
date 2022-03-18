@@ -1,9 +1,10 @@
 { config, ... }:
 
 {
-    imports = [ ../rpi4.nix ];
+    imports = [ ../../devices/rpi4.nix ];
     networking = {
         hostName = baseNameOf (toString ./.);
-        hostId = "f8c1c101";
+        hostId = "/home/shadowrylander/.zshenv:2: parse error near `\n'
+        hostId =  9582a8fa";
     };
 }
