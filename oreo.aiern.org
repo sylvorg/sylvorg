@@ -912,6 +912,31 @@ index c61df8ceb00..d973837f0d3 100644
 }
 #+end_src
 
+*** profiles
+**** server.nix
+
+Adapted from the following:
+
+- [[https://github.com/hlissner/dotfiles/blob/master/hosts/linode.nix][hlissner's dotfiles]]
+- [[https://www.linode.com/docs/guides/install-nixos-on-linode/#prepare-your-linode][Install and Configure NixOS on a Linode]]
+
+#+begin_src nix :tangle (meq/tangle-path)
+{ config, pkgs, ... }:
+
+{
+    services.openssh = {
+        enable = true;
+        extraConfig = mkOrder 0 ''
+            TCPKeepAlive yes
+            ClientAliveCountMax 480
+            ClientAliveInterval 3m
+        '';
+        permitRootLogin = "yes";
+    };
+    environment.systemPackages = with pkgs; [ inetutils mtr sysstat git ];
+}
+#+end_src
+
 *** devices
 **** linode.nix
 
@@ -921,9 +946,10 @@ Adapted from the following:
 - [[https://www.linode.com/docs/guides/install-nixos-on-linode/#prepare-your-linode][Install and Configure NixOS on a Linode]]
 
 #+begin_src nix :tangle (meq/tangle-path)
-{ config, pkgs, lib, ... }:
+{ config, ... }:
 
 {
+    imports = [ ../profiles/server.nix ];
     boot = {
         kernelParams = [ "console=ttyS0,19200n8" ];
         loader.grub.extraConfig = ''
@@ -937,10 +963,6 @@ Adapted from the following:
         usePredictableInterfaceNames = false;
         interfaces.eth0.useDHCP = true;
     };
-    services = {
-        <<0bb9227f-334f-4581-8fc1-6dc5b12619ae>>
-    };
-    environment.systemPackages = with pkgs; [ inetutils mtr sysstat git ];
 }
 #+end_src
 
@@ -952,6 +974,7 @@ Adapted from the following:
 {
     imports =  [
         ../hosts/minimal.nix
+        ../profiles/server.nix
         (import ./.).inputs.hardware.raspberry-pi-4
     ];
     boot.kernelPackages = lib.mkForce pkgs.linuxPackages_rpi4;
@@ -1859,11 +1882,14 @@ repo = with lib; j.functions.mntConvert (if dirExists then (fetchGit { url = "fi
 #+begin_src nix
 nixos = "${(args.nixpkgs or <nixpkgs>)}/nixos";
 nixos-configuration = attrset: import nixos (attrset // { inherit system; });
-configuration = nixos-configuration { configuration.imports = [ ./configuration.nix ]; };
-hardware-configuration = nixos-configuration { configuration.imports = [
-    ./hardware-configuration.nix
-    ({config, ... }: { networking.hostId = substring 0 8 (readFile "/etc/machine-id"); boot.loader.grub.devices = [ "nodev" ]; })
-]; };
+nixos-configurations = {
+    server = nixos-configuration { configuration.imports = [ ./profiles/server.nix ]; };
+    configuration = nixos-configuration { configuration.imports = [ ./configuration.nix ]; };
+    hardware-configuration = nixos-configuration { configuration.imports = [
+        ./hardware-configuration.nix
+        ({config, ... }: { networking.hostId = substring 0 8 (readFile "/etc/machine-id"); boot.loader.grub.devices = [ "nodev" ]; })
+    ]; };
+};
 #+end_src
 
 **** Begin Set
@@ -1883,9 +1909,9 @@ imports = with flake.inputs; flatten [
 **** Config
 
 #+begin_src nix
-# config = (removeAttrs hardware-configuration.config [ "fileSystems" "nesting" "jobs" "fonts" "meta" "documentation" ]) // {
-config = (filterAttrs (n: v: elem n [ "boot" "network" "powerManagement" "hardware" ]) hardware-configuration.config) //
-    (if fromFlake then (filterAttrs (n: v: elem n [ "network" "system" ]) configuration.config) else {}) //
+# config = (removeAttrs nixos-configurations.hardware-configuration.config [ "fileSystems" "nesting" "jobs" "fonts" "meta" "documentation" ]) // {
+config = (filterAttrs (n: v: elem n [ "boot" "network" "powerManagement" "hardware" ]) nixos-configurations.hardware-configuration.config) //
+    (if fromFlake then (filterAttrs (n: v: elem n [ "system" ]) nixos-configurations.configuration.config) else {}) //
 {
 #+end_src
 
@@ -2185,7 +2211,7 @@ fileSystems = let
     inherit (j.attrs.fileSystems) base;
     fileSystems' = j.attrs.datasets.fileSystems;
 in mkMerge [
-    (filterAttrs (n: v: ! (elem "bind" v.options)) hardware-configuration.config.fileSystems)
+    (filterAttrs (n: v: ! (elem "bind" v.options)) nixos-configurations.hardware-configuration.config.fileSystems)
     (mkIf j.attrs.zfs (mapAttrs' (dataset: mountpoint: nameValuePair mountpoint (
         mkForce (base // { device = dataset; ${
             j.functions.myIf.knull ((hasInfix j.attrs.users.primary dataset) || (hasInfix "persist" dataset)) "neededForBoot"
@@ -2209,13 +2235,7 @@ sound.enable = true;
 
 #+begin_src nix
 
-# TODO: This isn't working because configuration.nix imports this file, i.e. super.nix, which then again imports configuration.nix, and so on.
-# networking = (mapAttrs (n: v: v // { wakeOnLan.enable = true; }) configuration.config.networking.interfaces) // {
-
-networking = {
-    # interfaces = map (interface:
-    #     { inherit interface; method = "magicpacket"; }
-    # ) (attrNames config.networking.interfaces);
+networking = (if fromFlake then (mapAttrs (n: v: v // { wakeOnLan.enable = true; }) nixos-configurations.configuration.config.networking.interfaces) else {}) // {
     networkmanager.enable = mkForce true;
 
     # The global useDHCP flag is deprecated, therefore explicitly set to false here.
@@ -2319,17 +2339,8 @@ services = {
 
 ****** SSH
 
-#+name: 0bb9227f-334f-4581-8fc1-6dc5b12619ae
 #+begin_src nix
-openssh = {
-    enable = true;
-    extraConfig = mkOrder 0 ''
-        TCPKeepAlive yes
-        ClientAliveCountMax 480
-        ClientAliveInterval 3m
-    '';
-    permitRootLogin = "yes";
-};
+inherit (nixos-configurations.server.config.services) openssh;
 #+end_src
 
 ****** UDEV

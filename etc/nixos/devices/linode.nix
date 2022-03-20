@@ -1,6 +1,7 @@
-{ config, pkgs, lib, ... }:
+{ config, ... }:
 
 {
+    imports = [ ../profiles/server.nix ];
     boot = {
         kernelParams = [ "console=ttyS0,19200n8" ];
         loader.grub.extraConfig = ''
@@ -14,16 +15,4 @@
         usePredictableInterfaceNames = false;
         interfaces.eth0.useDHCP = true;
     };
-    services = {
-        openssh = {
-            enable = true;
-            extraConfig = mkOrder 0 ''
-                TCPKeepAlive yes
-                ClientAliveCountMax 480
-                ClientAliveInterval 3m
-            '';
-            permitRootLogin = "yes";
-        };
-    };
-    environment.systemPackages = with pkgs; [ inetutils mtr sysstat git ];
 }

@@ -11,18 +11,21 @@ dirExists = pathExists dir;
 repo = with lib; j.functions.mntConvert (if dirExists then (fetchGit { url = "file://${dir}"; ref = "main"; }) else flake.inputs.${j.attrs.users.primary});
 nixos = "${(args.nixpkgs or <nixpkgs>)}/nixos";
 nixos-configuration = attrset: import nixos (attrset // { inherit system; });
-configuration = nixos-configuration { configuration.imports = [ ./configuration.nix ]; };
-hardware-configuration = nixos-configuration { configuration.imports = [
-    ./hardware-configuration.nix
-    ({config, ... }: { networking.hostId = substring 0 8 (readFile "/etc/machine-id"); boot.loader.grub.devices = [ "nodev" ]; })
-]; };
+nixos-configurations = {
+    server = nixos-configuration { configuration.imports = [ ./profiles/server.nix ]; };
+    configuration = nixos-configuration { configuration.imports = [ ./configuration.nix ]; };
+    hardware-configuration = nixos-configuration { configuration.imports = [
+        ./hardware-configuration.nix
+        ({config, ... }: { networking.hostId = substring 0 8 (readFile "/etc/machine-id"); boot.loader.grub.devices = [ "nodev" ]; })
+    ]; };
+};
 in with lib; {
 imports = with flake.inputs; flatten [
     (if fromFlake then [] else [ home-manager.nixosModules.home-manager impermanence.nixosModules.impermanence ])
 ];
-# config = (removeAttrs hardware-configuration.config [ "fileSystems" "nesting" "jobs" "fonts" "meta" "documentation" ]) // {
-config = (filterAttrs (n: v: elem n [ "boot" "network" "powerManagement" "hardware" ]) hardware-configuration.config) //
-    (if fromFlake then (filterAttrs (n: v: elem n [ "network" "system" ]) configuration.config) else {}) //
+# config = (removeAttrs nixos-configurations.hardware-configuration.config [ "fileSystems" "nesting" "jobs" "fonts" "meta" "documentation" ]) // {
+config = (filterAttrs (n: v: elem n [ "boot" "network" "powerManagement" "hardware" ]) nixos-configurations.hardware-configuration.config) //
+    (if fromFlake then (filterAttrs (n: v: elem n [ "system" ]) nixos-configurations.configuration.config) else {}) //
 {
 boot = {
 supportedFilesystems = j.attrs.fileSystems.supported;
@@ -208,7 +211,7 @@ fileSystems = let
     inherit (j.attrs.fileSystems) base;
     fileSystems' = j.attrs.datasets.fileSystems;
 in mkMerge [
-    (filterAttrs (n: v: ! (elem "bind" v.options)) hardware-configuration.config.fileSystems)
+    (filterAttrs (n: v: ! (elem "bind" v.options)) nixos-configurations.hardware-configuration.config.fileSystems)
     (mkIf j.attrs.zfs (mapAttrs' (dataset: mountpoint: nameValuePair mountpoint (
         mkForce (base // { device = dataset; ${
             j.functions.myIf.knull ((hasInfix j.attrs.users.primary dataset) || (hasInfix "persist" dataset)) "neededForBoot"
@@ -222,13 +225,7 @@ hardware = {
 };
 sound.enable = true;
 
-# TODO: This isn't working because configuration.nix imports this file, i.e. super.nix, which then again imports configuration.nix, and so on.
-# networking = (mapAttrs (n: v: v // { wakeOnLan.enable = true; }) configuration.config.networking.interfaces) // {
-
-networking = {
-    # interfaces = map (interface:
-    #     { inherit interface; method = "magicpacket"; }
-    # ) (attrNames config.networking.interfaces);
+networking = (if fromFlake then (mapAttrs (n: v: v // { wakeOnLan.enable = true; }) nixos-configurations.configuration.config.networking.interfaces) else {}) // {
     networkmanager.enable = mkForce true;
 
     # The global useDHCP flag is deprecated, therefore explicitly set to false here.
@@ -414,15 +411,7 @@ programs = {
     };
 };
 services = {
-openssh = {
-    enable = true;
-    extraConfig = mkOrder 0 ''
-        TCPKeepAlive yes
-        ClientAliveCountMax 480
-        ClientAliveInterval 3m
-    '';
-    permitRootLogin = "yes";
-};
+inherit (nixos-configurations.server.config.services) openssh;
 udev.extraRules = mkIf j.attrs.zfs ''
     ACTION=="add|change", KERNEL=="sd[a-z]*[0-9]*|mmcblk[0-9]*p[0-9]*|nvme[0-9]*n[0-9]*p[0-9]*", ENV{ID_FS_TYPE}=="zfs_member", ATTR{../queue/scheduler}="none"
 ''; # zfs already has its own scheduler. without this my(@Artturin) computer froze for a second when i nix build something.
