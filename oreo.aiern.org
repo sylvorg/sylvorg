@@ -1019,6 +1019,7 @@ Adapted from the following:
         hostName = baseNameOf (toString ./.);
         hostId = <<hostId()>>;
     };
+    swapDevices = [ "/dev/mmcblk2p2" ];
 }
 #+end_src
 
