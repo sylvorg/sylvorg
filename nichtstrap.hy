@@ -1,4 +1,3 @@
-#!/usr/bin/env hy
 (import click)
 (import json)
 (import oreo)

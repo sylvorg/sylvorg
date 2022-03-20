@@ -32,7 +32,7 @@ if __name__ == "__main__":
 :header-args:hy+: :noweb-ref nwr20220129201318455450756
 :END:
 
-#+begin_src text :tangle (meq/tangle-path) :shebang "#!/usr/bin/env hy"
+#+begin_src text :tangle (meq/tangle-path)
 <<nwr20220129201318455450756>>
 #+end_src
 
@@ -1004,6 +1004,24 @@ Adapted from the following:
 }
 #+end_src
 
+**** siluam
+***** default.nix
+
+#+begin_src nix :tangle (meq/tangle-path)
+{ config, lib, ... }:
+
+{
+    imports =  [
+        ../../minimal.nix
+        "${(import ./.).inputs.pinebook-pro}/pinebook_pro.nix"
+    ];
+    networking = {
+        hostName = baseNameOf (toString ./.);
+        hostId = <<hostId()>>;
+    };
+}
+#+end_src
+
 **** murasame
 ***** default.nix
 
@@ -1716,6 +1734,11 @@ in mapAttrsToList (
         nixpkgs.follows = "j";
 
         hardware.url = github:nixos/nixos-hardware;
+
+        pinebook-pro = {
+            url = github:samueldr/wip-pinebook-pro;
+            flake = false;
+        };
 
         <<username>> = {
             url = github:<<username>>/<<username>>;

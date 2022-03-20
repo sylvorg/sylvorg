@@ -34,6 +34,11 @@
 
         hardware.url = github:nixos/nixos-hardware;
 
+        pinebook-pro = {
+            url = github:samueldr/wip-pinebook-pro;
+            flake = false;
+        };
+
         shadowrylander = {
             url = github:shadowrylander/shadowrylander;
             flake = false;
