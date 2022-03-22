@@ -299,9 +299,9 @@ click.pass-context
              (.mkdir (Path boot) :parents True :exist-ok True)
              (Mount boot-device boot)))
     (if swap
-        (swapon (+ "/dev/zvol/" ctx.obj.host "/swap")))
+        (swapon (+ "/dev/zvol/" ctx.obj.host "/swap" :m/run True)))
     (if swap-device
-        (swapon swap-device))
+        (swapon swap-device :m/run True))
 
     (.mkdir (Path "/tmp") :parents True :exist-ok True)
     (Mount :t "zfs" (+ ctx.obj.host "/system/tmp") "/tmp")
