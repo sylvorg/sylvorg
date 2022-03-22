@@ -304,13 +304,13 @@ click.pass-context
         (swapon swap-device :m/run True))
 
     (.mkdir (Path "/tmp") :parents True :exist-ok True)
-    (Mount :t "zfs" (+ ctx.obj.host "/system/tmp") "/tmp")
+    (Mount :t "zfs" (+ ctx.obj.host "/system/tmp") "/tmp" :m/run True)
 
     (.mkdir (Path "/tmp/nix") :parents True :exist-ok True)
-    (Mount :t "zfs" (+ ctx.obj.host "/system/tmp/nix") "/tmp/nix")
+    (Mount :t "zfs" (+ ctx.obj.host "/system/tmp/nix") "/tmp/nix" :m/run True)
 
     ;; (rsync :a True :v { "repeat" 2 } :c True :z { "repeat" 2 } :delete True "/nix/" "/tmp/nix/")
-    ;; (Mount :t "zfs" (+ ctx.obj.host "/system/tmp/nix") "/nix")
+    ;; (Mount :t "zfs" (+ ctx.obj.host "/system/tmp/nix") "/nix" :m/run True)
 
     )
 (raise (NameError no-host-error-message)))))
