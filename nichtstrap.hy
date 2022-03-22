@@ -303,10 +303,16 @@ click.pass-context
     (if swap-device
         (swapon swap-device))
 
+    (.mkdir (Path "/tmp") :parents True :exist-ok True)
     (Mount :t "zfs" (+ ctx.obj.host "/system/tmp") "/tmp")
+
+    (.mkdir (Path "/tmp/nix") :parents True :exist-ok True)
     (Mount :t "zfs" (+ ctx.obj.host "/system/tmp/nix") "/tmp/nix")
-    (rsync :a True :v { "repeat" 2 } :c True :z { "repeat" 2 } :delete True "/nix/" "/tmp/nix/")
-    (Mount :t "zfs" (+ ctx.obj.host "/system/tmp/nix") "/nix"))
+
+    ;; (rsync :a True :v { "repeat" 2 } :c True :z { "repeat" 2 } :delete True "/nix/" "/tmp/nix/")
+    ;; (Mount :t "zfs" (+ ctx.obj.host "/system/tmp/nix") "/nix")
+
+    )
 (raise (NameError no-host-error-message)))))
 #@((.command nichtstrap :no-args-is-help True)
    (.option click "-d" "--deduplicated" :is-flag True)
