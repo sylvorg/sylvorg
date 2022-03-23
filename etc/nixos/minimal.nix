@@ -215,7 +215,7 @@ in mkMerge [
     (filterAttrs (n: v: ! (elem "bind" v.options)) nixos-configurations.hardware-configuration.config.fileSystems)
     (mkIf j.attrs.zfs (mapAttrs' (dataset: mountpoint: nameValuePair mountpoint (
         mkForce (base // { device = dataset; ${
-            j.functions.myIf.knull ((hasInfix j.attrs.users.primary dataset) || (hasInfix "persist" dataset)) "neededForBoot"
+            j.functions.myIf.knull ((hasInfix j.attrs.users.primary dataset) || (hasInfix "persist" dataset) || (hasInfix "home" dataset)) "neededForBoot"
         } = true; })
     )) fileSystems'))
 ];
@@ -290,7 +290,10 @@ powerManagement = {
     cpuFreqGovernor = mkForce "ondemand";
 };
 programs = {
-    xonsh.enable = true;
+
+    # TODO: Doesn't work on arm, for some reason
+    # xonsh.enable = true;
+
     fish.enable = true;
     zsh.enable = true;
     tmux = {
@@ -444,10 +447,10 @@ in rec {
                 group = primary;
                 extraGroups = [ secondary ];
 
-                # TODO
-                shell = pkgs.xonsh;
+                # TODO: Doesn't work on arm, for some reason
+                # shell = pkgs.xonsh;
 
-                # shell = pkgs.zsh;
+                shell = pkgs.zsh;
             };
             "${secondary}" = {
                 uid = 1111;

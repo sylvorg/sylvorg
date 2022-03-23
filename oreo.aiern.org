@@ -7,27 +7,43 @@ which was written by [[https://emacs.stackexchange.com/users/2710/andrew-swann][
 
 #+begin_src nix :tangle (meq/tangle-path)
 with builtins; let flake = import ./etc/nixos;
-in with import flake.inputs.nixpkgs (flake.make.specialArgs null currentSystem).nixpkgset; mkShell rec {
-    buildInputs = [ python310 sd gcc rsync ] ++ (with python310Packages; [ bakery ]);
+in with import flake.inputs.nixpkgs (flake.make.specialArgs null currentSystem).nixpkgset; let
+    strapper = stdenv.mkDerivation rec {
+        pname = "strapper";
+        version = "1.0.0.0";
+
+        src = ./strapper;
+
+        buildInputs = [ python310 sd gcc rsync ] ++ (with python310Packages; [ bakery ]);
+        nativeBuildInputs = buildInputs;
+
+        phases = [ "installPhase" ];
+
+        installPhase = ''
+            mkdir --parents $out
+            cp -r $src $out/bin
+            chmod +x $out/bin/strapper
+        '';
+    };
+in mkShell rec {
+    buildInputs = [ strapper ];
     nativeBuildInputs = buildInputs;
-    shellHook = ''
-        chmod +x ${toString ./.}/nichtstrap 2> /dev/null || chmod +x ${toString ./.}/nichtstrap.py
-    '';
 }
 #+end_src
 
-* nichtstrap.py
+* strapper
+** strapper
 
 #+begin_src py :tangle (meq/tangle-path) :shebang "#!/usr/bin/env python3"
 import hy, os
 from addict import Dict
 from oreo import module_installed
-nichtstrap = module_installed(os.path.dirname(os.path.realpath(__file__)) + "/nichtstrap.hy").nichtstrap
+strapper = module_installed(os.path.dirname(os.path.realpath(__file__)) + "/strapper.hy").strapper
 if __name__ == "__main__":
-    nichtstrap(obj=Dict(dict()))
+    strapper(obj=Dict(dict()))
 #+end_src
 
-* nichtstrap.hy
+** strapper.hy
 :PROPERTIES:
 :header-args:hy+: :noweb-ref nwr20220129201318455450756
 :END:
@@ -36,7 +52,7 @@ if __name__ == "__main__":
 <<nwr20220129201318455450756>>
 #+end_src
 
-** Imports
+*** Imports
 
 #+begin_src hy
 (import click)
@@ -45,7 +61,7 @@ if __name__ == "__main__":
 (import os)
 #+end_src
 
-*** From
+**** From
 
 #+begin_src hy
 (import addict [Dict :as D])
@@ -66,7 +82,7 @@ if __name__ == "__main__":
 (import sys [argv])
 #+end_src
 
-*** Coconut
+**** Coconut
 
 [[https://coconut.readthedocs.io/en/latest/index.html][Coconut]]:
 
@@ -75,7 +91,7 @@ if __name__ == "__main__":
      (except [ImportError] None))
 #+end_src
 
-*** Toolz
+**** Toolz
 
 [[https://github.com/pytoolz/toolz][Toolz]] and [[https://github.com/pytoolz/cytoolz/][CyToolz]]:
 
@@ -85,19 +101,19 @@ if __name__ == "__main__":
              (import toolz [last])))
 #+end_src
 
-** Requires
+*** Requires
 
 #+begin_src hy
 (require hyrule [-> assoc])
 #+end_src
 
-** Set Resources Directory
+*** Set Resources Directory
 
 #+begin_src hy
 (setv resources (+ (.dirname os.path (.realpath os.path __file__)) "/etc/nixos/"))
 #+end_src
 
-** Datasets
+*** Datasets
 
 #+call: hash() :exports none
 
@@ -153,7 +169,7 @@ dross
 }
 #+end_src
 
-** Update Datasets
+*** Update Datasets
 
 #+begin_src hy
 (defn update-datasets [host [swap 0] [encrypted False] [deduplicated False] [pool False] [root-device None]]
@@ -264,7 +280,7 @@ dross
                         (mkswap (+ "/dev/zvol" host "/swap")))))))
 #+end_src
 
-** Click
+*** Click
 
 #+begin_src hy
 (setv no-host-error-message "Sorry! The host needs to be set; do this with the main command while running the subcommand!")
@@ -274,17 +290,17 @@ dross
    (.option click "-i" "--inspect" :is-flag True)
    (.option click "-p" "--print-run" :is-flag True)
    click.pass-context
-   (defn nichtstrap [ ctx dazzle host inspect print-run ]
+   (defn strapper [ ctx dazzle host inspect print-run ]
          (.ensure-object ctx dict)
          (setv ctx.obj.host host)
          (if print-run (.bake-all- getconf :m/print-command-and-run True))
          (if inspect (.bake-all- getconf :m/debug True))))
 #+end_src
 
-*** Main
+**** Main
 
 #+begin_src hy
-#@((.command nichtstrap :no-args-is-help True
+#@((.command strapper :no-args-is-help True
                         :context-settings { "ignore_unknown_options" True
                                             "allow_extra_args"       True })
    (.argument click "program-arguments" :nargs -1)
@@ -349,10 +365,10 @@ or in the Nix configuration file by adding the line tarball-ttl = number-of-seco
 ))))))
 #+end_src
 
-*** Create
+**** Create
 
 #+begin_src hy
-#@((.command nichtstrap :no-args-is-help True)
+#@((.command strapper :no-args-is-help True)
    (.option click "-d" "--deduplicated" :is-flag True)
    (.option click "-e" "--encrypted" :is-flag True)
    (.option click "-s" "--swap" :type int :default 0)
@@ -389,10 +405,10 @@ or in the Nix configuration file by adding the line tarball-ttl = number-of-seco
              (raise (NameError no-host-error-message)))))
 #+end_src
 
-*** Mount
+**** Mount
 
 #+begin_src hy
-#@((.command nichtstrap :no-args-is-help True)
+#@((.command strapper :no-args-is-help True)
    (.option click "-b" "--boot-device")
    (.option click "-d" "--deduplicated" :is-flag True)
    (.option click "-e" "--encrypted" :is-flag True)
@@ -459,10 +475,10 @@ Taken from [[https://github.com/NixOS/nixpkgs/issues/73404#issuecomment-10114854
              (raise (NameError no-host-error-message)))))
 #+end_src
 
-*** Update
+**** Update
 
 #+begin_src hy
-#@((.command nichtstrap :no-args-is-help True)
+#@((.command strapper :no-args-is-help True)
    (.option click "-d" "--deduplicated" :is-flag True)
    (.option click "-e" "--encrypted" :is-flag True)
    (.option click "-f" "--files" :is-flag True :help "Update datasets.nix with any new datasets; the default")
@@ -480,11 +496,11 @@ Taken from [[https://github.com/NixOS/nixpkgs/issues/73404#issuecomment-10114854
              (raise (NameError no-host-error-message)))))
 #+end_src
 
-** End of nichtstrap
+*** End of strapper
 
 #+begin_src hy :noweb-ref no
 (if (= __name__ "__main__")
-    (nichtstrap :obj (D {})))
+    (strapper :obj (D {})))
 #+end_src
 
 * etc
@@ -2227,7 +2243,7 @@ in mkMerge [
     (filterAttrs (n: v: ! (elem "bind" v.options)) nixos-configurations.hardware-configuration.config.fileSystems)
     (mkIf j.attrs.zfs (mapAttrs' (dataset: mountpoint: nameValuePair mountpoint (
         mkForce (base // { device = dataset; ${
-            j.functions.myIf.knull ((hasInfix j.attrs.users.primary dataset) || (hasInfix "persist" dataset)) "neededForBoot"
+            j.functions.myIf.knull ((hasInfix j.attrs.users.primary dataset) || (hasInfix "persist" dataset) || (hasInfix "home" dataset)) "neededForBoot"
         } = true; })
     )) fileSystems'))
 ];
@@ -2332,7 +2348,10 @@ powerManagement = {
 
 #+begin_src nix
 programs = {
-    xonsh.enable = true;
+
+    # TODO: Doesn't work on arm, for some reason
+    # xonsh.enable = true;
+
     fish.enable = true;
     zsh.enable = true;
     tmux = {
@@ -2426,10 +2445,10 @@ in rec {
                 group = primary;
                 extraGroups = [ secondary ];
 
-                # TODO
-                shell = pkgs.xonsh;
+                # TODO: Doesn't work on arm, for some reason
+                # shell = pkgs.xonsh;
 
-                # shell = pkgs.zsh;
+                shell = pkgs.zsh;
             };
             "${secondary}" = {
                 uid = 1111;

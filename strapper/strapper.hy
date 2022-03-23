@@ -176,12 +176,12 @@
    (.option click "-i" "--inspect" :is-flag True)
    (.option click "-p" "--print-run" :is-flag True)
    click.pass-context
-   (defn nichtstrap [ ctx dazzle host inspect print-run ]
+   (defn strapper [ ctx dazzle host inspect print-run ]
          (.ensure-object ctx dict)
          (setv ctx.obj.host host)
          (if print-run (.bake-all- getconf :m/print-command-and-run True))
          (if inspect (.bake-all- getconf :m/debug True))))
-#@((.command nichtstrap :no-args-is-help True
+#@((.command strapper :no-args-is-help True
                         :context-settings { "ignore_unknown_options" True
                                             "allow_extra_args"       True })
    (.argument click "program-arguments" :nargs -1)
@@ -222,7 +222,7 @@ click.pass-context
                                  :show-trace True
 :option "tarball-ttl 0"
 ))))))
-#@((.command nichtstrap :no-args-is-help True)
+#@((.command strapper :no-args-is-help True)
    (.option click "-d" "--deduplicated" :is-flag True)
    (.option click "-e" "--encrypted" :is-flag True)
    (.option click "-s" "--swap" :type int :default 0)
@@ -257,7 +257,7 @@ click.pass-context
                       (print "Sorry; not continuing!\n\n"))
                   (finally (.export zpool :f True ctx.obj.host :m/ignore-stderr True)))
              (raise (NameError no-host-error-message)))))
-#@((.command nichtstrap :no-args-is-help True)
+#@((.command strapper :no-args-is-help True)
    (.option click "-b" "--boot-device")
    (.option click "-d" "--deduplicated" :is-flag True)
    (.option click "-e" "--encrypted" :is-flag True)
@@ -314,7 +314,7 @@ click.pass-context
 
     )
 (raise (NameError no-host-error-message)))))
-#@((.command nichtstrap :no-args-is-help True)
+#@((.command strapper :no-args-is-help True)
    (.option click "-d" "--deduplicated" :is-flag True)
    (.option click "-e" "--encrypted" :is-flag True)
    (.option click "-f" "--files" :is-flag True :help "Update datasets.nix with any new datasets; the default")
