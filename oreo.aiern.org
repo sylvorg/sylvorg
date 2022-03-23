@@ -110,7 +110,8 @@ if __name__ == "__main__":
 *** Set Resources Directory
 
 #+begin_src hy
-(setv resources (+ (.dirname os.path (.realpath os.path __file__)) "/etc/nixos/"))
+;; (setv resources (+ (.dirname os.path (.realpath os.path __file__)) "/etc/nixos/"))
+(setv resources (+ (.getcwd os) "/etc/nixos/"))
 #+end_src
 
 *** Datasets

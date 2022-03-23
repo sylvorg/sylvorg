@@ -24,7 +24,8 @@
      (except [ImportError]
              (import toolz [last])))
 (require hyrule [-> assoc])
-(setv resources (+ (.dirname os.path (.realpath os.path __file__)) "/etc/nixos/"))
+;; (setv resources (+ (.dirname os.path (.realpath os.path __file__)) "/etc/nixos/"))
+(setv resources (+ (.getcwd os) "/etc/nixos/"))
 (defn update-datasets [host [swap 0] [encrypted False] [deduplicated False] [pool False] [root-device None]]
       (setv snap-dir     [ "snapdir=visible" ]
             extra-copies (+ snap-dir [ "copies=3" ])
