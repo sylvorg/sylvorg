@@ -211,11 +211,16 @@ zramSwap = {
 fileSystems = let
     inherit (j.attrs.fileSystems) base;
     fileSystems' = j.attrs.datasets.fileSystems;
+    hasAnInfix = infixes: dataset: any (map (infix: hasInfix infix dataset) infixes);
 in mkMerge [
     (filterAttrs (n: v: ! (elem "bind" v.options)) nixos-configurations.hardware-configuration.config.fileSystems)
     (mkIf j.attrs.zfs (mapAttrs' (dataset: mountpoint: nameValuePair mountpoint (
         mkForce (base // { device = dataset; ${
-            j.functions.myIf.knull ((hasInfix j.attrs.users.primary dataset) || (hasInfix "persist" dataset) || (hasInfix "home" dataset)) "neededForBoot"
+            j.functions.myIf.knull (hasAnInfix [
+                j.attrs.users.primary
+                "persist"
+                "home"
+            ] dataset) "neededForBoot"
         } = true; })
     )) fileSystems'))
 ];
