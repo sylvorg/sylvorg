@@ -927,11 +927,16 @@ Adapted from the following:
 - [[https://www.linode.com/docs/guides/install-nixos-on-linode/#prepare-your-linode][Install and Configure NixOS on a Linode]]
 
 #+begin_src nix :tangle (meq/tangle-path)
-{ config, pkgs, ... }:
+{ config, pkgs, lib, ... }: with lib;
 
 {
     services.openssh = {
         enable = true;
+
+        # TODO: Doesn't work on arm, for some reason
+        # allowSFTP = true;
+        allowSFTP = false;
+
         extraConfig = mkOrder 0 ''
             TCPKeepAlive yes
             ClientAliveCountMax 480
@@ -939,6 +944,7 @@ Adapted from the following:
         '';
         permitRootLogin = "yes";
     };
+
     environment.systemPackages = with pkgs; [ inetutils mtr sysstat git ];
 }
 #+end_src
@@ -979,9 +985,9 @@ Adapted from the following:
 
 {
     imports =  [
-        ../hosts/minimal.nix
+        ../minimal.nix
         ../profiles/server.nix
-        (import ./.).inputs.hardware.raspberry-pi-4
+        (import ..).inputs.hardware.raspberry-pi-4
     ];
     boot.kernelPackages = lib.mkForce pkgs.linuxPackages_rpi4;
 }
@@ -1009,7 +1015,7 @@ Adapted from the following:
 {
     imports =  [
         ../../minimal.nix
-        (import ./.).inputs.hardware.microsoft-surface
+        (import ../..).inputs.hardware.microsoft-surface
     ];
     networking = {
         hostName = baseNameOf (toString ./.);
@@ -1042,13 +1048,13 @@ Adapted from the following:
 {
     imports =  [
         ../../minimal.nix
-        "${(import ./.).inputs.pinebook-pro}/pinebook_pro.nix"
+        "${(import ../..).inputs.pinebook-pro}/pinebook_pro.nix"
     ];
     networking = {
         hostName = baseNameOf (toString ./.);
         hostId = <<hostId()>>;
     };
-    swapDevices = [ "/dev/mmcblk2p2" ];
+    swapDevices = [ { device = "/dev/mmcblk2p2"; } ];
 }
 #+end_src
 
@@ -1703,7 +1709,7 @@ inputs.extra-container.overlay
 #+begin_src nix
 (let pkgsets = {
     # nixos-unstable = [ "networkmanager" "gnome-control-center" "bash" "bootstrap-tools" { gcc10 = "gcc11"; } ];
-    nixos-unstable = "nix";
+    # nixos-unstable = "nix";
 };
 in mapAttrsToList (
     pkgchannel: pkglist': let
@@ -1953,6 +1959,7 @@ extraModprobeConfig = '' options kvm_intel_nested=1 '';
 
 #+begin_src nix
 loader = {
+    generic-extlinux-compatible.enable = mkForce false;
     systemd-boot = {
         configurationLimit = 25;
         editor = mkForce false;
@@ -2418,7 +2425,11 @@ in rec {
                 description = "Jeet Ray";
                 group = primary;
                 extraGroups = [ secondary ];
+
+                # TODO
                 shell = pkgs.xonsh;
+
+                # shell = pkgs.zsh;
             };
             "${secondary}" = {
                 uid = 1111;

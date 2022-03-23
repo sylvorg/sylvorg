@@ -36,6 +36,7 @@ initrd = {
 };
 extraModprobeConfig = '' options kvm_intel_nested=1 '';
 loader = {
+    generic-extlinux-compatible.enable = mkForce false;
     systemd-boot = {
         configurationLimit = 25;
         editor = mkForce false;
@@ -442,7 +443,11 @@ in rec {
                 description = "Jeet Ray";
                 group = primary;
                 extraGroups = [ secondary ];
+
+                # TODO
                 shell = pkgs.xonsh;
+
+                # shell = pkgs.zsh;
             };
             "${secondary}" = {
                 uid = 1111;

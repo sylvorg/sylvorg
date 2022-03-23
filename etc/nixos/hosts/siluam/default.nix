@@ -3,11 +3,11 @@
 {
     imports =  [
         ../../minimal.nix
-        "${(import ./.).inputs.pinebook-pro}/pinebook_pro.nix"
+        "${(import ../..).inputs.pinebook-pro}/pinebook_pro.nix"
     ];
     networking = {
         hostName = baseNameOf (toString ./.);
-        hostId = "68292714";
+        hostId = "35f12af1";
     };
-    swapDevices = [ "/dev/mmcblk2p2" ];
+    swapDevices = [ { device = "/dev/mmcblk2p2"; } ];
 }
