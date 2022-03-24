@@ -138,12 +138,12 @@ dross
     "omniverse": {  },
     "reserved": {  },
     "<<username>>": { "datasets": {
-            "oreo": { "mountpoint": "/home/<<username>>/oreo", "options": [ "snapdir=visible" ] },
-            "sylveon": { "mountpoint": "/home/<<username>>/sylveon", "options": [ "snapdir=visible" ] },
-            "sylvorg": { "mountpoint": "/home/<<username>>/sylvorg", "options": [ "snapdir=visible" ] },
-            "syvlorg": { "mountpoint": "/home/<<username>>/syvlorg", "options": [ "snapdir=visible" ] },
-            "<<20220205031620372930929>>": { "mountpoint": "/home/<<username>>/<<20220205031620372930929>>", "options": [ "snapdir=visible" ] },
-            "uru": { "mountpoint": "/home/<<username>>/uru", "options": [ "snapdir=visible" ] }},
+            "oreo": { "mountpoint": "/home/<<username>>/oreo" },
+            "sylveon": { "mountpoint": "/home/<<username>>/sylveon" },
+            "sylvorg": { "mountpoint": "/home/<<username>>/sylvorg" },
+            "syvlorg": { "mountpoint": "/home/<<username>>/syvlorg" },
+            "<<20220205031620372930929>>": { "mountpoint": "/home/<<username>>/<<20220205031620372930929>>" },
+            "uru": { "mountpoint": "/home/<<username>>/uru" }},
         "options": [ "mountpoint=legacy" ]},
     "system": {
         "datasets": {

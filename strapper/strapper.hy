@@ -39,12 +39,12 @@
                                     "omniverse": {  },
                                     "reserved": {  },
                                     "shadowrylander": { "datasets": {
-                                            "oreo": { "mountpoint": "/home/shadowrylander/oreo", "options": [ "snapdir=visible" ] },
-                                            "sylveon": { "mountpoint": "/home/shadowrylander/sylveon", "options": [ "snapdir=visible" ] },
-                                            "sylvorg": { "mountpoint": "/home/shadowrylander/sylvorg", "options": [ "snapdir=visible" ] },
-                                            "syvlorg": { "mountpoint": "/home/shadowrylander/syvlorg", "options": [ "snapdir=visible" ] },
-                                            "dross": { "mountpoint": "/home/shadowrylander/dross", "options": [ "snapdir=visible" ] },
-                                            "uru": { "mountpoint": "/home/shadowrylander/uru", "options": [ "snapdir=visible" ] }},
+                                            "oreo": { "mountpoint": "/home/shadowrylander/oreo" },
+                                            "sylveon": { "mountpoint": "/home/shadowrylander/sylveon" },
+                                            "sylvorg": { "mountpoint": "/home/shadowrylander/sylvorg" },
+                                            "syvlorg": { "mountpoint": "/home/shadowrylander/syvlorg" },
+                                            "dross": { "mountpoint": "/home/shadowrylander/dross" },
+                                            "uru": { "mountpoint": "/home/shadowrylander/uru" }},
                                         "options": [ "mountpoint=legacy" ]},
                                     "system": {
                                         "datasets": {
