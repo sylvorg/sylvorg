@@ -11,7 +11,7 @@
 [alias]
     cnm = commit --allow-empty-message -am ""
     chRun = !chmod +x $1 &&
-    sec = chRun ~/.config/git/scripts/sec
+    sec = chRun "$HOME/.config/git/scripts/sec"
 
 [protocol "keybase"]
 	allow = always

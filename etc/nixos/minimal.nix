@@ -303,7 +303,7 @@ programs = {
     zsh.enable = true;
     tmux = {
         enable = true;
-        extraTmuxConf = ''
+        extraConfig = ''
             
             # source ./resources/powerline/powerline/bindings/tmux/powerline-base.conf
             source ./resources/powerline/powerline/bindings/tmux/powerline.conf
