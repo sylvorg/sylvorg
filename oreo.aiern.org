@@ -2115,6 +2115,12 @@ environment = {
 etc."nix/nix.conf".text = mkForce j.attrs.configs.nix;
 #+end_src
 
+****** System Packages
+
+#+begin_src nix
+systemPackages = pkgs.j.pkgs.j.xonsh.buildInputs;
+#+end_src
+
 ****** ZFS
 
 #+begin_src nix
