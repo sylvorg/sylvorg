@@ -3949,7 +3949,7 @@ eval $(starship init ion)
 [alias]
     cnm = commit --allow-empty-message -am ""
     chRun = !chmod +x $1 &&
-    sec = chRun "$HOME/.config/git/scripts/sec"
+    sec = !git chRun ~/.config/git/scripts/sec
 
 [protocol "keybase"]
 	allow = always
