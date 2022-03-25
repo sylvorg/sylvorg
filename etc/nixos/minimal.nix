@@ -300,10 +300,7 @@ powerManagement = {
     cpuFreqGovernor = mkForce "ondemand";
 };
 programs = {
-
-    # TODO: Doesn't work on arm, for some reason
-    # xonsh.enable = true;
-
+    xonsh.enable = true;
     fish.enable = true;
     zsh.enable = true;
     tmux = {
@@ -456,11 +453,7 @@ in rec {
                 description = "Jeet Ray";
                 group = primary;
                 extraGroups = [ secondary ];
-
-                # TODO: Doesn't work on arm, for some reason
-                # shell = pkgs.xonsh;
-
-                shell = pkgs.zsh;
+                shell = pkgs.xonsh;
             };
             "${secondary}" = {
                 uid = 1111;

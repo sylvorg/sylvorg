@@ -2,7 +2,7 @@
 
 {
     xdg.portal = {
-        enable = mkForce (!elem system [ "aarch64-linux" ]);
+        enable = mkForce j.attrs.no-arms;
         extraPortals = map (portal: pkgs."xdg-desktop-portal-${portal}") [ "gtk" "kde" ];
     };
     i18n = {

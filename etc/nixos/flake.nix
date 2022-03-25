@@ -64,8 +64,13 @@
     outputs = inputs@{ self, nixpkgs, flake-utils, ... }: with builtins; with nixpkgs.lib; with flake-utils.lib; let
         channel = "j";
         make = {
+            pre-pkgs = system: import nixpkgs { inherit system; };
             lib = host: system: nixpkgs.lib.extend (final: prev: {
-                j = import ./lib.nix ({ pkgs = import nixpkgs { inherit system; }; lib = final; inherit inputs; } // (if (host == null) then {} else { inherit host; }));
+                j = import ./lib.nix ({
+                    inherit inputs system;
+                    pkgs = make.pre-pkgs system;
+                    lib = final;
+                } // (if (host == null) then {} else { inherit host; }));
             });
             pre-nixpkgset = system: lib: { inherit system; config = lib.j.attrs.configs.nixpkgs; };
             overlays = system: lib: import ./overlays.nix {

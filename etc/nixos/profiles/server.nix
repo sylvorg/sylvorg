@@ -3,11 +3,7 @@
 {
     services.openssh = {
         enable = true;
-
-        # TODO: Doesn't work on arm, for some reason
-        # allowSFTP = true;
-        allowSFTP = false;
-
+        allowSFTP = j.attrs.no-arms;
         extraConfig = mkOrder 0 ''
             TCPKeepAlive yes
             ClientAliveCountMax 480

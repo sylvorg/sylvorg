@@ -7,7 +7,8 @@ emacs = {
     enable = true;
     defaultEditor = true;
 };
-flatpak.enable = !elem system [ "aarch64-linux" ];
+# flatpak.enable = j.attrs.no-arms;
+flatpak.enable = true;
 guix.enable = true;
 printing.enable = true;
 udev.packages = with pkgs; [
