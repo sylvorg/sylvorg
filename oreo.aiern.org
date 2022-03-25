@@ -1940,7 +1940,10 @@ imports = with flake.inputs; flatten [
 #+begin_src nix
 # config = (removeAttrs nixos-configurations.hardware-configuration.config [ "fileSystems" "nesting" "jobs" "fonts" "meta" "documentation" ]) // {
 config = (filterAttrs (n: v: elem n [ "boot" "networking" "powerManagement" "hardware" ]) nixos-configurations.hardware-configuration.config) //
-    (if fromFlake then (filterAttrs (n: v: elem n [ "system" ]) nixos-configurations.configuration.config) else {}) //
+
+    # TODO: What exactly from `system' am I taking? Merge it explicitly.
+    # (if fromFlake then (filterAttrs (n: v: elem n [ "system" ]) nixos-configurations.configuration.config) else {}) //
+
 {
 #+end_src
 
@@ -2712,7 +2715,10 @@ Help is available in the configuration.nix(5) man page and in the NixOS manual (
 { config, lib, system, ... }: with lib;
 
 {
-    xdg.portal.enable = mkForce (!elem system [ "aarch64-linux" ]);
+    xdg.portal = {
+        enable = mkForce (!elem system [ "aarch64-linux" ]);
+        extraPortals = pkgs.xdg-desktop-portal-gtk;
+    };
     i18n = {
         # Select internationalisation properties.
         defaultLocale = "en_US.UTF-8";

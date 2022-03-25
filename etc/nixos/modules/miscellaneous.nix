@@ -1,7 +1,10 @@
 { config, lib, system, ... }: with lib;
 
 {
-    xdg.portal.enable = mkForce (!elem system [ "aarch64-linux" ]);
+    xdg.portal = {
+        enable = mkForce (!elem system [ "aarch64-linux" ]);
+        extraPortals = pkgs.xdg-desktop-portal-gtk;
+    };
     i18n = {
         # Select internationalisation properties.
         defaultLocale = "en_US.UTF-8";

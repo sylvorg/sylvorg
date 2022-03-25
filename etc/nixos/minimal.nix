@@ -25,7 +25,10 @@ imports = with flake.inputs; flatten [
 ];
 # config = (removeAttrs nixos-configurations.hardware-configuration.config [ "fileSystems" "nesting" "jobs" "fonts" "meta" "documentation" ]) // {
 config = (filterAttrs (n: v: elem n [ "boot" "networking" "powerManagement" "hardware" ]) nixos-configurations.hardware-configuration.config) //
-    (if fromFlake then (filterAttrs (n: v: elem n [ "system" ]) nixos-configurations.configuration.config) else {}) //
+
+    # TODO: What exactly from `system' am I taking? Merge it explicitly.
+    # (if fromFlake then (filterAttrs (n: v: elem n [ "system" ]) nixos-configurations.configuration.config) else {}) //
+
 {
 boot = {
 supportedFilesystems = j.attrs.fileSystems.supported;
