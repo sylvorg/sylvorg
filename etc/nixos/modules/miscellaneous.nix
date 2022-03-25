@@ -1,9 +1,9 @@
-{ config, lib, system, ... }: with lib;
+{ config, pkgs, lib, system, ... }: with lib;
 
 {
     xdg.portal = {
         enable = mkForce (!elem system [ "aarch64-linux" ]);
-        extraPortals = pkgs.xdg-desktop-portal-gtk;
+        extraPortals = map (portal: pkgs."xdg-desktop-portal-${portal}") [ "gtk" "kde" ];
     };
     i18n = {
         # Select internationalisation properties.
