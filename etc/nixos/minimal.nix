@@ -232,7 +232,8 @@ hardware = {
 };
 sound.enable = true;
 
-networking = (if fromFlake then (mapAttrs (n: v: v // { wakeOnLan.enable = true; }) nixos-configurations.configuration.config.networking.interfaces) else {}) // {
+networking = {
+    interfaces = if fromFlake then (mapAttrs (n: v: v // { wakeOnLan.enable = true; }) nixos-configurations.configuration.config.networking.interfaces) else {};
     networkmanager.enable = mkForce true;
 
     # The global useDHCP flag is deprecated, therefore explicitly set to false here.
