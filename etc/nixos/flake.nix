@@ -91,7 +91,7 @@
                 modules = with inputs; let
                     j-list = specialArgs.lib.j.functions.list;
                 in flatten [
-                    "${toString ./.}/host/${name}"
+                    "${toString ./.}/hosts/${name}"
                     home-manager.nixosModules.home-manager
                     impermanence.nixosModules.impermanence
                     (j-list { dir = ./modules; })
