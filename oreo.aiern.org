@@ -2077,7 +2077,7 @@ initrd = {
     postDeviceCommands = mkIf j.attrs.zfs (mkAfter ''
         zfs rollback -r ${config.networking.hostName}/system/root@blank
         zfs rollback -r ${config.networking.hostName}/system/home@blank
-        zfs rollback -r ${config.networking.hostName}/system/tmp@blank
+        # zfs rollback -r ${config.networking.hostName}/system/tmp@blank
     '');
     kernelModules = [ "zfs" "r8169" ];
     availableKernelModules = config.boot.initrd.kernelModules;
