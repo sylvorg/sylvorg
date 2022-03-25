@@ -104,6 +104,7 @@ console = {
 };
 environment = {
 etc."nix/nix.conf".text = mkForce j.attrs.configs.nix;
+systemPackages = pkgs.j.pkgs.j.xonsh.buildInputs;
 persistence = mkIf j.attrs.zfs (let
     rootDirSet = {
         user = "root";
