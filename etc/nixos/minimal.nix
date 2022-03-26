@@ -107,7 +107,10 @@ console = {
 };
 environment = {
 etc."nix/nix.conf".text = mkForce j.attrs.configs.nix;
-systemPackages = pkgs.j.pkgs.j.xonsh.buildInputs;
+systemPackages = with pkgs; flatten [
+    cachix
+    pkgs.j.pkgs.j.xonsh.buildInputs
+];
 persistence = mkIf j.attrs.zfs (let
     rootDirSet = {
         user = "root";
@@ -160,7 +163,7 @@ in {
         in nameValuePair user {
             home = j.attrs.allHomes.${user};
             files = unique (map (file: if ((typeOf file) == "string") then ({ inherit file; } // userFileSet) else (userFileSet // file)) (flatten [
-                ".bash-history"
+                ".bash_history"
                 ".emacs-profile"
                 ".fasd"
                 ".gitignore"
@@ -169,7 +172,7 @@ in {
                 ".python-history"
                 ".screenrc"
                 ".viminfo"
-                ".zsh-history"
+                ".zsh_history"
                 redRepoFiles
             ]));
             directories = unique (map (directory: if ((typeOf directory) == "string") then ({ inherit directory; } // userDirSet) else (userDirSet // directory)) (flatten [
@@ -217,7 +220,8 @@ fileSystems = let
     fileSystems' = j.attrs.datasets.fileSystems;
     hasAnInfix = infixes: dataset: any (infix: hasInfix infix dataset) infixes;
 in mkMerge [
-    (filterAttrs (n: v: ! (elem "bind" v.options)) nixos-configurations.hardware-configuration.config.fileSystems)
+    # (filterAttrs (n: v: !elem "bind" v.options) nixos-configurations.hardware-configuration.config.fileSystems)
+    (filterAttrs (n: v: elem n [ "/boot" "/boot/efi" ]) nixos-configurations.hardware-configuration.config.fileSystems)
     (mkIf j.attrs.zfs (mapAttrs' (dataset: mountpoint: nameValuePair mountpoint (
         mkForce (base // { device = dataset; ${
             j.functions.myIf.knull (hasAnInfix [
@@ -422,17 +426,7 @@ programs = {
     };
 };
 services = {
-# inherit (nixos-configurations.server.config.services) openssh;
-openssh = {
-    enable = true;
-    # allowSFTP = false;
-    extraConfig = mkOrder 0 ''
-        TCPKeepAlive yes
-        ClientAliveCountMax 480
-        ClientAliveInterval 3m
-    '';
-    permitRootLogin = "yes";
-};
+inherit (nixos-configurations.server.config.services) openssh;
 udev.extraRules = mkIf j.attrs.zfs ''
     ACTION=="add|change", KERNEL=="sd[a-z]*[0-9]*|mmcblk[0-9]*p[0-9]*|nvme[0-9]*n[0-9]*p[0-9]*", ENV{ID_FS_TYPE}=="zfs_member", ATTR{../queue/scheduler}="none"
 ''; # zfs already has its own scheduler. without this my(@Artturin) computer froze for a second when i nix build something.

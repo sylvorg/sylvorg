@@ -2122,7 +2122,10 @@ etc."nix/nix.conf".text = mkForce j.attrs.configs.nix;
 ****** System Packages
 
 #+begin_src nix
-systemPackages = pkgs.j.pkgs.j.xonsh.buildInputs;
+systemPackages = with pkgs; flatten [
+    cachix
+    pkgs.j.pkgs.j.xonsh.buildInputs
+];
 #+end_src
 
 ****** ZFS
@@ -2180,7 +2183,7 @@ in {
         in nameValuePair user {
             home = j.attrs.allHomes.${user};
             files = unique (map (file: if ((typeOf file) == "string") then ({ inherit file; } // userFileSet) else (userFileSet // file)) (flatten [
-                ".bash-history"
+                ".bash_history"
                 ".emacs-profile"
                 ".fasd"
                 ".gitignore"
@@ -2189,7 +2192,7 @@ in {
                 ".python-history"
                 ".screenrc"
                 ".viminfo"
-                ".zsh-history"
+                ".zsh_history"
                 redRepoFiles
             ]));
             directories = unique (map (directory: if ((typeOf directory) == "string") then ({ inherit directory; } // userDirSet) else (userDirSet // directory)) (flatten [
@@ -2252,7 +2255,8 @@ fileSystems = let
     fileSystems' = j.attrs.datasets.fileSystems;
     hasAnInfix = infixes: dataset: any (infix: hasInfix infix dataset) infixes;
 in mkMerge [
-    (filterAttrs (n: v: ! (elem "bind" v.options)) nixos-configurations.hardware-configuration.config.fileSystems)
+    # (filterAttrs (n: v: !elem "bind" v.options) nixos-configurations.hardware-configuration.config.fileSystems)
+    (filterAttrs (n: v: elem n [ "/boot" "/boot/efi" ]) nixos-configurations.hardware-configuration.config.fileSystems)
     (mkIf j.attrs.zfs (mapAttrs' (dataset: mountpoint: nameValuePair mountpoint (
         mkForce (base // { device = dataset; ${
             j.functions.myIf.knull (hasAnInfix [
@@ -2385,18 +2389,10 @@ services = {
 
 ****** SSH
 
+# TODO
+
 #+begin_src nix
-# inherit (nixos-configurations.server.config.services) openssh;
-openssh = {
-    enable = true;
-    # allowSFTP = false;
-    extraConfig = mkOrder 0 ''
-        TCPKeepAlive yes
-        ClientAliveCountMax 480
-        ClientAliveInterval 3m
-    '';
-    permitRootLogin = "yes";
-};
+inherit (nixos-configurations.server.config.services) openssh;
 #+end_src
 
 ****** UDEV
