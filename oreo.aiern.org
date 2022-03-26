@@ -944,16 +944,19 @@ Adapted from the following:
 - [[https://www.linode.com/docs/guides/install-nixos-on-linode/#prepare-your-linode][Install and Configure NixOS on a Linode]]
 
 #+begin_src nix :tangle (meq/tangle-path)
-args@{ config, ... }: let
+args@{ config, ... }: with builtins; let
     system = args.system or currentSystem;
     host = args.host or config.networking.hostName;
-    flake = import ..;
+    flake = import ./..;
     inheritanceSet = flake.make.specialArgs host system;
     inherit (inheritanceSet) lib pkgs;
 in with lib; {
     services.openssh = {
         enable = true;
+
+        # TODO: Doesn't work on arm, for some reason
         allowSFTP = j.attrs.no-arms;
+
         extraConfig = mkOrder 0 ''
             TCPKeepAlive yes
             ClientAliveCountMax 480
@@ -1919,7 +1922,7 @@ repo = with lib; j.functions.mntConvert (if dirExists then (fetchGit { url = "fi
 nixos = "${(args.nixpkgs or <nixpkgs>)}/nixos";
 nixos-configuration = attrset: import nixos (attrset // { inherit system; });
 nixos-configurations = {
-    server = nixos-configuration { configuration.imports = [ ./profiles/server.nix ]; };
+    server = nixos-configuration { configuration = import ./profiles/server.nix args; };
     configuration = nixos-configuration { configuration.imports = [ ./configuration.nix ]; };
     hardware-configuration = nixos-configuration { configuration.imports = [
         ./hardware-configuration.nix

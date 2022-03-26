@@ -12,7 +12,7 @@ repo = with lib; j.functions.mntConvert (if dirExists then (fetchGit { url = "fi
 nixos = "${(args.nixpkgs or <nixpkgs>)}/nixos";
 nixos-configuration = attrset: import nixos (attrset // { inherit system; });
 nixos-configurations = {
-    server = nixos-configuration { configuration.imports = [ ./profiles/server.nix ]; };
+    server = nixos-configuration { configuration = import ./profiles/server.nix args; };
     configuration = nixos-configuration { configuration.imports = [ ./configuration.nix ]; };
     hardware-configuration = nixos-configuration { configuration.imports = [
         ./hardware-configuration.nix
