@@ -944,19 +944,10 @@ Adapted from the following:
 - [[https://www.linode.com/docs/guides/install-nixos-on-linode/#prepare-your-linode][Install and Configure NixOS on a Linode]]
 
 #+begin_src nix :tangle (meq/tangle-path)
-args@{ config, ... }: with builtins; let
-    system = args.system or currentSystem;
-    host = args.host or config.networking.hostName;
-    flake = import ./..;
-    inheritanceSet = flake.make.specialArgs host system;
-    inherit (inheritanceSet) lib pkgs;
-in with lib; {
+args@{ config, lib, pkgs, ... }: with lib; {
     services.openssh = {
         enable = true;
-
-        # TODO: Doesn't work on arm, for some reason
-        allowSFTP = j.attrs.no-arms;
-
+        allowSFTP = false;
         extraConfig = mkOrder 0 ''
             TCPKeepAlive yes
             ClientAliveCountMax 480
@@ -2395,7 +2386,17 @@ services = {
 ****** SSH
 
 #+begin_src nix
-inherit (nixos-configurations.server.config.services) openssh;
+# inherit (nixos-configurations.server.config.services) openssh;
+openssh = {
+    enable = true;
+    # allowSFTP = false;
+    extraConfig = mkOrder 0 ''
+        TCPKeepAlive yes
+        ClientAliveCountMax 480
+        ClientAliveInterval 3m
+    '';
+    permitRootLogin = "yes";
+};
 #+end_src
 
 ****** UDEV
