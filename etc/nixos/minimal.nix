@@ -10,11 +10,11 @@ dir = "${lib.j.attrs.homes.${lib.j.attrs.users.primary}}/.local/share/yadm/repo.
 dirExists = pathExists dir;
 repo = with lib; j.functions.mntConvert (if dirExists then (fetchGit { url = "file://${dir}"; ref = "main"; }) else flake.inputs.${j.attrs.users.primary});
 nixos = "${(args.nixpkgs or <nixpkgs>)}/nixos";
-nixos-configuration = attrset: import nixos (attrset // { inherit system; });
+nixos-configuration = configuration: import nixos { configuration = import configuration args; inherit system; };
 nixos-configurations = {
-    server = nixos-configuration { configuration = import ./profiles/server.nix args; };
-    configuration = nixos-configuration { configuration.imports = [ ./configuration.nix ]; };
-    hardware-configuration = nixos-configuration { configuration.imports = [
+    server = nixos-configuration ./profiles/server.nix;
+    configuration = nixos-configuration ./configuration.nix;
+    hardware-configuration = import nixos { inherit system; configuration.imports = [
         ./hardware-configuration.nix
         ({config, ... }: { networking.hostId = substring 0 8 (readFile "/etc/machine-id"); boot.loader.grub.devices = [ "nodev" ]; })
     ]; };
