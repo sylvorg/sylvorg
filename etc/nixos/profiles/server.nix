@@ -1,6 +1,10 @@
-{ config, pkgs, lib, ... }: with lib;
-
-{
+args@{ config, ... }: let
+    system = args.system or currentSystem;
+    host = args.host or config.networking.hostName;
+    flake = import ..;
+    inheritanceSet = flake.make.specialArgs host system;
+    inherit (inheritanceSet) lib pkgs;
+in with lib; {
     services.openssh = {
         enable = true;
         allowSFTP = j.attrs.no-arms;
