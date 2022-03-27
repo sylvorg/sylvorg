@@ -111,7 +111,7 @@ systemPackages = with pkgs; flatten [
     cachix
     pkgs.j.pkgs.j.xonsh.buildInputs
 ];
-persistence = mkIf j.attrs.zfs (let
+persistence = mkIf j.attrs.zfs (mkBefore (let
     rootDirSet = {
         user = "root";
         group = "root";
@@ -225,7 +225,7 @@ in {
             #       Is `/root' being wiped? If not, why is being included?
             ]));}) j.attrs.allUsers);
     };
-});
+}));
 };
 zramSwap = {
     enable = true;

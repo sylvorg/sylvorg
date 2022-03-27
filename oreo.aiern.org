@@ -2130,7 +2130,7 @@ systemPackages = with pkgs; flatten [
 ****** ZFS
 
 #+begin_src nix
-persistence = mkIf j.attrs.zfs (let
+persistence = mkIf j.attrs.zfs (mkBefore (let
     rootDirSet = {
         user = "root";
         group = "root";
@@ -2244,7 +2244,7 @@ in {
             #       Is `/root' being wiped? If not, why is being included?
             ]));}) j.attrs.allUsers);
     };
-});
+}));
 #+end_src
 
 ****** End of Environment
