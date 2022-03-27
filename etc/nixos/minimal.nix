@@ -124,7 +124,7 @@ in {
             "/etc/host"
             "/etc/machine-id"
 
-            (map (directory: map (fd: "/${directory}/${fd}") (attrNames (filterAttrs (n: v: v != "directory") (readDir "${repo}/${directory}")))) [
+            (map (directory: map (fd: "/${directory}/${fd}") (attrNames (filterAttrs (n: v: v != "directory") (let path = "${repo}/${directory}"; in if (pathExists path) then (readDir path) else {})))) [
                 "etc"
                 "var"
             ])
@@ -151,7 +151,7 @@ in {
             "/var/lib/systemd/coredump"
             "/var/log"
 
-            (map (directory: map (fd: "/${directory}/${fd}") (attrNames (filterAttrs (n: v: v == "directory") (readDir "${repo}/${directory}")))) [
+            (map (directory: map (fd: "/${directory}/${fd}") (attrNames (filterAttrs (n: v: v == "directory") (let path = "${repo}/${directory}"; in if (pathExists path) then (readDir path) else {})))) [
                 "etc"
                 "var"
             ])
