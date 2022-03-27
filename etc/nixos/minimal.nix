@@ -1,4 +1,4 @@
-with builtins; args@{ config, options, ... }:
+with builtins; args@{ config, ... }:
 let
 flake = import ./.;
 system = args.system or currentSystem;
@@ -119,10 +119,42 @@ persistence = mkIf j.attrs.zfs (let
     rootFileSet.parentDirectory = rootDirSet;
 in {
     "/persist/root" = {
+        hideMounts = true;
+        files = unique (map (file: if ((typeOf file) == "string") then ({ inherit file; } // rootFileSet) else (rootFileSet // file)) (flatten [
+            "/etc/host"
+            "/etc/machine-id"
+
+            (map (directory: map (fd: "/${directory}/${fd}") (attrNames (filterAttrs (n: v: v != "directory") (readDir "${repo}/${directory}"))) [
+                "etc"
+                "var"
+            ])
+        ]));
         directories = unique (map (directory: if ((typeOf directory) == "string") then ({ inherit directory; } // rootDirSet) else (rootDirSet // directory)) (flatten [
+            "/bin"
+            "/etc/containers"
+            "/etc/NetworkManager/system-connections"
             "/etc/nix"
             "/etc/nixos"
+
+            # TODO: The `sshd_config' validator fails with `Subsystem 'sftp' already defined' and also prevents `sshd_config' itself from being created
+            "/etc/ssh"
+
+            # TODO: Note that this may fail due to the above situation as well
+            "/etc/wireguard"
+
             "/etc/zsh"
+            "/sbin"
+            "/snap"
+            "/usr"
+            "/var/lib/acme"
+            "/var/lib/bluetooth"
+            "/var/lib/systemd/coredump"
+            "/var/log"
+
+            (map (directory: map (fd: "/${directory}/${fd}") (attrNames (filterAttrs (n: v: v == "directory") (readDir "${repo}/${directory}"))) [
+                "etc"
+                "var"
+            ])
         ]));
     };
     "/persist" = let
@@ -135,25 +167,6 @@ in {
             (attrNames (filterAttrs (n: v: v == "directory") redRepo))
         ];
     in {
-        hideMounts = true;
-        files = unique (map (file: if ((typeOf file) == "string") then ({ inherit file; } // rootFileSet) else (rootFileSet // file)) (flatten [
-            "/etc/host"
-            "/etc/machine-id"
-        ]));
-        directories = unique (map (directory: if ((typeOf directory) == "string") then ({ inherit directory; } // rootDirSet) else (rootDirSet // directory)) (flatten [
-            "/bin"
-            "/etc/containers"
-            "/etc/NetworkManager/system-connections"
-            "/etc/ssh"
-            "/etc/wireguard"
-            "/sbin"
-            "/snap"
-            "/usr"
-            "/var/lib/acme"
-            "/var/lib/bluetooth"
-            "/var/lib/systemd/coredump"
-            "/var/log"
-        ]));
         users = listToAttrs (map (user: let
             userDirSet = {
                 inherit user;
@@ -207,6 +220,9 @@ in {
                 { directory = ".nixops"; mode = "0700"; }
                 { directory = ".ssh"; mode = "0700"; }
                 redRepoDirectories
+
+            # TODO: Using `j.attrs.allUsers' means that `root' is being bound multiple times
+            #       Is `/root' being wiped? If not, why is being included?
             ]));}) j.attrs.allUsers);
     };
 });
@@ -426,18 +442,7 @@ programs = {
     };
 };
 services = {
-# inherit (nixos-configurations.server.config.services) openssh;
-openssh = {
-    enable = true;
-    # allowSFTP = false;
-    hostKeys = options.services.openssh.hostKeys.default;
-    # extraConfig = mkOrder 0 ''
-    #     TCPKeepAlive yes
-    #     ClientAliveCountMax 480
-    #     ClientAliveInterval 3m
-    # '';
-    permitRootLogin = "yes";
-};
+inherit (nixos-configurations.server.config.services) openssh;
 udev.extraRules = mkIf j.attrs.zfs ''
     ACTION=="add|change", KERNEL=="sd[a-z]*[0-9]*|mmcblk[0-9]*p[0-9]*|nvme[0-9]*n[0-9]*p[0-9]*", ENV{ID_FS_TYPE}=="zfs_member", ATTR{../queue/scheduler}="none"
 ''; # zfs already has its own scheduler. without this my(@Artturin) computer froze for a second when i nix build something.
