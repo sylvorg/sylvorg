@@ -127,7 +127,7 @@ in {
             (map (directory: map (fd: "/${directory}/${fd}") (attrNames (filterAttrs (n: v: v != "directory") (readDir "${repo}/${directory}"))) [
                 "etc"
                 "var"
-            ])
+            ]))
         ]));
         directories = unique (map (directory: if ((typeOf directory) == "string") then ({ inherit directory; } // rootDirSet) else (rootDirSet // directory)) (flatten [
             "/bin"
@@ -154,7 +154,7 @@ in {
             (map (directory: map (fd: "/${directory}/${fd}") (attrNames (filterAttrs (n: v: v == "directory") (readDir "${repo}/${directory}"))) [
                 "etc"
                 "var"
-            ])
+            ]))
         ]));
     };
     "/persist" = let
