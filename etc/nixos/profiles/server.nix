@@ -1,7 +1,8 @@
-{ config, lib, pkgs, ... }: with lib; {
+{ config, options, lib, pkgs, ... }: with lib; {
     services.openssh = {
         enable = true;
         allowSFTP = false;
+        hostKeys = options.services.openssh.hostKeys.default;
         extraConfig = mkOrder 0 ''
             TCPKeepAlive yes
             ClientAliveCountMax 480

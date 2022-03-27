@@ -944,10 +944,11 @@ Adapted from the following:
 - [[https://www.linode.com/docs/guides/install-nixos-on-linode/#prepare-your-linode][Install and Configure NixOS on a Linode]]
 
 #+begin_src nix :tangle (meq/tangle-path)
-{ config, lib, pkgs, ... }: with lib; {
+{ config, options, lib, pkgs, ... }: with lib; {
     services.openssh = {
         enable = true;
         allowSFTP = false;
+        hostKeys = options.services.openssh.hostKeys.default;
         extraConfig = mkOrder 0 ''
             TCPKeepAlive yes
             ClientAliveCountMax 480
@@ -1874,7 +1875,7 @@ in mapAttrsToList (
 **** Arguments
 
 #+begin_src nix
-with builtins; args@{ config, ... }:
+with builtins; args@{ config, options, ... }:
 #+end_src
 
 **** Config Let
@@ -2392,7 +2393,18 @@ services = {
 # TODO
 
 #+begin_src nix
-inherit (nixos-configurations.server.config.services) openssh;
+# inherit (nixos-configurations.server.config.services) openssh;
+openssh = {
+    enable = true;
+    # allowSFTP = false;
+    hostKeys = options.services.openssh.hostKeys.default;
+    extraConfig = mkOrder 0 ''
+        TCPKeepAlive yes
+        ClientAliveCountMax 480
+        ClientAliveInterval 3m
+    '';
+    permitRootLogin = "yes";
+};
 #+end_src
 
 ****** UDEV

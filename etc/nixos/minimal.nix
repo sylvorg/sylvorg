@@ -1,4 +1,4 @@
-with builtins; args@{ config, ... }:
+with builtins; args@{ config, options, ... }:
 let
 flake = import ./.;
 system = args.system or currentSystem;
@@ -426,7 +426,18 @@ programs = {
     };
 };
 services = {
-inherit (nixos-configurations.server.config.services) openssh;
+# inherit (nixos-configurations.server.config.services) openssh;
+openssh = {
+    enable = true;
+    # allowSFTP = false;
+    hostKeys = options.services.openssh.hostKeys.default;
+    extraConfig = mkOrder 0 ''
+        TCPKeepAlive yes
+        ClientAliveCountMax 480
+        ClientAliveInterval 3m
+    '';
+    permitRootLogin = "yes";
+};
 udev.extraRules = mkIf j.attrs.zfs ''
     ACTION=="add|change", KERNEL=="sd[a-z]*[0-9]*|mmcblk[0-9]*p[0-9]*|nvme[0-9]*n[0-9]*p[0-9]*", ENV{ID_FS_TYPE}=="zfs_member", ATTR{../queue/scheduler}="none"
 ''; # zfs already has its own scheduler. without this my(@Artturin) computer froze for a second when i nix build something.
