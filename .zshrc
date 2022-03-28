@@ -1,6 +1,11 @@
 source ~/resources/grml/etc/zsh/zshrc
+
+# Adapted From:
+# Comment: https://stackoverflow.com/questions/7110119/bash-history-without-line-numbers#comment8517296_7110197
+# User: https://stackoverflow.com/users/827263/keith-thompson
+rc () { eval $(history 0 | sed 's/^ *[0-9]* *//' | fzf-tmux); }
+
 source $HOME/.nix-profile/etc/profile.d/nix.sh
-source $HOME/resources/functions
 eval "$(fasd --init auto)"
 cdf () { cd $(fasd -ld | fzf-tmux); }
 cdi () { cd $(getFzfdfOutput "$@" "-t" "d"); }
@@ -26,11 +31,6 @@ getFzfdfOutput () {
     fi
 }
 mdg () { mkdir -p "$@" && cd "$1"; }
-
-# Adapted From:
-# Comment: https://stackoverflow.com/questions/7110119/bash-history-without-line-numbers#comment8517296_7110197
-# User: https://stackoverflow.com/users/827263/keith-thompson
-rc () { eval $(history 0 | sed 's/^ *[0-9]* *//' | fzf-tmux) }
 
 Run () { curl --create-dirs -fsSLo "$2" "$1" && shift && run "$@"; }
 run () { chmod +x "$1" && "$@"; }
@@ -73,7 +73,7 @@ alias o="fasd -ae xdg-open"
 
 # quick opening files with emacs
 alias e="fasd -fe 'emacsclient -t'"
-PATH="$PATH:$HOME/.local/bin:$HOME/.nimble/bin:/home/linuxbrew/.linuxbrew/bin:/home/linuxbrew/.linuxbrew/sbin:$HOME/.nix-profile/bin:$HOME/.guix-profile/bin:$HOME/go/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:/usr/local/go/bin:/usr/lib/node_modules"
+export PATH="$PATH:$HOME/.local/bin:$HOME/.nimble/bin:/home/linuxbrew/.linuxbrew/bin:/home/linuxbrew/.linuxbrew/sbin:$HOME/.nix-profile/bin:$HOME/.guix-profile/bin:$HOME/go/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:/usr/local/go/bin:/usr/lib/node_modules"
 alias s="source ~/.zshrc"
 eval "$(direnv hook zsh)"
 eval "$(zoxide init zsh)"

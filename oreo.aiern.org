@@ -2130,7 +2130,7 @@ systemPackages = with pkgs; flatten [
 ****** ZFS
 
 #+begin_src nix
-persistence = mkIf j.attrs.zfs (mkBefore (let
+persistence = mkIf j.attrs.zfs (let
     rootDirSet = {
         user = "root";
         group = "root";
@@ -2244,7 +2244,7 @@ in {
             #       Is `/root' being wiped? If not, why is being included?
             ]));}) j.attrs.allUsers);
     };
-}));
+});
 #+end_src
 
 ****** End of Environment
@@ -3085,35 +3085,6 @@ exec /usr/bin/caddy run --config /.config/caddy/files/<<hostname>> --adapter yam
 
 #+begin_src zsh :shebang "#!/usr/bin/env zsh"
 killall caddy
-#+end_src
-
-* resources
-** functions
-
-#+begin_src sh :tangle (meq/tangle-path) :shebang "#!/usr/bin/env sh"
-getSecret() {
-    # Adapted From: https://stackoverflow.com/a/3980713/10827766
-    set +o history
-    stty -echo
-    printf "$1: "
-    shift
-    read secret
-    stty echo
-    printf "\n"
-    echo $secret | $@
-    set -o history
-}
-
-# Adapted From: https://askubuntu.com/a/15856/1058868
-inRoot() { [[ $EUID -eq 0 ]] && $1 || : }
-notInRoot() { [[ $EUID -ne 0 ]] && $1 || : }
-
-inAndroid() { [[ $(uname -a) == *Android* ]] && $1 || : }
-notInAndroid() { [[ $(uname -a) != *Android* ]] && $1 || : }
-inUbuntu() { [[ $(uname -a) == *Ubuntu* ]] && $1 || : }
-notInUbuntu() { [[ $(uname -a) != *Ubuntu* ]] && $1 || : }
-inNixOS() { [[ $(uname -a) == *NixOS* ]] && $1 || : }
-notInNixOS() { [[ $(uname -a) != *NixOS* ]] && $1 || : }
 #+end_src
 
 * .gitattributes
@@ -4781,7 +4752,6 @@ session_name: default
 #+name: profile-sources
 #+begin_src shell
 source $HOME/.nix-profile/etc/profile.d/nix.sh
-source $HOME/resources/functions
 eval "$(fasd --init auto)"
 #+end_src
 
@@ -4850,11 +4820,6 @@ getFzfdfOutput () {
 }
 mdg () { mkdir -p "$@" && cd "$1"; }
 
-# Adapted From:
-# Comment: https://stackoverflow.com/questions/7110119/bash-history-without-line-numbers#comment8517296_7110197
-# User: https://stackoverflow.com/users/827263/keith-thompson
-rc () { eval $(history 0 | sed 's/^ *[0-9]* *//' | fzf-tmux) }
-
 Run () { curl --create-dirs -fsSLo "$2" "$1" && shift && run "$@"; }
 run () { chmod +x "$1" && "$@"; }
 #+end_src
@@ -4891,7 +4856,7 @@ export LESS=' -R '
     (pcase shell
         ("fish" (concat "set -gx PATH $PATH" (string-join path " ")))
         ("xonsh" (concat "$PATH += [ \"" (string-join path "\",\n\t\"") "\" ]"))
-        (t (concat "PATH=\"$PATH:" (string-join path ":") "\""))))
+        (t (concat "export PATH=\"$PATH:" (string-join path ":") "\""))))
 #+end_src
 
 #+name: profile-all-together
@@ -4904,6 +4869,11 @@ export LESS=' -R '
 #+end_src
 
 #+begin_src shell
+# Adapted From:
+# Comment: https://stackoverflow.com/questions/7110119/bash-history-without-line-numbers#comment8517296_7110197
+# User: https://stackoverflow.com/users/827263/keith-thompson
+rc () { eval $(history | sed 's/^ *[0-9]* *//' | fzf-tmux); }
+
 alias s="source $HOME/.profile"
 #+end_src
 
@@ -4923,6 +4893,11 @@ alias s="source $HOME/.profile"
 
 #+name: 20211027212836251792500
 #+begin_src bash
+# Adapted From:
+# Comment: https://stackoverflow.com/questions/7110119/bash-history-without-line-numbers#comment8517296_7110197
+# User: https://stackoverflow.com/users/827263/keith-thompson
+rc () { eval $(history | sed 's/^ *[0-9]* *//' | fzf-tmux); }
+
 <<profile-all-together>>
 alias s="source ~/.bashrc"
 eval "$(direnv hook bash)"
@@ -5077,6 +5052,12 @@ temp
 
 #+begin_src zsh
 source ~/resources/grml/etc/zsh/zshrc
+
+# Adapted From:
+# Comment: https://stackoverflow.com/questions/7110119/bash-history-without-line-numbers#comment8517296_7110197
+# User: https://stackoverflow.com/users/827263/keith-thompson
+rc () { eval $(history 0 | sed 's/^ *[0-9]* *//' | fzf-tmux); }
+
 <<profile-all-together>>
 alias s="source ~/.zshrc"
 eval "$(direnv hook zsh)"

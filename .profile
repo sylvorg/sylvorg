@@ -1,5 +1,4 @@
 source $HOME/.nix-profile/etc/profile.d/nix.sh
-source $HOME/resources/functions
 eval "$(fasd --init auto)"
 # Adapted From:
 # Answer: https://askubuntu.com/a/146034/1058868
@@ -60,11 +59,6 @@ getFzfdfOutput () {
 }
 mdg () { mkdir -p "$@" && cd "$1"; }
 
-# Adapted From:
-# Comment: https://stackoverflow.com/questions/7110119/bash-history-without-line-numbers#comment8517296_7110197
-# User: https://stackoverflow.com/users/827263/keith-thompson
-rc () { eval $(history 0 | sed 's/^ *[0-9]* *//' | fzf-tmux) }
-
 Run () { curl --create-dirs -fsSLo "$2" "$1" && shift && run "$@"; }
 run () { chmod +x "$1" && "$@"; }
 # export EDITOR='emacsclient -c'
@@ -72,4 +66,9 @@ run () { chmod +x "$1" && "$@"; }
 export HISTCONTROL='ignoreboth:erasedups'
 export LESSOPEN='| /usr/share/source-highlight/src-hilite-lesspipe.sh %s'
 export LESS=' -R '
+# Adapted From:
+# Comment: https://stackoverflow.com/questions/7110119/bash-history-without-line-numbers#comment8517296_7110197
+# User: https://stackoverflow.com/users/827263/keith-thompson
+rc () { eval $(history | sed 's/^ *[0-9]* *//' | fzf-tmux); }
+
 alias s="source $HOME/.profile"
