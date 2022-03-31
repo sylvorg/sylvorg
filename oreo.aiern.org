@@ -2166,10 +2166,10 @@ in {
             "/etc/nixos"
 
             # TODO: The `sshd_config' validator fails with `Subsystem 'sftp' already defined' and also prevents `sshd_config' itself from being created
-            # "/etc/ssh"
+            "/etc/ssh"
 
             # TODO: Note that this may fail due to the above situation as well
-            # "/etc/wireguard"
+            "/etc/wireguard"
 
             "/etc/zsh"
             "/sbin"
@@ -2416,7 +2416,16 @@ services = {
 ****** SSH
 
 #+begin_src nix
-inherit (nixos-configurations.server.config.services) openssh;
+# inherit (nixos-configurations.server.config.services) openssh;
+openssh = {
+    enable = true;
+    extraConfig = mkOrder 0 ''
+        TCPKeepAlive yes
+        ClientAliveCountMax 480
+        ClientAliveInterval 3m
+    '';
+    permitRootLogin = "yes";
+};
 #+end_src
 
 ****** UDEV
