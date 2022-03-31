@@ -6,7 +6,7 @@ in with import flake.inputs.nixpkgs (flake.make.specialArgs null currentSystem).
 
         src = ./strapper;
 
-        buildInputs = [ python310 sd gcc rsync ] ++ (with python310Packages; [ bakery ]);
+        buildInputs = [ python310 sd gcc rsync xonsh ] ++ (with python310Packages; [ bakery ]);
         nativeBuildInputs = buildInputs;
 
         phases = [ "installPhase" ];
@@ -20,4 +20,7 @@ in with import flake.inputs.nixpkgs (flake.make.specialArgs null currentSystem).
 in mkShell rec {
     buildInputs = [ strapper ] ++ strapper.buildInputs;
     nativeBuildInputs = buildInputs;
+    shellHook = ''
+        exec xonsh
+    '';
 }
