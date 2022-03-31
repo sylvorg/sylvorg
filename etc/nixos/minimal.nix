@@ -446,7 +446,8 @@ programs = {
     };
 };
 services = {
-inherit (nixos-configurations.server.config.services) openssh;
+# inherit (nixos-configurations.server.config.services) openssh;
+openssh = mkForce nixos-configurations.server.config.services.openssh;
 # openssh = {
 #     enable = true;
 #     extraConfig = mkOrder 0 ''

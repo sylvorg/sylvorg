@@ -947,12 +947,12 @@ Adapted from the following:
 { config, lib, pkgs, ... }: with lib; {
     services.openssh = {
         enable = true;
-        # extraConfig = mkOrder 0 ''
-        #     TCPKeepAlive yes
-        #     ClientAliveCountMax 480
-        #     ClientAliveInterval 3m
-        # '';
-        # permitRootLogin = "yes";
+        extraConfig = mkOrder 0 ''
+            TCPKeepAlive yes
+            ClientAliveCountMax 480
+            ClientAliveInterval 3m
+        '';
+        permitRootLogin = "yes";
     };
 
     environment.systemPackages = with pkgs; [ inetutils mtr sysstat git ];
@@ -2416,7 +2416,8 @@ services = {
 ****** SSH
 
 #+begin_src nix
-inherit (nixos-configurations.server.config.services) openssh;
+# inherit (nixos-configurations.server.config.services) openssh;
+openssh = mkForce nixos-configurations.server.config.services.openssh;
 # openssh = {
 #     enable = true;
 #     extraConfig = mkOrder 0 ''
