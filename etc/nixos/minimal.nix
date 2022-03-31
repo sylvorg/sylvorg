@@ -43,27 +43,30 @@ loader = {
     systemd-boot = {
         configurationLimit = 25;
         editor = mkForce false;
-        # enable = mkForce false;
-        enable = mkForce true;
+        enable = mkForce false;
+        # enable = mkForce true;
     };
     grub = {
-        # enable = mkForce true;
-        enable = mkForce false;
+        enable = mkForce true;
+        # enable = mkForce false;
         efiSupport = true;
         efiInstallAsRemovable = mkForce false;
+        # efiInstallAsRemovable = mkForce true;
         # devices = [ "nodev" ];
-        device = "nodev";
+        # device = "nodev";
+        device = if config.boot.loader.grub.efiSupport then config.boot.loader.efi.efiSysMountPoint else "/boot";
         version = 2;
+        useOSProber = true;
 
         # TODO: Get more options
         extraEntries = ''
             menuentry "Reboot" { reboot }
             menuentry "Poweroff" { halt }
         '';
-
     };
     efi = {
         canTouchEfiVariables = mkForce true;
+        # canTouchEfiVariables = mkForce false;
         efiSysMountPoint = "/boot/efi";
     };
     timeout = 10;
@@ -199,6 +202,7 @@ in {
                 ".mozilla"
                 ".peru"
                 ".pki"
+                ".repos"
                 ".vim_runtime"
                 ".virtualenvs"
                 ".vscode-oss"
@@ -279,7 +283,7 @@ networking = {
         privateKeyFile = "/persist/etc/wireguard/wg0";
     };
 
-    firewall = mkIf (elem config.networking.hostName j.attrs.machines.relays) {
+    firewall = mkIf j.attrs.relay {
         allowedTCPPorts = [ 22 80 222 443 2022 8080 9418 ];
         allowedUDPPortRanges = [
             {

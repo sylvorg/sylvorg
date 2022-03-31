@@ -105,8 +105,10 @@ in listToAttrs (map (file: nameValuePair
 attrs = rec {
 machines = {
 relays = [ "argus" "bastiodon" ];
-no-zfs = [ "yggdrasil" ];
+no-zfs = [ "yggdrasil" "infinity" ];
 };
+relay = elem host machines.relays;
+not-relay = ! relay;
 not-zfs = elem host machines.no-zfs;
 zfs = ! not-zfs;
 configs = {

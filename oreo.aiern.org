@@ -1373,6 +1373,13 @@ no-zfs = [ <<no-zfs>> ];
 };
 #+end_src
 
+******* Relay
+
+#+begin_src nix
+relay = elem host machines.relays;
+not-relay = ! relay;
+#+end_src
+
 ******* ZFS
 
 #+begin_src nix
@@ -1983,27 +1990,30 @@ loader = {
     systemd-boot = {
         configurationLimit = 25;
         editor = mkForce false;
-        # enable = mkForce false;
-        enable = mkForce true;
+        enable = mkForce false;
+        # enable = mkForce true;
     };
     grub = {
-        # enable = mkForce true;
-        enable = mkForce false;
+        enable = mkForce true;
+        # enable = mkForce false;
         efiSupport = true;
         efiInstallAsRemovable = mkForce false;
+        # efiInstallAsRemovable = mkForce true;
         # devices = [ "nodev" ];
-        device = "nodev";
+        # device = "nodev";
+        device = if config.boot.loader.grub.efiSupport then config.boot.loader.efi.efiSysMountPoint else "/boot";
         version = 2;
+        useOSProber = true;
 
         # TODO: Get more options
         extraEntries = ''
             menuentry "Reboot" { reboot }
             menuentry "Poweroff" { halt }
         '';
-
     };
     efi = {
         canTouchEfiVariables = mkForce true;
+        # canTouchEfiVariables = mkForce false;
         efiSysMountPoint = "/boot/efi";
     };
     timeout = 10;
@@ -2218,6 +2228,7 @@ in {
                 ".mozilla"
                 ".peru"
                 ".pki"
+                ".repos"
                 ".vim_runtime"
                 ".virtualenvs"
                 ".vscode-oss"
@@ -2323,7 +2334,7 @@ networking = {
         privateKeyFile = "/persist/etc/wireguard/wg0";
     };
 
-    firewall = mkIf (elem config.networking.hostName j.attrs.machines.relays) {
+    firewall = mkIf j.attrs.relay {
         allowedTCPPorts = [ 22 80 222 443 2022 8080 9418 ];
         allowedUDPPortRanges = [
             {
@@ -2974,7 +2985,7 @@ in {
         # packages = with pkgs; [ runit ];
         services = {
             # runit.enable = true;
-            caddy = mkIf (elem config.networking.hostName j.attrs.machines.relays) (j.attrs.configs.services.base // {
+            caddy = mkIf j.attrs.relay (j.attrs.configs.services.base // {
                 serviceConfig = {
                     ExecStart = ''
                         ${pkgs.caddy}/bin/caddy run --config ${j.attrs.homes.${j.attrs.users.primary}}/.config/caddy/files/${config.networking.hostName} --adapter yaml 2>&1
