@@ -1917,7 +1917,7 @@ repo = with lib; j.functions.mntConvert (if dirExists then (fetchGit { url = "fi
 
 #+begin_src nix
 nixos = "${(args.nixpkgs or <nixpkgs>)}/nixos";
-nixos-configuration = configuration: import nixos { configuration = import configuration args; inherit system; };
+nixos-configuration = configuration: import nixos { configuration = import configuration (args // inheritanceSet); inherit system; };
 nixos-configurations = {
     server = nixos-configuration ./profiles/server.nix;
     configuration = nixos-configuration ./configuration.nix;
