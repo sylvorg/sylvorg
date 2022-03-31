@@ -140,10 +140,10 @@ in {
             "/etc/nixos"
 
             # TODO: The `sshd_config' validator fails with `Subsystem 'sftp' already defined' and also prevents `sshd_config' itself from being created
-            "/etc/ssh"
+            # "/etc/ssh"
 
             # TODO: Note that this may fail due to the above situation as well
-            "/etc/wireguard"
+            # "/etc/wireguard"
 
             "/etc/zsh"
             "/sbin"
