@@ -946,7 +946,7 @@ Adapted from the following:
 #+begin_src nix :tangle (meq/tangle-path)
 { config, lib, pkgs, ... }: with lib; {
     services.openssh = {
-        # enable = true;
+        enable = true;
         # extraConfig = mkOrder 0 ''
         #     TCPKeepAlive yes
         #     ClientAliveCountMax 480

@@ -1,6 +1,6 @@
 { config, lib, pkgs, ... }: with lib; {
     services.openssh = {
-        # enable = true;
+        enable = true;
         # extraConfig = mkOrder 0 ''
         #     TCPKeepAlive yes
         #     ClientAliveCountMax 480
