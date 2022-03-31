@@ -946,13 +946,13 @@ Adapted from the following:
 #+begin_src nix :tangle (meq/tangle-path)
 { config, lib, pkgs, ... }: with lib; {
     services.openssh = {
-        enable = true;
-        extraConfig = mkOrder 0 ''
-            TCPKeepAlive yes
-            ClientAliveCountMax 480
-            ClientAliveInterval 3m
-        '';
-        permitRootLogin = "yes";
+        # enable = true;
+        # extraConfig = mkOrder 0 ''
+        #     TCPKeepAlive yes
+        #     ClientAliveCountMax 480
+        #     ClientAliveInterval 3m
+        # '';
+        # permitRootLogin = "yes";
     };
 
     environment.systemPackages = with pkgs; [ inetutils mtr sysstat git ];
@@ -2416,16 +2416,16 @@ services = {
 ****** SSH
 
 #+begin_src nix
-# inherit (nixos-configurations.server.config.services) openssh;
-openssh = {
-    enable = true;
-    extraConfig = mkOrder 0 ''
-        TCPKeepAlive yes
-        ClientAliveCountMax 480
-        ClientAliveInterval 3m
-    '';
-    permitRootLogin = "yes";
-};
+inherit (nixos-configurations.server.config.services) openssh;
+# openssh = {
+#     enable = true;
+#     extraConfig = mkOrder 0 ''
+#         TCPKeepAlive yes
+#         ClientAliveCountMax 480
+#         ClientAliveInterval 3m
+#     '';
+#     permitRootLogin = "yes";
+# };
 #+end_src
 
 ****** UDEV
