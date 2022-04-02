@@ -261,7 +261,7 @@ sound.enable = true;
 networking = {
     networkmanager.enable = mkForce true;
     interfaces = if fromFlake then (mapAttrs (n: v: v // {
-        useDHCP = mkForce !config.networking.networkmanager.enable;
+        useDHCP = mkForce (! config.networking.networkmanager.enable);
         wakeOnLan.enable = true;
     }) (filterAttrs (n: v: !elem n [ "wg0" ]) nixos-configurations.configuration.config.networking.interfaces)) else {};
 
