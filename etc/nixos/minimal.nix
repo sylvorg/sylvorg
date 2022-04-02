@@ -43,12 +43,12 @@ loader = {
     systemd-boot = {
         configurationLimit = 25;
         editor = mkForce false;
-        enable = mkForce false;
-        # enable = mkForce true;
+        # enable = mkForce false;
+        enable = mkForce true;
     };
     grub = {
-        enable = mkForce true;
-        # enable = mkForce false;
+        # enable = mkForce true;
+        enable = mkForce false;
         efiSupport = true;
         efiInstallAsRemovable = mkForce false;
         # efiInstallAsRemovable = mkForce true;
@@ -140,7 +140,7 @@ in {
             "/etc/nixos"
 
             # TODO: Prevents `sshd_config' itself from being created
-            # "/etc/ssh"
+            "/etc/ssh"
 
             # TODO: Note that this may fail in the above situation as well
             "/etc/wireguard"
@@ -259,8 +259,11 @@ hardware = {
 sound.enable = true;
 
 networking = {
-    interfaces = if fromFlake then (mapAttrs (n: v: v // { wakeOnLan.enable = true; }) nixos-configurations.configuration.config.networking.interfaces) else {};
     networkmanager.enable = mkForce true;
+    interfaces = if fromFlake then (mapAttrs (n: v: v // {
+        useDHCP = mkForce (if (elem n [ "wg0" ]) then false else if (elem n [ ]) then true else !config.networking.networkmanager.enable);
+        wakeOnLan.enable = true;
+    }) nixos-configurations.configuration.config.networking.interfaces) else {};
 
     # The global useDHCP flag is deprecated, therefore explicitly set to false here.
     # Per-interface useDHCP will be mandatory in the future, so this generated config
