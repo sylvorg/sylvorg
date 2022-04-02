@@ -243,11 +243,11 @@ in mkMerge [
     (filterAttrs (n: v: elem n [ "/boot" "/boot/efi" ]) nixos-configurations.hardware-configuration.config.fileSystems)
     (mkIf j.attrs.zfs (mapAttrs' (dataset: mountpoint: nameValuePair mountpoint (
         mkForce (base // { device = dataset; ${
-            j.functions.myIf.knull (hasAnInfix [
+            j.functions.myIf.knull ((hasAnInfix [
                 j.attrs.users.primary
                 "persist"
                 "home"
-            ] dataset) "neededForBoot"
+            ] dataset) || (elem dataset [ "/" ])) "neededForBoot"
         } = true; })
     )) fileSystems'))
 ];
