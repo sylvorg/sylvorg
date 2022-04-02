@@ -139,10 +139,10 @@ in {
             "/etc/nix"
             "/etc/nixos"
 
-            # TODO: The `sshd_config' validator fails with `Subsystem 'sftp' already defined' and also prevents `sshd_config' itself from being created
-            "/etc/ssh"
+            # TODO: Prevents `sshd_config' itself from being created
+            # "/etc/ssh"
 
-            # TODO: Note that this may fail due to the above situation as well
+            # TODO: Note that this may fail in the above situation as well
             "/etc/wireguard"
 
             "/etc/zsh"
@@ -164,7 +164,6 @@ in {
         redRepo = readDir repo;
         redRepoFiles = flatten [
             (attrNames (filterAttrs (n: v: v != "directory") redRepo))
-            [ "configuration.nix" "hardware-configuration.nix" "datasets.nix" ]
         ];
         redRepoDirectories = flatten [
             (attrNames (filterAttrs (n: v: v == "directory") redRepo))
@@ -446,17 +445,7 @@ programs = {
     };
 };
 services = {
-# inherit (nixos-configurations.server.config.services) openssh;
 openssh = mkForce nixos-configurations.server.config.services.openssh;
-# openssh = {
-#     enable = true;
-#     extraConfig = mkOrder 0 ''
-#         TCPKeepAlive yes
-#         ClientAliveCountMax 480
-#         ClientAliveInterval 3m
-#     '';
-#     permitRootLogin = "yes";
-# };
 udev.extraRules = mkIf j.attrs.zfs ''
     ACTION=="add|change", KERNEL=="sd[a-z]*[0-9]*|mmcblk[0-9]*p[0-9]*|nvme[0-9]*n[0-9]*p[0-9]*", ENV{ID_FS_TYPE}=="zfs_member", ATTR{../queue/scheduler}="none"
 ''; # zfs already has its own scheduler. without this my(@Artturin) computer froze for a second when i nix build something.

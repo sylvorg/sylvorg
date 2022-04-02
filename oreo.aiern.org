@@ -1656,8 +1656,10 @@ in flatten [
 **** Patched Fetchers
 
 #+begin_src nix :noweb-ref no
-(final: prev: { fetchurl = prev.fetchurl.overrideAttrs (attrs: { patches = j.attrs.patches ++ [ ./patches/fetchurl.patch ];}); })
-(final: prev: { fetchpypi = prev.fetchpypi.overrideAttrs (attrs: { patches = j.attrs.patches ++ [ ./patches/fetchpypi.patch ];}); })
+(final: prev: {
+    fetchurl = prev.fetchurl.overrideAttrs (attrs: { patches = j.attrs.patches ++ [ ./patches/fetchurl.patch ];});
+    fetchpypi = prev.fetchpypi.overrideAttrs (attrs: { patches = j.attrs.patches ++ [ ./patches/fetchpypi.patch ];});
+})
 #+end_src
 
 **** NIX
@@ -1742,9 +1744,7 @@ in mapAttrsToList (
             pkg1 = if pkgIsAttrs then (last (attrNames pkg')) else pkg';
             pkg2 = if pkgIsAttrs then (last (attrValues pkg')) else pkg';
             self = (pkgchannel == channel) || (pkgchannel == "self");
-        in (final: prev: {
-            "${pkg1}" = if self then prev.${pkg2} else final.j.pkgs.${pkgchannel}.${pkg2};
-        })
+        in (final: prev: { "${pkg1}" = if self then prev.${pkg2} else final.j.pkgs.${pkgchannel}.${pkg2}; })
     ) pkglist
 ) pkgsets)
 #+end_src
@@ -2168,10 +2168,10 @@ in {
             "/etc/nix"
             "/etc/nixos"
 
-            # TODO: The `sshd_config' validator fails with `Subsystem 'sftp' already defined' and also prevents `sshd_config' itself from being created
-            "/etc/ssh"
+            # TODO: Prevents `sshd_config' itself from being created
+            # "/etc/ssh"
 
-            # TODO: Note that this may fail due to the above situation as well
+            # TODO: Note that this may fail in the above situation as well
             "/etc/wireguard"
 
             "/etc/zsh"
@@ -2193,7 +2193,6 @@ in {
         redRepo = readDir repo;
         redRepoFiles = flatten [
             (attrNames (filterAttrs (n: v: v != "directory") redRepo))
-            [ "configuration.nix" "hardware-configuration.nix" "datasets.nix" ]
         ];
         redRepoDirectories = flatten [
             (attrNames (filterAttrs (n: v: v == "directory") redRepo))
@@ -2419,17 +2418,7 @@ services = {
 ****** SSH
 
 #+begin_src nix
-# inherit (nixos-configurations.server.config.services) openssh;
 openssh = mkForce nixos-configurations.server.config.services.openssh;
-# openssh = {
-#     enable = true;
-#     extraConfig = mkOrder 0 ''
-#         TCPKeepAlive yes
-#         ClientAliveCountMax 480
-#         ClientAliveInterval 3m
-#     '';
-#     permitRootLogin = "yes";
-# };
 #+end_src
 
 ****** UDEV
