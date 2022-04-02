@@ -2315,9 +2315,9 @@ sound.enable = true;
 networking = {
     networkmanager.enable = mkForce true;
     interfaces = if fromFlake then (mapAttrs (n: v: v // {
-        useDHCP = mkForce (if (elem n [ "wg0" ]) then false else if (elem n [ ]) then true else !config.networking.networkmanager.enable);
+        useDHCP = mkForce !config.networking.networkmanager.enable;
         wakeOnLan.enable = true;
-    }) nixos-configurations.configuration.config.networking.interfaces) else {};
+    }) (filterAttrs (n: v: !elem n [ "wg0" ]) nixos-configurations.configuration.config.networking.interfaces)) else {};
 
     # The global useDHCP flag is deprecated, therefore explicitly set to false here.
     # Per-interface useDHCP will be mandatory in the future, so this generated config
