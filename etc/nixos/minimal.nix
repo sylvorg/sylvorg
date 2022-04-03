@@ -88,11 +88,12 @@ kernelModules = [ "zfs" ];
 kernelParams = [ "nohibernate" ];
 # loader.grub.zfsSupport = mkIf j.attrs.zfs true;
 initrd = {
-    postDeviceCommands = mkIf j.attrs.zfs (mkAfter ''
-        zfs rollback -r ${config.networking.hostName}/system/root@blank
-        zfs rollback -r ${config.networking.hostName}/system/home@blank
-        # zfs rollback -r ${config.networking.hostName}/system/tmp@blank
-    '');
+    postDeviceCommands = mkIf j.attrs.zfs (mkAfter (concatMapStrings (d: "zfs rollback -r ${d}@blank\n") (filter (d: (j.functions.hasAPrefix [
+        "${host}/system/home"
+    ] d) || (elem d [
+        "${host}/system/root"
+        # "${host}/system/tmp"
+    ])) (attrNames datasets))));
     kernelModules = [ "zfs" "r8169" ];
     availableKernelModules = config.boot.initrd.kernelModules;
 };
@@ -223,9 +224,6 @@ in {
                 { directory = ".nixops"; mode = "0700"; }
                 { directory = ".ssh"; mode = "0700"; }
                 redRepoDirectories
-
-            # TODO: Using `j.attrs.allUsers' means that `root' is being bound multiple times
-            #       Is `/root' being wiped? If not, why is being included?
             ]));}) j.attrs.allUsers);
     };
 });
@@ -236,20 +234,18 @@ zramSwap = {
 };
 fileSystems = let
     inherit (j.attrs.fileSystems) base;
-    fileSystems' = j.attrs.datasets.fileSystems;
-    hasAnInfix = infixes: dataset: any (infix: hasInfix infix dataset) infixes;
 in mkMerge [
     # (filterAttrs (n: v: !elem "bind" v.options) nixos-configurations.hardware-configuration.config.fileSystems)
     (filterAttrs (n: v: elem n [ "/boot" "/boot/efi" ]) nixos-configurations.hardware-configuration.config.fileSystems)
     (mkIf j.attrs.zfs (mapAttrs' (dataset: mountpoint: nameValuePair mountpoint (
         mkForce (base // { device = dataset; ${
-            j.functions.myIf.knull ((hasAnInfix [
+            j.functions.myIf.knull ((j.functions.hasAnInfix [
                 j.attrs.users.primary
                 "persist"
                 "home"
             ] dataset) || (elem dataset [ ])) "neededForBoot"
         } = true; })
-    )) fileSystems'))
+    )) j.attrs.datasets.fileSystems))
 ];
 hardware = {
     enableRedistributableFirmware = lib.mkDefault true;

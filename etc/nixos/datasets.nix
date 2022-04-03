@@ -1,4 +1,5 @@
-host: { "${host}/system/root" = "/";
+host: {
+	"${host}/system/root" = "/";
 	"${host}/shadowrylander" = "/shadowrylander";
 	"${host}/shadowrylander/oreo" = "/home/shadowrylander/oreo";
 	"${host}/shadowrylander/sylveon" = "/home/shadowrylander/sylveon";

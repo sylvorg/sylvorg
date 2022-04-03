@@ -48,9 +48,9 @@ in {
         yearly = 104;
     };
 
-    datasets = listToAttrs (map (dataset: nameValuePair "${config.networking.hostName}/${dataset}" sanoidBase) (flatten [
+    datasets = listToAttrs (map (dataset: nameValuePair "${host}/${dataset}" sanoidBase) (flatten [
         j.attrs.datasets.backup
-        config.networking.hostName
+        host
     ]));
 };
 syncoid = let
@@ -77,7 +77,7 @@ in {
     sshKey = "/root/.ssh/id_ecdsa";
     commands = listToAttrs (map (dataset: nameValuePair "${host}/${dataset}" (syncoidBase // { target = ""; })) (flatten [
         j.attrs.datasets.backup
-        config.networking.hostName
+        host
     ]));
 };
 };}

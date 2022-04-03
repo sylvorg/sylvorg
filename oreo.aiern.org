@@ -195,7 +195,7 @@ dross
            (assoc (. datasets [s] [d] home [d]) user (dict))
            (assoc (. datasets virt [d] podman [d]) user (dict)))
       (with [dnix (open (+ resources "/datasets.nix") "w")]
-            (.write dnix (+ "host: { \""
+            (.write dnix (+ "host: { \n\t\""
                             (or root-device "${host}/system/root")
                             "\" = \"/\";"
                             "\n"))
@@ -1250,19 +1250,19 @@ remove = {
 ********* Prefix
 
 #+begin_src nix
-prefix = ignores: list: filter (f: ! any (b: b == true) (map (i: hasPrefix i f) ignores)) list;
+prefix = ignores: list: filter (f: ! any (i: hasPrefix i f) ignores) list;
 #+end_src
 
 ********* Suffix
 
 #+begin_src nix
-suffix = ignores: list: filter (f: ! any (b: b == true) (map (i: hasSuffix i f) ignores)) list;
+suffix = ignores: list: filter (f: ! any (i: hasSuffix i f) ignores) list;
 #+end_src
 
 ********* Infix
 
 #+begin_src nix
-infix = ignores: list: filter (f: ! any (b: b == true) (map (i: hasInfix i f) ignores)) list;
+infix = ignores: list: filter (f: ! any (i: hasInfix i f) ignores) list;
 #+end_src
 
 ********* End of Remove
@@ -1293,6 +1293,25 @@ recurseDir = { dir, local ? false, iter ? 0, ignores ? {} }: with lib; let
     in if (local == null) then (map (f: replaceStrings [ stringDir' ] [ "" ] f) recurse') else if (local == 0) then (map (f: replaceStrings [ stringDir' ] [ "/" ] f) recurse') else if local then (map (f: replaceStrings [ stringDir' ] [ "./" ] f) recurse') else recurse';
     process = recurse': with filters.remove; pipe recurse' [ process' (prefix processed-prefix) (suffix (ignores.suffix or [])) (infix (ignores.infix or [])) ];
 in if (iter == 0) then (process recurse) else recurse;
+#+end_src
+
+******* Has A
+******** Prefix
+
+#+begin_src nix
+hasAPrefix = prefixes: string: any (prefix: hasPrefix prefix string) prefixes;
+#+end_src
+
+******** Suffix
+
+#+begin_src nix
+hasASuffix = suffixes: string: any (suffix: hasSuffix suffix string) suffixes;
+#+end_src
+
+******** Infix
+
+#+begin_src nix
+hasAnInfix = infixes: string: any (infix: hasInfix infix string) infixes;
 #+end_src
 
 ******* Import Stuff
@@ -2147,11 +2166,12 @@ kernelModules = [ "zfs" ];
 kernelParams = [ "nohibernate" ];
 # loader.grub.zfsSupport = mkIf j.attrs.zfs true;
 initrd = {
-    postDeviceCommands = mkIf j.attrs.zfs (mkAfter ''
-        zfs rollback -r ${config.networking.hostName}/system/root@blank
-        zfs rollback -r ${config.networking.hostName}/system/home@blank
-        # zfs rollback -r ${config.networking.hostName}/system/tmp@blank
-    '');
+    postDeviceCommands = mkIf j.attrs.zfs (mkAfter (concatMapStrings (d: "zfs rollback -r ${d}@blank\n") (filter (d: (j.functions.hasAPrefix [
+        "${host}/system/home"
+    ] d) || (elem d [
+        "${host}/system/root"
+        # "${host}/system/tmp"
+    ])) (attrNames datasets))));
     kernelModules = [ "zfs" "r8169" ];
     availableKernelModules = config.boot.initrd.kernelModules;
 };
@@ -2312,9 +2332,6 @@ in {
                 { directory = ".nixops"; mode = "0700"; }
                 { directory = ".ssh"; mode = "0700"; }
                 redRepoDirectories
-
-            # TODO: Using `j.attrs.allUsers' means that `root' is being bound multiple times
-            #       Is `/root' being wiped? If not, why is being included?
             ]));}) j.attrs.allUsers);
     };
 });
@@ -2340,20 +2357,18 @@ zramSwap = {
 #+begin_src nix
 fileSystems = let
     inherit (j.attrs.fileSystems) base;
-    fileSystems' = j.attrs.datasets.fileSystems;
-    hasAnInfix = infixes: dataset: any (infix: hasInfix infix dataset) infixes;
 in mkMerge [
     # (filterAttrs (n: v: !elem "bind" v.options) nixos-configurations.hardware-configuration.config.fileSystems)
     (filterAttrs (n: v: elem n [ "/boot" "/boot/efi" ]) nixos-configurations.hardware-configuration.config.fileSystems)
     (mkIf j.attrs.zfs (mapAttrs' (dataset: mountpoint: nameValuePair mountpoint (
         mkForce (base // { device = dataset; ${
-            j.functions.myIf.knull ((hasAnInfix [
+            j.functions.myIf.knull ((j.functions.hasAnInfix [
                 j.attrs.users.primary
                 "persist"
                 "home"
             ] dataset) || (elem dataset [ ])) "neededForBoot"
         } = true; })
-    )) fileSystems'))
+    )) j.attrs.datasets.fileSystems))
 ];
 #+end_src
 
@@ -2995,9 +3010,9 @@ in {
         yearly = 104;
     };
 
-    datasets = listToAttrs (map (dataset: nameValuePair "${config.networking.hostName}/${dataset}" sanoidBase) (flatten [
+    datasets = listToAttrs (map (dataset: nameValuePair "${host}/${dataset}" sanoidBase) (flatten [
         j.attrs.datasets.backup
-        config.networking.hostName
+        host
     ]));
 };
 #+end_src
@@ -3029,7 +3044,7 @@ in {
     sshKey = "/root/.ssh/id_ecdsa";
     commands = listToAttrs (map (dataset: nameValuePair "${host}/${dataset}" (syncoidBase // { target = ""; })) (flatten [
         j.attrs.datasets.backup
-        config.networking.hostName
+        host
     ]));
 };
 #+end_src
@@ -3043,7 +3058,7 @@ in {
 **** systemd.nix
 
 #+begin_src nix :tangle (meq/tangle-path)
-{ config, lib, pkgs, ... }: with lib;
+{ config, lib, pkgs, host, ... }: with lib;
 
 {
     systemd = {
@@ -3053,7 +3068,7 @@ in {
             caddy = mkIf j.attrs.relay (j.attrs.configs.services.base // {
                 serviceConfig = {
                     ExecStart = ''
-                        ${pkgs.caddy}/bin/caddy run --config ${j.attrs.homes.${j.attrs.users.primary}}/.config/caddy/files/${config.networking.hostName} --adapter yaml 2>&1
+                        ${pkgs.caddy}/bin/caddy run --config ${j.attrs.homes.${j.attrs.users.primary}}/.config/caddy/files/${host} --adapter yaml 2>&1
                     '';
                     ExecStop = ''
                         pkill caddy

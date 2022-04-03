@@ -83,7 +83,7 @@
            (assoc (. datasets [s] [d] home [d]) user (dict))
            (assoc (. datasets virt [d] podman [d]) user (dict)))
       (with [dnix (open (+ resources "/datasets.nix") "w")]
-            (.write dnix (+ "host: { \""
+            (.write dnix (+ "host: { \n\t\""
                             (or root-device "${host}/system/root")
                             "\" = \"/\";"
                             "\n"))

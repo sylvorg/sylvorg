@@ -27,9 +27,9 @@ toCapital = string: concatImapStrings (
 sequence = list: end: foldr (a: b: deepSeq a b) end list;
 filters = {
 remove = {
-prefix = ignores: list: filter (f: ! any (b: b == true) (map (i: hasPrefix i f) ignores)) list;
-suffix = ignores: list: filter (f: ! any (b: b == true) (map (i: hasSuffix i f) ignores)) list;
-infix = ignores: list: filter (f: ! any (b: b == true) (map (i: hasInfix i f) ignores)) list;
+prefix = ignores: list: filter (f: ! any (i: hasPrefix i f) ignores) list;
+suffix = ignores: list: filter (f: ! any (i: hasSuffix i f) ignores) list;
+infix = ignores: list: filter (f: ! any (i: hasInfix i f) ignores) list;
 };
 };
 recurseDir = { dir, local ? false, iter ? 0, ignores ? {} }: with lib; let
@@ -45,6 +45,9 @@ recurseDir = { dir, local ? false, iter ? 0, ignores ? {} }: with lib; let
     in if (local == null) then (map (f: replaceStrings [ stringDir' ] [ "" ] f) recurse') else if (local == 0) then (map (f: replaceStrings [ stringDir' ] [ "/" ] f) recurse') else if local then (map (f: replaceStrings [ stringDir' ] [ "./" ] f) recurse') else recurse';
     process = recurse': with filters.remove; pipe recurse' [ process' (prefix processed-prefix) (suffix (ignores.suffix or [])) (infix (ignores.infix or [])) ];
 in if (iter == 0) then (process recurse) else recurse;
+hasAPrefix = prefixes: string: any (prefix: hasPrefix prefix string) prefixes;
+hasASuffix = suffixes: string: any (suffix: hasSuffix suffix string) suffixes;
+hasAnInfix = infixes: string: any (infix: hasInfix infix string) infixes;
 args = {
     suffix = "";
     ignores = [];
