@@ -132,7 +132,7 @@ in {
             #     "var"
             # ])
 
-            (map (directory: recurseDir { dir = "${repo}/${directory}"; local = null; ignores.prefix = [ "nixos/" ]; }) [
+            (map (directory: j.functions.recurseDir { dir = "${repo}/${directory}"; local = 0; ignores.prefix = [ "nixos/" ]; }) [
                 "etc"
                 "var"
             ])
