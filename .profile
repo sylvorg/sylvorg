@@ -1,4 +1,4 @@
-source $HOME/.nix-profile/etc/profile.d/nix.sh
+# source $HOME/.nix-profile/etc/profile.d/nix.sh
 eval "$(fasd --init auto)"
 # Adapted From:
 # Answer: https://askubuntu.com/a/146034/1058868

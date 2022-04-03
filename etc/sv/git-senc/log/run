@@ -1,2 +1,0 @@
-#!/usr/bin/env zsh
-exec svlogd -tt /etc/sv/git-senc/log

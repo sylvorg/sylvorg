@@ -25,6 +25,26 @@ toCapital = string: concatImapStrings (
     i: v: if (i == 0) then (toUpper v) else v
 ) (stringToCharacters string);
 sequence = list: end: foldr (a: b: deepSeq a b) end list;
+filters = {
+remove = {
+prefix = ignores: list: filter (f: ! any (b: b == true) (map (i: hasPrefix i f) ignores)) list;
+suffix = ignores: list: filter (f: ! any (b: b == true) (map (i: hasSuffix i f) ignores)) list;
+infix = ignores: list: filter (f: ! any (b: b == true) (map (i: hasInfix i f) ignores)) list;
+};
+};
+recurseDir = { dir, local ? false, iter ? 0, ignores ? {} }: with lib; let
+    stringDir = toString dir;
+    redDir = if (pathExists dir) then (readDir dir) else {};
+    recurse = unique (flatten [
+        (map (n: "${stringDir}/${n}") (attrNames (filterAttrs (n: v: v != "directory") redDir)))
+        (map (dir': recurseDir { dir = "${stringDir}/${dir'}"; inherit local; iter = iter + 1; }) (attrNames (filterAttrs (n: v: v == "directory") redDir)))
+    ]);
+    processed-prefix = map (i: if (local == null) then i else if local then "./${i}" else if (! local) then "${stringDir}/${i}" else i) (ignores.prefix or []);
+    process' = recurse': let
+        stringDir' = "${stringDir}/";
+    in if (local == null) then (map (f: replaceStrings [ stringDir' ] [ "" ] f) recurse') else if local then (map (f: replaceStrings [ stringDir' ] [ "./" ] f) recurse') else recurse';
+    process = recurse': with filters.remove; pipe recurse' [ process' (prefix processed-prefix) (suffix (ignores.suffix or [])) (infix (ignores.infix or [])) ];
+in if (iter == 0) then (process recurse) else recurse;
 args = {
     suffix = "";
     ignores = [];

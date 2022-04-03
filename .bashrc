@@ -3,7 +3,7 @@
 # User: https://stackoverflow.com/users/827263/keith-thompson
 rc () { eval $(history | sed 's/^ *[0-9]* *//' | fzf-tmux); }
 
-source $HOME/.nix-profile/etc/profile.d/nix.sh
+# source $HOME/.nix-profile/etc/profile.d/nix.sh
 eval "$(fasd --init auto)"
 cdf () { cd $(fasd -ld | fzf-tmux); }
 cdi () { cd $(getFzfdfOutput "$@" "-t" "d"); }

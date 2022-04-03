@@ -127,7 +127,12 @@ in {
             "/etc/host"
             "/etc/machine-id"
 
-            (map (directory: map (fd: "/${directory}/${fd}") (attrNames (filterAttrs (n: v: v != "directory") (let path = "${repo}/${directory}"; in if (pathExists path) then (readDir path) else {})))) [
+            # (map (directory: map (fd: "/${directory}/${fd}") (attrNames (filterAttrs (n: v: v != "directory") (let path = "${repo}/${directory}"; in if (pathExists path) then (readDir path) else {})))) [
+            #     "etc"
+            #     "var"
+            # ])
+
+            (map (directory: recurseDir { dir = "${repo}/${directory}"; local = null; ignores.prefix = [ "nixos/" ]; }) [
                 "etc"
                 "var"
             ])
@@ -136,16 +141,11 @@ in {
             "/bin"
             "/etc/containers"
             "/etc/NetworkManager/system-connections"
-            "/etc/nix"
             "/etc/nixos"
 
             # TODO: Prevents `sshd_config' itself from being created
-            "/etc/ssh"
+            # "/etc/ssh"
 
-            # TODO: Note that this may fail in the above situation as well
-            "/etc/wireguard"
-
-            "/etc/zsh"
             "/sbin"
             "/snap"
             "/usr"
@@ -154,10 +154,10 @@ in {
             "/var/lib/systemd/coredump"
             "/var/log"
 
-            (map (directory: map (fd: "/${directory}/${fd}") (attrNames (filterAttrs (n: v: v == "directory") (let path = "${repo}/${directory}"; in if (pathExists path) then (readDir path) else {})))) [
-                "etc"
-                "var"
-            ])
+            # (map (directory: map (fd: "/${directory}/${fd}") (attrNames (filterAttrs (n: v: v == "directory") (let path = "${repo}/${directory}"; in if (pathExists path) then (readDir path) else {})))) [
+            #     "etc"
+            #     "var"
+            # ])
         ]));
     };
     "/persist" = let
@@ -247,7 +247,7 @@ in mkMerge [
                 j.attrs.users.primary
                 "persist"
                 "home"
-            ] dataset) || (elem dataset [ "/" ])) "neededForBoot"
+            ] dataset) || (elem dataset [ ])) "neededForBoot"
         } = true; })
     )) fileSystems'))
 ];

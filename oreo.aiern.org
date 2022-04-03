@@ -1235,6 +1235,66 @@ toCapital = string: concatImapStrings (
 sequence = list: end: foldr (a: b: deepSeq a b) end list;
 #+end_src
 
+******* Filters
+
+#+begin_src nix
+filters = {
+#+end_src
+
+******** Remove
+
+#+begin_src nix
+remove = {
+#+end_src
+
+********* Prefix
+
+#+begin_src nix
+prefix = ignores: list: filter (f: ! any (b: b == true) (map (i: hasPrefix i f) ignores)) list;
+#+end_src
+
+********* Suffix
+
+#+begin_src nix
+suffix = ignores: list: filter (f: ! any (b: b == true) (map (i: hasSuffix i f) ignores)) list;
+#+end_src
+
+********* Infix
+
+#+begin_src nix
+infix = ignores: list: filter (f: ! any (b: b == true) (map (i: hasInfix i f) ignores)) list;
+#+end_src
+
+********* End of Remove
+
+#+begin_src nix
+};
+#+end_src
+
+******** End of Filters
+
+#+begin_src nix
+};
+#+end_src
+
+******* Walk Dir Structure
+
+#+begin_src nix
+recurseDir = { dir, local ? false, iter ? 0, ignores ? {} }: with lib; let
+    stringDir = toString dir;
+    redDir = if (pathExists dir) then (readDir dir) else {};
+    recurse = unique (flatten [
+        (map (n: "${stringDir}/${n}") (attrNames (filterAttrs (n: v: v != "directory") redDir)))
+        (map (dir': recurseDir { dir = "${stringDir}/${dir'}"; inherit local; iter = iter + 1; }) (attrNames (filterAttrs (n: v: v == "directory") redDir)))
+    ]);
+    processed-prefix = map (i: if (local == null) then i else if local then "./${i}" else if (! local) then "${stringDir}/${i}" else i) (ignores.prefix or []);
+    process' = recurse': let
+        stringDir' = "${stringDir}/";
+    in if (local == null) then (map (f: replaceStrings [ stringDir' ] [ "" ] f) recurse') else if local then (map (f: replaceStrings [ stringDir' ] [ "./" ] f) recurse') else recurse';
+    process = recurse': with filters.remove; pipe recurse' [ process' (prefix processed-prefix) (suffix (ignores.suffix or [])) (infix (ignores.infix or [])) ];
+in if (iter == 0) then (process recurse) else recurse;
+#+end_src
+
 ******* Import Stuff
 
 #+begin_src nix
@@ -2156,7 +2216,12 @@ in {
             "/etc/host"
             "/etc/machine-id"
 
-            (map (directory: map (fd: "/${directory}/${fd}") (attrNames (filterAttrs (n: v: v != "directory") (let path = "${repo}/${directory}"; in if (pathExists path) then (readDir path) else {})))) [
+            # (map (directory: map (fd: "/${directory}/${fd}") (attrNames (filterAttrs (n: v: v != "directory") (let path = "${repo}/${directory}"; in if (pathExists path) then (readDir path) else {})))) [
+            #     "etc"
+            #     "var"
+            # ])
+
+            (map (directory: recurseDir { dir = "${repo}/${directory}"; local = null; ignores.prefix = [ "nixos/" ]; }) [
                 "etc"
                 "var"
             ])
@@ -2165,16 +2230,11 @@ in {
             "/bin"
             "/etc/containers"
             "/etc/NetworkManager/system-connections"
-            "/etc/nix"
             "/etc/nixos"
 
             # TODO: Prevents `sshd_config' itself from being created
-            "/etc/ssh"
+            # "/etc/ssh"
 
-            # TODO: Note that this may fail in the above situation as well
-            "/etc/wireguard"
-
-            "/etc/zsh"
             "/sbin"
             "/snap"
             "/usr"
@@ -2183,10 +2243,10 @@ in {
             "/var/lib/systemd/coredump"
             "/var/log"
 
-            (map (directory: map (fd: "/${directory}/${fd}") (attrNames (filterAttrs (n: v: v == "directory") (let path = "${repo}/${directory}"; in if (pathExists path) then (readDir path) else {})))) [
-                "etc"
-                "var"
-            ])
+            # (map (directory: map (fd: "/${directory}/${fd}") (attrNames (filterAttrs (n: v: v == "directory") (let path = "${repo}/${directory}"; in if (pathExists path) then (readDir path) else {})))) [
+            #     "etc"
+            #     "var"
+            # ])
         ]));
     };
     "/persist" = let
@@ -2291,7 +2351,7 @@ in mkMerge [
                 j.attrs.users.primary
                 "persist"
                 "home"
-            ] dataset) || (elem dataset [ "/" ])) "neededForBoot"
+            ] dataset) || (elem dataset [ ])) "neededForBoot"
         } = true; })
     )) fileSystems'))
 ];
@@ -4767,7 +4827,7 @@ session_name: default
 
 #+name: profile-sources
 #+begin_src shell
-source $HOME/.nix-profile/etc/profile.d/nix.sh
+# source $HOME/.nix-profile/etc/profile.d/nix.sh
 eval "$(fasd --init auto)"
 #+end_src
 
