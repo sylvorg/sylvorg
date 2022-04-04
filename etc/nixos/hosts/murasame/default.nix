@@ -4,6 +4,6 @@
     imports = import ../imports.nix;
     networking = {
         hostName = baseNameOf (toString ./.);
-        hostId = "ab5e236f";
+        hostId = "3050d1a3";
     };
 }

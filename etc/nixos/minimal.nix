@@ -93,7 +93,7 @@ initrd = {
     ] d) || (elem d [
         "${host}/system/root"
         # "${host}/system/tmp"
-    ])) (attrNames datasets))));
+    ])) (attrNames j.attrs.datasets.fileSystems))));
     kernelModules = [ "zfs" "r8169" ];
     availableKernelModules = config.boot.initrd.kernelModules;
 };

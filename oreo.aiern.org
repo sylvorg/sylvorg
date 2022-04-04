@@ -2171,7 +2171,7 @@ initrd = {
     ] d) || (elem d [
         "${host}/system/root"
         # "${host}/system/tmp"
-    ])) (attrNames datasets))));
+    ])) (attrNames j.attrs.datasets.fileSystems))));
     kernelModules = [ "zfs" "r8169" ];
     availableKernelModules = config.boot.initrd.kernelModules;
 };
@@ -2925,7 +2925,7 @@ Help is available in the configuration.nix(5) man page and in the NixOS manual (
 #+end_src
 
 #+begin_src nix
-{ config, lib, pkgs, system, ... }: with lib;
+{ config, lib, pkgs, system, host, ... }: with lib;
 
 {
     services = {

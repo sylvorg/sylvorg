@@ -1,4 +1,4 @@
-{ config, lib, pkgs, system, ... }: with lib;
+{ config, lib, pkgs, system, host, ... }: with lib;
 
 {
     services = {
