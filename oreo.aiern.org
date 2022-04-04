@@ -193,6 +193,7 @@ dross
                                      "options" [ ml ]}))
       (for [user (.values users)]
            (assoc (. datasets [s] [d] home [d]) user (dict))
+           (assoc (. datasets [s] [d] persist [d]) user (dict))
            (assoc (. datasets virt [d] podman [d]) user (dict)))
       (with [dnix (open (+ resources "/datasets.nix") "w")]
             (.write dnix (+ "host: { \n\t\""
@@ -4060,7 +4061,7 @@ eval $(starship init ion)
 #+end_src
 
 #+begin_src shell
-command="yadm --yadm-data \"$HOME/.local/share/yadm-sec\""
+command="yadm --yadm-data $HOME/.local/share/yadm-sec"
 if [ "$(yadm status 2>&1)" == "ERROR: Git repo does not exist. did you forget to run 'init' or 'clone'?" ]; then
     $command $@
 else

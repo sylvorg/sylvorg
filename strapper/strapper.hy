@@ -81,6 +81,7 @@
                                      "options" [ ml ]}))
       (for [user (.values users)]
            (assoc (. datasets [s] [d] home [d]) user (dict))
+           (assoc (. datasets [s] [d] persist [d]) user (dict))
            (assoc (. datasets virt [d] podman [d]) user (dict)))
       (with [dnix (open (+ resources "/datasets.nix") "w")]
             (.write dnix (+ "host: { \n\t\""

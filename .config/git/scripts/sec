@@ -1,5 +1,5 @@
 #!/usr/bin/env sh
-command="yadm --yadm-data \"$HOME/.local/share/yadm-sec\""
+command="yadm --yadm-data $HOME/.local/share/yadm-sec"
 if [ "$(yadm status 2>&1)" == "ERROR: Git repo does not exist. did you forget to run 'init' or 'clone'?" ]; then
     $command $@
 else
