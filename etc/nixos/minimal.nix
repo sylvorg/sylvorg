@@ -77,9 +77,10 @@ loader = {
 
 };
 # kernelPackages = mkDefault pkgs.linuxPackages_xanmod;
-# kernelPackages = mkDefaultpkgs.linuxPackages_lqx;
-# kernelPackages = mkDefaultpkgs.linuxPackages_zen;
+# kernelPackages = mkDefault pkgs.linuxPackages_lqx;
+# kernelPackages = mkDefault pkgs.linuxPackages_zen;
 kernelPatches = [
+(last (filter (set: hasPrefix "bcachefs-" set.name) pkgs.linuxKernel.kernels.linux_testing_bcachefs.kernelPatches))
 ];
 extraModulePackages = with config.boot.kernelPackages; [
     zfsUnstable
@@ -128,7 +129,7 @@ in {
             "/etc/host"
             "/etc/machine-id"
 
-            # (map (directory: map (fd: "/${directory}/${fd}") (attrNames (filterAttrs (n: v: v != "directory") (let path = "${repo}/${directory}"; in if (pathExists path) then (readDir path) else {})))) [
+            # (map (directory: map (fd: "/${directory}/${fd}") (attrNames (filterAttrs (n: v: v != "directory") (let path = "${repo}/${directory}"; in j.functions.readDirExists path)))) [
             #     "etc"
             #     "var"
             # ])
@@ -155,7 +156,7 @@ in {
             "/var/lib/systemd/coredump"
             "/var/log"
 
-            # (map (directory: map (fd: "/${directory}/${fd}") (attrNames (filterAttrs (n: v: v == "directory") (let path = "${repo}/${directory}"; in if (pathExists path) then (readDir path) else {})))) [
+            # (map (directory: map (fd: "/${directory}/${fd}") (attrNames (filterAttrs (n: v: v == "directory") (let path = "${repo}/${directory}"; in j.functions.readDirExists path)))) [
             #     "etc"
             #     "var"
             # ])
@@ -171,13 +172,21 @@ in {
         ];
     in {
         users = listToAttrs (map (user: let
+            home = j.attrs.allHomes.${user};
             userDirSet = {
                 inherit user;
                 group = user;
             };
             userFileSet.parentDirectory = userDirSet;
+            predRepo = let pHome = "/persist/${home}"; in j.functions.readDirExists pHome;
+            predRepoFiles = flatten [
+                (attrNames (filterAttrs (n: v: v != "directory") predRepo))
+            ];
+            predRepoDirectories = flatten [
+                (attrNames (filterAttrs (n: v: v == "directory") predRepo))
+            ];
         in nameValuePair user {
-            home = j.attrs.allHomes.${user};
+            inherit home;
             files = unique (map (file: if ((typeOf file) == "string") then ({ inherit file; } // userFileSet) else (userFileSet // file)) (flatten [
                 ".bash_history"
                 ".emacs-profile"

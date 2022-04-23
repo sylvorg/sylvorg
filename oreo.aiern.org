@@ -376,10 +376,12 @@ or in the Nix configuration file by adding the line tarball-ttl = number-of-seco
 #@((.command strapper :no-args-is-help True)
    (.option click "-d" "--deduplicated" :is-flag True)
    (.option click "-e" "--encrypted" :is-flag True)
+   (.option click "-p" "--pool" :is-flag True)
+   (.option click "-r" "--raid")
    (.option click "-s" "--swap" :type int :default 0)
-   (.option click "-z" "--zfs-device" :required True)
+   (.option click "-z" "--zfs-device" :required True :multiple True)
    click.pass-context
-   (defn create [ ctx deduplicated encrypted swap zfs-device ]
+   (defn create [ ctx deduplicated encrypted pool raid swap zfs-device ]
          (if ctx.obj.host
              (try (if (= (input "THIS WILL DELETE ALL DATA ON THE SELECTED DEVICE / PARTITION! TO CONTINUE, TYPE IN 'ZFS CREATE'!\n\t") "ZFS CREATE")
                       (let [options (D { "xattr"      "sa"
@@ -391,7 +393,15 @@ or in the Nix configuration file by adding the line tarball-ttl = number-of-seco
                                          "relatime"    "off" })
                             command (partial zpool.create
                                              :f True
-                                             :o { "repeat-with-values" (, "autotrim=on" "altroot=/mnt" "autoexpand=on") })]
+                                             :o { "repeat-with-values" (, "autotrim=on" "altroot=/mnt" "autoexpand=on") })
+                            no-raid-error-message "Sorry! For multiple zfs devices a raid configuration must be provided using `-r / --raid'!"
+                            zfs-dev (if (= (len zfs-devices) 1)
+                                        (if raid
+                                            (raise (NameError no-raid-error-message))
+                                            (get zfs-device 0))
+                                        (if raid
+                                            (+ raid (.join " " zfs-devices))
+                                            (raise (NameError no-raid-error-message))))]
                            (for [dataset (.list zfs :r True :H True :m/list True :m/split True)]
                                 (if (in ctx.obj.host dataset)
                                     (.export zpool :f True ctx.obj.host :m/ignore-stderr True)))
@@ -403,8 +413,9 @@ or in the Nix configuration file by adding the line tarball-ttl = number-of-seco
                            (if (.ismount os.path "/mnt")
                                (umount :R True "/mnt"))
                            (.export zpool :f True ctx.obj.host :m/ignore-stderr True)
-                           (command :O { "repeat-with-values" (gfor [k v] (.items options) f"{k}={v}") } ctx.obj.host zfs-device)
-                           (update-datasets ctx.obj.host swap encrypted deduplicated :pool True))
+                           (command :O { "repeat-with-values" (gfor [k v] (.items options) f"{k}={v}") } ctx.obj.host zfs-dev)
+                           (if (not pool)
+                               (update-datasets ctx.obj.host swap encrypted deduplicated :pool True)))
                       (print "Sorry; not continuing!\n\n"))
                   (finally (.export zpool :f True ctx.obj.host :m/ignore-stderr True)))
              (raise (NameError no-host-error-message)))))
@@ -729,60 +740,6 @@ index cee69ad43..ca1fc145f 100644
 2.25.1
 #+end_src
 
-**** 0110-initialize-ata-before-graphics.patch
-
-#+begin_src diff :tangle (meq/tangle-path)
-From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
-From: Arjan van de Ven <arjan@linux.intel.com>
-Date: Thu, 2 Jun 2016 23:36:32 -0500
-Subject: [PATCH] initialize ata before graphics
-
-ATA init is the long pole in the boot process, and its asynchronous.
-move the graphics init after it so that ata and graphics initialize
-in parallel
----
- drivers/Makefile | 15 ++++++++-------
- 1 file changed, 8 insertions(+), 7 deletions(-)
-
-diff --git a/drivers/Makefile b/drivers/Makefile
-index c0cd1b9..af1e2fb 100644
---- a/drivers/Makefile
-+++ b/drivers/Makefile
-@@ -59,15 +59,8 @@ obj-y                += char/
- # iommu/ comes before gpu as gpu are using iommu controllers
- obj-y              += iommu/
- 
--# gpu/ comes after char for AGP vs DRM startup and after iommu
--obj-y              += gpu/
--
- obj-$(CONFIG_CONNECTOR)        += connector/
- 
--# i810fb and intelfb depend on char/agp/
--obj-$(CONFIG_FB_I810)           += video/fbdev/i810/
--obj-$(CONFIG_FB_INTEL)          += video/fbdev/intelfb/
--
- obj-$(CONFIG_PARPORT)      += parport/
- obj-$(CONFIG_NVM)      += lightnvm/
- obj-y              += base/ block/ misc/ mfd/ nfc/
-@@ -80,6 +73,14 @@ obj-$(CONFIG_IDE)        += ide/
- obj-y              += scsi/
- obj-y              += nvme/
- obj-$(CONFIG_ATA)      += ata/
-+
-+# gpu/ comes after char for AGP vs DRM startup and after iommu
-+obj-y              += gpu/
-+
-+# i810fb and intelfb depend on char/agp/
-+obj-$(CONFIG_FB_I810)           += video/fbdev/i810/
-+obj-$(CONFIG_FB_INTEL)          += video/fbdev/intelfb/
-+
- obj-$(CONFIG_TARGET_CORE)  += target/
- obj-$(CONFIG_MTD)      += mtd/
- obj-$(CONFIG_SPI)      += spi/
--- 
-https://clearlinux.org
-#+end_src
-
 **** export_kernel_fpu_functions_5_3.patch
 
 #+begin_src diff :tangle (meq/tangle-path)
@@ -1016,6 +973,8 @@ Adapted from the following:
 
 **** imports.nix
 
+# TODO: remove ~bcachefs~
+
 #+begin_src nix :tangle (meq/tangle-path)
 [ ../minimal.nix ../bcachefs.nix ]
 #+end_src
@@ -1137,6 +1096,8 @@ Adapted from the following:
 
 *** bcachefs.nix
 
+# TODO: delete
+
 #+begin_src nix :tangle (meq/tangle-path)
 { config, ... }:
 
@@ -1222,6 +1183,12 @@ myIf = {
 };
 #+end_src
 
+******* Read Directory if Exists
+
+#+begin_src nix
+readDirExists = dir: myIf.set (pathExists dir) (readDir dir);
+#+end_src
+
 ******* To Capital
 
 #+begin_src nix
@@ -1283,7 +1250,7 @@ infix = ignores: list: filter (f: ! any (i: hasInfix i f) ignores) list;
 #+begin_src nix
 recurseDir = { dir, local ? false, iter ? 0, ignores ? {} }: with lib; let
     stringDir = toString dir;
-    redDir = if (pathExists dir) then (readDir dir) else {};
+    redDir = readDirExists dir;
     recurse = unique (flatten [
         (map (n: "${stringDir}/${n}") (attrNames (filterAttrs (n: v: v != "directory") redDir)))
         (map (dir': recurseDir { dir = "${stringDir}/${dir'}"; inherit local; iter = iter + 1; }) (attrNames (filterAttrs (n: v: v == "directory") redDir)))
@@ -1338,9 +1305,7 @@ filterFunc = {
 }: let
     _ignores = flatten [
         ignores
-        (let
-            _ignores' = (/. + "/${unsafeDiscardStringContext dir}/_ignores.nix");
-        in if (pathExists _ignores') then (import _ignores') else [])
+        (let _ignores' = (/. + "/${unsafeDiscardStringContext dir}/_ignores.nix"); in myIf.list (pathExists _ignores') (import _ignores'))
         "default" # triggers infinite recursion if modules are defined here
         "deprecated"
         "nix" # niv
@@ -1582,7 +1547,11 @@ fileSystems = {
         fsType = "zfs";
         options = [ "defaults" "x-systemd.device-timeout=5" "nofail" ];
     };
-    supported = [ "zfs" "xfs" "btrfs" "ext4" "fat" "vfat"  ];
+
+    # TODO
+    # supported = [ "zfs" "xfs" "btrfs" "ext4" "fat" "vfat" "bcachefs" ];
+
+    supported = [ "zfs" "xfs" "btrfs" "ext4" "fat" "vfat" ];
 };
 #+end_src
 
@@ -2110,24 +2079,18 @@ loader = {
 
 ****** Kernel
 
+# TODO: Use one of these with ~bcachefs~
+
 #+begin_src nix
 # kernelPackages = mkDefault pkgs.linuxPackages_xanmod;
-# kernelPackages = mkDefaultpkgs.linuxPackages_lqx;
-# kernelPackages = mkDefaultpkgs.linuxPackages_zen;
+# kernelPackages = mkDefault pkgs.linuxPackages_lqx;
+# kernelPackages = mkDefault pkgs.linuxPackages_zen;
 #+end_src
 
 ******* Patches
 
 #+begin_src nix
 kernelPatches = [
-#+end_src
-
-******** Clear Linux
-
-# TODO
-
-#+begin_src nix :noweb-ref no
-{ name = "clear"; patch = ./patches/0110-initialize-ata-before-graphics.patch; }
 #+end_src
 
 ******** ZSTD Kernel Compression
@@ -2144,6 +2107,12 @@ kernelPatches = [
         KERNEL_XZ n
     '';
 }
+#+end_src
+
+******** Bcachefs
+
+#+begin_src nix
+(last (filter (set: hasPrefix "bcachefs-" set.name) pkgs.linuxKernel.kernels.linux_testing_bcachefs.kernelPatches))
 #+end_src
 
 ******** End of Kernel Patches
@@ -2237,7 +2206,7 @@ in {
             "/etc/host"
             "/etc/machine-id"
 
-            # (map (directory: map (fd: "/${directory}/${fd}") (attrNames (filterAttrs (n: v: v != "directory") (let path = "${repo}/${directory}"; in if (pathExists path) then (readDir path) else {})))) [
+            # (map (directory: map (fd: "/${directory}/${fd}") (attrNames (filterAttrs (n: v: v != "directory") (let path = "${repo}/${directory}"; in j.functions.readDirExists path)))) [
             #     "etc"
             #     "var"
             # ])
@@ -2264,7 +2233,7 @@ in {
             "/var/lib/systemd/coredump"
             "/var/log"
 
-            # (map (directory: map (fd: "/${directory}/${fd}") (attrNames (filterAttrs (n: v: v == "directory") (let path = "${repo}/${directory}"; in if (pathExists path) then (readDir path) else {})))) [
+            # (map (directory: map (fd: "/${directory}/${fd}") (attrNames (filterAttrs (n: v: v == "directory") (let path = "${repo}/${directory}"; in j.functions.readDirExists path)))) [
             #     "etc"
             #     "var"
             # ])
@@ -2280,13 +2249,21 @@ in {
         ];
     in {
         users = listToAttrs (map (user: let
+            home = j.attrs.allHomes.${user};
             userDirSet = {
                 inherit user;
                 group = user;
             };
             userFileSet.parentDirectory = userDirSet;
+            predRepo = let pHome = "/persist/${home}"; in j.functions.readDirExists pHome;
+            predRepoFiles = flatten [
+                (attrNames (filterAttrs (n: v: v != "directory") predRepo))
+            ];
+            predRepoDirectories = flatten [
+                (attrNames (filterAttrs (n: v: v == "directory") predRepo))
+            ];
         in nameValuePair user {
-            home = j.attrs.allHomes.${user};
+            inherit home;
             files = unique (map (file: if ((typeOf file) == "string") then ({ inherit file; } // userFileSet) else (userFileSet // file)) (flatten [
                 ".bash_history"
                 ".emacs-profile"
@@ -3945,16 +3922,16 @@ WantedBy=default.target
 ** yadm
 *** bootstrap
 :PROPERTIES:
-:header-args:zsh+: :noweb-ref 879a83d3-17ad-446f-8ad2-9945ac588f07
+:header-args:shell+: :noweb-ref 879a83d3-17ad-446f-8ad2-9945ac588f07
 :END:
 
-#+begin_src text :tangle (meq/tangle-path) :shebang "#! /usr/bin/env nix-shell"
+#+begin_src text :tangle (meq/tangle-path) :shebang "#! /usr/bin/env sh"
 <<879a83d3-17ad-446f-8ad2-9945ac588f07>>
 #+end_src
 
-#+begin_src zsh
-#! nix-shell -i sh -p hello
-#! nix-shell -I nixpkgs=https://github.com/shadowrylander/nixpkgs/archive/j.tar.gz
+#+begin_src shell
+set -eo pipefail
+[ -z "$1" ] && worktree="$HOME" || worktree="$1"
 #+end_src
 
 *** config

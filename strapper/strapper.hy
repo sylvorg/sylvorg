@@ -227,10 +227,12 @@ click.pass-context
 #@((.command strapper :no-args-is-help True)
    (.option click "-d" "--deduplicated" :is-flag True)
    (.option click "-e" "--encrypted" :is-flag True)
+   (.option click "-p" "--pool" :is-flag True)
+   (.option click "-r" "--raid")
    (.option click "-s" "--swap" :type int :default 0)
-   (.option click "-z" "--zfs-device" :required True)
+   (.option click "-z" "--zfs-device" :required True :multiple True)
    click.pass-context
-   (defn create [ ctx deduplicated encrypted swap zfs-device ]
+   (defn create [ ctx deduplicated encrypted pool raid swap zfs-device ]
          (if ctx.obj.host
              (try (if (= (input "THIS WILL DELETE ALL DATA ON THE SELECTED DEVICE / PARTITION! TO CONTINUE, TYPE IN 'ZFS CREATE'!\n\t") "ZFS CREATE")
                       (let [options (D { "xattr"      "sa"
@@ -242,7 +244,15 @@ click.pass-context
                                          "relatime"    "off" })
                             command (partial zpool.create
                                              :f True
-                                             :o { "repeat-with-values" (, "autotrim=on" "altroot=/mnt" "autoexpand=on") })]
+                                             :o { "repeat-with-values" (, "autotrim=on" "altroot=/mnt" "autoexpand=on") })
+                            no-raid-error-message "Sorry! For multiple zfs devices a raid configuration must be provided using `-r / --raid'!"
+                            zfs-dev (if (= (len zfs-devices) 1)
+                                        (if raid
+                                            (raise (NameError no-raid-error-message))
+                                            (get zfs-device 0))
+                                        (if raid
+                                            (+ raid (.join " " zfs-devices))
+                                            (raise (NameError no-raid-error-message))))]
                            (for [dataset (.list zfs :r True :H True :m/list True :m/split True)]
                                 (if (in ctx.obj.host dataset)
                                     (.export zpool :f True ctx.obj.host :m/ignore-stderr True)))
@@ -254,8 +264,9 @@ click.pass-context
                            (if (.ismount os.path "/mnt")
                                (umount :R True "/mnt"))
                            (.export zpool :f True ctx.obj.host :m/ignore-stderr True)
-                           (command :O { "repeat-with-values" (gfor [k v] (.items options) f"{k}={v}") } ctx.obj.host zfs-device)
-                           (update-datasets ctx.obj.host swap encrypted deduplicated :pool True))
+                           (command :O { "repeat-with-values" (gfor [k v] (.items options) f"{k}={v}") } ctx.obj.host zfs-dev)
+                           (if (not pool)
+                               (update-datasets ctx.obj.host swap encrypted deduplicated :pool True)))
                       (print "Sorry; not continuing!\n\n"))
                   (finally (.export zpool :f True ctx.obj.host :m/ignore-stderr True)))
              (raise (NameError no-host-error-message)))))

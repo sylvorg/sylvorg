@@ -21,6 +21,7 @@ myIf = {
     empty = condition: value: if condition then value else "";
     drv = condition: value: if condition then value else pkgs.hello;
 };
+readDirExists = dir: myIf.set (pathExists dir) (readDir dir);
 toCapital = string: concatImapStrings (
     i: v: if (i == 0) then (toUpper v) else v
 ) (stringToCharacters string);
@@ -34,7 +35,7 @@ infix = ignores: list: filter (f: ! any (i: hasInfix i f) ignores) list;
 };
 recurseDir = { dir, local ? false, iter ? 0, ignores ? {} }: with lib; let
     stringDir = toString dir;
-    redDir = if (pathExists dir) then (readDir dir) else {};
+    redDir = readDirExists dir;
     recurse = unique (flatten [
         (map (n: "${stringDir}/${n}") (attrNames (filterAttrs (n: v: v != "directory") redDir)))
         (map (dir': recurseDir { dir = "${stringDir}/${dir'}"; inherit local; iter = iter + 1; }) (attrNames (filterAttrs (n: v: v == "directory") redDir)))
@@ -68,9 +69,7 @@ filterFunc = {
 }: let
     _ignores = flatten [
         ignores
-        (let
-            _ignores' = (/. + "/${unsafeDiscardStringContext dir}/_ignores.nix");
-        in if (pathExists _ignores') then (import _ignores') else [])
+        (let _ignores' = (/. + "/${unsafeDiscardStringContext dir}/_ignores.nix"); in myIf.list (pathExists _ignores') (import _ignores'))
         "default" # triggers infinite recursion if modules are defined here
         "deprecated"
         "nix" # niv
@@ -221,7 +220,11 @@ fileSystems = {
         fsType = "zfs";
         options = [ "defaults" "x-systemd.device-timeout=5" "nofail" ];
     };
-    supported = [ "zfs" "xfs" "btrfs" "ext4" "fat" "vfat"  ];
+
+    # TODO
+    # supported = [ "zfs" "xfs" "btrfs" "ext4" "fat" "vfat" "bcachefs" ];
+
+    supported = [ "zfs" "xfs" "btrfs" "ext4" "fat" "vfat" ];
 };
 commands = {
     rebuild = "nixos-rebuild --impure";

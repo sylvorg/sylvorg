@@ -1,3 +1,3 @@
-#! /usr/bin/env nix-shell
-#! nix-shell -i sh -p hello
-#! nix-shell -I nixpkgs=https://github.com/shadowrylander/nixpkgs/archive/j.tar.gz
+#! /usr/bin/env sh
+set -eo pipefail
+[ -z "$1" ] && worktree="$HOME" || worktree="$1"
