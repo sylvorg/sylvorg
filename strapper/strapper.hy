@@ -233,6 +233,7 @@ click.pass-context
    (.option click "-B" "--boot-device" :type (, str int))
    (.option click "-d" "--deduplicated" :is-flag True)
    (.option click "-e" "--encrypted" :is-flag True)
+   (.option click "-M" "--host-mountpoint" :help "Use the hostname as the mountpoint")
    (.option click "-m" "--mountpoint")
    (.option click "-P" "--partition" :multiple True :cls oreo.Option :xor [ "raid" ])
    (.option click "-p" "--pool-only" :is-flag True)
@@ -241,12 +242,14 @@ click.pass-context
    (.option click "-s" "--swap" :type int :default 0)
    (.option click "-z" "--zfs-devices" :required True :multiple True)
    click.pass-context
-   (defn create [ ctx boot-device deduplicated encrypted mountpoint partition pool-only raid swap-device swap zfs-devices ]
+   (defn create [ ctx boot-device deduplicated encrypted host-mountpoint mountpoint partition pool-only raid swap-device swap zfs-devices ]
          (if ctx.obj.host
              (try (if (= (input "THIS WILL DELETE ALL DATA ON THE SELECTED DEVICE / PARTITION! TO CONTINUE, TYPE IN 'ZFS CREATE'!\n\t") "ZFS CREATE")
                       (let [options (D { "xattr"      "sa"
                                          "acltype"    "posixacl"
-                                         "mountpoint"  (or mountpoint "none")
+                                         "mountpoint"  (if host-mountpoint
+                                                           (+ "/" host)
+                                                           (or mountpoint "none"))
                                          "compression" "zstd-19"
                                          "checksum"    "edonr"
                                          "atime"       "off"
