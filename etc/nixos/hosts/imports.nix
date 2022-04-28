@@ -1,1 +1,0 @@
-[ ../minimal.nix ../bcachefs.nix ]

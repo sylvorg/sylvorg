@@ -9,6 +9,7 @@
                  nixos-generate-config
                  nixos-install
                  nixos-rebuild
+                 parted
                  rsync
                  sd
                  swapon
@@ -26,13 +27,14 @@
 (require hyrule [-> assoc])
 ;; (setv resources (+ (.dirname os.path (.realpath os.path __file__)) "/etc/nixos/"))
 (setv resources (+ (.getcwd os) "/etc/nixos/"))
-(defn update-datasets [host [swap 0] [encrypted False] [deduplicated False] [pool False] [root-device None]]
+(defn update-datasets [host [swap 0] [encrypted False] [deduplicated False] [pool False] [root-device None] [reserved-only False]]
       (setv snap-dir     [ "snapdir=visible" ]
             extra-copies (+ snap-dir [ "copies=3" ])
             cache        [ "sync=disabled" ]
             ml           "mountpoint=legacy"
             d            "datasets"
             s            "system"
+            reserved     "reserved"
             datasets     (D (.loads json (.strip #[[
                                 {
                                     "base": {  },
@@ -83,57 +85,59 @@
            (assoc (. datasets [s] [d] home [d]) user (dict))
            (assoc (. datasets [s] [d] persist [d]) user (dict))
            (assoc (. datasets virt [d] podman [d]) user (dict)))
-      (with [dnix (open (+ resources "/datasets.nix") "w")]
-            (.write dnix (+ "host: { \n\t\""
-                            (or root-device "${host}/system/root")
-                            "\" = \"/\";"
-                            "\n"))
-            (defn recurse [ddict dname droot [mountpoint ""]]
-                  (setv recurse/datasets     (.list zfs :r True :o "name" :m/list True :m/ignore-stderr True)
-                        recurse/datasets     (cut recurse/datasets 2 (len recurse/datasets))
-                        recurse/dataset      (+ droot "/" dname)
-                        recurse/real-dataset (.replace recurse/dataset "${host}" host)
-                        cloning              (and (!= dname "base")
-                                                  (and encrypted deduplicated))
-                        prefixes             (, "system"
-                                                "system/root"
-                                                "swap"
-                                                "base"
-                                                "hold"
-                                                "omniverse"
-                                                "reserved" ))
-                  (if cloning
-                      (setv clone-or-create  "clone"
-                            snapshot-or-none (+ host "/base@root"))
-                      (setv clone-or-create  "create"
-                            snapshot-or-none ""))
-                  (if (not (in recurse/real-dataset (lfor prefix prefixes (+ host "/" prefix))))
-                      (do (if (setx recurse/mountpoint (.get ddict "mountpoint" ""))
-                              (setv mountpoint recurse/mountpoint)
-                              (if mountpoint
-                                  (setv mountpoint (+ mountpoint "/" dname)
-                                        recurse/mountpoint mountpoint)
-                                  (do (setv recurse/mountpoint (.removeprefix recurse/dataset "${host}/"))
-                                      (for [prefix prefixes]
-                                           (setv recurse/mountpoint (.removeprefix recurse/mountpoint (+ prefix "/"))))
-                                      (setv recurse/mountpoint (+ "/" recurse/mountpoint)))))
-                          (.write dnix (+ "\t\""
-                                          recurse/dataset
-                                          "\" = \""
-                                          recurse/mountpoint
-                                          "\";\n"))))
-                  (if (and pool (not (in recurse/real-dataset recurse/datasets)))
-                      (do (zfs :m/subcommand clone-or-create
-                               :o { "repeat-with-values" (.get ddict "options" []) }
-                               snapshot-or-none
-                               recurse/real-dataset)
-                          (.snapshot zfs :r True (+ recurse/real-dataset "@blank"))))
-                  (for [[key value] (.items (.get ddict d (D {  })))]
-                       (recurse value key recurse/dataset mountpoint)))
-            (for [[key value] (.items datasets)]
-                 (recurse value key "${host}"))
-            (.write dnix "}"))
-      (if pool
+      (if reserved-only
+          (.create zfs (+ host "/" reserved))
+          (do (with [dnix (open (+ resources "/datasets.nix") "w")]
+                    (.write dnix (+ "host: { \n\t\""
+                                    (or root-device "${host}/system/root")
+                                    "\" = \"/\";"
+                                    "\n"))
+              (defn recurse [ddict dname droot [mountpoint ""]]
+                    (setv recurse/datasets     (.list zfs :r True :o "name" :m/list True :m/ignore-stderr True)
+                          recurse/datasets     (cut recurse/datasets 2 (len recurse/datasets))
+                          recurse/dataset      (+ droot "/" dname)
+                          recurse/real-dataset (.replace recurse/dataset "${host}" host)
+                          cloning              (and (!= dname "base")
+                                                    (and encrypted deduplicated))
+                          prefixes             (, "system"
+                                                  "system/root"
+                                                  "swap"
+                                                  "base"
+                                                  "hold"
+                                                  "omniverse"
+                                                  reserved ))
+                    (if cloning
+                        (setv clone-or-create  "clone"
+                              snapshot-or-none (+ host "/base@root"))
+                        (setv clone-or-create  "create"
+                              snapshot-or-none ""))
+                    (if (not (in recurse/real-dataset (lfor prefix prefixes (+ host "/" prefix))))
+                        (do (if (setx recurse/mountpoint (.get ddict "mountpoint" ""))
+                                (setv mountpoint recurse/mountpoint)
+                                (if mountpoint
+                                    (setv mountpoint (+ mountpoint "/" dname)
+                                          recurse/mountpoint mountpoint)
+                                    (do (setv recurse/mountpoint (.removeprefix recurse/dataset "${host}/"))
+                                        (for [prefix prefixes]
+                                             (setv recurse/mountpoint (.removeprefix recurse/mountpoint (+ prefix "/"))))
+                                        (setv recurse/mountpoint (+ "/" recurse/mountpoint)))))
+                            (.write dnix (+ "\t\""
+                                            recurse/dataset
+                                            "\" = \""
+                                            recurse/mountpoint
+                                            "\";\n"))))
+                    (if (and pool (not (in recurse/real-dataset recurse/datasets)))
+                        (do (zfs :m/subcommand clone-or-create
+                                 :o { "repeat-with-values" (.get ddict "options" []) }
+                                 snapshot-or-none
+                                 recurse/real-dataset)
+                            (.snapshot zfs :r True (+ recurse/real-dataset "@blank"))))
+                    (for [[key value] (.items (.get ddict d (D {  })))]
+                         (recurse value key recurse/dataset mountpoint)))
+              (for [[key value] (.items datasets)]
+                   (recurse value key host))
+              (.write dnix "}"))))
+      (if (or pool reserved-only)
           (let [pool-size-plus-metric (get (.get zpool :H True "size" host :m/list True :m/split True) 2)
                 pool-size             (-> pool-size-plus-metric
                                           (cut 0 -1)
@@ -150,27 +154,28 @@
                          (return)))
                (.set zfs
                      (+ "refreservation=" (pool-percentage-value 15))
-                     (+ host "/reserved"))
+                     (+ host "/" reserved))
 
                ;; Apparently, if python internal keywords exist in the argument, such as "set", etc.
                ;; the command errors out; perhaps something to raise an issue of.
                ;; This seems to work as an alternative.
-               ;; run(f"zfs set refreservation={pool_percentage_value(15)} {args.Pool}/reserved", shell = True)
+               ;; run(f"zfs set refreservation={pool_percentage_value(15)} {args.Pool}/{reserved}", shell = True)
 
-               (if swap
-                   (let [swoptions [ "com.sun:auto-snapshot=false"
-                                     "compression=zle"
-                                     "logbias=throughput"
-                                     "primarycache=metadata"
-                                     "secondarycache=none"
-                                     "sync=standard" ]
-                         page-size (getconf "PAGESIZE" :m/str True)]
-                        (.create zfs
-                                 :V (+ (str swap) "G")
-                                 :b page-size
-                                 :o { "repeat-with-values" swoptions }
-                                 (+ host "/swap"))
-                        (mkswap (+ "/dev/zvol" host "/swap")))))))
+               (if (not reserved-only)
+                   (do (if swap
+                           (let [swoptions [ "com.sun:auto-snapshot=false"
+                                             "compression=zle"
+                                             "logbias=throughput"
+                                             "primarycache=metadata"
+                                             "secondarycache=none"
+                                             "sync=standard" ]
+                                 page-size (getconf "PAGESIZE" :m/str True)]
+                                (.create zfs
+                                         :V (+ (str swap) "G")
+                                         :b page-size
+                                         :o { "repeat-with-values" swoptions }
+                                         (+ host "/swap"))
+                                (mkswap (+ "/dev/zvol" host "/swap")))))))))
 (setv no-host-error-message "Sorry! The host needs to be set; do this with the main command while running the subcommand!")
 #@((.group click :no-args-is-help True)
    (.option click "-d" "--dazzle" :is-flag True)
@@ -184,8 +189,8 @@
          (if print-run (.bake-all- getconf :m/print-command-and-run True))
          (if inspect (.bake-all- getconf :m/debug True))))
 #@((.command strapper :no-args-is-help True
-                        :context-settings { "ignore_unknown_options" True
-                                            "allow_extra_args"       True })
+                      :context-settings { "ignore_unknown_options" True
+                                          "allow_extra_args"       True })
    (.argument click "program-arguments" :nargs -1)
    (.option click "-a" "--all" :is-flag True)
    (.option click "-c" "--copy" :is-flag True)
@@ -225,15 +230,18 @@ click.pass-context
 :option "tarball-ttl 0"
 ))))))
 #@((.command strapper :no-args-is-help True)
+   (.option click "-B" "--boot-device" :type (, str int))
    (.option click "-d" "--deduplicated" :is-flag True)
    (.option click "-e" "--encrypted" :is-flag True)
    (.option click "-m" "--mountpoint")
-   (.option click "-p" "--pool" :is-flag True)
-   (.option click "-r" "--raid")
+   (.option click "-P" "--partition" :multiple True :cls oreo.Option :xor [ "raid" ])
+   (.option click "-p" "--pool-only" :is-flag True)
+   (.option click "-r" "--raid" :cls oreo.Option :xor [ "partition" ])
+   (.option click "-S" "--swap-device" :type (, str int))
    (.option click "-s" "--swap" :type int :default 0)
    (.option click "-z" "--zfs-devices" :required True :multiple True)
    click.pass-context
-   (defn create [ ctx deduplicated encrypted mountpoint pool raid swap zfs-devices ]
+   (defn create [ ctx boot-device deduplicated encrypted mountpoint partition pool-only raid swap-device swap zfs-devices ]
          (if ctx.obj.host
              (try (if (= (input "THIS WILL DELETE ALL DATA ON THE SELECTED DEVICE / PARTITION! TO CONTINUE, TYPE IN 'ZFS CREATE'!\n\t") "ZFS CREATE")
                       (let [options (D { "xattr"      "sa"
@@ -254,6 +262,34 @@ click.pass-context
                                         (if raid
                                             (+ raid (.join " " zfs-devices))
                                             (raise (NameError no-raid-error-message))))]
+                           (if (or partition boot-device)
+                               (.bake- parted :s True :a "optimal" "--"))
+                           (if partition
+                               (do (parted zfs-device "mklabel" "gpt")
+                                   (for [[i p] (enumerate partition)]
+                                        (parted zfs-device
+                                                "mkpart"
+                                                "primary"
+                                                (if i p "0%")
+                                                (-> partition
+                                                    len
+                                                    dec
+                                                    (= i)
+                                                    (if "100%" p))))))
+                           (if (or partition boot-device)
+                               (if boot-device
+                                   (let [ device (get boot-device 0)
+                                          index  (get boot-device 1) ]
+                                        (parted device "mkfs" index "fat32")
+                                        (parted device "set" index "boot" "on")
+                                        (parted device "set" index "esp" "on"))
+                                   (do (parted zfs-device "mkfs" 1 "fat32")
+                                       (parted zfs-device "set" 1 "boot" "on")
+                                       (parted zfs-device "set" 1 "esp" "on"))))
+                           (if (or (> (len partition) 1) swap-device)
+                               (if swap-device
+                                   (parted (get swap-device 0) "mkfs" (get swap-device 1) "linux-swap")
+                                   (parted zfs-device "mkfs" 2 "linux-swap")))
                            (for [dataset (.list zfs :r True :H True :m/list True :m/split True)]
                                 (if (in ctx.obj.host dataset)
                                     (.export zpool :f True ctx.obj.host :m/ignore-stderr True)))
@@ -266,8 +302,7 @@ click.pass-context
                                (umount :R True "/mnt"))
                            (.export zpool :f True ctx.obj.host :m/ignore-stderr True)
                            (command :O { "repeat-with-values" (gfor [k v] (.items options) f"{k}={v}") } ctx.obj.host zfs-device)
-                           (if (not pool)
-                               (update-datasets ctx.obj.host swap encrypted deduplicated :pool True)))
+                           (update-datasets ctx.obj.host swap encrypted deduplicated :pool True :reserved-only pool-only))
                       (print "Sorry; not continuing!\n\n"))
                   (finally (.export zpool :f True ctx.obj.host :m/ignore-stderr True)))
              (raise (NameError no-host-error-message)))))

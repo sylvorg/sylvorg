@@ -1,12 +1,9 @@
 { config, pkgs, lib, ... }:
 
 {
-    imports = flatten [
-        ../../devices/linode.nix
-        import ../imports.nix
-    ];
+    imports = [ ../../devices/linode.nix ../../minimal.nix ];
     networking = {
         hostName = baseNameOf (toString ./.);
-        hostId = "42348638";
+        hostId = "0f2f4680";
     };
 }

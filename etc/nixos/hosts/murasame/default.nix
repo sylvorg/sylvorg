@@ -1,9 +1,9 @@
 { config, ... }:
 
 {
-    imports = import ../imports.nix;
+    imports = [ ../../minimal.nix ];
     networking = {
         hostName = baseNameOf (toString ./.);
-        hostId = "b6bfda59";
+        hostId = "b4715812";
     };
 }

@@ -76,11 +76,11 @@ loader = {
     # initScript.enable = mkForce true;
 
 };
-# kernelPackages = mkDefault pkgs.linuxPackages_xanmod;
+kernelPackages = mkDefault pkgs.linuxPackages_xanmod;
 # kernelPackages = mkDefault pkgs.linuxPackages_lqx;
 # kernelPackages = mkDefault pkgs.linuxPackages_zen;
-kernelPatches = [
-(last (filter (set: hasPrefix "bcachefs-" set.name) pkgs.linuxKernel.kernels.linux_testing_bcachefs.kernelPatches))
+kernelPatches = flatten [
+(if (elem "bcachefs" config.boot.supportedFilesystems) then (filter (set: hasInfix "bcachefs" set.name) pkgs.linuxKernel.kernels.linux_testing_bcachefs.kernelPatches) else [])
 ];
 extraModulePackages = with config.boot.kernelPackages; [
     zfsUnstable
@@ -125,7 +125,7 @@ persistence = mkIf j.attrs.zfs (let
 in {
     "/persist/root" = {
         hideMounts = true;
-        files = unique (map (file: if ((typeOf file) == "string") then ({ inherit file; } // rootFileSet) else (rootFileSet // file)) (flatten [
+        files = unique (map (file: if (isString file) then ({ inherit file; } // rootFileSet) else (rootFileSet // file)) (flatten [
             "/etc/host"
             "/etc/machine-id"
 
@@ -139,7 +139,7 @@ in {
                 "var"
             ])
         ]));
-        directories = unique (map (directory: if ((typeOf directory) == "string") then ({ inherit directory; } // rootDirSet) else (rootDirSet // directory)) (flatten [
+        directories = unique (map (directory: if (isString directory) then ({ inherit directory; } // rootDirSet) else (rootDirSet // directory)) (flatten [
             "/bin"
             "/etc/containers"
             "/etc/NetworkManager/system-connections"
@@ -187,7 +187,7 @@ in {
             ];
         in nameValuePair user {
             inherit home;
-            files = unique (map (file: if ((typeOf file) == "string") then ({ inherit file; } // userFileSet) else (userFileSet // file)) (flatten [
+            files = unique (map (file: if (isString file) then ({ inherit file; } // userFileSet) else (userFileSet // file)) (flatten [
                 ".bash_history"
                 ".emacs-profile"
                 ".fasd"
@@ -200,7 +200,7 @@ in {
                 ".zsh_history"
                 redRepoFiles
             ]));
-            directories = unique (map (directory: if ((typeOf directory) == "string") then ({ inherit directory; } // userDirSet) else (userDirSet // directory)) (flatten [
+            directories = unique (map (directory: if (isString directory) then ({ inherit directory; } // userDirSet) else (userDirSet // directory)) (flatten [
                 ".atom"
                 ".byobu"
                 ".cache"

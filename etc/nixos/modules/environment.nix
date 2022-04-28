@@ -4,7 +4,6 @@
     environment = {
         pathsToLink = [ "/share/nix-direnv" ];
         systemPackages = [
-            # bcachefs-tools
             acpilight
             alacritty
             asdf-vm

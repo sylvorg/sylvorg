@@ -221,10 +221,7 @@ fileSystems = {
         options = [ "defaults" "x-systemd.device-timeout=5" "nofail" ];
     };
 
-    # TODO
-    # supported = [ "zfs" "xfs" "btrfs" "ext4" "fat" "vfat" "bcachefs" ];
-
-    supported = [ "zfs" "xfs" "btrfs" "ext4" "fat" "vfat" ];
+    supported = [ "zfs" "xfs" "btrfs" "ext4" "fat" "vfat" "bcachefs" ];
 };
 commands = {
     rebuild = "nixos-rebuild --impure";

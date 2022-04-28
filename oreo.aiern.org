@@ -74,6 +74,7 @@ if __name__ == "__main__":
                  nixos-generate-config
                  nixos-install
                  nixos-rebuild
+                 parted
                  rsync
                  sd
                  swapon
@@ -119,33 +120,28 @@ if __name__ == "__main__":
 
 *** Datasets
 
-#+call: hash() :exports none
+#+name: 03a790b2-39f2-40a3-be10-b107c73df509
+#+begin_src text
+reserved
+#+end_src
 
-#+RESULTS:
-: 20220205031620372930929
-
-#+name: 20220205031620372930929
+#+name: de5c1dbd-ade3-4303-8e6f-06d3e2f9beb4
 #+begin_src text
 dross
 #+end_src
 
-#+call: hash() :exports none
-
-#+RESULTS:
-: 20210601190015343762700
-
-#+name: 20210601190015343762700
+#+name: f3568bf1-26cf-4d6f-8182-aad00b6a8d69
 #+begin_src json
 {
     "base": {  },
     "omniverse": {  },
-    "reserved": {  },
+    "<<03a790b2-39f2-40a3-be10-b107c73df509>>": {  },
     "<<username>>": { "datasets": {
             "oreo": { "mountpoint": "/home/<<username>>/oreo" },
             "sylveon": { "mountpoint": "/home/<<username>>/sylveon" },
             "sylvorg": { "mountpoint": "/home/<<username>>/sylvorg" },
             "syvlorg": { "mountpoint": "/home/<<username>>/syvlorg" },
-            "<<20220205031620372930929>>": { "mountpoint": "/home/<<username>>/<<20220205031620372930929>>" },
+            "<<de5c1dbd-ade3-4303-8e6f-06d3e2f9beb4>>": { "mountpoint": "/home/<<username>>/<<de5c1dbd-ade3-4303-8e6f-06d3e2f9beb4>>" },
             "uru": { "mountpoint": "/home/<<username>>/uru" }},
         "options": [ "mountpoint=legacy" ]},
     "system": {
@@ -176,18 +172,19 @@ dross
 *** Update Datasets
 
 #+begin_src hy
-(defn update-datasets [host [swap 0] [encrypted False] [deduplicated False] [pool False] [root-device None]]
+(defn update-datasets [host [swap 0] [encrypted False] [deduplicated False] [pool False] [root-device None] [reserved-only False]]
       (setv snap-dir     [ "snapdir=visible" ]
             extra-copies (+ snap-dir [ "copies=3" ])
             cache        [ "sync=disabled" ]
             ml           "mountpoint=legacy"
             d            "datasets"
             s            "system"
+            reserved     "<<03a790b2-39f2-40a3-be10-b107c73df509>>"
             datasets     (D (.loads json (.strip #[[
-                                <<20210601190015343762700>>
+                                <<f3568bf1-26cf-4d6f-8182-aad00b6a8d69>>
                          ]])))
             users        (D (.loads json (.strip #[[
-                                <<20210601185359809444000>>
+                                <<33b84622-7a1e-4a87-9c9f-fd10a3c13a8a>>
                          ]]))))
       (assoc datasets "${host}" (D { "datasets" { "jails" { "datasets" { "base" (dict)}}}
                                      "options" [ ml ]}))
@@ -195,57 +192,59 @@ dross
            (assoc (. datasets [s] [d] home [d]) user (dict))
            (assoc (. datasets [s] [d] persist [d]) user (dict))
            (assoc (. datasets virt [d] podman [d]) user (dict)))
-      (with [dnix (open (+ resources "/datasets.nix") "w")]
-            (.write dnix (+ "host: { \n\t\""
-                            (or root-device "${host}/system/root")
-                            "\" = \"/\";"
-                            "\n"))
-            (defn recurse [ddict dname droot [mountpoint ""]]
-                  (setv recurse/datasets     (.list zfs :r True :o "name" :m/list True :m/ignore-stderr True)
-                        recurse/datasets     (cut recurse/datasets 2 (len recurse/datasets))
-                        recurse/dataset      (+ droot "/" dname)
-                        recurse/real-dataset (.replace recurse/dataset "${host}" host)
-                        cloning              (and (!= dname "base")
-                                                  (and encrypted deduplicated))
-                        prefixes             (, "system"
-                                                "system/root"
-                                                "swap"
-                                                "base"
-                                                "hold"
-                                                "omniverse"
-                                                "reserved" ))
-                  (if cloning
-                      (setv clone-or-create  "clone"
-                            snapshot-or-none (+ host "/base@root"))
-                      (setv clone-or-create  "create"
-                            snapshot-or-none ""))
-                  (if (not (in recurse/real-dataset (lfor prefix prefixes (+ host "/" prefix))))
-                      (do (if (setx recurse/mountpoint (.get ddict "mountpoint" ""))
-                              (setv mountpoint recurse/mountpoint)
-                              (if mountpoint
-                                  (setv mountpoint (+ mountpoint "/" dname)
-                                        recurse/mountpoint mountpoint)
-                                  (do (setv recurse/mountpoint (.removeprefix recurse/dataset "${host}/"))
-                                      (for [prefix prefixes]
-                                           (setv recurse/mountpoint (.removeprefix recurse/mountpoint (+ prefix "/"))))
-                                      (setv recurse/mountpoint (+ "/" recurse/mountpoint)))))
-                          (.write dnix (+ "\t\""
-                                          recurse/dataset
-                                          "\" = \""
-                                          recurse/mountpoint
-                                          "\";\n"))))
-                  (if (and pool (not (in recurse/real-dataset recurse/datasets)))
-                      (do (zfs :m/subcommand clone-or-create
-                               :o { "repeat-with-values" (.get ddict "options" []) }
-                               snapshot-or-none
-                               recurse/real-dataset)
-                          (.snapshot zfs :r True (+ recurse/real-dataset "@blank"))))
-                  (for [[key value] (.items (.get ddict d (D {  })))]
-                       (recurse value key recurse/dataset mountpoint)))
-            (for [[key value] (.items datasets)]
-                 (recurse value key "${host}"))
-            (.write dnix "}"))
-      (if pool
+      (if reserved-only
+          (.create zfs (+ host "/" reserved))
+          (do (with [dnix (open (+ resources "/datasets.nix") "w")]
+                    (.write dnix (+ "host: { \n\t\""
+                                    (or root-device "${host}/system/root")
+                                    "\" = \"/\";"
+                                    "\n"))
+              (defn recurse [ddict dname droot [mountpoint ""]]
+                    (setv recurse/datasets     (.list zfs :r True :o "name" :m/list True :m/ignore-stderr True)
+                          recurse/datasets     (cut recurse/datasets 2 (len recurse/datasets))
+                          recurse/dataset      (+ droot "/" dname)
+                          recurse/real-dataset (.replace recurse/dataset "${host}" host)
+                          cloning              (and (!= dname "base")
+                                                    (and encrypted deduplicated))
+                          prefixes             (, "system"
+                                                  "system/root"
+                                                  "swap"
+                                                  "base"
+                                                  "hold"
+                                                  "omniverse"
+                                                  reserved ))
+                    (if cloning
+                        (setv clone-or-create  "clone"
+                              snapshot-or-none (+ host "/base@root"))
+                        (setv clone-or-create  "create"
+                              snapshot-or-none ""))
+                    (if (not (in recurse/real-dataset (lfor prefix prefixes (+ host "/" prefix))))
+                        (do (if (setx recurse/mountpoint (.get ddict "mountpoint" ""))
+                                (setv mountpoint recurse/mountpoint)
+                                (if mountpoint
+                                    (setv mountpoint (+ mountpoint "/" dname)
+                                          recurse/mountpoint mountpoint)
+                                    (do (setv recurse/mountpoint (.removeprefix recurse/dataset "${host}/"))
+                                        (for [prefix prefixes]
+                                             (setv recurse/mountpoint (.removeprefix recurse/mountpoint (+ prefix "/"))))
+                                        (setv recurse/mountpoint (+ "/" recurse/mountpoint)))))
+                            (.write dnix (+ "\t\""
+                                            recurse/dataset
+                                            "\" = \""
+                                            recurse/mountpoint
+                                            "\";\n"))))
+                    (if (and pool (not (in recurse/real-dataset recurse/datasets)))
+                        (do (zfs :m/subcommand clone-or-create
+                                 :o { "repeat-with-values" (.get ddict "options" []) }
+                                 snapshot-or-none
+                                 recurse/real-dataset)
+                            (.snapshot zfs :r True (+ recurse/real-dataset "@blank"))))
+                    (for [[key value] (.items (.get ddict d (D {  })))]
+                         (recurse value key recurse/dataset mountpoint)))
+              (for [[key value] (.items datasets)]
+                   (recurse value key host))
+              (.write dnix "}"))))
+      (if (or pool reserved-only)
           (let [pool-size-plus-metric (get (.get zpool :H True "size" host :m/list True :m/split True) 2)
                 pool-size             (-> pool-size-plus-metric
                                           (cut 0 -1)
@@ -262,27 +261,28 @@ dross
                          (return)))
                (.set zfs
                      (+ "refreservation=" (pool-percentage-value 15))
-                     (+ host "/reserved"))
+                     (+ host "/" reserved))
 
                ;; Apparently, if python internal keywords exist in the argument, such as "set", etc.
                ;; the command errors out; perhaps something to raise an issue of.
                ;; This seems to work as an alternative.
-               ;; run(f"zfs set refreservation={pool_percentage_value(15)} {args.Pool}/reserved", shell = True)
+               ;; run(f"zfs set refreservation={pool_percentage_value(15)} {args.Pool}/{reserved}", shell = True)
 
-               (if swap
-                   (let [swoptions [ "com.sun:auto-snapshot=false"
-                                     "compression=zle"
-                                     "logbias=throughput"
-                                     "primarycache=metadata"
-                                     "secondarycache=none"
-                                     "sync=standard" ]
-                         page-size (getconf "PAGESIZE" :m/str True)]
-                        (.create zfs
-                                 :V (+ (str swap) "G")
-                                 :b page-size
-                                 :o { "repeat-with-values" swoptions }
-                                 (+ host "/swap"))
-                        (mkswap (+ "/dev/zvol" host "/swap")))))))
+               (if (not reserved-only)
+                   (do (if swap
+                           (let [swoptions [ "com.sun:auto-snapshot=false"
+                                             "compression=zle"
+                                             "logbias=throughput"
+                                             "primarycache=metadata"
+                                             "secondarycache=none"
+                                             "sync=standard" ]
+                                 page-size (getconf "PAGESIZE" :m/str True)]
+                                (.create zfs
+                                         :V (+ (str swap) "G")
+                                         :b page-size
+                                         :o { "repeat-with-values" swoptions }
+                                         (+ host "/swap"))
+                                (mkswap (+ "/dev/zvol" host "/swap")))))))))
 #+end_src
 
 *** Click
@@ -306,8 +306,8 @@ dross
 
 #+begin_src hy
 #@((.command strapper :no-args-is-help True
-                        :context-settings { "ignore_unknown_options" True
-                                            "allow_extra_args"       True })
+                      :context-settings { "ignore_unknown_options" True
+                                          "allow_extra_args"       True })
    (.argument click "program-arguments" :nargs -1)
    (.option click "-a" "--all" :is-flag True)
    (.option click "-c" "--copy" :is-flag True)
@@ -374,15 +374,18 @@ or in the Nix configuration file by adding the line tarball-ttl = number-of-seco
 
 #+begin_src hy
 #@((.command strapper :no-args-is-help True)
+   (.option click "-B" "--boot-device" :type (, str int))
    (.option click "-d" "--deduplicated" :is-flag True)
    (.option click "-e" "--encrypted" :is-flag True)
    (.option click "-m" "--mountpoint")
-   (.option click "-p" "--pool" :is-flag True)
-   (.option click "-r" "--raid")
+   (.option click "-P" "--partition" :multiple True :cls oreo.Option :xor [ "raid" ])
+   (.option click "-p" "--pool-only" :is-flag True)
+   (.option click "-r" "--raid" :cls oreo.Option :xor [ "partition" ])
+   (.option click "-S" "--swap-device" :type (, str int))
    (.option click "-s" "--swap" :type int :default 0)
    (.option click "-z" "--zfs-devices" :required True :multiple True)
    click.pass-context
-   (defn create [ ctx deduplicated encrypted mountpoint pool raid swap zfs-devices ]
+   (defn create [ ctx boot-device deduplicated encrypted mountpoint partition pool-only raid swap-device swap zfs-devices ]
          (if ctx.obj.host
              (try (if (= (input "THIS WILL DELETE ALL DATA ON THE SELECTED DEVICE / PARTITION! TO CONTINUE, TYPE IN 'ZFS CREATE'!\n\t") "ZFS CREATE")
                       (let [options (D { "xattr"      "sa"
@@ -403,6 +406,34 @@ or in the Nix configuration file by adding the line tarball-ttl = number-of-seco
                                         (if raid
                                             (+ raid (.join " " zfs-devices))
                                             (raise (NameError no-raid-error-message))))]
+                           (if (or partition boot-device)
+                               (.bake- parted :s True :a "optimal" "--"))
+                           (if partition
+                               (do (parted zfs-device "mklabel" "gpt")
+                                   (for [[i p] (enumerate partition)]
+                                        (parted zfs-device
+                                                "mkpart"
+                                                "primary"
+                                                (if i p "0%")
+                                                (-> partition
+                                                    len
+                                                    dec
+                                                    (= i)
+                                                    (if "100%" p))))))
+                           (if (or partition boot-device)
+                               (if boot-device
+                                   (let [ device (get boot-device 0)
+                                          index  (get boot-device 1) ]
+                                        (parted device "mkfs" index "fat32")
+                                        (parted device "set" index "boot" "on")
+                                        (parted device "set" index "esp" "on"))
+                                   (do (parted zfs-device "mkfs" 1 "fat32")
+                                       (parted zfs-device "set" 1 "boot" "on")
+                                       (parted zfs-device "set" 1 "esp" "on"))))
+                           (if (or (> (len partition) 1) swap-device)
+                               (if swap-device
+                                   (parted (get swap-device 0) "mkfs" (get swap-device 1) "linux-swap")
+                                   (parted zfs-device "mkfs" 2 "linux-swap")))
                            (for [dataset (.list zfs :r True :H True :m/list True :m/split True)]
                                 (if (in ctx.obj.host dataset)
                                     (.export zpool :f True ctx.obj.host :m/ignore-stderr True)))
@@ -415,8 +446,7 @@ or in the Nix configuration file by adding the line tarball-ttl = number-of-seco
                                (umount :R True "/mnt"))
                            (.export zpool :f True ctx.obj.host :m/ignore-stderr True)
                            (command :O { "repeat-with-values" (gfor [k v] (.items options) f"{k}={v}") } ctx.obj.host zfs-device)
-                           (if (not pool)
-                               (update-datasets ctx.obj.host swap encrypted deduplicated :pool True)))
+                           (update-datasets ctx.obj.host swap encrypted deduplicated :pool True :reserved-only pool-only))
                       (print "Sorry; not continuing!\n\n"))
                   (finally (.export zpool :f True ctx.obj.host :m/ignore-stderr True)))
              (raise (NameError no-host-error-message)))))
@@ -886,9 +916,9 @@ index c61df8ceb00..d973837f0d3 100644
 #+call: hash() :exports none
 
 #+RESULTS:
-: 20210601185359809444000
+: 33b84622-7a1e-4a87-9c9f-fd10a3c13a8a
 
-#+name: 20210601185359809444000
+#+name: 33b84622-7a1e-4a87-9c9f-fd10a3c13a8a
 #+begin_src json :tangle (meq/tangle-path)
 {
     "primary": "<<username>>",
@@ -972,14 +1002,6 @@ Adapted from the following:
 (concat "\"" (string-trim (shell-command-to-string "head -c4 /dev/urandom | od -A none -t x4")) "\"")
 #+end_src
 
-**** imports.nix
-
-# TODO: remove ~bcachefs~
-
-#+begin_src nix :tangle (meq/tangle-path)
-[ ../minimal.nix ../bcachefs.nix ]
-#+end_src
-
 **** sandshrew
 ***** default.nix
 
@@ -1039,7 +1061,7 @@ Adapted from the following:
 { config, ... }:
 
 {
-    imports = import ../imports.nix;
+    imports = [ ../../minimal.nix ];
     networking = {
         hostName = baseNameOf (toString ./.);
         hostId = <<hostId()>>;
@@ -1054,10 +1076,7 @@ Adapted from the following:
 { config, pkgs, lib, ... }:
 
 {
-    imports = flatten [
-        ../../devices/linode.nix
-        import ../imports.nix
-    ];
+    imports = [ ../../devices/linode.nix ../../minimal.nix ];
     networking = {
         hostName = baseNameOf (toString ./.);
         hostId = <<hostId()>>;
@@ -1091,21 +1110,6 @@ Adapted from the following:
     networking = {
         hostName = baseNameOf (toString ./.);
         hostId = <<hostId()>>;
-    };
-}
-#+end_src
-
-*** bcachefs.nix
-
-# TODO: delete
-
-#+begin_src nix :tangle (meq/tangle-path)
-{ config, ... }:
-
-{
-    boot = {
-        supportedFilesystems = [ "bcachefs" ];
-        initrd.supportedFilesystems = config.boot.supportedFilesystems;
     };
 }
 #+end_src
@@ -1549,10 +1553,7 @@ fileSystems = {
         options = [ "defaults" "x-systemd.device-timeout=5" "nofail" ];
     };
 
-    # TODO
-    # supported = [ "zfs" "xfs" "btrfs" "ext4" "fat" "vfat" "bcachefs" ];
-
-    supported = [ "zfs" "xfs" "btrfs" "ext4" "fat" "vfat" ];
+    supported = [ "zfs" "xfs" "btrfs" "ext4" "fat" "vfat" "bcachefs" ];
 };
 #+end_src
 
@@ -2080,10 +2081,8 @@ loader = {
 
 ****** Kernel
 
-# TODO: Use one of these with ~bcachefs~
-
 #+begin_src nix
-# kernelPackages = mkDefault pkgs.linuxPackages_xanmod;
+kernelPackages = mkDefault pkgs.linuxPackages_xanmod;
 # kernelPackages = mkDefault pkgs.linuxPackages_lqx;
 # kernelPackages = mkDefault pkgs.linuxPackages_zen;
 #+end_src
@@ -2091,12 +2090,12 @@ loader = {
 ******* Patches
 
 #+begin_src nix
-kernelPatches = [
+kernelPatches = flatten [
 #+end_src
 
 ******** ZSTD Kernel Compression
 
-# TODO
+# TODO: Apparently doesn't work with bcachefs
 
 #+begin_src nix :noweb-ref no
 {
@@ -2113,7 +2112,7 @@ kernelPatches = [
 ******** Bcachefs
 
 #+begin_src nix
-(last (filter (set: hasPrefix "bcachefs-" set.name) pkgs.linuxKernel.kernels.linux_testing_bcachefs.kernelPatches))
+(if (elem "bcachefs" config.boot.supportedFilesystems) then (filter (set: hasInfix "bcachefs" set.name) pkgs.linuxKernel.kernels.linux_testing_bcachefs.kernelPatches) else [])
 #+end_src
 
 ******** End of Kernel Patches
@@ -2203,7 +2202,7 @@ persistence = mkIf j.attrs.zfs (let
 in {
     "/persist/root" = {
         hideMounts = true;
-        files = unique (map (file: if ((typeOf file) == "string") then ({ inherit file; } // rootFileSet) else (rootFileSet // file)) (flatten [
+        files = unique (map (file: if (isString file) then ({ inherit file; } // rootFileSet) else (rootFileSet // file)) (flatten [
             "/etc/host"
             "/etc/machine-id"
 
@@ -2217,7 +2216,7 @@ in {
                 "var"
             ])
         ]));
-        directories = unique (map (directory: if ((typeOf directory) == "string") then ({ inherit directory; } // rootDirSet) else (rootDirSet // directory)) (flatten [
+        directories = unique (map (directory: if (isString directory) then ({ inherit directory; } // rootDirSet) else (rootDirSet // directory)) (flatten [
             "/bin"
             "/etc/containers"
             "/etc/NetworkManager/system-connections"
@@ -2265,7 +2264,7 @@ in {
             ];
         in nameValuePair user {
             inherit home;
-            files = unique (map (file: if ((typeOf file) == "string") then ({ inherit file; } // userFileSet) else (userFileSet // file)) (flatten [
+            files = unique (map (file: if (isString file) then ({ inherit file; } // userFileSet) else (userFileSet // file)) (flatten [
                 ".bash_history"
                 ".emacs-profile"
                 ".fasd"
@@ -2278,7 +2277,7 @@ in {
                 ".zsh_history"
                 redRepoFiles
             ]));
-            directories = unique (map (directory: if ((typeOf directory) == "string") then ({ inherit directory; } // userDirSet) else (userDirSet // directory)) (flatten [
+            directories = unique (map (directory: if (isString directory) then ({ inherit directory; } // userDirSet) else (userDirSet // directory)) (flatten [
                 ".atom"
                 ".byobu"
                 ".cache"
@@ -2621,6 +2620,43 @@ in rec {
             # anbox
             # wireguard
         ];
+        kernelPatches = let
+            genCK = ignores: map (name: {
+                inherit name;
+                patch = "${toString ck}/${name}";
+            }) (pipe flake.inputs.ck [
+                readDir
+                attrNames
+                (filter (p: !elem p (flatten [
+                    "series"
+                    "0016-Add-ck1-version.patch"
+                    ignores
+                ])))
+            ]);
+            versionHasAnInfix = infix: j.functions.hasAnInfix (if (isList infix) then infix else [ infix ]) config.boot.kernelPackages.version;
+        in unique (flatten [
+            (j.functions.myIf.list (versionHasAnInfix [ "xanmod" "zen" "lqx"]) (genCK [
+                "0001-MultiQueue-Skiplist-Scheduler-v0.210.patch"
+                "0002-Unmask-ondemand-and-conservative-and-allow-schedutil.patch"
+                "0003-Make-preemptible-kernel-default.patch"
+                "0007-Replace-all-schedule-timeout-1-with-schedule_min_hrt.patch"
+                "0011-Make-hrtimer-granularity-and-minimum-hrtimeout-confi.patch"
+                "0012-Make-threaded-IRQs-optionally-the-default-which-can-.patch"
+                "0015-Make-nohz_full-not-be-picked-up-as-a-default-config-.patch"
+            ]))
+            (j.functions.myIf.list (versionHasAnInfix "xanmod") (genCK [
+                "0013-Reinstate-default-Hz-of-100-in-combination-with-MuQS.patch"
+                "0014-Swap-sucks.patch"
+            ]))
+            (genCK [
+                # "0004-Create-highres-timeout-variants-of-schedule_timeout-.patch"
+                # "0005-Special-case-calls-of-schedule_timeout-1-to-use-the-.patch"
+                # "0006-Convert-msleep-to-use-hrtimers-when-active.patch"
+                # "0008-Replace-all-calls-to-schedule_timeout_interruptible-.patch"
+                # "0009-Replace-all-calls-to-schedule_timeout_uninterruptibl.patch"
+                # "0010-Don-t-use-hrtimer-overlay-when-pm_freezing-since-som.patch"
+            ])
+        ]);
     };
 }
 #+end_src
@@ -2634,7 +2670,6 @@ in rec {
     environment = {
         pathsToLink = [ "/share/nix-direnv" ];
         systemPackages = [
-            # bcachefs-tools
             acpilight
             alacritty
             asdf-vm
@@ -2849,7 +2884,7 @@ Help is available in the configuration.nix(5) man page and in the NixOS manual (
             listToAttrs (map (user: nameValuePair user {
                 home = {
                     homeDirectory = j.attrs.homes.${user};
-                    file.<<20220205031620372930929>>.source = repo;
+                    file.<<de5c1dbd-ade3-4303-8e6f-06d3e2f9beb4>>.source = repo;
                 };
             }) j.attrs.allUsers)
         ];
