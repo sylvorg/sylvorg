@@ -260,7 +260,7 @@ click.pass-context
                                             (raise (NameError no-raid-error-message))
                                             (get zfs-devices 0))
                                         (if raid
-                                            (+ raid (.join " " zfs-devices))
+                                            f"{raid} {(.join " " zfs-devices)}"
                                             (raise (NameError no-raid-error-message))))]
                            (if (or partition boot-device)
                                (.bake- parted :s True :a "optimal" "--"))
