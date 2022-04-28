@@ -233,7 +233,7 @@ click.pass-context
    (.option click "-B" "--boot-device" :type (, str int))
    (.option click "-d" "--deduplicated" :is-flag True)
    (.option click "-e" "--encrypted" :is-flag True)
-   (.option click "-M" "--host-mountpoint" :help "Use the hostname as the mountpoint")
+   (.option click "-M" "--host-mountpoint" :help "Use the hostname as the mountpoint" :is-flag True)
    (.option click "-m" "--mountpoint")
    (.option click "-P" "--partition" :multiple True :cls oreo.Option :xor [ "raid" ])
    (.option click "-p" "--pool-only" :is-flag True)
@@ -248,7 +248,7 @@ click.pass-context
                       (let [options (D { "xattr"      "sa"
                                          "acltype"    "posixacl"
                                          "mountpoint"  (if host-mountpoint
-                                                           (+ "/" host)
+                                                           (+ "/" ctx.obj.host)
                                                            (or mountpoint "none"))
                                          "compression" "zstd-19"
                                          "checksum"    "edonr"
@@ -263,7 +263,7 @@ click.pass-context
                                             (raise (NameError no-raid-error-message))
                                             (get zfs-devices 0))
                                         (if raid
-                                            f"{raid} {(.join " " zfs-devices)}"
+                                            #[f[{raid} {(.join " " zfs-devices)}]f]
                                             (raise (NameError no-raid-error-message))))]
                            (if (or partition boot-device)
                                (.bake- parted :s True :a "optimal" "--"))
