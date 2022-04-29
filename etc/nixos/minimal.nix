@@ -561,7 +561,14 @@ in rec {
         };
         enableSSHAgentAuth = true;
     };
-    services.pcscd.enable = true;
+    services = {
+        udev.packages = with pkgs; [
+            libu2f-host
+            libyubikey
+            yubikey-personalization
+        ];
+        pcscd.enable = true;
+    };
 }
 ];
 }

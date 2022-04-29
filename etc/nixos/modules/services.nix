@@ -11,11 +11,6 @@ emacs = {
 flatpak.enable = true;
 guix.enable = true;
 printing.enable = true;
-udev.packages = with pkgs; [
-    yubikey-personalization
-    libu2f-host
-];
-pcscd.enable = true;
 zfs = mkIf j.attrs.zfs {
     trim.enable = true;
     autoScrub.enable = true;
