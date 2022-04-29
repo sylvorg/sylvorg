@@ -24,10 +24,11 @@ imports = with flake.inputs; flatten [
     (if fromFlake then [] else [ home-manager.nixosModules.home-manager impermanence.nixosModules.impermanence ])
 ];
 # config = (removeAttrs nixos-configurations.hardware-configuration.config [ "fileSystems" "nesting" "jobs" "fonts" "meta" "documentation" ]) // {
-config = (filterAttrs (n: v: elem n [ "boot" "networking" "powerManagement" "hardware" ]) nixos-configurations.hardware-configuration.config) //
+config = mkMerge [
+    (filterAttrs (n: v: elem n [ "boot" "networking" "powerManagement" "hardware" ]) nixos-configurations.hardware-configuration.config)
 
     # TODO: What exactly from `system' am I taking? Merge it explicitly.
-    # (if fromFlake then (filterAttrs (n: v: elem n [ "system" ]) nixos-configurations.configuration.config) else {}) //
+    # (if fromFlake then (filterAttrs (n: v: elem n [ "system" ]) nixos-configurations.configuration.config) else {})
 
 {
 boot = {
@@ -262,7 +263,6 @@ hardware = {
     pulseaudio.enable = true;
 };
 sound.enable = true;
-
 networking = {
     networkmanager.enable = mkForce true;
     interfaces = if fromFlake then (mapAttrs (n: v: v // {
@@ -528,5 +528,40 @@ in rec {
         };
     };
 };
-};
+}
+{
+    # For Yubikey SSH-GPG Authentication
+    environment = {
+        shellInit = ''
+            export GPG_TTY="$(tty)"
+            gpg-connect-agent /bye
+            export SSH_AUTH_SOCK="/run/user/$UID/gnupg/S.gpg-agent.ssh"
+            echo UPDATESTARTUPTTY | gpg-connect-agent
+        '';
+        systemPackages = with pkgs; [ pinentry-curses ];
+    };
+    programs = {
+        # Some programs need SUID wrappers, can be configured further or are
+        # started in user sessions.
+        # mtr.enable = true;
+        gnupg.agent = {
+            enable = true;
+            enableSSHSupport = false;
+            pinentryFlavor = "curses";
+        };
+
+        # For use with Yubikey SSH-GPG Authentication, set to false
+        ssh.startAgent = true;
+    };
+    security.pam = {
+        yubico = {
+            enable = true;
+            debug = true;
+            mode = "challenge-response";
+        };
+        enableSSHAgentAuth = true;
+    };
+    services.pcscd.enable = true;
+}
+];
 }

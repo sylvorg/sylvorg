@@ -214,6 +214,7 @@ ssh.keys = rec {
     shadowrylander_rsa = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDP8ifT/3d6L2MzZPoTh0bUjQUXuPKfPP8Tp03E5En2x+iKhv+J/U0z0xk7IdPZ4qEO+ZWI5xWbwVkDdnRnJ/5HgA0/ZwmO5Zpj3llSr4dJMUVSSyO23fFIL2WqOpHyQDeexJWMxbU5SmIi+c855VwewCbGDcPnmDo0XgR/u4LRF2pwYGNGFtJ2/GICEIob/2w0ICwi7TMUEkDbUFcP5web81OzsNu80M60VaNl870uT1rwBeKuW7CXFtImYytZ0mOc5LC6d7ugkFS1zAbLOWjt3PJ8Op2MH9ncBj5jCsIlA/OqI72jKwEPOl8evYqWeEOzlVxA7/AkRj7haQqFE8r/ shadowrylander@syvl.org";
     id_rsa = shadowrylander_rsa;
     id_ed25519 = jeet_ray_ed25519;
+    id_ecdsa = jeet_ray_ecdsa;
 };
 fileSystems = {
     base = {
