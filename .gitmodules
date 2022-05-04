@@ -1,6 +1,3 @@
-[submodule ".emacs.d"]
-    path = .emacs.d
-    url = https://github.com/shadowrylander/.emacs.d.git
 [submodule "resources/bashCompletions"]
     path = resources/bashCompletions
     url = https://github.com/scop/bash-completion.git
@@ -70,3 +67,6 @@
 [submodule "resources/zsh-autocomplete"]
 	path = resources/zsh-autocomplete
 	url = https://github.com/marlonrichert/zsh-autocomplete.git
+[submodule ".emacs.d"]
+	path = .emacs.d
+	url = https://github.com/shadowrylander/.emacs.d.git
