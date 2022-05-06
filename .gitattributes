@@ -1,3 +1,18 @@
+####################
+# Git Line Endings #
+####################
+
+# Set default behaviour to automatically normalize line endings.
+* text=auto
+
+# Force batch scripts to always use CRLF line endings so that if a repo is accessed
+# in Windows via a file share from Linux, the scripts will work.
+*.{cmd,[cC][mM][dD]} text eol=crlf
+*.{bat,[bB][aA][tT]} text eol=crlf
+
+# Force bash scripts to always use LF line endings so that if a repo is accessed
+# in Unix via a file share from Windows, the scripts will work.
+*.sh text eol=lf
 *.3dm filter=lfs diff=lfs merge=lfs -text
 *.3ds filter=lfs diff=lfs merge=lfs -text
 *.3g2 filter=lfs diff=lfs merge=lfs -text
@@ -19,7 +34,6 @@
 *.asf filter=lfs diff=lfs merge=lfs -text
 *.au filter=lfs diff=lfs merge=lfs -text
 *.avi filter=lfs diff=lfs merge=lfs -text
-*.bak filter=lfs diff=lfs merge=lfs -text
 *.baml filter=lfs diff=lfs merge=lfs -text
 *.bh filter=lfs diff=lfs merge=lfs -text
 *.bin filter=lfs diff=lfs merge=lfs -text
@@ -258,3 +272,15 @@
 *.z filter=lfs diff=lfs merge=lfs -text
 *.zip filter=lfs diff=lfs merge=lfs -text
 *.zipx filter=lfs diff=lfs merge=lfs -text
+black.aiern.org filter=git-crypt diff=git-crypt
+etc/nixos/secrets/**/* filter=git-crypt diff=git-crypt
+.termux/font.ttf filter=git-crypt diff=git-crypt
+
+.ssh/**/* filter=git-crypt diff=git-crypt
+.ssh/**/*.pub* -filter -diff
+
+.gnupgk/**/* filter=git-crypt diff=git-crypt
+.gnupgk/**/*.pub* -filter -diff
+
+.fonts/cartographcf-* filter=git-crypt diff=git-crypt
+.config/caddy/**/* filter=git-crypt diff=git-crypt

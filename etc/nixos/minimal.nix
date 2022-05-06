@@ -538,7 +538,10 @@ in rec {
             export SSH_AUTH_SOCK="/run/user/$UID/gnupg/S.gpg-agent.ssh"
             echo UPDATESTARTUPTTY | gpg-connect-agent
         '';
-        systemPackages = with pkgs; [ pinentry-curses ];
+        systemPackages = with pkgs; [
+            pinentry-curses
+            pcsctools
+        ];
     };
     programs = {
         # Some programs need SUID wrappers, can be configured further or are
@@ -546,12 +549,10 @@ in rec {
         # mtr.enable = true;
         gnupg.agent = {
             enable = true;
-            enableSSHSupport = false;
+            enableSSHSupport = true;
             pinentryFlavor = "curses";
         };
-
-        # For use with Yubikey SSH-GPG Authentication, set to false
-        ssh.startAgent = true;
+        ssh.startAgent = ! config.programs.gnupg.agent.enableSSHSupport;
     };
     security.pam = {
         yubico = {

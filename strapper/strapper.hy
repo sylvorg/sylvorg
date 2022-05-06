@@ -181,12 +181,15 @@
    (.option click "-d" "--dazzle" :is-flag True)
    (.option click "-H" "--host")
    (.option click "-i" "--inspect" :is-flag True)
-   (.option click "-p" "--print-run" :is-flag True)
+   (.option click "-P" "--print-run" :is-flag True :cls oreo.Option :xor [ "print" ])
+   (.option click "-p" "--print" :is-flag True :cls oreo.Option :xor [ "print-run" ])
    click.pass-context
-   (defn strapper [ ctx dazzle host inspect print-run ]
+   (defn strapper [ ctx dazzle host inspect print-run print ]
          (.ensure-object ctx dict)
          (setv ctx.obj.host host)
+         (if dazzle (.bake-all- getconf :m/dazzle True))
          (if print-run (.bake-all- getconf :m/print-command-and-run True))
+         (if print (.bake-all- getconf :m/print-command True))
          (if inspect (.bake-all- getconf :m/debug True))))
 #@((.command strapper :no-args-is-help True
                       :context-settings { "ignore_unknown_options" True
@@ -231,10 +234,13 @@ click.pass-context
 ))))))
 #@((.command strapper :no-args-is-help True)
    (.option click "-B" "--boot-device" :type (, str int))
+   (.option click "-c" "--copies" :type int :default 1)
    (.option click "-d" "--deduplicated" :is-flag True)
    (.option click "-e" "--encrypted" :is-flag True)
    (.option click "-M" "--host-mountpoint" :help "Use the hostname as the mountpoint" :is-flag True)
    (.option click "-m" "--mountpoint")
+   (.option click "-o" "--pool-options" :multiple True)
+   (.option click "-O" "--dataset-options" :multiple True)
    (.option click "-P" "--partition" :multiple True :cls oreo.Option :xor [ "raid" ])
    (.option click "-p" "--pool-only" :is-flag True)
    (.option click "-r" "--raid" :cls oreo.Option :xor [ "partition" ])
@@ -242,21 +248,23 @@ click.pass-context
    (.option click "-s" "--swap" :type int :default 0)
    (.option click "-z" "--zfs-devices" :required True :multiple True)
    click.pass-context
-   (defn create [ ctx boot-device deduplicated encrypted host-mountpoint mountpoint partition pool-only raid swap-device swap zfs-devices ]
+   (defn create [ ctx boot-device copies deduplicated encrypted host-mountpoint mountpoint dataset-options pool-options partition pool-only raid swap-device swap zfs-devices ]
          (if ctx.obj.host
              (try (if (= (input "THIS WILL DELETE ALL DATA ON THE SELECTED DEVICE / PARTITION! TO CONTINUE, TYPE IN 'ZFS CREATE'!\n\t") "ZFS CREATE")
-                      (let [options (D { "xattr"      "sa"
-                                         "acltype"    "posixacl"
-                                         "mountpoint"  (if host-mountpoint
-                                                           (+ "/" ctx.obj.host)
-                                                           (or mountpoint "none"))
-                                         "compression" "zstd-19"
-                                         "checksum"    "edonr"
-                                         "atime"       "off"
-                                         "relatime"    "off" })
-                            command (partial zpool.create
-                                             :f True
-                                             :o { "repeat-with-values" (, "autotrim=on" "altroot=/mnt" "autoexpand=on") })
+                      (let [dataset-options-dict (D { "xattr"      "sa"
+                                                      "acltype"    "posixacl"
+                                                      "mountpoint"  (if host-mountpoint
+                                                                        (+ "/" ctx.obj.host)
+                                                                        (or mountpoint "none"))
+                                                      "compression" "zstd-19"
+                                                      "checksum"    "edonr"
+                                                      "atime"       "off"
+                                                      "relatime"    "off"
+                                                      "copies"      copies })
+                            pool-options-dict (D { "autotrim" "on"
+                                                   "altroot" "/mnt"
+                                                   "autoexpand" "on" })
+                            command (partial zpool.create :f True)
                             no-raid-error-message "Sorry! For multiple zfs devices a raid configuration must be provided using `-r / --raid'!"
                             zfs-device (if (= (len zfs-devices) 1)
                                         (if raid
@@ -297,14 +305,19 @@ click.pass-context
                                 (if (in ctx.obj.host dataset)
                                     (.export zpool :f True ctx.obj.host :m/ignore-stderr True)))
                            (if encrypted
-                               (setv options.encryption "aes-256-gcm"
-                                     options.keyformat  "passphrase"))
+                               (setv dataset-options-dict.encryption "aes-256-gcm"
+                                     dataset-options-dict.keyformat  "passphrase"))
                            (if deduplicated
-                               (setv options.dedup "edonr,verify"))
+                               (setv dataset-options-dict.dedup "edonr,verify"))
                            (if (.ismount os.path "/mnt")
                                (umount :R True "/mnt"))
                            (.export zpool :f True ctx.obj.host :m/ignore-stderr True)
-                           (command :O { "repeat-with-values" (gfor [k v] (.items options) f"{k}={v}") } ctx.obj.host zfs-device)
+                           (.update dataset-options-dict (dfor item pool-options :setv kv (.split item "=") [(get kv 0) (get kv 1)]))
+                           (.update pool-options-dict (dfor item dataset-options :setv kv (.split item "=") [(get kv 0) (get kv 1)]))
+                           (command :O { "repeat-with-values" (gfor [k v] (.items dataset-options-dict) f"{k}={v}") }
+                                    :o { "repeat-with-values" (gfor [k v] (.items pool-options-dict) f"{k}={v}") }
+                                    ctx.obj.host
+                                    zfs-device)
                            (update-datasets ctx.obj.host swap encrypted deduplicated :pool True :reserved-only pool-only))
                       (print "Sorry; not continuing!\n\n"))
                   (finally (.export zpool :f True ctx.obj.host :m/ignore-stderr True)))

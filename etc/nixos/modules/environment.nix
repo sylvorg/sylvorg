@@ -45,7 +45,6 @@
             fzf
             gcc
             git
-            git-crypt
             git-filter-repo
             git-fire
             git-lfs

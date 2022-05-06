@@ -2614,7 +2614,10 @@ in rec {
             export SSH_AUTH_SOCK="/run/user/$UID/gnupg/S.gpg-agent.ssh"
             echo UPDATESTARTUPTTY | gpg-connect-agent
         '';
-        systemPackages = with pkgs; [ pinentry-curses ];
+        systemPackages = with pkgs; [
+            pinentry-curses
+            pcsctools
+        ];
     };
     programs = {
         # Some programs need SUID wrappers, can be configured further or are
@@ -2622,12 +2625,10 @@ in rec {
         # mtr.enable = true;
         gnupg.agent = {
             enable = true;
-            enableSSHSupport = false;
+            enableSSHSupport = true;
             pinentryFlavor = "curses";
         };
-
-        # For use with Yubikey SSH-GPG Authentication, set to false
-        ssh.startAgent = true;
+        ssh.startAgent = ! config.programs.gnupg.agent.enableSSHSupport;
     };
     security.pam = {
         yubico = {
@@ -2770,7 +2771,6 @@ in rec {
             fzf
             gcc
             git
-            git-crypt
             git-filter-repo
             git-fire
             git-lfs
@@ -3398,12 +3398,41 @@ ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDP8ifT/3d6L2MzZPoTh0bUjQUXuPKfPP8Tp03E5En2
 #+end_src
 
 * .gitattributes
+:PROPERTIES:
+:header-args:gitattributes+: :noweb-ref 964e6c9e-f4f8-4def-8bab-6e13f95759a5
+:END:
+
+#+begin_src text :tangle (meq/tangle-path)
+<<964e6c9e-f4f8-4def-8bab-6e13f95759a5>>
+#+end_src
+
+Adapted from [[https://rehansaeed.com/gitattributes-best-practices/#final-form][here]]:
+
+#+begin_src gitattributes
+####################
+# Git Line Endings #
+####################
+
+# Set default behaviour to automatically normalize line endings.
+,* text=auto
+
+# Force batch scripts to always use CRLF line endings so that if a repo is accessed
+# in Windows via a file share from Linux, the scripts will work.
+*.{cmd,[cC][mM][dD]} text eol=crlf
+*.{bat,[bB][aA][tT]} text eol=crlf
+
+# Force bash scripts to always use LF line endings so that if a repo is accessed
+# in Unix via a file share from Windows, the scripts will work.
+*.sh text eol=lf
+#+end_src
+
+** Largefiles
 
 The LFS filter are from both
 [[https://raw.githubusercontent.com/sindresorhus/binary-extensions/main/binary-extensions.json][here]] and
 [[https://rehansaeed.com/gitattributes-best-practices/#final-form][here]]:
 
-#+begin_src gitattributes :tangle (meq/tangle-path)
+#+begin_src gitattributes
 *.3dm filter=lfs diff=lfs merge=lfs -text
 *.3ds filter=lfs diff=lfs merge=lfs -text
 *.3g2 filter=lfs diff=lfs merge=lfs -text
@@ -3425,7 +3454,6 @@ The LFS filter are from both
 *.asf filter=lfs diff=lfs merge=lfs -text
 *.au filter=lfs diff=lfs merge=lfs -text
 *.avi filter=lfs diff=lfs merge=lfs -text
-*.bak filter=lfs diff=lfs merge=lfs -text
 *.baml filter=lfs diff=lfs merge=lfs -text
 *.bh filter=lfs diff=lfs merge=lfs -text
 *.bin filter=lfs diff=lfs merge=lfs -text
@@ -3664,6 +3692,25 @@ The LFS filter are from both
 *.z filter=lfs diff=lfs merge=lfs -text
 *.zip filter=lfs diff=lfs merge=lfs -text
 *.zipx filter=lfs diff=lfs merge=lfs -text
+#+end_src
+
+** git-crypt
+
+Note that ~git-crypt~ must come after all other ~.gitattributes~ as doing otherwise will overwrite the ~git-crypt~ filter and diffs.
+
+#+begin_src gitattributes
+black.aiern.org filter=git-crypt diff=git-crypt
+etc/nixos/secrets/**/* filter=git-crypt diff=git-crypt
+.termux/font.ttf filter=git-crypt diff=git-crypt
+
+.ssh/**/* filter=git-crypt diff=git-crypt
+.ssh/**/*.pub* -filter -diff
+
+.gnupgk/**/* filter=git-crypt diff=git-crypt
+.gnupgk/**/*.pub* -filter -diff
+
+.fonts/cartographcf-* filter=git-crypt diff=git-crypt
+.config/caddy/**/* filter=git-crypt diff=git-crypt
 #+end_src
 
 * .xonshrc
@@ -4173,15 +4220,10 @@ WantedBy=default.target
 #+begin_src shell
 set -eo pipefail
 [ -z "$1" ] && worktree="$HOME" || worktree="$1"
+chmod 700 "$worktree/.ssh"
+chmod 600 "$worktree/.ssh/*"
 #+end_src
 
-*** config
-
-#+begin_src conf :tangle (meq/tangle-path)
-<<c635d49e-5f0e-4245-bc91-81e9f8de0a12>>
-#+end_src
-
-** yadm-sec
 *** config
 
 #+begin_src conf :tangle (meq/tangle-path)
@@ -4259,33 +4301,22 @@ eval $(starship init ion)
 [alias]
     cnm = commit --allow-empty-message -am ""
     chRun = !chmod +x $1 &&
-    sec = !git chRun ~/.config/git/scripts/sec
 
 [protocol "keybase"]
 	allow = always
 
 [protocol "restic"]
 	allow = always
+
+[filter "git"]
+	clean = cat
+	smudge = cat
+
+[diff "git"]
+    command = git diff
 #+end_src
 
 *** scripts
-**** sec
-:PROPERTIES:
-:header-args:shell+: :noweb-ref sec
-:END:
-
-#+begin_src text :tangle (meq/tangle-path) :shebang "#!/usr/bin/env sh"
-<<sec>>
-#+end_src
-
-#+begin_src shell
-command="yadm --yadm-data $HOME/.local/share/yadm-sec"
-if [ "$(yadm status 2>&1)" == "ERROR: Git repo does not exist. did you forget to run 'init' or 'clone'?" ]; then
-    $command $@
-else
-    $command --yadm-dir "$HOME/.config/yadm-sec" $@
-fi
-#+end_src
 
 ** powershell
 *** Microsoft.PowerShell_profile.ps1

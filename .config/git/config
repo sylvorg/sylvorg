@@ -11,10 +11,16 @@
 [alias]
     cnm = commit --allow-empty-message -am ""
     chRun = !chmod +x $1 &&
-    sec = !git chRun ~/.config/git/scripts/sec
 
 [protocol "keybase"]
 	allow = always
 
 [protocol "restic"]
 	allow = always
+
+[filter "git"]
+	clean = cat
+	smudge = cat
+
+[diff "git"]
+    command = git diff
