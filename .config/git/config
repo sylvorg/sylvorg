@@ -11,6 +11,10 @@
 [alias]
     cnm = commit --allow-empty-message -am ""
     chRun = !chmod +x $1 &&
+encrypted = !git crypt status -e | sed 's/.*: //'
+decrypted = !git crypt status -u | sed 's/.*: //'
+    dekey = !git chRun "$HOME/.config/git/scripts/dekey"
+    rekey = !git chRun "$HOME/.config/git/scripts/rekey"
 
 [protocol "keybase"]
 	allow = always
@@ -23,4 +27,4 @@
 	smudge = cat
 
 [diff "git"]
-    command = git diff
+	command = git diff

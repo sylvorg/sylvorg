@@ -1,0 +1,33 @@
+#! /usr/bin/env nix-shell
+#! nix-shell -p git-crypt git-filter-repo rsync realpath
+#! nix-shell -I nixpkgs=https://github.com/shadowrylander/nixpkgs/archive/j.tar.gz
+#! nix-shell -i sh
+set -eo pipefail
+root=$(git rev-parse --show-toplevel)
+
+#! nix-shell -p git-crypt git-filter-repo rsync realpath
+#! nix-shell -I nixpkgs=https://github.com/shadowrylander/nixpkgs/archive/j.tar.gz
+#! nix-shell -i sh
+set -eo pipefail
+root=$(git rev-parse --show-toplevel)
+tmpf=$(mktemp)
+tmpd=$(mktemp -d)
+tmpCrypt=$(mktemp -d)
+if [ -f "$root/.git" ]; then
+    gitCrypt=$(realpath $(cat "$root/.git" | sed 's/.*: //'))
+else
+    gitCrypt="$root/.git/git-crypt"
+fi
+git crypt unlock
+git encrypted > $tmpf
+rsync -avvczz --files-from $tmpf "$root" $tmpd
+rsync -avvczz "$root/.git-crypt/" $tmpCrypt/
+rm -rf "$gitCrypt" "$root/.git-crypt"
+git -C "$root" filter-repo --paths-from-file $tmpf --invert-paths --force
+rsync -avvczz $tmpd/ "$root"/
+git crypt init
+for key in $(ls $tmpCrypt/keys/default/0/*gpg); do
+    git crypt add-gpg-user $(basename $key .gpg)
+done
+[ -n "$1" ] && git crypt add-gpg-user $@ || :
+trap "rm -rf $tmpf $tmpd $tmpCrypt" 0 2 3 15

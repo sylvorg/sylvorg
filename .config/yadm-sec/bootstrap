@@ -1,5 +1,0 @@
-#! /usr/bin/env sh
-set -eo pipefail
-[ -z "$1" ] && worktree="$HOME" || worktree="$1"
-chmod 700 ~/.ssh
-chmod 600 ~/.ssh/*

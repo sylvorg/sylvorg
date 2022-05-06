@@ -1,0 +1,16 @@
+#! /usr/bin/env nix-shell
+#! nix-shell -p git-crypt git-filter-repo rsync realpath
+#! nix-shell -I nixpkgs=https://github.com/shadowrylander/nixpkgs/archive/j.tar.gz
+#! nix-shell -i sh
+set -eo pipefail
+root=$(git rev-parse --show-toplevel)
+for gpgID in $@; do
+
+#! nix-shell -p git-crypt git-filter-repo rsync realpath
+#! nix-shell -I nixpkgs=https://github.com/shadowrylander/nixpkgs/archive/j.tar.gz
+#! nix-shell -i sh
+set -eo pipefail
+root=$(git rev-parse --show-toplevel)
+for gpgID in $@; do
+rm "$root/.git-crypt/keys/default/0/$(gpg --fingerprint $gpgID | sed -n 2p | tr -d ' ').gpg"
+done
