@@ -67,6 +67,9 @@
 [submodule "resources/zsh-autocomplete"]
 	path = resources/zsh-autocomplete
 	url = https://github.com/marlonrichert/zsh-autocomplete.git
+[submodule ".password-store"]
+	path = .password-store
+	url = https://github.com/sylvorg/.password-store
 [submodule ".emacs.d"]
 	path = .emacs.d
-	url = https://github.com/shadowrylander/.emacs.d.git
+	url = git@github.com:shadowrylander/.emacs.d.git
