@@ -1,7 +1,3 @@
-_gsdata_
-.boar
-.git
-.hg
 **/__pycache__
 **/_build
 **/.vscode
@@ -17,4 +13,10 @@ _gsdata_
 **/result
 **/tests
 **/unfinished
+/_gsdata_
+/.boar
+/.git
+/.hg
+**/.zfs/snapshot
+/test*.*
 temp

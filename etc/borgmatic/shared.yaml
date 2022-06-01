@@ -1,0 +1,123 @@
+location:
+    one_file_system: false
+    numeric_owner: false
+    atime: true
+    ctime: true
+    birthtime: true
+    read_special: true
+    bsd_flags: true
+    files_cache: ctime,size,inode
+    local_path: borg
+    remote_path: borg
+    exclude_caches: true
+    exclude_nodump: true
+    exclude_patterns:
+        - .zfs/snapshot
+
+    # Additional options to pass directly to particular Borg
+    # commands, handy for Borg options that borgmatic does not yet
+    # support natively. Note that borgmatic does not perform any
+    # validation on these options. Running borgmatic with
+    # "--verbosity 2" shows the exact Borg command-line
+    # invocation.
+    # extra_borg_options:
+        # Extra command-line options to pass to "borg init".
+        # init: --make-parent-dirs
+
+        # Extra command-line options to pass to "borg prune".
+        # prune: --save-space
+
+        # Extra command-line options to pass to "borg create".
+        # create: --no-files-cache
+
+        # Extra command-line options to pass to "borg check".
+        # check: --save-space
+
+storage:
+    checkpoint_interval: 300
+    compression: auto,zstd,22
+    ssh_command: assh wrapper ssh --
+    relocated_repo_access_is_ok: true
+    unknown_unencrypted_repo_access_is_ok: true
+
+retention:
+    keep_within: 6H
+    keep_secondly: 60
+    keep_minutely: 60
+    keep_hourly: 24
+    keep_daily: 7
+    keep_weekly: 4
+    keep_monthly: 6
+    keep_yearly: 4
+
+consistency:
+    checks:
+        - repository
+        - data
+        - extract
+
+# Shell commands, scripts, or integrations to execute at various
+# points during a borgmatic run. IMPORTANT: All provided commands and
+# scripts are executed with user permissions of borgmatic. Do not
+# forget to set secure permissions on this configuration file (chmod
+# 0600) as well as on any script called from a hook (chmod 0700) to
+# prevent potential shell injection or privilege escalation.
+hooks:
+    # List of one or more shell commands or scripts to execute
+    # before pruning, run once per configuration file.
+    # before_prune:
+        # - echo "Starting pruning."
+
+    # List of one or more shell commands or scripts to execute
+    # before consistency checks, run once per configuration file.
+    # before_check:
+        # - echo "Starting checks."
+
+    # List of one or more shell commands or scripts to execute
+    # before extracting a backup, run once per configuration file.
+    # before_extract:
+        # - echo "Starting extracting."
+
+    # List of one or more shell commands or scripts to execute
+    # after creating a backup, run once per configuration file.
+    # after_backup:
+        # - echo "Finished a backup."
+
+    # List of one or more shell commands or scripts to execute
+    # after pruning, run once per configuration file.
+    # after_prune:
+        # - echo "Finished pruning."
+
+    # List of one or more shell commands or scripts to execute
+    # after consistency checks, run once per configuration file.
+    # after_check:
+        # - echo "Finished checks."
+
+    # List of one or more shell commands or scripts to execute
+    # after extracting a backup, run once per configuration file.
+    # after_extract:
+        # - echo "Finished extracting."
+
+    # List of one or more shell commands or scripts to execute
+    # when an exception occurs during a "prune", "create", or
+    # "check" action or an associated before/after hook.
+    # on_error:
+        # - echo "Error during prune/create/check."
+
+    # List of one or more shell commands or scripts to execute
+    # before running all actions (if one of them is "create").
+    # These are collected from all configuration files and then
+    # run once before all of them (prior to all actions).
+    # before_everything:
+        # - echo "Starting actions."
+
+    # List of one or more shell commands or scripts to execute
+    # after running all actions (if one of them is "create").
+    # These are collected from all configuration files and then
+    # run once after all of them (after any action).
+    # after_everything:
+        # - echo "Completed actions."
+
+    # Umask used when executing hooks. Defaults to the umask that
+    # borgmatic is run with.
+    # umask: 0077

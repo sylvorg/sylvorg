@@ -13,6 +13,7 @@ root=$(git rev-parse --show-toplevel)
 tmpf=$(mktemp)
 tmpd=$(mktemp -d)
 tmpCrypt=$(mktemp -d)
+trap "rm -rf $tmpf $tmpd $tmpCrypt" 0 2 3 15
 if [ -f "$root/.git" ]; then
     gitCrypt=$(realpath $(cat "$root/.git" | sed 's/.*: //'))
 else
@@ -30,4 +31,3 @@ for key in $(ls $tmpCrypt/keys/default/0/*gpg); do
     git crypt add-gpg-user $(basename $key .gpg)
 done
 [ -n "$1" ] && git crypt add-gpg-user $@ || :
-trap "rm -rf $tmpf $tmpd $tmpCrypt" 0 2 3 15

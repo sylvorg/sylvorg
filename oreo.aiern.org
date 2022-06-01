@@ -8,34 +8,43 @@ which was written by [[https://emacs.stackexchange.com/users/2710/andrew-swann][
 #+begin_src nix :tangle (meq/tangle-path)
 with builtins; let flake = import ./etc/nixos;
 in with import flake.inputs.nixpkgs (flake.make.specialArgs null currentSystem).nixpkgset; let
-    strapper = stdenv.mkDerivation rec {
+    strapper = { lib, python3, fetchFromGitHub }: python3.pkgs.buildPythonApplication rec {
         pname = "strapper";
         version = "1.0.0.0";
-
         src = ./strapper;
-
-        buildInputs = [ python310 sd gcc rsync xonsh ] ++ (with python310Packages; [ bakery ]);
-        nativeBuildInputs = buildInputs;
-
-        phases = [ "installPhase" ];
-
+        propagatedBuildInputs = with python3.pkgs; [ bakery ];
+        dontBuild = true;
         installPhase = ''
-            mkdir --parents $out
-            cp -r $src $out/bin
+            mkdir --parents $out/bin
+            cp $src/strapper.py $out/bin/strapper
+            cp $src/strapper.hy $out/bin/
             chmod +x $out/bin/strapper
+            patchShebangs $out/bin/strapper
         '';
+        postInstall = "wrapProgram $out/bin/strapper $makeWrapperArgs";
+        makeWrapperArgs = [ "--prefix PYTHONPATH : ${placeholder "out"}/lib/${python3.pkgs.python.libPrefix}/site-packages" ];
+        meta = with lib; {
+            # description = "";
+            homepage = "https://github.com/shadowrylander/shadowrylander";
+            license = licenses.oreo;
+            maintainers = with maintainers; [ sylvorg ];
+        };
     };
 in mkShell rec {
-    buildInputs = [ strapper ] ++ strapper.buildInputs;
+    buildInputs = [ (callPackage strapper {}) sd gcc rsync ];
     nativeBuildInputs = buildInputs;
-    shellHook = ''
-        exec xonsh
-    '';
 }
 #+end_src
 
 * strapper
-** strapper
+** setup.py
+
+#+begin_src py :tangle (meq/tangle-path) :shebang "#!/usr/bin/env python3"
+from setuptools import setup, find_packages
+setup(name = 'strapper', version = '1.0.0.0', packages = find_packages(), scripts = [ "strapper.py" ])
+#+end_src
+
+** strapper.py
 
 #+begin_src py :tangle (meq/tangle-path) :shebang "#!/usr/bin/env python3"
 import hy, os
@@ -48,11 +57,11 @@ if __name__ == "__main__":
 
 ** strapper.hy
 :PROPERTIES:
-:header-args:hy+: :noweb-ref nwr20220129201318455450756
+:header-args:hy+: :noweb-ref 9f94385b-1c84-4e23-8efc-7689a80d2050
 :END:
 
 #+begin_src text :tangle (meq/tangle-path)
-<<nwr20220129201318455450756>>
+<<9f94385b-1c84-4e23-8efc-7689a80d2050>>
 #+end_src
 
 *** Imports
@@ -125,24 +134,20 @@ if __name__ == "__main__":
 reserved
 #+end_src
 
-#+name: de5c1dbd-ade3-4303-8e6f-06d3e2f9beb4
-#+begin_src text
-dross
-#+end_src
-
 #+name: f3568bf1-26cf-4d6f-8182-aad00b6a8d69
 #+begin_src json
 {
     "base": {  },
+    "hold": {  },
     "omniverse": {  },
     "<<03a790b2-39f2-40a3-be10-b107c73df509>>": {  },
     "<<username>>": { "datasets": {
-            "oreo": { "mountpoint": "/home/<<username>>/oreo" },
-            "sylveon": { "mountpoint": "/home/<<username>>/sylveon" },
-            "sylvorg": { "mountpoint": "/home/<<username>>/sylvorg" },
-            "syvlorg": { "mountpoint": "/home/<<username>>/syvlorg" },
-            "<<de5c1dbd-ade3-4303-8e6f-06d3e2f9beb4>>": { "mountpoint": "/home/<<username>>/<<de5c1dbd-ade3-4303-8e6f-06d3e2f9beb4>>" },
-            "uru": { "mountpoint": "/home/<<username>>/uru" }},
+            "oreo": {  },
+            "sylveon": {  },
+            "sylvorg": {  },
+            "syvlorg": {  },
+            "<<reponame>>": {  },
+            "uru": {  }},
         "options": [ "mountpoint=legacy" ]},
     "system": {
         "datasets": {
@@ -183,8 +188,12 @@ dross
             datasets     (D (.loads json (.strip #[[
                                 <<f3568bf1-26cf-4d6f-8182-aad00b6a8d69>>
                          ]])))
+            primary-user "<<username>>"
             users        (D (.loads json (.strip #[[
                                 <<33b84622-7a1e-4a87-9c9f-fd10a3c13a8a>>
+                         ]])))
+            homes        (D (.loads json (.strip #[[
+                                <<d0d6dd01-0986-45be-9254-23c5483b54c0>>
                          ]]))))
       (assoc datasets "${host}" (D { "datasets" { "jails" { "datasets" { "base" (dict)}}}
                                      "options" [ ml ]}))
@@ -193,7 +202,7 @@ dross
            (assoc (. datasets [s] [d] persist [d]) user (dict))
            (assoc (. datasets virt [d] podman [d]) user (dict)))
       (if reserved-only
-          (.create zfs (+ host "/" reserved))
+          (.create zfs (+ host "/" reserved) :o "mountpoint=none")
           (do (with [dnix (open (+ resources "/datasets.nix") "w")]
                     (.write dnix (+ "host: { \n\t\""
                                     (or root-device "${host}/system/root")
@@ -210,7 +219,6 @@ dross
                                                   "system/root"
                                                   "swap"
                                                   "base"
-                                                  "hold"
                                                   "omniverse"
                                                   reserved ))
                     (if cloning
@@ -224,25 +232,34 @@ dross
                                 (if mountpoint
                                     (setv mountpoint (+ mountpoint "/" dname)
                                           recurse/mountpoint mountpoint)
-                                    (do (setv recurse/mountpoint (.removeprefix recurse/dataset "${host}/"))
+                                    (do (setv recurse/mountpoint (.removeprefix recurse/dataset (+ "${host}" "/")))
                                         (for [prefix prefixes]
                                              (setv recurse/mountpoint (.removeprefix recurse/mountpoint (+ prefix "/"))))
                                         (setv recurse/mountpoint (+ "/" recurse/mountpoint)))))
-                            (.write dnix (+ "\t\""
-                                            recurse/dataset
-                                            "\" = \""
-                                            recurse/mountpoint
-                                            "\";\n"))))
+                            (if (and (.startswith recurse/real-dataset (+ host "/" primary-user))
+                                     (not (= recurse/real-dataset (+ host "/" primary-user))))
+                                (for [user (.keys users)]
+                                     (.write dnix (+ "\t\""
+                                                     recurse/dataset
+                                                     "\" = \""
+                                                     (+ (get homes user) "/" dname)
+                                                     "\";\n")))
+                                (.write dnix (+ "\t\""
+                                                recurse/dataset
+                                                "\" = \""
+                                                recurse/mountpoint
+                                                "\";\n")))))
                     (if (and pool (not (in recurse/real-dataset recurse/datasets)))
                         (do (zfs :m/subcommand clone-or-create
                                  :o { "repeat-with-values" (.get ddict "options" []) }
                                  snapshot-or-none
                                  recurse/real-dataset)
-                            (.snapshot zfs :r True (+ recurse/real-dataset "@blank"))))
+                            (.snapshot zfs :r True (+ recurse/real-dataset "@blank"))
+                            (.hold zfs :r True "blank" (+ recurse/real-dataset "@blank"))))
                     (for [[key value] (.items (.get ddict d (D {  })))]
                          (recurse value key recurse/dataset mountpoint)))
               (for [[key value] (.items datasets)]
-                   (recurse value key host))
+                   (recurse value key "${host}"))
               (.write dnix "}"))))
       (if (or pool reserved-only)
           (let [pool-size-plus-metric (get (.get zpool :H True "size" host :m/list True :m/split True) 2)
@@ -316,6 +333,7 @@ dross
    (.option click "-c" "--copy" :is-flag True)
    (.option click "-g" "--generate" :is-flag True)
    (.option click "-i" "--install" :is-flag True)
+   (.option click "-b" "--install-bootloader" :is-flag True :cls oreo.Option :req-one-of [ "install" ])
    (.option click "-r" "--replace" :is-flag True)
 #+end_src
 
@@ -327,7 +345,7 @@ This can't use a default value, as that would trigger a rebuild all the time.
 
 #+begin_src hy
    click.pass-context
-   (defn main [ ctx all copy generate install program-arguments rebuild replace ]
+   (defn main [ ctx all copy generate install program-arguments rebuild replace install-bootloader ]
          (.bake-all- getconf :m/sudo True)
          (setv copy-partial (partial rsync :m/run True :a True :v { "repeat" 2 } :c True :z { "repeat" 2 } f"{resources}/"))
          (if rebuild
@@ -355,6 +373,7 @@ This can't use a default value, as that would trigger a rebuild all the time.
                                     :I "nixpkgs=https://github.com/<<username>>/nixpkgs/archive/j.tar.gz"
                                     :m/run True
                                     :show-trace True
+                                    :install-bootloader install-bootloader
 #+end_src
 
 From [[https://github.com/NixOS/nix/issues/2293#issuecomment-405339738][here]], and documented [[https://nixos.org/manual/nix/stable/expressions/builtins.html#:~:text=The%20fetched%20tarball%20is%20cached%20for%20a%20certain%20amount%20of%20time%20(1%20hour%20by%20default)%20in%20~/.cache/nix/tarballs/.%20You%20can%20change%20the%20cache%20timeout%20either%20on%20the%20command%20line%20with%20%2D%2Dtarball%2Dttl%20number%2Dof%2Dseconds%20or%20in%20the%20Nix%20configuration%20file%20by%20adding%20the%20line%20tarball%2Dttl%20%3D%20number%2Dof%2Dseconds.][here]]:
@@ -408,7 +427,7 @@ or in the Nix configuration file by adding the line tarball-ttl = number-of-seco
                             pool-options-dict (D { "autotrim" "on"
                                                    "altroot" "/mnt"
                                                    "autoexpand" "on" })
-                            command (partial zpool.create :f True)
+                            command (partial zpool.create :f True :m/run True)
                             no-raid-error-message "Sorry! For multiple zfs devices a raid configuration must be provided using `-r / --raid'!"
                             zfs-device (if (= (len zfs-devices) 1)
                                         (if raid
@@ -420,7 +439,8 @@ or in the Nix configuration file by adding the line tarball-ttl = number-of-seco
                            (if (or partition boot-device)
                                (.bake- parted :s True :a "optimal" "--"))
                            (if partition
-                               (do (parted zfs-device "mklabel" "gpt")
+                               (do (setv zfs-name ctx.obj.host)
+                                   (parted zfs-device "mklabel" "gpt")
                                    (for [[i p] (enumerate partition)]
                                         (parted zfs-device
                                                 "mkpart"
@@ -430,7 +450,8 @@ or in the Nix configuration file by adding the line tarball-ttl = number-of-seco
                                                     len
                                                     dec
                                                     (= i)
-                                                    (if "100%" p))))))
+                                                    (if "100%" p))))
+                                   (parted zfs-device "name" (if (> (len partition) 1) 3 2) zfs-name)))
                            (if (or partition boot-device)
                                (if boot-device
                                    (let [ device (get boot-device 0)
@@ -438,13 +459,15 @@ or in the Nix configuration file by adding the line tarball-ttl = number-of-seco
                                         (parted device "mkfs" index "fat32")
                                         (parted device "set" index "boot" "on")
                                         (parted device "set" index "esp" "on"))
-                                   (do (parted zfs-device "mkfs" 1 "fat32")
+                                   (do (parted zfs-device "name" 1 (+ ctx.obj.host "-boot"))
+                                       (parted zfs-device "mkfs" 1 "fat32")
                                        (parted zfs-device "set" 1 "boot" "on")
                                        (parted zfs-device "set" 1 "esp" "on"))))
                            (if (or (> (len partition) 1) swap-device)
                                (if swap-device
                                    (parted (get swap-device 0) "mkfs" (get swap-device 1) "linux-swap")
-                                   (parted zfs-device "mkfs" 2 "linux-swap")))
+                                   (do (parted zfs-device "name" 2 (+ ctx.obj.host "-swap"))
+                                       (parted zfs-device "mkfs" 2 "linux-swap"))))
                            (for [dataset (.list zfs :r True :H True :m/list True :m/split True)]
                                 (if (in ctx.obj.host dataset)
                                     (.export zpool :f True ctx.obj.host :m/ignore-stderr True)))
@@ -461,7 +484,7 @@ or in the Nix configuration file by adding the line tarball-ttl = number-of-seco
                            (command :O { "repeat-with-values" (gfor [k v] (.items dataset-options-dict) f"{k}={v}") }
                                     :o { "repeat-with-values" (gfor [k v] (.items pool-options-dict) f"{k}={v}") }
                                     ctx.obj.host
-                                    zfs-device)
+                                    (if partition (+ "/dev/disk/by-label/" zfs-name) zfs-device))
                            (update-datasets ctx.obj.host swap encrypted deduplicated :pool True :reserved-only pool-only))
                       (print "Sorry; not continuing!\n\n"))
                   (finally (.export zpool :f True ctx.obj.host :m/ignore-stderr True)))
@@ -525,6 +548,8 @@ Taken from [[https://github.com/NixOS/nixpkgs/issues/73404#issuecomment-10114854
                  (if swap-device
                      (swapon swap-device :m/run True))
 
+                 ;; TODO: What do these two do again?
+
                  (.mkdir (Path "/tmp") :parents True :exist-ok True)
                  (Mount :t "zfs" (+ ctx.obj.host "/system/tmp") "/tmp" :m/run True)
 
@@ -567,14 +592,28 @@ Taken from [[https://github.com/NixOS/nixpkgs/issues/73404#issuecomment-10114854
 #+end_src
 
 * etc
+** tailscale
+
+#+name: dfabe3af-df4f-498b-94a7-5e8edafa64c8
+#+begin_src emacs-lisp :var path=""
+(shell-command-to-string (format "pass show %s" path))
+#+end_src
+
+*** apikeys
+**** jeet.ray
+
+#+begin_src text :tangle (meq/tangle-path) :tangle-mode (identity #o600)
+<<dfabe3af-df4f-498b-94a7-5e8edafa64c8(path="keys/api/tailscale/jeet.ray")>>
+#+end_src
+
 ** apk
 *** repositories
 :PROPERTIES:
-:header-args:text+: :noweb-ref repositories
+:header-args:text+: :noweb-ref 7d9906c4-9fdb-4804-a0be-8020003d1ff9
 :END:
 
 #+begin_src text :noweb-ref no :tangle (meq/tangle-path)
-<<repositories>>
+<<7d9906c4-9fdb-4804-a0be-8020003d1ff9>>
 #+end_src
 
 #+begin_src text
@@ -929,17 +968,23 @@ index c61df8ceb00..d973837f0d3 100644
 
 *** users.json
 
-#+call: hash() :exports none
-
-#+RESULTS:
-: 33b84622-7a1e-4a87-9c9f-fd10a3c13a8a
-
 #+name: 33b84622-7a1e-4a87-9c9f-fd10a3c13a8a
 #+begin_src json :tangle (meq/tangle-path)
 {
     "primary": "<<username>>",
     "secondary": "frost",
     "nightingale": "curtis"
+}
+#+end_src
+
+*** homes.json
+
+#+name: d0d6dd01-0986-45be-9254-23c5483b54c0
+#+begin_src json :tangle (meq/tangle-path)
+{
+    "primary": "<<userhome>>",
+    "secondary": "/home/frost",
+    "nightingale": "/home/curtis"
 }
 #+end_src
 
@@ -952,7 +997,11 @@ Adapted from the following:
 - [[https://www.linode.com/docs/guides/install-nixos-on-linode/#prepare-your-linode][Install and Configure NixOS on a Linode]]
 
 #+begin_src nix :tangle (meq/tangle-path)
-{ config, lib, pkgs, ... }: with lib; {
+{ config, pkgs, ... }: let
+    relayNo = if config.variables.relay then "no" else "yes";
+    relayYes = if config.variables.relay then "yes" else "no";
+in {
+    # imports = [ ../../variables.nix ]
     services.openssh = {
         enable = true;
         extraConfig = mkOrder 0 ''
@@ -961,9 +1010,10 @@ Adapted from the following:
             ClientAliveInterval 3m
         '';
         permitRootLogin = "yes";
+        openFirewall = config.variables.relay;
     };
-
     environment.systemPackages = with pkgs; [ inetutils mtr sysstat git ];
+    variables.server = true;
 }
 #+end_src
 
@@ -979,7 +1029,10 @@ Adapted from the following:
 { config, ... }:
 
 {
-    imports = [ ../profiles/server.nix ];
+    imports = [
+        ../profiles/server.nix
+        "${(import ../..).inputs.nixos}/modules/profiles/qemu-guest.nix"
+    ];
     boot = {
         kernelParams = [ "console=ttyS0,19200n8" ];
         loader.grub.extraConfig = ''
@@ -993,6 +1046,59 @@ Adapted from the following:
         usePredictableInterfaceNames = false;
         interfaces.eth0.useDHCP = true;
     };
+}
+#+end_src
+
+**** rpi3.nix
+
+Adapted from [[https://nixos.wiki/wiki/NixOS_on_ARM/Raspberry_Pi_3][here]]:
+
+#+begin_src nix :tangle (meq/tangle-path)
+{ config, pkgs, lib, ... }:
+
+{
+    imports =  [
+        ../minimal.nix
+        ../profiles/server.nix
+    ];
+    hardware.enableRedistributableFirmware = true;
+    networking.wireless.enable = true;
+    sound.enable = true;
+    hardware.pulseaudio.enable = true;
+    boot.loader.raspberryPi.firmwareConfig = ''
+        dtparam=audio=on
+    '';
+    boot.kernelParams = [
+        "console=ttyS1,115200n8"
+    ];
+    boot.loader.raspberryPi = {
+        enable = true;
+        version = 3;
+        firmwareConfig = ''
+            core_freq=250
+        '';
+    };
+    systemd.services.btattach = {
+        before = [ "bluetooth.service" ];
+        after = [ "dev-ttyAMA0.device" ];
+        wantedBy = [ "multi-user.target" ];
+        serviceConfig = {
+            ExecStart = "${pkgs.bluez}/bin/btattach -B /dev/ttyAMA0 -P bcm -S 3000000";
+        };
+    };
+    boot.loader.raspberryPi.enable = true;
+    # Set the version depending on your raspberry pi. 
+    boot.loader.raspberryPi.version = 3;
+    # We need uboot
+    boot.loader.raspberryPi.uboot.enable = true;
+    # These two parameters are the important ones to get the
+    # camera working. These will be appended to /boot/config.txt.
+    boot.loader.raspberryPi.firmwareConfig = ''
+        start_x=1
+        gpu_mem=256
+    '';
+    boot.kernelModules = [ "bcm2835-v4l2" ];
+    boot.initrd.kernelModules = [ "vc4" "bcm2835_dma" "i2c_bcm2835" ];
 }
 #+end_src
 
@@ -1018,6 +1124,23 @@ Adapted from the following:
 (concat "\"" (string-trim (shell-command-to-string "head -c4 /dev/urandom | od -A none -t x4")) "\"")
 #+end_src
 
+**** bastiodon
+***** default.nix
+
+#+begin_src nix :tangle (meq/tangle-path)
+{ config, ... }:
+
+{
+    imports = [ ../../devices/rpi3.nix ];
+    services.tailscale.advertiseExitNode = true;
+    networking = {
+        hostName = baseNameOf (toString ./.);
+        hostId = <<hostId()>>;
+    };
+    variables.relay = true;
+}
+#+end_src
+
 **** sandshrew
 ***** default.nix
 
@@ -1040,14 +1163,17 @@ Adapted from the following:
             wifi.scan-rand-mac-address=false
         '';
     };
-    services.surface-dtx-daemon.detach = mkForce ''
-        #!/usr/bin/env sh
-        for usb in $(ls /dev/disk/by-id).split("\n"):
-            if usb and usb[:4] == "usb-":
-                for mnt in $(mount).split("\n"):
-                    if mnt and usb in mnt:
-                        umount @(mnt.split()[2])
-    '';
+
+    # TODO
+    # services.surface-dtx-daemon.detach = mkForce ''
+    #     #!/usr/bin/env sh
+    #     for usb in $(ls /dev/disk/by-id).split("\n"):
+    #         if usb and usb[:4] == "usb-":
+    #             for mnt in $(mount).split("\n"):
+    #                 if mnt and usb in mnt:
+    #                     umount @(mnt.split()[2])
+    # '';
+
 }
 #+end_src
 
@@ -1097,6 +1223,7 @@ Adapted from the following:
         hostName = baseNameOf (toString ./.);
         hostId = <<hostId()>>;
     };
+    variables.relay = true;
 }
 #+end_src
 
@@ -1112,6 +1239,7 @@ Adapted from the following:
         hostName = baseNameOf (toString ./.);
         hostId = <<hostId()>>;
     };
+    variables.zfs = false;
 }
 #+end_src
 
@@ -1132,499 +1260,259 @@ Adapted from the following:
 
 *** lib.nix
 :PROPERTIES:
-:header-args:nix+: :noweb-ref lib.nix
+:header-args:nix+: :noweb-ref d9031cd2-74a9-4239-b22d-fcc00b37e0f8
 :END:
 
 #+begin_src text :tangle (meq/tangle-path)
-<<lib.nix>>
+<<d9031cd2-74a9-4239-b22d-fcc00b37e0f8>>
 #+end_src
 
 With help from [[Henrik Lissner / hlissner][https://github.com/hlissner/dotfiles]]:
 
-**** Arguments
-
 #+begin_src nix
-with builtins; { pkgs, lib, inputs ? {}, host ? "nixos", system ? currentSystem }: with lib;
-#+end_src
+with builtins; { pkgs, lib, inputs ? {}, host ? "nixos", system ? currentSystem }: with lib; let
+    newLib = self: rec {
+        mntConvert = dir: let mntDir = "/mnt/" + dir; in if (pathExists mntDir) then mntDir else dir;
+        zipToSet = names: values: listToAttrs (
+            map (nv: nameValuePair nv.fst nv.snd) (let hasAttrs = any isAttrs values; in zipLists (
+                if hasAttrs then names else (sort lessThan names)
+            ) (
+                if hasAttrs then values else (sort lessThan values)
+            ))
+        );
 
-**** Let
+        # TODO: Why is the filter necessary?
+        foldToSet = list: foldr (new: old: recursiveUpdate new old) {} (filter isAttrs list);
+        foldToSet' = list: foldr (new: old: new // old) {} (filter isAttrs list);
 
-#+begin_src nix
-let
-#+end_src
+        mif = {
+            list = condition: value: optionals condition value;
+            list' = condition: value: optional condition value;
+            set = condition: value: optionalAttrs condition value;
+            num = condition: value: if condition then value else 0;
+            null = condition: value: if condition then value else null;
+            str = condition: value: optionalString condition value;
+            drv = condition: value: if condition then value else pkgs.hello;
+        };
+        readDirExists = dir: mif.set (pathExists dir) (readDir dir);
+        toCapital = string: concatImapStrings (
+            i: v: if (i == 0) then (toUpper v) else v
+        ) (stringToCharacters string);
+        sequence = list: end: foldr (a: b: deepSeq a b) end list;
+        filters = {
+            remove = {
+                prefix = ignores: list: filter (f: ! any (i: hasPrefix i f) ignores) list;
+                suffix = ignores: list: filter (f: ! any (i: hasSuffix i f) ignores) list;
+                infix = ignores: list: filter (f: ! any (i: hasInfix i f) ignores) list;
+            };
+        };
+        recurseDir = { dir, local ? false, iter ? 0, ignores ? {} }: with lib; let
+            stringDir = toString dir;
+            redDir = readDirExists dir;
+            recurse = unique (flatten [
+                (map (n: "${stringDir}/${n}") (attrNames (filterAttrs (n: v: v != "directory") redDir)))
+                (map (dir': recurseDir { dir = "${stringDir}/${dir'}"; inherit local; iter = iter + 1; }) (attrNames (filterAttrs (n: v: v == "directory") redDir)))
+            ]);
+            processed-prefix = map (i: if (local == null) then i else if (local == 0) then "/${i}" else if local then "./${i}" else if (! local) then "${stringDir}/${i}" else i) (ignores.prefix or []);
+            process' = recurse': let
+                stringDir' = "${stringDir}/";
+            in if (local == null) then (map (f: replaceStrings [ stringDir' ] [ "" ] f) recurse') else if (local == 0) then (map (f: replaceStrings [ stringDir' ] [ "/" ] f) recurse') else if local then (map (f: replaceStrings [ stringDir' ] [ "./" ] f) recurse') else recurse';
+            process = recurse': with filters.remove; pipe recurse' [ process' (prefix processed-prefix) (suffix (ignores.suffix or [])) (infix (ignores.infix or [])) ];
+        in if (iter == 0) then (process recurse) else recurse;
+        has = {
+            prefix = prefixes: string: any (prefix: hasPrefix prefix string) prefixes;
+            suffix = suffixes: string: any (suffix: hasSuffix suffix string) suffixes;
+            infix = infixes: string: any (infix: hasInfix infix string) infixes;
+        };
+        import = let
+            args = {
+                suffix = "";
+                ignores = [];
+            };
+            baseNameNoSuffix = {
+                suffix ? args.suffix,
+                noSuffix ? suffix == "",
+                file
+            }: removeSuffix (if noSuffix then ".nix" else suffix) (baseNameOf (toString file));
+            # !!! This returns a function
+            filterFunc = {
+                suffix ? args.suffix,
+                noSuffix ? suffix == "",
+                ignores ? args.ignores,
+                dir,
+            }: let
+                _ignores = flatten [
+                    ignores
+                    (let _ignores' = (/. + "/${unsafeDiscardStringContext dir}/_ignores.nix"); in mif.list (pathExists _ignores') (import _ignores'))
+                    "default" # triggers infinite recursion if modules are defined here
+                    "deprecated"
+                    "nix" # niv
+                    "shell" # nix-shell
+                ];
+            in file: value:
+                (if noSuffix then (
+                    (hasSuffix ".nix" file) || (value == "directory")
+                ) else (hasSuffix suffix file)) &&
+                (!hasPrefix "_" file) &&
+                (!elem (baseNameNoSuffix { inherit suffix file noSuffix; }) _ignores);
+            contents = _args@{
+                suffix ? args.suffix,
+                ignores ? args.ignores,
+                dir,
+            }: filterAttrs (filterFunc _args) (readDir dir);
+        in {
+            list = _args@{
+                suffix ? args.suffix,
+                ignores ? args.ignores,
+                dir,
 
-***** New Lib
+                # !!! This cannot be integrated into the "args" set above, due to "dir" then being permanently set !!!
+                func ? (n: v: dir + "/${n}"),
 
-#+begin_src nix
-newLib = self: rec {
-#+end_src
+            }: let
+                __args = removeAttrs _args [ "func" ];
+            in mapAttrsToList func (contents __args);
+            listNames = {
+                suffix ? args.suffix,
+                ignores ? args.ignores,
+                dir
+            }: list {
+                inherit suffix ignores dir;
+                func = (n: v: baseNameNoSuffix { inherit suffix; file = n; });
+            };
+            set = _args@{
+                suffix ? args.suffix,
+                ignores ? args.ignores,
+                dir,
+                modules ? {},
 
-****** Functions
+                # !!! This cannot be integrated into the "args" set above, due to "dir" then being permanently set !!!
+                func ? (n: v: dir + "/" + n),
 
-#+begin_src nix
-functions = rec {
-#+end_src
-
-******* Convert Path To Mount
-
-#+begin_src nix
-mntConvert = dir: let mntDir = "/mnt/" + dir; in if (pathExists mntDir) then mntDir else dir;
-#+end_src
-
-******* Zip To Set
-
-#+begin_src nix
-zipToSet = names: values: listToAttrs (
-    map (nv: nameValuePair nv.fst nv.snd) (let hasAttrs = any isAttrs values; in zipLists (
-        if hasAttrs then names else (sort lessThan names)
-    ) (
-        if hasAttrs then values else (sort lessThan values)
-    ))
-);
-#+end_src
-
-******* Fold To Set
-
-#+begin_src nix
-# TODO: Why is the filter necessary?
-foldToSet = list: foldr (new: old: recursiveUpdate new old) {} (filter (item: isAttrs item) list);
-#+end_src
-
-******* My Conditionals
-
-#+begin_src nix
-myIf = {
-    list = condition: value: optionals condition value;
-    singleton = condition: value: optional condition value;
-    set = condition: value: if condition then value else {};
-    num = condition: value: if condition then value else 0;
-    knull = condition: value: if condition then value else null;
-    empty = condition: value: if condition then value else "";
-    drv = condition: value: if condition then value else pkgs.hello;
-};
-#+end_src
-
-******* Read Directory if Exists
-
-#+begin_src nix
-readDirExists = dir: myIf.set (pathExists dir) (readDir dir);
-#+end_src
-
-******* To Capital
-
-#+begin_src nix
-toCapital = string: concatImapStrings (
-    i: v: if (i == 0) then (toUpper v) else v
-) (stringToCharacters string);
-#+end_src
-
-******* Sequence
-
-#+begin_src nix
-sequence = list: end: foldr (a: b: deepSeq a b) end list;
-#+end_src
-
-******* Filters
-
-#+begin_src nix
-filters = {
-#+end_src
-
-******** Remove
-
-#+begin_src nix
-remove = {
-#+end_src
-
-********* Prefix
-
-#+begin_src nix
-prefix = ignores: list: filter (f: ! any (i: hasPrefix i f) ignores) list;
-#+end_src
-
-********* Suffix
-
-#+begin_src nix
-suffix = ignores: list: filter (f: ! any (i: hasSuffix i f) ignores) list;
-#+end_src
-
-********* Infix
-
-#+begin_src nix
-infix = ignores: list: filter (f: ! any (i: hasInfix i f) ignores) list;
-#+end_src
-
-********* End of Remove
-
-#+begin_src nix
-};
-#+end_src
-
-******** End of Filters
-
-#+begin_src nix
-};
-#+end_src
-
-******* Walk Dir Structure
-
-#+begin_src nix
-recurseDir = { dir, local ? false, iter ? 0, ignores ? {} }: with lib; let
-    stringDir = toString dir;
-    redDir = readDirExists dir;
-    recurse = unique (flatten [
-        (map (n: "${stringDir}/${n}") (attrNames (filterAttrs (n: v: v != "directory") redDir)))
-        (map (dir': recurseDir { dir = "${stringDir}/${dir'}"; inherit local; iter = iter + 1; }) (attrNames (filterAttrs (n: v: v == "directory") redDir)))
-    ]);
-    processed-prefix = map (i: if (local == null) then i else if (local == 0) then "/${i}" else if local then "./${i}" else if (! local) then "${stringDir}/${i}" else i) (ignores.prefix or []);
-    process' = recurse': let
-        stringDir' = "${stringDir}/";
-    in if (local == null) then (map (f: replaceStrings [ stringDir' ] [ "" ] f) recurse') else if (local == 0) then (map (f: replaceStrings [ stringDir' ] [ "/" ] f) recurse') else if local then (map (f: replaceStrings [ stringDir' ] [ "./" ] f) recurse') else recurse';
-    process = recurse': with filters.remove; pipe recurse' [ process' (prefix processed-prefix) (suffix (ignores.suffix or [])) (infix (ignores.infix or [])) ];
-in if (iter == 0) then (process recurse) else recurse;
-#+end_src
-
-******* Has A
-******** Prefix
-
-#+begin_src nix
-hasAPrefix = prefixes: string: any (prefix: hasPrefix prefix string) prefixes;
-#+end_src
-
-******** Suffix
-
-#+begin_src nix
-hasASuffix = suffixes: string: any (suffix: hasSuffix suffix string) suffixes;
-#+end_src
-
-******** Infix
-
-#+begin_src nix
-hasAnInfix = infixes: string: any (infix: hasInfix infix string) infixes;
-#+end_src
-
-******* Import Stuff
-
-#+begin_src nix
-args = {
-    suffix = "";
-    ignores = [];
-};
-
-baseNameNoSuffix = {
-    suffix ? args.suffix,
-    noSuffix ? suffix == "",
-    file
-}: removeSuffix (if noSuffix then ".nix" else suffix) (baseNameOf (toString file));
-
-# !!! This returns a function
-filterFunc = {
-    suffix ? args.suffix,
-    noSuffix ? suffix == "",
-    ignores ? args.ignores,
-    dir,
-}: let
-    _ignores = flatten [
-        ignores
-        (let _ignores' = (/. + "/${unsafeDiscardStringContext dir}/_ignores.nix"); in myIf.list (pathExists _ignores') (import _ignores'))
-        "default" # triggers infinite recursion if modules are defined here
-        "deprecated"
-        "nix" # niv
-        "shell" # nix-shell
-    ];
-in file: value:
-    (if noSuffix then (
-        (hasSuffix ".nix" file) || (value == "directory")
-    ) else (hasSuffix suffix file)) &&
-    (!hasPrefix "_" file) &&
-    (!elem (baseNameNoSuffix { inherit suffix file noSuffix; }) _ignores);
-
-contents = _args@{
-    suffix ? args.suffix,
-    ignores ? args.ignores,
-    dir,
-}: filterAttrs (filterFunc _args) (readDir dir);
-
-list = _args@{
-    suffix ? args.suffix,
-    ignores ? args.ignores,
-    dir,
-
-    # !!! This cannot be integrated into the "args" set above, due to "dir" then being permanently set !!!
-    func ? (n: v: dir + "/${n}"),
-
-}: let
-    __args = removeAttrs _args [ "func" ];
-in mapAttrsToList func (contents __args);
-
-listNames = {
-    suffix ? args.suffix,
-    ignores ? args.ignores,
-    dir
-}: list {
-    inherit suffix ignores dir;
-    func = (n: v: baseNameNoSuffix { inherit suffix; file = n; });
-};
-#+end_src
-
-Set Function:
-
-#+begin_src nix
-set = _args@{
-    suffix ? args.suffix,
-    ignores ? args.ignores,
-    dir,
-    modules ? {},
-
-    # !!! This cannot be integrated into the "args" set above, due to "dir" then being permanently set !!!
-    func ? (n: v: dir + "/" + n),
-
-}: let
-    files = list (filterAttrs (arg: v: !elem arg [ "modules" "self" ]) _args);
-in listToAttrs (map (file: nameValuePair
-    (baseNameNoSuffix { inherit suffix file; })
-    (import file (foldToSet [ modules inputs ]))
-) files);
+            }: let
+                files = list (filterAttrs (arg: v: !elem arg [ "modules" "self" ]) _args);
+            in listToAttrs (map (file: nameValuePair
+                (baseNameNoSuffix { inherit suffix file; })
+                (import file (foldToSet [ modules inputs ]))
+            ) files);
 #+end_src
 
 Deprecated Set Function:
 
 #+begin_src nix :noweb-ref no
-set = _args@{
-    suffix ? args.suffix,
-    ignores ? args.ignores,
-    dir,
-    modules ? {},
+            set = _args@{
+                suffix ? args.suffix,
+                ignores ? args.ignores,
+                dir,
+                modules ? {},
 
-    # !!! This cannot be integrated into the "args" set above, due to "dir" then being permanently set !!!
-    func ? (n: v: dir + "/" + n),
+                # !!! This cannot be integrated into the "args" set above, due to "dir" then being permanently set !!!
+                func ? (n: v: dir + "/" + n),
 
-}: let
-    files = list (filterAttrs (arg: v: !elem arg [ "modules" "self" ]) _args);
-in zipToSet
-    (map (file: baseNameNoSuffix { inherit suffix file; }) files)
-    (map (file: import file (foldToSet [ modules inputs ])) files);
+            }: let
+                files = list (filterAttrs (arg: v: !elem arg [ "modules" "self" ]) _args);
+            in zipToSet
+                (map (file: baseNameNoSuffix { inherit suffix file; }) files)
+                (map (file: import file (foldToSet [ modules inputs ])) files);
 #+end_src
 
-******* End of Functions
-
 #+begin_src nix
-};
-#+end_src
-
-****** Attrs
-
-#+begin_src nix
-attrs = rec {
-#+end_src
-
-******* Machines
-
-#+begin_src nix
-machines = {
-#+end_src
-
-******** Relay
-
-#+begin_src nix
-relays = [ <<relays>> ];
-#+end_src
-
-******** No ZFS
-
-#+begin_src nix
-no-zfs = [ <<no-zfs>> ];
-#+end_src
-
-******** End of Machines
-
-#+begin_src nix
-};
-#+end_src
-
-******* Relay
-
-#+begin_src nix
-relay = elem host machines.relays;
-not-relay = ! relay;
-#+end_src
-
-******* ZFS
-
-#+begin_src nix
-not-zfs = elem host machines.no-zfs;
-zfs = ! not-zfs;
-#+end_src
-
-******* Configs
-
-#+begin_src nix
-configs = {
-    nixpkgs = {
-        allowUnfree = true;
-        allowBroken = true;
-        allowUnsupportedSystem = true;
-        # preBuild = ''
-        #     makeFlagsArray+=(CFLAGS="-w")
-        #     buildFlagsArray+=(CC=cc)
-        # '';
-        permittedInsecurePackages = [
-            "python2.7-cryptography-2.9.2"
-        ];
-    };
-    nix = let
-        MG = size: let
-            mg = stringToCharacters size;
-        in toString ((toInt (elemAt mg 0)) * (
-            if (elemAt mg 1 == "M") then 1 else 1024
-        ) * 1024 * 1024);
-    in ''
-        <<270d5d30-951e-4171-8c23-67fc45d20578()>>
-        min-free = ${MG "250M"}
-        max-free = ${MG "1G"}
-    '';
-    services = rec {
-        mkBase = User: {
-            enable = true;
-            serviceConfig = rec {
-                Restart = "on-failure";
-                inherit User;
-                Group = User;
-                Environment = [ "PATH=/run/wrappers/bin:$PATH" ];
-            };
-            wantedBy = [ "multi-user.target" ];
         };
-        base = mkBase users.primary;
-        mkdir = path: "/run/current-system/sw/bin/mkdir -p ${path} &> /dev/null";
+        attrs = rec {
+            configs = {
+                nixpkgs = {
+                    allowUnfree = true;
+                    allowBroken = true;
+                    allowUnsupportedSystem = true;
+                    # preBuild = ''
+                    #     makeFlagsArray+=(CFLAGS="-w")
+                    #     buildFlagsArray+=(CC=cc)
+                    # '';
+                    permittedInsecurePackages = [
+                        "python2.7-cryptography-2.9.2"
+                    ];
+                };
+                nix = let
+                    MG = size: let
+                        mg = stringToCharacters size;
+                    in toString ((toInt (elemAt mg 0)) * (
+                        if (elemAt mg 1 == "M") then 1 else 1024
+                    ) * 1024 * 1024);
+                in ''
+                    <<270d5d30-951e-4171-8c23-67fc45d20578()>>
+                    min-free = ${MG "250M"}
+                    max-free = ${MG "1G"}
+                '';
+                services = rec {
+                    mkBase = User: {
+                        enable = true;
+                        serviceConfig = rec {
+                            Restart = "on-failure";
+                            inherit User;
+                            Group = User;
+                            Environment = [ "PATH=/run/wrappers/bin:$PATH" ];
+                        };
+                        wantedBy = [ "multi-user.target" ];
+                    };
+                    base = mkBase users.primary;
+                    mkdir = path: "/run/current-system/sw/bin/mkdir -p ${path} &> /dev/null";
+                };
+            };
+            users = fromJSON (readFile ./users.json);
+            excludedUsers = [ "root" ];
+            mainUsers = attrValues users;
+            allUsers = mainUsers ++ excludedUsers;
+            homes = fromJSON (readFile ./homes.json);
+            allHomes = recursiveUpdate homes { root = "/root"; };
+            datasets = {
+                fileSystems = import ./datasets.nix host;
+                backup = [
+                    "system/persist"
+                    "virt"
+                    "omniverse"
+                    users.primary
+                ];
+            };
+            platforms = {
+                arm = [ "aarch64-linux" "armv7l-linux" "armv6l-linux" ];
+                imd = [ "i686-linux" "x86_64-linux" ];
+            };
+            arms = elem system platforms.arm;
+            no-arms = !arms;
+            ssh.keys = rec {
+                "id_rsa.bak" = "<<652c4828-b716-42a1-b777-b37b99b468a7>>";
+                "id_ed25519.bak" = "<<ec2d5c28-4cbc-4f9b-aa60-835fff096273>>";
+                jeet_ray_ecdsa = "<<757d7c7f-bbd3-49b3-a47e-84158337318c>>";
+                jeet_ray_ed25519 = "<<9d0e196f-1118-43bb-8b2f-0650e49b211a>>";
+                jeet_ray_rsa = "<<ec44d933-c4ac-4da5-8086-f1d7b4358139>>";
+                shadowrylander_ecdsa = "<<9320021a-a3d7-4bd5-9f80-269073d02a2a>>";
+                shadowrylander_ed25519 = "<<12713489-9696-4a9a-8e92-242011772051>>";
+                shadowrylander_rsa = "<<3325c6f6-a054-41bf-a941-7dd6ad5f6124>>";
+                id_rsa = shadowrylander_rsa;
+                id_ed25519 = jeet_ray_ed25519;
+                id_ecdsa = jeet_ray_ecdsa;
+            };
+            fileSystems = {
+                base = {
+                    fsType = "zfs";
+                    options = [ "defaults" "x-systemd.device-timeout=5" "nofail" ];
+                };
+                supported = [ "zfs" "xfs" "btrfs" "ext4" "fat" "vfat" "bcachefs" ];
+            };
+            commands = {
+                rebuild = "nixos-rebuild --show-trace";
+                install = "nixos-install --show-trace";
+            };
+        };
     };
-};
-#+end_src
-
-******* Users
-
-#+begin_src nix
-users = fromJSON (readFile ./users.json);
-excludedUsers = [ "root" ];
-mainUsers = attrValues users;
-allUsers = mainUsers ++ excludedUsers;
-#+end_src
-
-******** Homes
-
-#+begin_src nix
-homes = listToAttrs (map (
-    user: nameValuePair user "/home/${user}"
-) mainUsers);
-allHomes = homes // { root = "/root"; };
-#+end_src
-
-******* Datasets
-
-#+begin_src nix
-datasets = {
-    fileSystems = import ./datasets.nix host;
-    backup = [
-        "system/persist"
-        "virt"
-        "omniverse"
-        users.primary
-    ];
-};
-#+end_src
-
-******* Platforms
-
-#+begin_src nix
-platforms = {
-    arm = [ "aarch64-linux" "armv7l-linux" "armv6l-linux" ];
-    imd = [ "i686-linux" "x86_64-linux" ];
-};
-arms = elem system platforms.arm;
-no-arms = !arms;
-#+end_src
-
-******* SSH
-
-#+begin_src nix
-ssh.keys = rec {
-    "id_rsa.bak" = "<<652c4828-b716-42a1-b777-b37b99b468a7>>";
-    "id_ed25519.bak" = "<<ec2d5c28-4cbc-4f9b-aa60-835fff096273>>";
-    jeet_ray_ecdsa = "<<757d7c7f-bbd3-49b3-a47e-84158337318c>>";
-    jeet_ray_ed25519 = "<<9d0e196f-1118-43bb-8b2f-0650e49b211a>>";
-    jeet_ray_rsa = "<<ec44d933-c4ac-4da5-8086-f1d7b4358139>>";
-    shadowrylander_ecdsa = "<<9320021a-a3d7-4bd5-9f80-269073d02a2a>>";
-    shadowrylander_ed25519 = "<<12713489-9696-4a9a-8e92-242011772051>>";
-    shadowrylander_rsa = "<<3325c6f6-a054-41bf-a941-7dd6ad5f6124>>";
-    id_rsa = shadowrylander_rsa;
-    id_ed25519 = jeet_ray_ed25519;
-    id_ecdsa = jeet_ray_ecdsa;
-};
-#+end_src
-
-******* Filesystems
-
-#+begin_src nix
-fileSystems = {
-    base = {
-        fsType = "zfs";
-        options = [ "defaults" "x-systemd.device-timeout=5" "nofail" ];
-    };
-
-    supported = [ "zfs" "xfs" "btrfs" "ext4" "fat" "vfat" "bcachefs" ];
-};
-#+end_src
-
-******* Commands
-
-#+begin_src nix
-commands = {
-    rebuild = "nixos-rebuild --impure";
-    install = "nixos-install --impure --show-trace";
-};
-#+end_src
-
-******* End of Attrs
-
-#+begin_src nix
-};
-#+end_src
-
-****** Paths
-
-#+begin_src nix
-paths = rec {
-    nixos = toString (./. + "/..");
-    lib = "${nixos}/lib";
-    extras = "${nixos}/extras";
-    configs = "${nixos}/configs";
-    modules.flakes = "${nixos}/flake_modules";
-    global = "${nixos}/global";
-    patches.base = "${nixos}/patches";
-};
-#+end_src
-
-****** End of New Lib
-
-#+begin_src nix
-};
-#+end_src
-
-***** Extension
-
-#+begin_src nix
-extension = makeExtensible newLib;
-#+end_src
-
-**** Extend
-
-#+begin_src nix
-in with lib; extension.extend (final: prev: foldr (new: old: recursiveUpdate new old) {} (attrValues prev))
+    extension = makeExtensible newLib;
+in with lib; extension.extend (final: prev: extension.foldToSet (attrValues prev))
 #+end_src
 
 *** callPackages
 **** caddy.nix
 
-Taken from [[https://github.com/NixOS/nixpkgs/issues/14671#issuecomment-1016376290][here]]; allows me to build caddy with plugins:
+Adapted from [[https://github.com/NixOS/nixpkgs/issues/14671#issuecomment-1016376290][here]]; allows me to build ~caddy~ with plugins:
 
 #+begin_src nix :tangle (meq/tangle-path)
 { lib, fetchFromGitHub, buildGoModule, plugins ? [], vendorSha256 ? "" }:
@@ -1791,9 +1679,9 @@ inputs.extra-container.overlay
 #+begin_src nix
 (map (file:
     (final: prev: {
-        "${j.functions.name { inherit file; }}" = import file args;
+        "${j.name { inherit file; }}" = import file args;
     })
-) (j.functions.list { dir = ./overlays; }))
+) (j.import.list { dir = ./overlays; }))
 #+end_src
 
 **** Overrides from Older Channels
@@ -1812,7 +1700,7 @@ in mapAttrsToList (
             pkg1 = if pkgIsAttrs then (last (attrNames pkg')) else pkg';
             pkg2 = if pkgIsAttrs then (last (attrValues pkg')) else pkg';
             self = (pkgchannel == channel) || (pkgchannel == "self");
-        in (final: prev: { "${pkg1}" = if self then prev.${pkg2} else final.j.pkgs.${pkgchannel}.${pkg2}; })
+        in final: prev: { "${pkg1}" = if self then prev.${pkg2} else final.j.pkgs.${pkgchannel}.${pkg2}; }
     ) pkglist
 ) pkgsets)
 #+end_src
@@ -1839,24 +1727,14 @@ in mapAttrsToList (
     };
 
     inputs = rec {
-        # nixos-unstable.url = github:NixOS/nixpkgs/nixos-unstable;
-        nixos-unstable.url = "https://nixos.org/channels/nixos-unstable/nixexprs.tar.xz";
-
-        # nixos-unstable-small.url = github:NixOS/nixpkgs/nixos-unstable-small;
-        nixos-unstable-small.url = "https://nixos.org/channels/nixos-unstable-small/nixexprs.tar.xz";
-
-        # nixos-21-11.url = github:NixOS/nixpkgs/nixos-21.11;
-        nixos-21-11.url = "https://nixos.org/channels/nixos-21.11/nixexprs.tar.xz";
-
-        # nixos-21-11-small.url = github:NixOS/nixpkgs/nixos-21.11-small;
-        nixos-21-11-small.url = "https://nixos.org/channels/nixos-21.11-small/nixexprs.tar.xz";
-
-        release-21-11.url = github:NixOS/nixpkgs/release-21.11;
-
+        nixos-unstable.url = github:NixOS/nixpkgs/nixos-unstable;
+        nixos-unstable-small.url = github:NixOS/nixpkgs/nixos-unstable-small;
+        nixos-22-05.url = github:NixOS/nixpkgs/nixos-22.05;
+        nixos-22-05-small.url = github:NixOS/nixpkgs/nixos-22.05-small;
+        nixos-21-11.url = github:NixOS/nixpkgs/nixos-21.11;
+        nixos-21-11-small.url = github:NixOS/nixpkgs/nixos-21.11-small;
         master.url = github:NixOS/nixpkgs/master;
-
         j.url = github:<<username>>/nixpkgs/j;
-
         nixpkgs.follows = "j";
 
         hardware.url = github:nixos/nixos-hardware;
@@ -1893,11 +1771,11 @@ in mapAttrsToList (
         make = {
             pre-pkgs = system: import nixpkgs { inherit system; };
             lib = host: system: nixpkgs.lib.extend (final: prev: {
-                j = import ./lib.nix ({
+                j = import ./lib.nix (recursiveUpdate {
                     inherit inputs system;
                     pkgs = make.pre-pkgs system;
                     lib = final;
-                } // (if (host == null) then {} else { inherit host; }));
+                } (optionalAttrs (host != null) { inherit host; }));
             });
             pre-nixpkgset = system: lib: { inherit system; config = lib.j.attrs.configs.nixpkgs; };
             overlays = system: lib: import ./overlays.nix {
@@ -1921,7 +1799,7 @@ in mapAttrsToList (
             config = name: system: nixosSystem rec {
                 specialArgs = make.specialArgs name system;
                 modules = with inputs; let
-                    j-list = specialArgs.lib.j.functions.list;
+                    j-list = specialArgs.lib.j.import.list;
                 in flatten [
                     "${toString ./.}/hosts/${name}"
                     home-manager.nixosModules.home-manager
@@ -1935,7 +1813,20 @@ in mapAttrsToList (
                 (attrNames (filterAttrs (n: v: v == "directory") (readDir ./hosts)))
             ); };
         };
-    in (eachSystem allSystems make.nixosConfiguration) // { inherit make channel; };
+    in recursiveUpdate (eachSystem allSystems make.nixosConfiguration) { inherit make channel; };
+}
+#+end_src
+
+*** variables.nix
+
+#+begin_src nix :tangle (meq/tangle-path)
+{ options, ... }:
+
+{
+    options.variables = mkOption {
+        type = types.attrs;
+        default = { };
+    }
 }
 #+end_src
 
@@ -1951,667 +1842,670 @@ in mapAttrsToList (
 **** Arguments
 
 #+begin_src nix
-with builtins; args@{ config, ... }:
-#+end_src
-
-**** Config Let
-
-#+begin_src nix
-let
-#+end_src
-
-***** Flake
-
-#+begin_src nix
-flake = import ./.;
-#+end_src
-
-****** Inheritance
-
-#+begin_src nix
-system = args.system or currentSystem;
-host = args.host or config.networking.hostName;
-fromFlake = args ? inputs;
-inheritanceSet = if fromFlake then args else (flake.make.specialArgs host system);
-inherit (inheritanceSet) lib overlays nixpkgset pkgs;
-#+end_src
-
-***** Config Repo
-
-#+begin_src nix
-dir = "${lib.j.attrs.homes.${lib.j.attrs.users.primary}}/.local/share/yadm/repo.git";
-dirExists = pathExists dir;
-repo = with lib; j.functions.mntConvert (if dirExists then (fetchGit { url = "file://${dir}"; ref = "main"; }) else flake.inputs.${j.attrs.users.primary});
-#+end_src
-
-***** Configurations
-
-#+begin_src nix
-nixos = "${(args.nixpkgs or <nixpkgs>)}/nixos";
-nixos-configuration = configuration: import nixos { configuration = import configuration (args // inheritanceSet); inherit system; };
-nixos-configurations = {
-    server = nixos-configuration ./profiles/server.nix;
-    configuration = nixos-configuration ./configuration.nix;
-    hardware-configuration = import nixos { inherit system; configuration.imports = [
-        ./hardware-configuration.nix
-        ({config, ... }: { networking.hostId = substring 0 8 (readFile "/etc/machine-id"); boot.loader.grub.devices = [ "nodev" ]; })
-    ]; };
-};
-#+end_src
-
-**** Begin Set
-
-#+begin_src nix
+with builtins; args@{ config, ... }: let
+    flake = import ./.;
+    system = args.system or currentSystem;
+    host = args.host or config.networking.hostName;
+    fromFlake = args ? inputs;
+    inheritanceSet = if fromFlake then args else (flake.make.specialArgs host system);
+    inherit (inheritanceSet) lib overlays nixpkgset pkgs;
+    dir = "<<userrepo>>";
+    dirExists = pathExists dir;
+    repo = with lib; j.mntConvert (if dirExists then (fetchGit { url = "file://${dir}"; ref = "main"; }) else flake.inputs.${j.attrs.users.primary});
+    nixos = "${(args.nixpkgs or <nixpkgs>)}/nixos";
+    nixos-configuration = configuration: import nixos { configuration = import configuration (recursiveUpdate args inheritanceSet); inherit system; };
+    nixos-configurations = {
+        server = nixos-configuration ./profiles/server.nix;
+        configuration = nixos-configuration ./configuration.nix;
+        hardware-configuration = import nixos { inherit system; configuration.imports = [
+            ./hardware-configuration.nix
+            ({config, ... }: { networking.hostId = substring 0 8 (readFile "/etc/machine-id"); boot.loader.grub.devices = [ "nodev" ]; })
+        ]; };
+    };
 in with lib; {
+    imports = with flake.inputs; flatten [
+        ./cachix.nix
+        (if fromFlake then [] else [ home-manager.nixosModules.home-manager impermanence.nixosModules.impermanence ])
+        ./variables.nix
+    ];
+    config = mkMerge [
+        # (removeAttrs nixos-configurations.hardware-configuration.config [ "fileSystems" "nesting" "jobs" "fonts" "meta" "documentation" ])
+        (filterAttrs (n: v: elem n [ "boot" "networking" "powerManagement" "hardware" ]) nixos-configurations.hardware-configuration.config)
+
+        # TODO: What exactly from `system' am I taking? Merge it explicitly.
+        # (if fromFlake then (filterAttrs (n: v: elem n [ "system" ]) nixos-configurations.configuration.config) else {})
 #+end_src
 
-**** Imports
+***** Variables
 
 #+begin_src nix
-imports = with flake.inputs; flatten [
-    (if fromFlake then [] else [ home-manager.nixosModules.home-manager impermanence.nixosModules.impermanence ])
-];
-#+end_src
-
-**** Config
-
-#+begin_src nix
-# config = (removeAttrs nixos-configurations.hardware-configuration.config [ "fileSystems" "nesting" "jobs" "fonts" "meta" "documentation" ]) // {
-config = mkMerge [
-    (filterAttrs (n: v: elem n [ "boot" "networking" "powerManagement" "hardware" ]) nixos-configurations.hardware-configuration.config)
-
-    # TODO: What exactly from `system' am I taking? Merge it explicitly.
-    # (if fromFlake then (filterAttrs (n: v: elem n [ "system" ]) nixos-configurations.configuration.config) else {})
-
 {
-#+end_src
-
-***** Boot
-
-#+begin_src nix
-boot = {
-#+end_src
-
-****** Supported Filesystems
-
-#+begin_src nix
-supportedFilesystems = j.attrs.fileSystems.supported;
-#+end_src
-
-****** Initrd
-
-#+begin_src nix
-initrd = {
-    inherit (config.boot) supportedFilesystems;
-    compressor = "${lib.getBin pkgs.zstd}/bin/zstd";
-    network.ssh.enable = true;
-};
-#+end_src
-
-****** Extra Modprobe Config
-
-#+begin_src nix
-extraModprobeConfig = '' options kvm_intel_nested=1 '';
-#+end_src
-
-****** Loader
-
-#+begin_src nix
-loader = {
-    generic-extlinux-compatible.enable = mkForce false;
-    systemd-boot = {
-        configurationLimit = 25;
-        editor = mkForce false;
-        # enable = mkForce false;
-        enable = mkForce true;
+    variables = mapAttrs (n: v: mkDefault v) rec {
+        zfs = true;
+        relay = false;
+        server = relay;
+        client = (! server) && (! relay);
+        minimal = false;
     };
-    grub = {
-        # enable = mkForce true;
-        enable = mkForce false;
-        efiSupport = true;
-        efiInstallAsRemovable = mkForce false;
-        # efiInstallAsRemovable = mkForce true;
-        # devices = [ "nodev" ];
-        # device = "nodev";
-        device = if config.boot.loader.grub.efiSupport then config.boot.loader.efi.efiSysMountPoint else "/boot";
-        version = 2;
-        useOSProber = true;
-
-        # TODO: Get more options
-        extraEntries = ''
-            menuentry "Reboot" { reboot }
-            menuentry "Poweroff" { halt }
-        '';
-    };
-    efi = {
-        canTouchEfiVariables = mkForce true;
-        # canTouchEfiVariables = mkForce false;
-        efiSysMountPoint = "/boot/efi";
-    };
-    timeout = 10;
-
-    # Used for Bedrock Linux
-    # Also causing EFI stuff not to be installed
-    # initScript.enable = mkForce true;
-
-};
-#+end_src
-
-****** Kernel
-
-#+begin_src nix
-kernelPackages = mkDefault pkgs.linuxPackages_xanmod;
-# kernelPackages = mkDefault pkgs.linuxPackages_lqx;
-# kernelPackages = mkDefault pkgs.linuxPackages_zen;
-#+end_src
-
-******* Patches
-
-#+begin_src nix
-kernelPatches = flatten [
-#+end_src
-
-******** ZSTD Kernel Compression
-
-# TODO: Apparently doesn't work with bcachefs
-
-#+begin_src nix :noweb-ref no
-{
-    name = "Enable ZSTD Compression";
-    patch = null;
-    extraConfig = ''
-        RD_ZSTD y
-        KERNEL_ZSTD y
-        KERNEL_XZ n
-    '';
+    _module.args.variables = config.variables;
 }
 #+end_src
 
-******** Bcachefs
+***** ZFS
 
 #+begin_src nix
-(if (elem "bcachefs" config.boot.supportedFilesystems) then (filter (set: hasInfix "bcachefs" set.name) pkgs.linuxKernel.kernels.linux_testing_bcachefs.kernelPatches) else [])
-#+end_src
-
-******** End of Kernel Patches
-
-#+begin_src nix
-];
-#+end_src
-
-******* Extra Module Packages
-
-#+begin_src nix
-extraModulePackages = with config.boot.kernelPackages; [
-    zfsUnstable
-];
-#+end_src
-
-******* ZFS
-
-#+begin_src nix
-kernelModules = [ "zfs" ];
-kernelParams = [ "nohibernate" ];
-# loader.grub.zfsSupport = mkIf j.attrs.zfs true;
-initrd = {
-    postDeviceCommands = mkIf j.attrs.zfs (mkAfter (concatMapStrings (d: "zfs rollback -r ${d}@blank\n") (filter (d: (j.functions.hasAPrefix [
-        "${host}/system/home"
-    ] d) || (elem d [
-        "${host}/system/root"
-        # "${host}/system/tmp"
-    ])) (attrNames j.attrs.datasets.fileSystems))));
-    kernelModules = [ "zfs" "r8169" ];
-    availableKernelModules = config.boot.initrd.kernelModules;
-};
-zfs = mkIf j.attrs.zfs {
-    requestEncryptionCredentials = true;
-    enableUnstable = true;
-    devNodes = "/dev/";
-};
-#+end_src
-
-****** End of Boot
-
-#+begin_src nix
-};
-#+end_src
-
-***** Console
-
-#+begin_src nix
-console = {
-    # Select internationalisation properties.
-    # font = lib.mkDefault "${terminus_font}/share/consolefonts/ter-u28n.psf.gz";
-    font = "Cartograph CF Extra Bold Italic";
-    keyMap = "us";
-};
-#+end_src
-
-***** Environment
-
-#+begin_src nix
-environment = {
-#+end_src
-
-****** Etc
-
-#+begin_src nix
-etc."nix/nix.conf".text = mkForce j.attrs.configs.nix;
-#+end_src
-
-****** System Packages
-
-#+begin_src nix
-systemPackages = with pkgs; flatten [
-    cachix
-    pkgs.j.pkgs.j.xonsh.buildInputs
-];
-#+end_src
-
-****** ZFS
-
-#+begin_src nix
-persistence = mkIf j.attrs.zfs (let
-    rootDirSet = {
-        user = "root";
-        group = "root";
+( mkIf config.variables.zfs {
+    boot = {
+        extraModulePackages = with config.boot.kernelPackages; [ zfsUnstable ];
+        kernelModules = [ "zfs" ];
+        kernelParams = [ "nohibernate" ];
+        loader.grub.zfsSupport = true;
+        initrd = {
+            postDeviceCommands = mkAfter (concatMapStrings (d: "zfs rollback -r ${d}@blank\n") (filter (d: (j.has.prefix [
+                "${host}/system/home"
+            ] d) || (elem d [
+                "${host}/system/root"
+                # "${host}/system/tmp"
+            ])) (attrNames j.attrs.datasets.fileSystems)));
+            kernelModules = [ "zfs" "r8169" ];
+            availableKernelModules = config.boot.initrd.kernelModules;
+        };
+        zfs = {
+            requestEncryptionCredentials = true;
+            enableUnstable = true;
+            devNodes = "/dev/";
+        };
     };
-    rootFileSet.parentDirectory = rootDirSet;
-in {
-    "/persist/root" = {
-        hideMounts = true;
-        files = unique (map (file: if (isString file) then ({ inherit file; } // rootFileSet) else (rootFileSet // file)) (flatten [
-            "/etc/host"
-            "/etc/machine-id"
-
-            # (map (directory: map (fd: "/${directory}/${fd}") (attrNames (filterAttrs (n: v: v != "directory") (let path = "${repo}/${directory}"; in j.functions.readDirExists path)))) [
-            #     "etc"
-            #     "var"
-            # ])
-
-            (map (directory: j.functions.recurseDir { dir = "${repo}/${directory}"; local = 0; ignores.prefix = [ "nixos/" ]; }) [
-                "etc"
-                "var"
-            ])
-        ]));
-        directories = unique (map (directory: if (isString directory) then ({ inherit directory; } // rootDirSet) else (rootDirSet // directory)) (flatten [
-            "/bin"
-            "/etc/containers"
-            "/etc/NetworkManager/system-connections"
-            "/etc/nixos"
-
-            # TODO: Prevents `sshd_config' itself from being created
-            # "/etc/ssh"
-
-            "/sbin"
-            "/snap"
-            "/usr"
-            "/var/lib/acme"
-            "/var/lib/bluetooth"
-            "/var/lib/systemd/coredump"
-            "/var/log"
-
-            # (map (directory: map (fd: "/${directory}/${fd}") (attrNames (filterAttrs (n: v: v == "directory") (let path = "${repo}/${directory}"; in j.functions.readDirExists path)))) [
-            #     "etc"
-            #     "var"
-            # ])
-        ]));
-    };
-    "/persist" = let
-        redRepo = readDir repo;
-        redRepoFiles = flatten [
-            (attrNames (filterAttrs (n: v: v != "directory") redRepo))
-        ];
-        redRepoDirectories = flatten [
-            (attrNames (filterAttrs (n: v: v == "directory") redRepo))
-        ];
-    in {
-        users = listToAttrs (map (user: let
-            home = j.attrs.allHomes.${user};
-            userDirSet = {
-                inherit user;
-                group = user;
+    environment = {
+        persistence = let
+            rootDirSet = {
+                user = "root";
+                group = "root";
             };
-            userFileSet.parentDirectory = userDirSet;
-            predRepo = let pHome = "/persist/${home}"; in j.functions.readDirExists pHome;
-            predRepoFiles = flatten [
-                (attrNames (filterAttrs (n: v: v != "directory") predRepo))
-            ];
-            predRepoDirectories = flatten [
-                (attrNames (filterAttrs (n: v: v == "directory") predRepo))
-            ];
-        in nameValuePair user {
-            inherit home;
-            files = unique (map (file: if (isString file) then ({ inherit file; } // userFileSet) else (userFileSet // file)) (flatten [
-                ".bash_history"
-                ".emacs-profile"
-                ".fasd"
-                ".gitignore"
-                ".globalignore"
-                ".nix-channels"
-                ".python-history"
-                ".screenrc"
-                ".viminfo"
-                ".zsh_history"
-                redRepoFiles
-            ]));
-            directories = unique (map (directory: if (isString directory) then ({ inherit directory; } // userDirSet) else (userDirSet // directory)) (flatten [
-                ".atom"
-                ".byobu"
-                ".cache"
-                ".caddy"
-                ".config"
-                ".linuxbrew"
-                ".local"
-                ".mozilla"
-                ".peru"
-                ".pki"
-                ".repos"
-                ".vim_runtime"
-                ".virtualenvs"
-                ".vscode-oss"
-                ".vscode"
-                ".yubico"
-                ".z"
-                "Documents"
-                "Downloads"
-                "keybase"
-                "Music"
-                "nix-plugins"
-                "Pictures"
-                "Public"
-                "Templates"
-                "tests"
-                "Videos"
-                "VirtualBox VMs"
-                { directory = ".gnupg"; mode = "0700"; }
-                { directory = ".nixops"; mode = "0700"; }
-                { directory = ".ssh"; mode = "0700"; }
-                redRepoDirectories
-            ]));}) j.attrs.allUsers);
+            rootFileSet.parentDirectory = rootDirSet;
+        in {
+            "/persist/root" = let
+                etc-prefixes = [ "nixos" "containers" "NetworkManager/system-connections" "tailscale" ];
+            in {
+                hideMounts = true;
+                files = unique (map (file: if (isString file) then (recursiveUpdate { inherit file; } rootFileSet) else (recursiveUpdate rootFileSet file)) (flatten [
+                    "/etc/host"
+                    "/etc/machine-id"
+                    (map (directory: j.recurseDir { dir = "${repo}/${directory}"; local = 0; ignores.prefix = (map (d: d + "/") etc-prefixes); }) [
+                        "etc"
+                        "var"
+                    ])
+                ]));
+                directories = unique (map (directory: if (isString directory) then (recursiveUpdate { inherit directory; } rootDirSet) else (recursiveUpdate rootDirSet directory)) (flatten [
+                    (map (d: "/etc/" + d) etc-prefixes)
+
+                    "/bin"
+
+                    # TODO: Prevents `sshd_config' itself from being created
+                    # "/etc/ssh"
+
+                    "/sbin"
+                    "/snap"
+                    "/usr"
+                    "/var/lib/acme"
+                    "/var/lib/bluetooth"
+                    "/var/lib/systemd/coredump"
+                    "/var/log"
+
+                    # Managed by the `var' module
+                    # "/var/lib/tailscale"
+
+                    config.services.tailscale.authenticationConfirmationFile
+                ]));
+            };
+            "/persist" = let
+                redRepo = readDir repo;
+                redRepoFiles = flatten [
+                    (attrNames (filterAttrs (n: v: v != "directory") redRepo))
+                ];
+                redRepoDirectories = flatten [
+                    (attrNames (filterAttrs (n: v: v == "directory") redRepo))
+                ];
+            in {
+                users = listToAttrs (map (user: let
+                    home = j.attrs.allHomes.${user};
+                    userDirSet = {
+                        inherit user;
+                        group = user;
+                    };
+                    userFileSet.parentDirectory = userDirSet;
+                    predRepo = let pHome = "/persist/${home}"; in j.readDirExists pHome;
+                    predRepoFiles = flatten [
+                        (attrNames (filterAttrs (n: v: v != "directory") predRepo))
+                    ];
+                    predRepoDirectories = flatten [
+                        (attrNames (filterAttrs (n: v: v == "directory") predRepo))
+                    ];
+                in nameValuePair user {
+                    inherit home;
+                    files = unique (map (file: if (isString file) then (recursiveUpdate { inherit file; } userFileSet) else (recursiveUpdate userFileSet file)) (flatten [
+                        ".bash_history"
+                        ".emacs-profile"
+                        ".fasd"
+                        ".gitignore"
+                        ".globalignore"
+                        ".nix-channels"
+                        ".python-history"
+                        ".screenrc"
+                        ".viminfo"
+                        ".zsh_history"
+                        config.services.vaddy.dataDir
+                        redRepoFiles
+                    ]));
+                    directories = unique (map (directory: if (isString directory) then (recursiveUpdate { inherit directory; } userDirSet) else (recursiveUpdate userDirSet directory)) (flatten [
+                        ".atom"
+                        ".byobu"
+                        ".cache"
+                        ".config"
+                        ".linuxbrew"
+                        ".local"
+                        ".mozilla"
+                        ".peru"
+                        ".pki"
+                        ".repos"
+                        ".user"
+                        ".vim_runtime"
+                        ".virtualenvs"
+                        ".vscode-oss"
+                        ".vscode"
+                        ".yubico"
+                        ".z"
+                        "Documents"
+                        "Downloads"
+                        "keybase"
+                        "Music"
+                        "nix-plugins"
+                        "Pictures"
+                        "Public"
+                        "Templates"
+                        "tests"
+                        "Videos"
+                        "VirtualBox VMs"
+                        { directory = ".gnupg"; mode = "0700"; }
+                        { directory = ".nixops"; mode = "0700"; }
+                        { directory = ".ssh"; mode = "0700"; }
+                        { directory = ".gnupgk"; mode = "0700"; }
+                        redRepoDirectories
+                    ]));}) j.attrs.allUsers);
+            };
+        };
     };
-});
-#+end_src
-
-****** End of Environment
-
-#+begin_src nix
-};
-#+end_src
-
-***** Memory
-
-#+begin_src nix
-zramSwap = {
-    enable = true;
-    algorithm = "zstd";
-};
-#+end_src
-
-***** Filesystems
-
-#+begin_src nix
-fileSystems = let
-    inherit (j.attrs.fileSystems) base;
-in mkMerge [
-    # (filterAttrs (n: v: !elem "bind" v.options) nixos-configurations.hardware-configuration.config.fileSystems)
-    (filterAttrs (n: v: elem n [ "/boot" "/boot/efi" ]) nixos-configurations.hardware-configuration.config.fileSystems)
-    (mkIf j.attrs.zfs (mapAttrs' (dataset: mountpoint: nameValuePair mountpoint (
-        mkForce (base // { device = dataset; ${
-            j.functions.myIf.knull ((j.functions.hasAnInfix [
+    fileSystems = (mapAttrs' (dataset: mountpoint: nameValuePair mountpoint (
+        mkForce (recursiveUpdate base { device = dataset; ${
+            j.mif.null ((j.has.infix [
                 j.attrs.users.primary
                 "persist"
                 "home"
             ] dataset) || (elem dataset [ ])) "neededForBoot"
         } = true; })
-    )) j.attrs.datasets.fileSystems))
-];
+    )) j.attrs.datasets.fileSystems);
+    services = {
+        sanoid = let
+            sanoidBase = {
+                useTemplate = [ "base" ];
+                recursive = true;
+            };
+            disabled = { processChildrenOnly = true; };
+        in {
+            enable = true;
+            templates."base" = {
+                autoprune = true;
+                autosnap = true;
+                interval = "30s";
+
+                # 6 snapshots an hour
+                daily = 144;
+
+                # 2 snapshots a minute
+                hourly = 120;
+
+                # 6 snapshots a day for 28 days
+                monthly = 168;
+
+                # Twice the weeks in a year
+                yearly = 104;
+            };
+
+            datasets = listToAttrs (map (dataset: nameValuePair "${host}/${dataset}" sanoidBase) (flatten [
+                j.attrs.datasets.backup
+                host
+            ]));
+        };
+        syncoid = let
+            syncoidBase = mkMerge [{
+                recursive = true;
+                commonArgs = [
+                    "--compress zstd-slow"
+                    "--no-stream"
+                    "--no-sync-snap"
+                    "--create-bookmark"
+                ];
+                }
+
+                # TODO
+                # (mkIf vars.encrypted {
+                #     sendOptions = "vvwRI";
+                #     recvOptions = "vvFs";
+                # })
+                # (mkIf (!vars.encrypted) {
+                #     recvOptions = "vvFds";
+                #     sendOptions = "vvRI";
+                # })
+
+            ];
+        in {
+            enable = false;
+            sshKey = "/root/.ssh/id_ed25519";
+            commands = listToAttrs (map (dataset: nameValuePair "${host}/${dataset}" (recursiveUpdate syncoidBase { target = ""; })) (flatten [
+                j.attrs.datasets.backup
+                host
+            ]));
+        };
+        udev.extraRules = ''
+            ACTION=="add|change", KERNEL=="sd[a-z]*[0-9]*|mmcblk[0-9]*p[0-9]*|nvme[0-9]*n[0-9]*p[0-9]*", ENV{ID_FS_TYPE}=="zfs_member", ATTR{../queue/scheduler}="none"
+        ''; # zfs already has its own scheduler. without this my(@Artturin) computer froze for a second when i nix build something.
+        zfs = {
+            trim.enable = true;
+            autoScrub.enable = true;
+
+            # Managed by Sanoid
+            autoSnapshot.enable = false;
+        };
+    };
+#+end_src
+
+Adapted from [[https://www.reddit.com/r/NixOS/comments/ut8j10/nixos_zfs_podman_backing_file_system_is/?utm_medium=android_app&utm_source=share][here]]:
+
+#+begin_src nix
+    virtualisation = {
+        containers.storage.settings.storage.driver = "zfs";
+        lxd.zfsSupport = true;
+        podman.extraPackages = [ pkgs.zfs ];
+        docker.storageDriver = "zfs";
+    };
+#+end_src
+
+#+begin_src nix
+})
+#+end_src
+
+***** Boot
+
+#+begin_src nix
+{
+    boot = {
+        supportedFilesystems = j.attrs.fileSystems.supported;
+        initrd = {
+            inherit (config.boot) supportedFilesystems;
+            compressor = "${lib.getBin pkgs.zstd}/bin/zstd";
+            network.ssh.enable = true;
+            extraModprobeConfig = '' options kvm_intel_nested=1 '';
+        };
+        loader = {
+            generic-extlinux-compatible.enable = mkForce false;
+            systemd-boot = {
+                configurationLimit = 25;
+                editor = mkForce false;
+                # enable = mkForce false;
+                enable = mkForce true;
+            };
+            grub = {
+                # enable = mkForce true;
+                enable = mkForce false;
+                efiSupport = true;
+                efiInstallAsRemovable = mkForce false;
+                # efiInstallAsRemovable = mkForce true;
+                # devices = [ "nodev" ];
+                # device = "nodev";
+                device = if config.boot.loader.grub.efiSupport then config.boot.loader.efi.efiSysMountPoint else "/boot";
+                version = 2;
+                useOSProber = true;
+
+                # TODO: Get more options
+                extraEntries = ''
+                    menuentry "Reboot" { reboot }
+                    menuentry "Poweroff" { halt }
+                '';
+            };
+            efi = {
+                canTouchEfiVariables = mkForce true;
+                # canTouchEfiVariables = mkForce false;
+                efiSysMountPoint = "/boot/efi";
+            };
+            timeout = 10;
+
+            # Used for Bedrock Linux
+            # Also causing EFI stuff not to be installed
+            # initScript.enable = mkForce true;
+
+        };
+        kernelPackages = mkDefault pkgs.linuxPackages_xanmod;
+        # kernelPackages = mkDefault pkgs.linuxPackages_lqx;
+        # kernelPackages = mkDefault pkgs.linuxPackages_zen;
+        kernelPatches = flatten [
+            (optionals (elem "bcachefs" config.boot.supportedFilesystems) (filter (set: hasInfix "bcachefs" set.name) pkgs.linuxKernel.kernels.linux_testing_bcachefs.kernelPatches))
+#+end_src
+
+# TODO: Apparently doesn't work with bcachefs
+
+#+begin_src nix :noweb-ref no
+            {
+                name = "Enable ZSTD Compression";
+                patch = null;
+                extraConfig = ''
+                    RD_ZSTD y
+                    KERNEL_ZSTD y
+                    KERNEL_XZ n
+                '';
+            }
+#+end_src
+
+#+begin_src nix
+        ];
+    };
+}
+#+end_src
+
+***** Console
+
+#+begin_src nix
+{
+    console = {
+        # Select internationalisation properties.
+        # font = lib.mkDefault "${terminus_font}/share/consolefonts/ter-u28n.psf.gz";
+        font = "Cartograph CF Extra Bold Italic";
+        keyMap = "us";
+    };
+}
+#+end_src
+
+***** Environment
+
+#+begin_src nix
+{
+    environment = {
+        etc."nix/nix.conf".text = mkForce j.attrs.configs.nix;
+        systemPackages = with pkgs; flatten [
+            (pass.withExtensions (ext: with ext; [pass-tomb pass-genphrase]))
+            assh
+            cachix
+            direnv
+            exa
+            fasd
+            fd
+            fzf
+            git-crypt
+            gnupg
+            gopass
+            hub
+            mosh
+            sqlite
+            starship
+            tailscale
+            tailapi
+            zoxide
+        ];
+    };
+}
+#+end_src
+
+***** Memory
+
+#+begin_src nix
+{
+    zramSwap = {
+        enable = true;
+        algorithm = "zstd";
+    };
+}
+#+end_src
+
+***** Filesystems
+
+#+begin_src nix
+{
+    fileSystems = let
+        inherit (j.attrs.fileSystems) base;
+    # in filterAttrs (n: v: !elem "bind" v.options) nixos-configurations.hardware-configuration.config.fileSystems;
+    in filterAttrs (n: v: elem n [ "/boot" "/boot/efi" ]) nixos-configurations.hardware-configuration.config.fileSystems;
+}
 #+end_src
 
 ***** Hardware
 
 #+begin_src nix
-hardware = {
-    enableRedistributableFirmware = lib.mkDefault true;
-    # Enable sound
-    pulseaudio.enable = true;
-};
-sound.enable = true;
+{
+    hardware = {
+        enableRedistributableFirmware = lib.mkDefault true;
+        # Enable sound
+        pulseaudio.enable = true;
+    };
+    sound.enable = true;
+}
 #+end_src
 
 ***** Networking
 
 #+begin_src nix
-networking = {
-    networkmanager.enable = mkForce true;
-    interfaces = if fromFlake then (mapAttrs (n: v: v // {
-        useDHCP = mkForce (! config.networking.networkmanager.enable);
-        wakeOnLan.enable = true;
-    }) (filterAttrs (n: v: !elem n [ "wg0" ]) nixos-configurations.configuration.config.networking.interfaces)) else {};
+{
+    networking = {
+        networkmanager.enable = mkForce true;
+        interfaces = if fromFlake then (mapAttrs (n: v: recursiveUpdate v {
+            useDHCP = mkForce (! config.networking.networkmanager.enable);
+            wakeOnLan.enable = true;
+        }) (filterAttrs (n: v: !elem n [ "wg0" ]) nixos-configurations.configuration.config.networking.interfaces)) else {};
 
-    # The global useDHCP flag is deprecated, therefore explicitly set to false here.
-    # Per-interface useDHCP will be mandatory in the future, so this generated config
-    # replicates the default behaviour.
-    useDHCP = false;
+        # The global useDHCP flag is deprecated, therefore explicitly set to false here.
+        # Per-interface useDHCP will be mandatory in the future, so this generated config
+        # replicates the default behaviour.
+        useDHCP = false;
 
-    # Configure network proxy if necessary
-    # proxy = {
-    # default = "http://user:password@proxy:port/";
-    # noProxy = "127.0.0.1,localhost,internal.domain";
-    # };
+        # Configure network proxy if necessary
+        # proxy = {
+        # default = "http://user:password@proxy:port/";
+        # noProxy = "127.0.0.1,localhost,internal.domain";
+        # };
 
-    # Or disable the firewall altogether.
-    # enable = false;
-    # };
+        wireguard.interfaces.wg0 = {
+            generatePrivateKeyFile = true;
+            privateKeyFile = "/persist/etc/wireguard/wg0";
+        };
 
-    wireguard.interfaces.wg0 = {
-        generatePrivateKeyFile = true;
-        privateKeyFile = "/persist/etc/wireguard/wg0";
+        firewall = recursiveUpdate {
+            enable = true;
+        } (if config.variables.relay {
+            allowedTCPPorts = [ 80 222 443 2022 8080 9418 ];
+        } else if config.variables.server then {
+            allowedTCPPorts = [ ];
+        } else {
+            allowedTCPPorts = [ ];
+        });
     };
-
-    firewall = mkIf j.attrs.relay {
-        allowedTCPPorts = [ 22 80 222 443 2022 8080 9418 ];
-        allowedUDPPortRanges = [
-            {
-                from = 60000;
-                to = 61000;
-            }
-        ];
-    };
-};
+}
 #+end_src
 
 ***** Nix
 
 #+begin_src nix
-nix = rec {
-    gc = j.functions.foldToSet [
-        { automatic = true; }
-        { dates = "monthly"; }
-        # {
-        #   dates = "monthly";
-        #   options = "-d";
-        # }
-        # {
-        #   dates = "daily";
-        #   options = "--delete-older-than 30d";
-        # }
-    ];
-    optimise = {
-        automatic = true;
-        dates = [ "05:00" ];
+{
+    nix = rec {
+        gc = j.foldToSet [
+            { automatic = true; }
+            { dates = "monthly"; }
+            # {
+            #   dates = "monthly";
+            #   options = "-d";
+            # }
+            # {
+            #   dates = "daily";
+            #   options = "--delete-older-than 30d";
+            # }
+        ];
+        optimise = {
+            automatic = true;
+            dates = [ "05:00" ];
+        };
+        extraOptions = j.attrs.configs.nix;
+        settings = {
+            auto-optimise-store = true;
+            sandbox = true;
+        };
+        # sandboxPaths = [];
     };
-    extraOptions = j.attrs.configs.nix;
-    settings = {
-        auto-optimise-store = true;
-        sandbox = true;
-    };
-    # sandboxPaths = [];
-};
+}
 #+end_src
 
 ***** Nixpkgs
 
 #+begin_src nix
-nixpkgs = nixpkgset;
+{ nixpkgs = nixpkgset; }
 #+end_src
 
 ***** Power
 
 #+begin_src nix
-services.logind.lidSwitch = "hybrid-sleep";
-powerManagement = {
-    enable = true;
-    cpuFreqGovernor = mkForce "ondemand";
-};
+{
+    services.logind.lidSwitch = "hybrid-sleep";
+    powerManagement = {
+        enable = true;
+        cpuFreqGovernor = mkForce "ondemand";
+    };
+}
 #+end_src
 
 ***** Programs
 
 #+begin_src nix
-programs = {
-    xonsh.enable = true;
-    fish.enable = true;
-    zsh.enable = true;
-    tmux = {
-        enable = true;
-        extraConfig = ''
-            <<20211018140524183223400>>
-        '';
+{
+    programs = {
+        xonsh.enable = true;
+        fish.enable = true;
+        zsh.enable = true;
+        tmux.enable = true;
+        fuse = {
+            enable = true;
+            userAllowOther = true;
+        };
+        mosh = {
+            enable = true;
+            openFirewall = true;
+        };
     };
-};
+}
 #+end_src
 
 ***** Services
 
 #+begin_src nix
-services = {
-#+end_src
-
-****** SSH
-
-#+begin_src nix
-openssh = mkForce nixos-configurations.server.config.services.openssh;
-#+end_src
-
-****** UDEV
-
-#+begin_src nix
-udev.extraRules = mkIf j.attrs.zfs ''
-    ACTION=="add|change", KERNEL=="sd[a-z]*[0-9]*|mmcblk[0-9]*p[0-9]*|nvme[0-9]*n[0-9]*p[0-9]*", ENV{ID_FS_TYPE}=="zfs_member", ATTR{../queue/scheduler}="none"
-''; # zfs already has its own scheduler. without this my(@Artturin) computer froze for a second when i nix build something.
-#+end_src
-
-****** XServer
-
-#+begin_src nix :noweb-ref no
-xserver = {
-    enable = true;
-    layout = "us";
-    # xkbOptions = "eurosign:e";
-    # Enable touchpad support.
-    libinput = {
-        enable = true;
-        touchpad = {
-            naturalScrolling = true;
-            middleEmulation = true;
-            tapping = true;
+{
+    services = {
+        tailscale.enable = true;
+        openssh = mkForce nixos-configurations.server.config.services.openssh;
+        xserver = {
+            enable = true;
+            layout = "us";
+            # xkbOptions = "eurosign:e";
+            # Enable touchpad support.
+            libinput = {
+                enable = true;
+                touchpad = {
+                    naturalScrolling = true;
+                    middleEmulation = true;
+                    tapping = true;
+                };
+            };
+            # synaptics.enable = true;
+            desktopManager.gnome.enable = true;
+            displayManager = {
+                startx.enable = true;
+                lightdm.enable = mkForce false;
+            };
+            autorun = false;
         };
     };
-    # synaptics.enable = true;
-    desktopManager.gnome.enable = true;
-    displayManager = {
-        startx.enable = true;
-        lightdm.enable = mkForce false;
-    };
-    autorun = false;
-};
-#+end_src
-
-****** End of Services
-
-#+begin_src nix
-};
+}
 #+end_src
 
 ***** Users
 
 #+begin_src nix
-users = with j.attrs.users; let
-    base = {
-        hashedPassword = "$6$DoC/h6kR66Sa$aZKtTOXAqnan/jAC.4dH9tCYshheiKUZItR4g/kmMMLsfLQh0KslINL9zUTX2IjAZh9DE18eAh1AAz48.n/cm.";
-        isNormalUser = true;
-        createHome = true;
-        extraGroups = [
-            "wheel"
-            "networkmanager"
-            "persist"
-            "libvirtd"
-            "docker"
+{
+    users = with j.attrs.users; let
+        base = {
+            hashedPassword = "$6$DoC/h6kR66Sa$aZKtTOXAqnan/jAC.4dH9tCYshheiKUZItR4g/kmMMLsfLQh0KslINL9zUTX2IjAZh9DE18eAh1AAz48.n/cm.";
+            isNormalUser = true;
+            createHome = true;
+            extraGroups = [
+                "wheel"
+                "networkmanager"
+                "persist"
+                "libvirtd"
+                "docker"
+                "adbusers"
+            ];
+            openssh.authorizedKeys.keys = unique (flatten [
+                (attrValues j.attrs.ssh.keys)
+            ]);
+        };
+    in rec {
+        users = mkMerge [
+            (genAttrs j.attrs.allUsers (user: base))
+            {
+                "${primary}" = {
+                    uid = 4362;
+                    home = j.attrs.homes.${primary};
+                    description = "Jeet Ray";
+                    group = primary;
+                    extraGroups = [ secondary ];
+                    shell = pkgs.xonsh;
+                };
+                "${secondary}" = {
+                    uid = 1111;
+                    home = j.attrs.homes.${secondary};
+                    description = "Alicia Summers";
+                    group = secondary;
+                    extraGroups = [ primary ];
+                    shell = pkgs.fish;
+                };
+                "${nightingale}" = {
+                    uid = 8888;
+                    home = j.attrs.homes.${nightingale};
+                    description = "Curtis Nightingale";
+                    group = "root";
+                    extraGroups = [ primary secondary ];
+                    shell = pkgs.zsh;
+                };
+                root = {
+                    shell = mkForce pkgs.zsh;
+                    home = j.attrs.allHomes.root;
+                    isNormalUser = mkForce false;
+                    isSystemUser = mkForce true;
+                };
+            }
         ];
-        openssh.authorizedKeys.keys = unique (flatten [
-            (attrValues j.attrs.ssh.keys)
-        ]);
-    };
-in rec {
-    users = mkMerge [
-        (genAttrs j.attrs.allUsers (user: base))
-        {
+
+        mutableUsers = false;
+
+        groups = {
             "${primary}" = {
-                uid = 4362;
-                home = j.attrs.homes.${primary};
-                description = "Jeet Ray";
-                group = primary;
-                extraGroups = [ secondary ];
-                shell = pkgs.xonsh;
+                gid = config.users.users.${primary}.uid;
+                members = [ primary secondary nightingale ];
             };
             "${secondary}" = {
-                uid = 1111;
-                home = j.attrs.homes.${secondary};
-                description = "Alicia Summers";
-                group = secondary;
-                extraGroups = [ primary ];
-                shell = pkgs.fish;
+                gid = config.users.users.${secondary}.uid;
+                members = [ primary secondary nightingale ];
             };
             "${nightingale}" = {
-                uid = 8888;
-                home = j.attrs.homes.${nightingale};
-                description = "Curtis Nightingale";
-                group = "root";
-                extraGroups = [ primary secondary ];
-                shell = pkgs.zsh;
+                gid = config.users.users.${nightingale}.uid;
+                members = [ nightingale ];
             };
-            root = {
-                shell = mkForce pkgs.zsh;
-                home = j.attrs.allHomes.root;
-                isNormalUser = mkForce false;
-                isSystemUser = mkForce true;
-            };
-        }
-    ];
-
-    mutableUsers = false;
-
-    groups = {
-        "${primary}" = {
-            gid = config.users.users.${primary}.uid;
-            members = [ primary secondary nightingale ];
-        };
-        "${secondary}" = {
-            gid = config.users.users.${secondary}.uid;
-            members = [ primary secondary nightingale ];
-        };
-        "${nightingale}" = {
-            gid = config.users.users.${nightingale}.uid;
-            members = [ nightingale ];
         };
     };
-};
-#+end_src
-
-***** End of Config
-
-#+begin_src nix
 }
 #+end_src
 
@@ -2619,7 +2513,6 @@ in rec {
 
 #+begin_src nix
 {
-    # For Yubikey SSH-GPG Authentication
     environment = {
         shellInit = ''
             export GPG_TTY="$(tty)"
@@ -2629,7 +2522,6 @@ in rec {
         '';
         systemPackages = with pkgs; [
             pinentry-curses
-            pcsctools
         ];
     };
     programs = {
@@ -2643,13 +2535,26 @@ in rec {
         };
         ssh.startAgent = ! config.programs.gnupg.agent.enableSSHSupport;
     };
+    security.pam.enableSSHAgentAuth = true;
+}
+#+end_src
+
+***** Yubikey
+
+#+begin_src nix
+( mkIf config.variables.client {
+    # For Yubikey SSH-GPG Authentication
+    environment = {
+        systemPackages = with pkgs; [
+            pcsctools
+        ];
+    };
     security.pam = {
         yubico = {
             enable = true;
             debug = true;
             mode = "challenge-response";
         };
-        enableSSHAgentAuth = true;
     };
     services = {
         udev.packages = with pkgs; [
@@ -2659,19 +2564,13 @@ in rec {
         ];
         pcscd.enable = true;
     };
-}
+})
 #+end_src
 
-***** End of mkMerge
+***** End of minimal.nix
 
 #+begin_src nix
-];
-#+end_src
-
-**** End of minimal.nix
-
-#+begin_src nix
-}
+]; }
 #+end_src
 
 *** modules
@@ -2703,11 +2602,11 @@ in rec {
                     ignores
                 ])))
             ]);
-            versionHasAnInfix = infix: j.functions.hasAnInfix (if (isList infix) then infix else [ infix ]) config.boot.kernelPackages.version;
+            versionhas.infix = infix: j.has.infix (if (isList infix) then infix else [ infix ]) config.boot.kernelPackages.version;
 
         # TODO: Doesn't work with the surface kernel; causes it to overheat during suspend
         in unique (flatten [
-            # (j.functions.myIf.list (versionHasAnInfix [ "xanmod" "zen" "lqx"]) (genCK [
+            # (j.mif.list (versionhas.infix [ "xanmod" "zen" "lqx"]) (genCK [
             #     "0001-MultiQueue-Skiplist-Scheduler-v0.210.patch"
             #     "0002-Unmask-ondemand-and-conservative-and-allow-schedutil.patch"
             #     "0003-Make-preemptible-kernel-default.patch"
@@ -2716,7 +2615,7 @@ in rec {
             #     "0012-Make-threaded-IRQs-optionally-the-default-which-can-.patch"
             #     "0015-Make-nohz_full-not-be-picked-up-as-a-default-config-.patch"
             # ]))
-            # (j.functions.myIf.list (versionHasAnInfix "xanmod") (genCK [
+            # (j.mif.list (versionhas.infix "xanmod") (genCK [
             #     "0013-Reinstate-default-Hz-of-100-in-combination-with-MuQS.patch"
             #     "0014-Swap-sucks.patch"
             # ]))
@@ -2743,10 +2642,12 @@ in rec {
     environment = {
         pathsToLink = [ "/share/nix-direnv" ];
         systemPackages = [
+            # ddar
+            # extra-container
+            # haskellPackages.hocker
             acpilight
             alacritty
             asdf-vm
-            assh
             atom
             autojump
             autossh
@@ -2761,9 +2662,9 @@ in rec {
             ctop
             curl
             darling-dmg
-            # ddar
             direnv
             diskus
+            distrobox
             dos2unix
             duf
             elvish
@@ -2771,7 +2672,6 @@ in rec {
             entr
             exa
             exfat
-            # extra-container
             fasd
             fd
             fd
@@ -2794,7 +2694,6 @@ in rec {
             gotop
             gparted
             gptfdisk
-            # haskellPackages.hocker
             inetutils
             j-settings
             jupyter
@@ -2806,13 +2705,14 @@ in rec {
             lolcat
             lorri
             man
+            meld
             micro
             mkpasswd
             monkeysphere
-            mosh
             mtr
             neo-cowsay
             neovim
+            nickel
             niv
             nix-direnv
             nnn
@@ -2856,6 +2756,7 @@ in rec {
             wget
             win-qemu
             woeusb
+            wstunnel
             wtf
             xclip
             xclip
@@ -2864,31 +2765,31 @@ in rec {
             yubico-pam yubico-piv-tool yubikey-manager yubikey-agent yubikey-personalization yubioath-desktop
             yubikey-manager-qt yubikey-personalization-gui
             zenith
-            zsh
             zoxide
+            zsh
         ] ++ (map (pkg: pkgs.gnome."gnome-${pkg}") [
             "boxes"
             "characters"
-            "tweaks"
             "session"
+            "tweaks"
         ]) ++ (map (pkg: pkgs."nix-prefetch-${pkg}") [
-            "github"
             "docker"
+            "github"
             "scripts"
         ]) ++ (with pkgs.gnome; [
             dconf-editor
         ]) ++ (with pkgs.gitAndTools; [
+            gh
             git-extras
             git-hub
             gitflow
-            gh
             hub
             lab
         ]) ++ (with pkgs.python310Packages; [
             black
             black-macchiato
-            poetry
             jupyterlab
+            poetry
             xonsh
         ]);
     };
@@ -2952,15 +2853,59 @@ Help is available in the configuration.nix(5) man page and in the NixOS manual (
 {
     home-manager = {
         useGlobalPkgs = true;
-        users = j.functions.foldToSet [
+        users = j.foldToSet [
             listToAttrs (map (user: nameValuePair user {
                 home = {
                     homeDirectory = j.attrs.homes.${user};
-                    file.<<de5c1dbd-ade3-4303-8e6f-06d3e2f9beb4>>.source = repo;
                 };
             }) j.attrs.allUsers)
         ];
     };
+}
+#+end_src
+
+**** tailscale.nix
+
+#+begin_src nix :tangle (meq/tangle-path)
+{ config, lib, ... }:
+
+{
+  services.tailscale = {
+    apifile = "/etc/tailscale/apikeys/jeet.ray";
+    autoconnet = true;
+    deleteHostBeforeAuth = true;
+    # exitNode = mkIf (! config.services.tailscale.exitNode.advertise) {
+    #     device = "bastiodon";
+    #     allowLANAccess = true;
+    # };
+    magicDns = {
+        enable = true;
+        searchDomains = [
+            # "<<username>>.github.beta.tailscale.net"
+            "sylvorg.github.beta.tailscale.net"
+        ];
+        nameservers = [
+            # Cloudflare
+            # "1.1.1.1"
+            # "1.0.0.1"
+
+            # Google
+            # "8.8.8.8"
+            # "8.8.4.4"
+
+            # Quad9
+            # "9.9.9.9"
+            # "149.112.112.112"
+
+            # Adguard
+            "94.140.14.14"
+            "94.140.15.15"
+        ];
+    };
+    openFirewall = true;
+    state.file = "/etc/tailscale/states/${config.networking.hostName}/tailscaled.state";
+    trustInterface = true;
+  };
 }
 #+end_src
 
@@ -2970,150 +2915,214 @@ Help is available in the configuration.nix(5) man page and in the NixOS manual (
 :END:
 
 #+begin_src text :tangle (meq/tangle-path)
-<<services.nix>>
-#+end_src
-
-#+begin_src nix
 { config, lib, pkgs, system, host, ... }: with lib;
 
 {
     services = {
-#+end_src
-
-***** Emacs
-
-#+begin_src nix
-emacs = {
-    package = pkgs.emacsGcc;
-    enable = true;
-    defaultEditor = true;
-};
-#+end_src
-
-***** Flatpak
-
-#+begin_src nix
-# flatpak.enable = j.attrs.no-arms;
-flatpak.enable = true;
-#+end_src
-
-***** Guix
-
-#+begin_src nix
-guix.enable = true;
-#+end_src
-
-***** Printing
-
-#+begin_src nix
-printing.enable = true;
-#+end_src
-
-***** ZFS
-
-#+begin_src nix
-zfs = mkIf j.attrs.zfs {
-    trim.enable = true;
-    autoScrub.enable = true;
-
-    # Managed by Sanoid
-    autoSnapshot.enable = false;
-};
-#+end_src
-
-****** Sanoid
-
-#+begin_src nix
-sanoid = let
-    sanoidBase = {
-        useTemplate = [ "base" ];
-        recursive = true;
+        emacs = {
+            package = pkgs.emacsGcc;
+            enable = true;
+            defaultEditor = true;
+        };
+        # flatpak.enable = j.attrs.no-arms;
+        flatpak.enable = true;
+        guix.enable = true;
+        printing.enable = true;
     };
-    disabled = { processChildrenOnly = true; };
-in {
-    enable = true;
-    templates."base" = {
-        autoprune = true;
-        autosnap = true;
+}
+#+end_src
 
-        # 6 snapshots an hour
-        daily = 144;
+**** caddy.nix
 
-        # 2 snapshots a minute
-        hourly = 120;
+#+begin_src nix :tangle (meq/tangle-path)
+{ config, lib, ... }: with builtins; with lib;
 
-        # 6 snapshots a day for 28 days
-        monthly = 168;
-
-        # Twice the weeks in a year
-        yearly = 104;
+{
+    services.caddy = mkIf config.variables.relay {
+        enable = true;
+        ca = null;
+        config = readFile "/etc/caddy/files/${config.networking.hostName}";
+        adapter = "yaml";
     };
-
-    datasets = listToAttrs (map (dataset: nameValuePair "${host}/${dataset}" sanoidBase) (flatten [
-        j.attrs.datasets.backup
-        host
-    ]));
-};
-#+end_src
-
-****** Syncoid
-
-#+begin_src nix
-syncoid = let
-    syncoidBase = mkMerge [{
-        recursive = true;
-        commonArgs = [
-            "--compress zstd-slow"
-            "--no-stream"
-            "--no-sync-snap"
-            "--create-bookmark"
-        ];
-        }
-        # (mkIf vars.encrypted {
-        #     sendOptions = "vvwRI";
-        #     recvOptions = "vvFs";
-        # })
-        # (mkIf (!vars.encrypted) {
-        #     recvOptions = "vvFds";
-        #     sendOptions = "vvRI";
-        # })
-    ];
-in {
-    enable = false;
-    sshKey = "/root/.ssh/id_ecdsa";
-    commands = listToAttrs (map (dataset: nameValuePair "${host}/${dataset}" (syncoidBase // { target = ""; })) (flatten [
-        j.attrs.datasets.backup
-        host
-    ]));
-};
-#+end_src
-
-***** End of services.nix
-
-#+begin_src nix
-};}
+}
 #+end_src
 
 **** systemd.nix
+:PROPERTIES:
+:header-args:nix+: :noweb-ref 31997f56-591e-4f45-bcce-bfb6b5333cc6
+:END:
 
-#+begin_src nix :tangle (meq/tangle-path)
+#+begin_src text :tangle (meq/tangle-path)
+<<31997f56-591e-4f45-bcce-bfb6b5333cc6>>
+#+end_src
+
+#+begin_src nix
 { config, lib, pkgs, host, ... }: with lib;
 
 {
-    systemd = {
+    systemd = let
+        replaceBorgmatic = n: replaceStrings [ "borgmatic-" ] [ "" ] n;
+        replaceRclone = n: replaceStrings [ "rclone-" ] [ "" ] n;
+        mkBaseWants = list: unique ([ "network.target" "network-online.target" ] ++ list);
+    in {
         # packages = with pkgs; [ runit ];
-        services = {
-            # runit.enable = true;
-            caddy = mkIf j.attrs.relay (j.attrs.configs.services.base // {
+        services = let
+            mkBaseBorgmaticWants = list: mkBaseWants ([ "rclone-backblazeB2.service" ] ++ list);
+            mkBaseBorgmatic = n: rec {
+                description = "Borgmatic ${(j.toCapital n)} Backup";
+                unitConfig.ConditionACPower = "true";
                 serviceConfig = {
+                    Type = "oneshot";
+                    MemoryDenyWriteExecute = "no";
+                    LockPersonality = "true";
+                    MemoryDenyWriteExecute=no
+                    NoNewPrivileges = "yes";
+                    PrivateDevices = "yes";
+                    PrivateTmp = "yes";
+                    ProtectClock = "yes";
+                    ProtectControlGroups = "yes";
+                    ProtectHostname = "yes";
+                    ProtectKernelLogs = "yes";
+                    ProtectKernelModules = "yes";
+                    ProtectKernelTunables = "yes";
+                    RestrictAddressFamilies = "AF_UNIX AF_INET AF_INET6 AF_NETLINK";
+                    RestrictNamespaces = "yes";
+                    RestrictRealtime = "yes";
+                    RestrictSUIDSGID = "yes";
+                    SystemCallArchitectures = "native";
+                    SystemCallFilter = "@system-service";
+                    SystemCallErrorNumber = "EPERM";
+                    ProtectSystem = "strict";
+                    ProtectHome = "tmpfs";
+                    Nice = "19";
+                    CPUSchedulingPolicy = "batch";
+                    IOSchedulingClass = "best-effort";
+                    IOSchedulingPriority = "7";
+                    IOWeight = "100";
+                    Restart = "no";
+                    LogRateLimitIntervalSec = "0";
+                    ExecStartPre = "${pkgs.coreutils}/bin/sleep 10m";
                     ExecStart = ''
-                        ${pkgs.caddy}/bin/caddy run --config ${j.attrs.homes.${j.attrs.users.primary}}/.config/caddy/files/${host} --adapter yaml 2>&1
-                    '';
-                    ExecStop = ''
-                        pkill caddy
+                        ${pkgs.systemd}/bin/systemd-inhibit --who=\"${description}\" \
+                                                            --why=\"Prevent interrupting scheduled backup for `${description}'\" \
+                                                            ${pkgs.borgmatic}/bin/borgmatic \
+                                                                --verbosity -1 \
+                                                                --syslog-verbosity 1 \
+                                                                --config /etc/borgmatic/${n}.yaml
                     '';
                 };
-            });
+            };
+            mkBaseRclone = n: let
+                mountdir = "/mnts/rclone/${n}";
+            in rec {
+                description = "Rclone ${j.toCapital n} Mount";
+                wants = mkBaseWants [  ];
+                after = wants;
+                serviceConfig = {
+                    ExecStartPre = "/run/current-system/sw/bin/mkdir -p ${mountdir}";
+                    ExecStop = "/run/wrappers/bin/fusermount -u ${mountdir}";
+                    RestartSec = "10s";
+                    Type = "notify";
+                };
+            };
+#+end_src
+
+Adapted from [[https://discourse.nixos.org/t/fusermount-systemd-service-in-home-manager/5157][here]], [[https://gist.github.com/kabili207/2cd2d637e5c7617411a666d8d7e97101?permalink_comment_id=4087768#gistcomment-4087768][here]], and [[https://gist.github.com/shadowrylander/2b993d10c98a84e12284833acf164ab1][here]]:
+
+#+begin_src nix
+            mkBaseExecStartRclone = mount: let
+                dir-cache-time = "96h";
+                buffer-size = "512M";
+            in ''
+                ${pkgs.rclone}/bin/rclone mount \
+                                          ${mount} \
+                                          /mnts/rclone/${head (splitString ":" mount)} \
+                                          --config ${j.attrs.homes.primary}/rclone.conf \
+                                          --cache-dir /var/rclone \
+                                          --dir-cache-time ${dir-cache-time} \
+                                          --vfs-cache-mode full \
+                                          --vfs-cache-max-age ${dir-cache-time} \
+                                          --vfs-read-chunk-size 128M \
+                                          --vfs-read-chunk-size-limit ${buffer-size} \
+                                          --buffer-size ${buffer-size} \
+                                          --umask 022 \
+                                          --allow-other \
+                                          --allow-root
+            '';
+#+end_src
+
+#+begin_src nix
+        in mkMerge [
+            (mapAttrs (n: v: recursiveUpdate (recursiveUpdate j.attrs.configs.services.base (mkBaseBorgmatic (replaceBorgmatic n))) v) {
+                borgmatic-oreo = rec {
+                    wants = mkBaseBorgmaticWants [ "chimchar-oreo.mount" "oreo.mount" ];
+                    after = wants;
+                    serviceConfig = {
+                        ReadWritePaths = "-/oreo";
+                        ReadOnlyPaths = "-/chimchar/oreo";
+                    };
+                };
+                borgmatic-oreo-rsync = rec {
+                    wants = mkBaseBorgmaticWants [ "chimchar-oreo.mount" ];
+                    after = wants;
+                    serviceConfig.ReadOnlyPaths = "-/chimchar/oreo";
+                };
+                borgmatic-chimchar = rec {
+                    wants = mkBaseBorgmaticWants [ "chimchar.mount" "infernape.mount" ];
+                    after = wants;
+                    serviceConfig = {
+                        ReadWritePaths = "-/infernape";
+                        ReadOnlyPaths = "-/chimchar";
+                    };
+                };
+                borgmatic-user = rec {
+                    wants = mkBaseBorgmaticWants [ "${replaceStrings [ "/" ] [ "-" ] (removeSuffix "/" (removePrefix "/" j.attrs.homes.primary))}.mount" ];
+                    after = wants;
+                    serviceConfig = {
+                        BindPaths = "-<<userrepo>> -${j.attrs.homes.primary}/.user";
+                    };
+                };
+            })
+            (mapAttrs (n: v: recursiveUpdate (recursiveUpdate j.attrs.configs.services.base (mkBaseRclone (replaceRclone n))) v) {
+                rclone-backblazeB2.serviceConfig.ExecStart = mkBaseExecStartRclone "backblazeB2:borgbackups-53f2bd74-148c-4fe7-bdb5-701d325645a6";
+            })
+            {
+                # wstunnel-http = mkIf config.variables.relay (recursiveUpdate (j.attrs.configs.services.mkBase "root") {
+                #     serviceConfig = {
+                #         ExecStart = "${pkgs.wstunnel}/bin/wstunnel --server ws://0.0.0.0:80 -r 127.0.0.1:880";
+                #     };
+                # });
+                # iodine = mkIf config.variables.relay (recursiveUpdate (j.attrs.configs.services.mkBase "root") {
+
+                # });
+                # wstunnel-tls = mkIf config.variables.relay (recursiveUpdate (j.attrs.configs.services.mkBase "root") {
+                wstunnel = mkIf config.variables.relay (recursiveUpdate (j.attrs.configs.services.mkBase "root") {
+                    serviceConfig = {
+                        ExecStart = "${pkgs.wstunnel}/bin/wstunnel wss://0.0.0.0:443 -r 127.0.0.1:32443";
+                    };
+                });
+            }
+        ];
+        timers = let
+            mkBase = n: {
+                description = "Borgmatic ${toCapital n} Backup Timer";
+                wantedBy = [ "timers.target" ];
+                timeConfig = {
+                    OnCalender = "*-*-* */6:00:00";
+                    Persistent = "true";
+                    RandomizedDelaySec = "3h";
+                };
+            };
+        in mapAttrs (n: v: recursiveUpdate (mkBase (replaceBorgmatic n)) v) {
+            borgmatic-oreo = {  };
+            borgmatic-oreo-rsync = {  };
+            borgmatic-chimchar = {  };
+            borgmatic-user = {
+                timeConfig = {
+                    OnCalender = "*-*-* */3:00:00";
+                    RandomizedDelaySec = "90min";
+                };
+            };
         };
     };
 }
@@ -3121,23 +3130,334 @@ in {
 
 **** virtualisation.nix
 
+Adapted from [[https://www.reddit.com/r/NixOS/comments/ut8j10/nixos_zfs_podman_backing_file_system_is/?utm_medium=android_app&utm_source=share][here]]:
+
 #+begin_src nix
 { config, pkgs, ... }:
 
 {
     virtualisation = {
+        containers.storage.settings.storage = {
+            graphroot = "/var/lib/containers/storage";
+            runroot = "/run/containers/storage";
+        };
         xen.enable = false;
-        lxd.zfsSupport = mkIf j.attrs.zfs true;
-        podman.enable = true;
+        podman = {
+            enable = true;
+            dockerCompat = true;
+        };
+        oci-containers.backend = "podman";
         docker = {
             enable = true;
-            storageDriver = mkIf j.attrs.zfs "zfs";
             package = pkgs.docker;
             enableOnBoot = true;
         };
         libvirtd.enable = true;
     };
 }
+#+end_src
+
+** borgmatic
+
+#+name: 3ba5dd6d-4e89-4053-a2c8-89bb213a2d5b
+#+begin_src emacs-lisp :var repo=""
+;; Adapted From:
+;; Answer: https://emacs.stackexchange.com/a/7381/31428
+;; User: https://emacs.stackexchange.com/users/719/adobe
+(format-spec "storage:
+    encryption_passcommand: pass show backup/borg/%r
+    archive_name_format: \"borgmatic-%r-{now:%%Y%%m%%dT%%H%%M%%S%%f}\"
+
+retention:
+    prefix: \"borgmatic-%r-\"
+
+consistency:
+    prefix: \"borgmatic-%r-\"" `((?r . ,repo)))
+#+end_src
+
+*** shared.yaml
+:PROPERTIES:
+:header-args:yaml+: :noweb-ref 8ef18fc2-ee65-4dfc-8977-69f14efd8064
+:END:
+
+#+begin_src text :tangle (meq/tangle-path)
+<<8ef18fc2-ee65-4dfc-8977-69f14efd8064>>
+#+end_src
+
+#+begin_src yaml
+location:
+    one_file_system: false
+    numeric_owner: false
+    atime: true
+    ctime: true
+    birthtime: true
+    read_special: true
+    bsd_flags: true
+    files_cache: ctime,size,inode
+    local_path: borg
+    remote_path: borg
+    exclude_caches: true
+    exclude_nodump: true
+    exclude_patterns:
+        - .zfs/snapshot
+
+    # Additional options to pass directly to particular Borg
+    # commands, handy for Borg options that borgmatic does not yet
+    # support natively. Note that borgmatic does not perform any
+    # validation on these options. Running borgmatic with
+    # "--verbosity 2" shows the exact Borg command-line
+    # invocation.
+    # extra_borg_options:
+        # Extra command-line options to pass to "borg init".
+        # init: --make-parent-dirs
+
+        # Extra command-line options to pass to "borg prune".
+        # prune: --save-space
+
+        # Extra command-line options to pass to "borg create".
+        # create: --no-files-cache
+
+        # Extra command-line options to pass to "borg check".
+        # check: --save-space
+
+storage:
+    checkpoint_interval: 300
+    compression: auto,zstd,22
+    ssh_command: assh wrapper ssh --
+    relocated_repo_access_is_ok: true
+    unknown_unencrypted_repo_access_is_ok: true
+
+retention:
+    keep_within: 6H
+    keep_secondly: 60
+    keep_minutely: 60
+    keep_hourly: 24
+    keep_daily: 7
+    keep_weekly: 4
+    keep_monthly: 6
+    keep_yearly: 4
+
+consistency:
+    checks:
+        - repository
+        - data
+        - extract
+
+# Shell commands, scripts, or integrations to execute at various
+# points during a borgmatic run. IMPORTANT: All provided commands and
+# scripts are executed with user permissions of borgmatic. Do not
+# forget to set secure permissions on this configuration file (chmod
+# 0600) as well as on any script called from a hook (chmod 0700) to
+# prevent potential shell injection or privilege escalation.
+hooks:
+    # List of one or more shell commands or scripts to execute
+    # before pruning, run once per configuration file.
+    # before_prune:
+        # - echo "Starting pruning."
+
+    # List of one or more shell commands or scripts to execute
+    # before consistency checks, run once per configuration file.
+    # before_check:
+        # - echo "Starting checks."
+
+    # List of one or more shell commands or scripts to execute
+    # before extracting a backup, run once per configuration file.
+    # before_extract:
+        # - echo "Starting extracting."
+
+    # List of one or more shell commands or scripts to execute
+    # after creating a backup, run once per configuration file.
+    # after_backup:
+        # - echo "Finished a backup."
+
+    # List of one or more shell commands or scripts to execute
+    # after pruning, run once per configuration file.
+    # after_prune:
+        # - echo "Finished pruning."
+
+    # List of one or more shell commands or scripts to execute
+    # after consistency checks, run once per configuration file.
+    # after_check:
+        # - echo "Finished checks."
+
+    # List of one or more shell commands or scripts to execute
+    # after extracting a backup, run once per configuration file.
+    # after_extract:
+        # - echo "Finished extracting."
+
+    # List of one or more shell commands or scripts to execute
+    # when an exception occurs during a "prune", "create", or
+    # "check" action or an associated before/after hook.
+    # on_error:
+        # - echo "Error during prune/create/check."
+
+    # List of one or more shell commands or scripts to execute
+    # before running all actions (if one of them is "create").
+    # These are collected from all configuration files and then
+    # run once before all of them (prior to all actions).
+    # before_everything:
+        # - echo "Starting actions."
+
+    # List of one or more shell commands or scripts to execute
+    # after running all actions (if one of them is "create").
+    # These are collected from all configuration files and then
+    # run once after all of them (after any action).
+    # after_everything:
+        # - echo "Completed actions."
+
+    # Umask used when executing hooks. Defaults to the umask that
+    # borgmatic is run with.
+    # umask: 0077
+#+end_src
+
+*** mountable-mounted.hy
+:PROPERTIES:
+:header-args:hy+: :noweb-ref 755d259c-5582-4cd7-bd51-70b33598f264
+:END:
+
+#+begin_src text :tangle (meq/tangle-path) :shebang "#! /usr/bin/env nix-shell"
+<<755d259c-5582-4cd7-bd51-70b33598f264>>
+#+end_src
+
+#+begin_src hy
+#[9debb8f7-e891-48e9-8bd9-3b5b40d0ebbb[
+#! nix-shell -p python310 python310Packages.bakery
+#! nix-shell -I nixpkgs=https://github.com/<<username>>/nixpkgs/archive/j.tar.gz
+#! nix-shell -i hy
+]9debb8f7-e891-48e9-8bd9-3b5b40d0ebbb]
+#+end_src
+
+#+begin_src hy
+(import bakery [zfs])
+(import sys [argv exit])
+(for [pool (cut argv 1 None)]
+     (for [dataset (.list zfs :H True :r True :o "mountpoint,mounted" pool)]
+          (let [ dataset-split (.split dataset) ]
+               (if (and (!= (get dataset-split 0) "none") (= (get dataset-split 1) "no"))
+                   (exit 75)))))
+#+end_src
+
+*** oreo.yaml
+:PROPERTIES:
+:header-args:yaml+: :noweb-ref 5f309ef6-fa82-4235-9a2a-4ffdbf2cf1f1
+:END:
+
+#+begin_src text :tangle (meq/tangle-path)
+<<5f309ef6-fa82-4235-9a2a-4ffdbf2cf1f1>>
+#+end_src
+
+#+begin_src yaml
+<<: !include /etc/borgmatic/shared.yaml
+
+location:
+    source_directories:
+        - /chimchar/oreo
+    repositories:
+        - /oreo
+    hooks:
+        before_backup:
+            - pass show backup/borg/oreo &> /dev/null || exit 75
+            - findmnt /chimchar/oreo > /dev/null || exit 75
+            - findmnt /oreo > /dev/null || exit 75
+        # Healthchecks ping URL or UUID to notify when a backup
+        # begins, ends, or errors. Create an account at
+        # https://healthchecks.io if you'd like to use this service.
+        # See borgmatic monitoring documentation for details.
+        healthchecks: https://hc-ping.com/9660799a-0aba-44d7-a29f-3887a0ce82bd
+<<3ba5dd6d-4e89-4053-a2c8-89bb213a2d5b(repo="oreo")>>
+#+end_src
+
+*** oreo-rsync.yaml
+:PROPERTIES:
+:header-args:yaml+: :noweb-ref 10dc9db1-b913-4d17-abea-206297082e84
+:END:
+
+#+begin_src text :tangle (meq/tangle-path)
+<<10dc9db1-b913-4d17-abea-206297082e84>>
+#+end_src
+
+#+begin_src yaml
+<<: !include /etc/borgmatic/shared.yaml
+
+location:
+    source_directories:
+        - /chimchar/oreo
+    repositories:
+        - 9237@usw-s009.rsync.net/./oreo-rsync
+    remote_path: borg1
+    hooks:
+        before_backup:
+            - pass show backup/borg/oreo &> /dev/null || exit 75
+            - findmnt /chimchar/oreo > /dev/null || exit 75
+            - ping -qc 1 usw-s009.rsync.net || exit 75
+        # Healthchecks ping URL or UUID to notify when a backup
+        # begins, ends, or errors. Create an account at
+        # https://healthchecks.io if you'd like to use this service.
+        # See borgmatic monitoring documentation for details.
+        healthchecks: https://hc-ping.com/e6d79f19-8c5b-429a-99d0-0247fdb251ea
+<<3ba5dd6d-4e89-4053-a2c8-89bb213a2d5b(repo="oreo-rsync")>>
+#+end_src
+
+*** infernape.yaml
+:PROPERTIES:
+:header-args:yaml+: :noweb-ref 8c3fd1cd-ab81-4e13-a520-ce067e07df54
+:END:
+
+#+begin_src text :tangle (meq/tangle-path)
+<<8c3fd1cd-ab81-4e13-a520-ce067e07df54>>
+#+end_src
+
+#+begin_src yaml
+<<: !include /etc/borgmatic/shared.yaml
+
+location:
+    source_directories:
+        - /chimchar
+    repositories:
+        - /infernape
+    hooks:
+        before_backup:
+            - pass show backup/borg/syvlorg &> /dev/null || exit 75
+            - chmod +x /etc/borgmatic/mountable-mounted.hy && /etc/borgmatic/mountable-mounted.hy chimchar
+            - findmnt /infernape > /dev/null || exit 75
+        # Healthchecks ping URL or UUID to notify when a backup
+        # begins, ends, or errors. Create an account at
+        # https://healthchecks.io if you'd like to use this service.
+        # See borgmatic monitoring documentation for details.
+        healthchecks: https://hc-ping.com/aa90aa9a-d507-4c8e-92c9-a037cd42e585
+<<3ba5dd6d-4e89-4053-a2c8-89bb213a2d5b(repo="infernape")>>
+#+end_src
+
+*** user.yaml
+:PROPERTIES:
+:header-args:yaml+: :noweb-ref 09c26e15-e863-4127-9e5e-b8a768a63b8c
+:END:
+
+#+begin_src text :tangle (meq/tangle-path)
+<<09c26e15-e863-4127-9e5e-b8a768a63b8c>>
+#+end_src
+
+#+begin_src yaml
+<<: !include /etc/borgmatic/shared.yaml
+
+location:
+    source_directories:
+        - <<userrepo>>
+    repositories:
+        - <<userhome>>/.user
+        - hpvlk40u@hpvlk40u.repo.borgbase.com/./repo
+    hooks:
+        before_backup:
+            - git -C <<userrepo>> pull --all || :
+            - git -C <<userrepo>> submodule update --init --recursive || :
+            - pass show backup/borg/user &> /dev/null || exit 75
+            - ping -qc 1 hpvlk40u.repo.borgbase.com || exit 75
+        # Healthchecks ping URL or UUID to notify when a backup
+        # begins, ends, or errors. Create an account at
+        # https://healthchecks.io if you'd like to use this service.
+        # See borgmatic monitoring documentation for details.
+        healthchecks: https://hc-ping.com/1ed0af6c-aa1d-4930-aa1e-3d1af89c9251
+<<3ba5dd6d-4e89-4053-a2c8-89bb213a2d5b(repo="user")>>
 #+end_src
 
 ** nix
@@ -3147,10 +3467,10 @@ Adapted from [[][here]]:
 
 #+name: 270d5d30-951e-4171-8c23-67fc45d20578
 #+begin_src emacs-lisp :var delim="" comment="" quoted='nil flake='nil
-;; (format-spec "extra-substituters = %qhttps://cache.nixos.org/ https://nix-community.cachix.org/ https://sylvorg.cachix.org/%q%d
-(format-spec "trusted-substituters = %qhttps://cache.nixos.org/ https://nix-community.cachix.org/ https://sylvorg.cachix.org/%q%d
-# extra-trusted-public-keys = %qcache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs= sylvorg.cachix.org-1:xd1jb7cDkzX+D+Wqt6TemzkJH9u9esXEFu1yaR9p8H8=%q%d
-trusted-public-keys = %qcache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs= sylvorg.cachix.org-1:xd1jb7cDkzX+D+Wqt6TemzkJH9u9esXEFu1yaR9p8H8=%q%d
+(format-spec "# extra-substituters = %qhttps://cache.nixos.org/ https://nix-community.cachix.org/%q%d
+trusted-substituters = %qhttps://cache.nixos.org/%q%d
+# extra-trusted-public-keys = %qcache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY=%q%d
+trusted-public-keys = %qcache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY=%q%d
 %ckeep-derivations = true%d
 %ckeep-outputs = true%d
 extra-experimental-features = %qnix-command flakes%q%d
@@ -3713,17 +4033,26 @@ Note that ~git-crypt~ must come after all other ~.gitattributes~ as doing otherw
 
 #+begin_src gitattributes
 black.aiern.org filter=git-crypt diff=git-crypt
+
 etc/nixos/secrets/**/* filter=git-crypt diff=git-crypt
+etc/caddy/**/* filter=git-crypt diff=git-crypt
+etc/tailscale/**/* filter=git-crypt diff=git-crypt
+
 .termux/font.ttf filter=git-crypt diff=git-crypt
 
 .ssh/**/* filter=git-crypt diff=git-crypt
 .ssh/**/*.pub* -filter -diff
+.ssh/**/assh.yml -filter -diff
 
 .gnupgk/**/* filter=git-crypt diff=git-crypt
 .gnupgk/**/*.pub* -filter -diff
 
 .fonts/cartographcf-* filter=git-crypt diff=git-crypt
-.config/caddy/**/* filter=git-crypt diff=git-crypt
+
+.config/borg/keys/**/* filter=git-crypt diff=git-crypt
+.config/rclone/rclone.conf filter=git-crypt diff=git-crypt
+
+**/.password.tomb.key filter=git-crypt diff=git-crypt
 #+end_src
 
 * .xonshrc
@@ -3899,6 +4228,147 @@ aliases["o"] = lambda args, stdin=None: $(fasd -ae xdg-open @(args)) # quick ope
 aliases["e"] = lambda args, stdin=None: $(fasd -fe 'emacsclient -c' @(args))
 #+end_src
 
+* .ssh
+** assh.yml
+:PROPERTIES:
+:header-args:yml+: :noweb-ref 0b99b52d-bb22-4396-a739-f6c11199f59a
+:END:
+
+#+begin_src text :tangle (meq/tangle-path)
+<<0b99b52d-bb22-4396-a739-f6c11199f59a>>
+#+end_src
+
+#+name: efee5a24-3aac-44d1-a94b-713c35480acd
+#+begin_src emacs-lisp :var host=""
+(substring (shell-command-to-string (format "tailapi -rD sylvorg.github --api-key $(pass show keys/api/tailscale/jeet.ray) -d %s ip -f4" host)) 0 -1)
+#+end_src
+
+#+name: b6cf933e-ecd4-442a-b326-4d5203f59dd6
+#+begin_src emacs-lisp :var host="" :var ip=""
+;; Adapted From:
+;; Answer: https://emacs.stackexchange.com/a/7381/31428
+;; User: https://emacs.stackexchange.com/users/719/adobe
+(format-spec "    %h:
+        HostName: %i
+        Gateways:
+            - %h.magic
+            - %h.tailscale.4
+            - %h.tailscale.6
+            - %h.tailapi.4
+            - %h.tailapi.6
+            - %h.dns
+            - direct
+            - %h.local.hostname
+            - argus" `((?h . ,host) (?i . ,ip)))
+#+end_src
+
+#+begin_src yml
+hosts:
+#+end_src
+
+Adapted from [[https://askubuntu.com/users/201083/kervin][kervin's]] answer [[https://askubuntu.com/a/520109/1058868][here]]:
+
+#+begin_src yml
+    "*.magic":
+        ResolveCommand: /usr/bin/env sh -c "echo %h | cut -d '.' -f 1"
+#+end_src
+
+Adapted from [[https://stackoverflow.com/users/2554537/zedfoxus][zedfoxus's]] answer [[https://stackoverflow.com/a/22727211/10827766][here]]:
+
+#+begin_src yml
+    "*.tailscale.*":
+        ResolveCommand: /usr/bin/env sh -c "tailscale ip -$(echo %h | rev | cut -d '.' -f 1) $(echo %h | cut -d '.' -f 1)"
+#+end_src
+
+#+begin_src yml
+    "*.tailapi.*":
+        ResolveCommand: /usr/bin/env sh -c "tailapi -rD sylvorg.github --api-key $(pass show keys/api/tailscale/jeet.ray) -d $(echo %h | cut -d '.' -f 1) ip -f$(echo %h | rev | cut -d '.' -f 1)"
+#+end_src
+
+#+begin_src yml
+    "*.dns":
+        ResolveCommand: /usr/bin/env sh -c "echo $(echo %h | cut -d '.' -f 1).syvl.org"
+#+end_src
+
+Adapted from [[https://stackoverflow.com/users/807131/ddoxey][ddoxey's]] question [[https://stackoverflow.com/questions/13552881/can-i-determine-the-current-ip-from-a-known-mac-address][here]]:
+
+#+begin_src yml
+    "*.local.hostname":
+        ResolveCommand: /usr/bin/env sh -c "ping -c 1 $(echo %h | cut -d '.' -f 1) | head -1 | awk '{print $3}' | sed 's/[()]//g'"
+#+end_src
+
+Adapted from [[https://stackoverflow.com/users/1291650/hanoo][hanoo's]] answer [[https://stackoverflow.com/a/36366894/10827766][here]]:
+
+#+begin_src yml
+    "*.local.mac":
+        ResolveCommand: /usr/bin/env sh -c "ip neighbor | grep -i $(echo %h | cut -d '.' -f 1) | cut -d ' ' -f 1"
+#+end_src
+
+#+begin_src yml
+    "argus.wstunnel.tls.magic":
+        ProxyCommand: /usr/bin/env sh -c "wstunnel -L stdio:%h:%p wss://$(echo %h | cut -d '.' -f 1):443"
+    "argus.wstunnel.tls.tailscale":
+        ProxyCommand: /usr/bin/env sh -c "wstunnel -L stdio:%h:%p wss://$(tailscale ip -$(echo %h | rev | cut -d '.' -f 1) $(echo %h | cut -d '.' -f 1)):443"
+    "argus.wstunnel.tls.tailapi":
+        ProxyCommand: /usr/bin/env sh -c "wstunnel -L stdio:%h:%p wss://$(tailapi -rD sylvorg.github --api-key $(pass show keys/api/tailscale/jeet.ray) -d $(echo %h | cut -d '.' -f 1) ip -f$(echo %h | rev | cut -d '.' -f 1)):443"
+    "argus.wstunnel.tls.dns":
+        ProxyCommand: /usr/bin/env sh -c "wstunnel -L stdio:%h:%p wss://io.syvl.org:443"
+    "argus.wstunnel.tls.public":
+        ProxyCommand: /usr/bin/env sh -c "wstunnel -L stdio:%h:%p wss://<<9c0c8ca0-8731-4d1f-94bf-7a076bc698c0>>:443"
+
+    "argus.wstunnel.http.magic":
+        ProxyCommand: /usr/bin/env sh -c "wstunnel -L stdio:%h:%p wss://$(echo %h | cut -d '.' -f 1):80"
+    "argus.wstunnel.http.tailscale":
+        ProxyCommand: /usr/bin/env sh -c "wstunnel -L stdio:%h:%p wss://$(tailscale ip -$(echo %h | rev | cut -d '.' -f 1) $(echo %h | cut -d '.' -f 1)):80"
+    "argus.wstunnel.http.tailapi":
+        ProxyCommand: /usr/bin/env sh -c "wstunnel -L stdio:%h:%p wss://$(tailapi -rD sylvorg.github --api-key $(pass show keys/api/tailscale/jeet.ray) -d $(echo %h | cut -d '.' -f 1) ip -f$(echo %h | rev | cut -d '.' -f 1)):80"
+    "argus.wstunnel.http.dns":
+        ProxyCommand: /usr/bin/env sh -c "wstunnel -L stdio:%h:%p wss://io.syvl.org:80"
+    "argus.wstunnel.http.public":
+        ProxyCommand: /usr/bin/env sh -c "wstunnel -L stdio:%h:%p wss://<<9c0c8ca0-8731-4d1f-94bf-7a076bc698c0>>:80"
+
+    "argus.iodine.magic":
+        ProxyCommand: /usr/bin/env sh -c ""
+    "argus.iodine.tailscale":
+        ProxyCommand: /usr/bin/env sh -c ""
+    "argus.iodine.tailapi":
+        ProxyCommand: /usr/bin/env sh -c ""
+    "argus.iodine.dns":
+        ProxyCommand: /usr/bin/env sh -c ""
+    "argus.iodine.public":
+        ProxyCommand: /usr/bin/env sh -c ""
+
+    "argus":
+        HostName: io.syvl.org
+        Gateways:
+            - argus.magic
+            - argus.tailscale.4
+            - argus.tailscale.6
+            - argus.tailapi.4
+            - argus.tailapi.6
+            - argus.dns
+            - direct
+            # - argus.wstunnel.tls.magic
+            # - argus.wstunnel.tls.tailscale
+            # - argus.wstunnel.tls.tailapi
+            # - argus.wstunnel.tls.dns
+            # - argus.wstunnel.tls.public
+            # - argus.wstunnel.http.magic
+            # - argus.wstunnel.http.tailscale
+            # - argus.wstunnel.http.tailapi
+            # - argus.wstunnel.http.dns
+            # - argus.wstunnel.http.public
+            # - argus.wstunnel.io.magic
+            # - argus.wstunnel.io.tailscale
+            # - argus.wstunnel.io.tailapi
+            # - argus.wstunnel.io.dns
+            # - argus.wstunnel.io.public
+
+    <<b6cf933e-ecd4-442a-b326-4d5203f59dd6(host="sandshrew", ip=efee5a24-3aac-44d1-a94b-713c35480acd(host="sandshrew"))>>
+
+    <<b6cf933e-ecd4-442a-b326-4d5203f59dd6(host="murasame")>>
+#+end_src
+
 * .config
 ** nix
 *** nix.conf
@@ -3907,300 +4377,15 @@ aliases["e"] = lambda args, stdin=None: $(fasd -fe 'emacsclient -c' @(args))
 <<270d5d30-951e-4171-8c23-67fc45d20578()>>
 #+end_src
 
-** borgmatic
-
-#+name: borgmatic-ls
-#+begin_src emacs-lisp :var repo=""
-;; Adapted From:
-;; Answer: https://emacs.stackexchange.com/a/7381/31428
-;; User: https://emacs.stackexchange.com/users/719/adobe
-(format-spec "    one_file_system: false
-    numeric_owner: false
-    atime: true
-    ctime: true
-    birthtime: true
-    read_special: true
-    bsd_flags: true
-    files_cache: ctime,size,inode
-    local_path: borg
-    remote_path: borg1
-    exclude_caches: true
-    exclude_nodump: true
-
-storage:
-    checkpoint_interval: 300
-    compression: zstd,22
-    ssh_command: assh wrapper ssh --
-    archive_name_format: \"borgmatic-%r-{now:%%Y%%m%%dT%%H%%M%%S%%f}\"
-    relocated_repo_access_is_ok: true
-    unknown_unencrypted_repo_access_is_ok: true" `((?r . ,repo)))
-#+end_src
-
-#+name: borgmatic-rc
-#+begin_src emacs-lisp :var repo=""
-;; Adapted From:
-;; Answer: https://emacs.stackexchange.com/a/7381/31428
-;; User: https://emacs.stackexchange.com/users/719/adobe
-(format-spec "retention:
-    keep_within: 6H
-    keep_secondly: 60
-    keep_minutely: 60
-    keep_hourly: 24
-    keep_daily: 7
-    keep_weekly: 4
-    keep_monthly: 6
-    keep_yearly: 4
-    prefix: \"borgmatic-%r-\"
-
-consistency:
-    checks:
-        - repository
-        - data
-        - extract
-    prefix: \"borgmatic-%r-\"" `((?r . ,repo)))
-#+end_src
-
-*** sylvorg.yaml
-:PROPERTIES:
-:header-args:yaml+: :noweb-ref sylvorg.yaml
-:END:
-
-#+begin_src text :tangle (meq/tangle-path)
-<<sylvorg.yaml>>
-#+end_src
-
-#+begin_src yaml
-location:
-    source_directories:
-        - ~/sylvorg
-    repositories:
-        - 9237@usw-s009.rsync.net:/data1/home/9237/{fqdn}-sylvorg
-<<borgmatic-ls(repo="sylvorg")>>
-
-    # Additional options to pass directly to particular Borg
-    # commands, handy for Borg options that borgmatic does not yet
-    # support natively. Note that borgmatic does not perform any
-    # validation on these options. Running borgmatic with
-    # "--verbosity 2" shows the exact Borg command-line
-    # invocation.
-    # extra_borg_options:
-        # Extra command-line options to pass to "borg init".
-        # init: --make-parent-dirs
-
-        # Extra command-line options to pass to "borg prune".
-        # prune: --save-space
-
-        # Extra command-line options to pass to "borg create".
-        # create: --no-files-cache
-
-        # Extra command-line options to pass to "borg check".
-        # check: --save-space
-
-<<borgmatic-rc(repo="sylvorg")>>
-
-# Shell commands, scripts, or integrations to execute at various
-# points during a borgmatic run. IMPORTANT: All provided commands and
-# scripts are executed with user permissions of borgmatic. Do not
-# forget to set secure permissions on this configuration file (chmod
-# 0600) as well as on any script called from a hook (chmod 0700) to
-# prevent potential shell injection or privilege escalation.
-# hooks:
-    # List of one or more shell commands or scripts to execute
-    # before creating a backup, run once per configuration file.
-    # before_backup:
-        # - echo "Starting a backup."
-
-    # List of one or more shell commands or scripts to execute
-    # before pruning, run once per configuration file.
-    # before_prune:
-        # - echo "Starting pruning."
-
-    # List of one or more shell commands or scripts to execute
-    # before consistency checks, run once per configuration file.
-    # before_check:
-        # - echo "Starting checks."
-
-    # List of one or more shell commands or scripts to execute
-    # before extracting a backup, run once per configuration file.
-    # before_extract:
-        # - echo "Starting extracting."
-
-    # List of one or more shell commands or scripts to execute
-    # after creating a backup, run once per configuration file.
-    # after_backup:
-        # - echo "Finished a backup."
-
-    # List of one or more shell commands or scripts to execute
-    # after pruning, run once per configuration file.
-    # after_prune:
-        # - echo "Finished pruning."
-
-    # List of one or more shell commands or scripts to execute
-    # after consistency checks, run once per configuration file.
-    # after_check:
-        # - echo "Finished checks."
-
-    # List of one or more shell commands or scripts to execute
-    # after extracting a backup, run once per configuration file.
-    # after_extract:
-        # - echo "Finished extracting."
-
-    # List of one or more shell commands or scripts to execute
-    # when an exception occurs during a "prune", "create", or
-    # "check" action or an associated before/after hook.
-    # on_error:
-        # - echo "Error during prune/create/check."
-
-    # List of one or more shell commands or scripts to execute
-    # before running all actions (if one of them is "create").
-    # These are collected from all configuration files and then
-    # run once before all of them (prior to all actions).
-    # before_everything:
-        # - echo "Starting actions."
-
-    # List of one or more shell commands or scripts to execute
-    # after running all actions (if one of them is "create").
-    # These are collected from all configuration files and then
-    # run once after all of them (after any action).
-    # after_everything:
-        # - echo "Completed actions."
-
-    # Healthchecks ping URL or UUID to notify when a backup
-    # begins, ends, or errors. Create an account at
-    # https://healthchecks.io if you'd like to use this service.
-    # See borgmatic monitoring documentation for details.
-    healthchecks: https://hc-ping.com/adb8d488-812a-4edd-b262-6068556264ab
-
-    # Umask used when executing hooks. Defaults to the umask that
-    # borgmatic is run with.
-    # umask: 0077
-#+end_src
-
-*** oreo.yaml
-:PROPERTIES:
-:header-args:yaml+: :noweb-ref oreo.yaml
-:END:
-
-#+begin_src text :tangle (meq/tangle-path)
-<<oreo.yaml>>
-#+end_src
-
-#+begin_src yaml
-location:
-    source_directories:
-        - ~/oreo
-    repositories:
-        - 9237@usw-s009.rsync.net:/data1/home/9237/{fqdn}-oreo
-<<borgmatic-ls(repo="oreo")>>
-
-    # Additional options to pass directly to particular Borg
-    # commands, handy for Borg options that borgmatic does not yet
-    # support natively. Note that borgmatic does not perform any
-    # validation on these options. Running borgmatic with
-    # "--verbosity 2" shows the exact Borg command-line
-    # invocation.
-    # extra_borg_options:
-        # Extra command-line options to pass to "borg init".
-        # init: --make-parent-dirs
-
-        # Extra command-line options to pass to "borg prune".
-        # prune: --save-space
-
-        # Extra command-line options to pass to "borg create".
-        # create: --no-files-cache
-
-        # Extra command-line options to pass to "borg check".
-        # check: --save-space
-
-<<borgmatic-rc(repo="oreo")>>
-
-# Shell commands, scripts, or integrations to execute at various
-# points during a borgmatic run. IMPORTANT: All provided commands and
-# scripts are executed with user permissions of borgmatic. Do not
-# forget to set secure permissions on this configuration file (chmod
-# 0600) as well as on any script called from a hook (chmod 0700) to
-# prevent potential shell injection or privilege escalation.
-# hooks:
-    # List of one or more shell commands or scripts to execute
-    # before creating a backup, run once per configuration file.
-    # before_backup:
-        # - echo "Starting a backup."
-
-    # List of one or more shell commands or scripts to execute
-    # before pruning, run once per configuration file.
-    # before_prune:
-        # - echo "Starting pruning."
-
-    # List of one or more shell commands or scripts to execute
-    # before consistency checks, run once per configuration file.
-    # before_check:
-        # - echo "Starting checks."
-
-    # List of one or more shell commands or scripts to execute
-    # before extracting a backup, run once per configuration file.
-    # before_extract:
-        # - echo "Starting extracting."
-
-    # List of one or more shell commands or scripts to execute
-    # after creating a backup, run once per configuration file.
-    # after_backup:
-        # - echo "Finished a backup."
-
-    # List of one or more shell commands or scripts to execute
-    # after pruning, run once per configuration file.
-    # after_prune:
-        # - echo "Finished pruning."
-
-    # List of one or more shell commands or scripts to execute
-    # after consistency checks, run once per configuration file.
-    # after_check:
-        # - echo "Finished checks."
-
-    # List of one or more shell commands or scripts to execute
-    # after extracting a backup, run once per configuration file.
-    # after_extract:
-        # - echo "Finished extracting."
-
-    # List of one or more shell commands or scripts to execute
-    # when an exception occurs during a "prune", "create", or
-    # "check" action or an associated before/after hook.
-    # on_error:
-        # - echo "Error during prune/create/check."
-
-    # List of one or more shell commands or scripts to execute
-    # before running all actions (if one of them is "create").
-    # These are collected from all configuration files and then
-    # run once before all of them (prior to all actions).
-    # before_everything:
-        # - echo "Starting actions."
-
-    # List of one or more shell commands or scripts to execute
-    # after running all actions (if one of them is "create").
-    # These are collected from all configuration files and then
-    # run once after all of them (after any action).
-    # after_everything:
-        # - echo "Completed actions."
-
-    # Healthchecks ping URL or UUID to notify when a backup
-    # begins, ends, or errors. Create an account at
-    # https://healthchecks.io if you'd like to use this service.
-    # See borgmatic monitoring documentation for details.
-    healthchecks: https://hc-ping.com/adb8d488-812a-4edd-b262-6068556264ab
-
-    # Umask used when executing hooks. Defaults to the umask that
-    # borgmatic is run with.
-    # umask: 0077
-#+end_src
-
 ** systemd
 *** user
 **** emacs.service
 :PROPERTIES:
-:header-args:systemd+: :noweb-ref emacs.service
+:header-args:systemd+: :noweb-ref c5890943-2514-4794-a0cb-7a0c9ab32aca
 :END:
 
 #+begin_src text :tangle (meq/tangle-path)
-<<emacs.service>>
+<<c5890943-2514-4794-a0cb-7a0c9ab32aca>>
 #+end_src
 
 #+begin_src
@@ -4233,8 +4418,8 @@ WantedBy=default.target
 #+begin_src shell
 set -eo pipefail
 [ -z "$1" ] && worktree="$HOME" || worktree="$1"
-chmod 700 "$worktree/.ssh"
-chmod 600 "$worktree/.ssh/*"
+chmod 700 "$worktree/.ssh" "$worktree/.gnupgk" "$worktree/.config/borg/keys"
+chmod 600 "$worktree/.ssh/*" "$worktree/.gnupgk/*" "$worktree/.config/borg/keys/*"
 #+end_src
 
 *** config
@@ -4314,6 +4499,20 @@ eval $(starship init ion)
 [alias]
     cnm = commit --allow-empty-message -am ""
     chRun = !chmod +x $1 &&
+    user = !git -C "$HOME/<<reponame>>"
+    commit-user = user cnm
+    push-user = user push
+    super-user = !git commit-user && git push-user
+    settings = !git -C "$(git rev-parse --show-toplevel)/settings"
+    update-settings = !git settings pull origin main && git add "$(git rev-parse --show-toplevel)/settings" && git commit -m "Updated settings repo"
+    usp = !git us && git push
+    sub = submodule update --init --recursive --remote
+    submerge = sub --merge
+    crossmerge = !GIT_DISCOVERY_ACROSS_FILESYSTEM=1 git submerge
+    damerge = !GIT_SSL_NO_VERIFY=1 git crossmerge
+    subinit = sub --force
+    crossinit = !GIT_DISCOVERY_ACROSS_FILESYSTEM=1 git subinit
+    daminit = !GIT_SSL_NO_VERIFY=1 git crossinit
 #+end_src
 
 Adapted from [[https://unix.stackexchange.com/users/48083/graeme][Graeme's]] answer [[https://unix.stackexchange.com/a/136798/270053][here]]:
@@ -4324,14 +4523,17 @@ Adapted from [[https://unix.stackexchange.com/users/48083/graeme][Graeme's]] ans
 #+end_src
 
 #+begin_src conf
-    dekey = !git chRun "$HOME/.config/git/scripts/dekey"
-    rekey = !git chRun "$HOME/.config/git/scripts/rekey"
+    dekey = chRun "$HOME/.config/git/scripts/dekey"
+    rekey = chRun "$HOME/.config/git/scripts/rekey"
 
 [protocol "keybase"]
 	allow = always
 
 [protocol "restic"]
 	allow = always
+
+[pull]
+    rebase = false
 
 [filter "git"]
 	clean = cat
@@ -4395,6 +4597,17 @@ tmpd=$(mktemp -d)
 tmpCrypt=$(mktemp -d)
 #+end_src
 
+Adapted from [[https://unix.stackexchange.com/users/83831/wurtel][wurtel's]] comment [[https://unix.stackexchange.com/questions/181937/how-create-a-temporary-file-in-shell-script#comment302878_181939][here]],
+and [[https://unix.stackexchange.com/users/20482/ijoseph][ijoseph's]] comment [[https://unix.stackexchange.com/questions/181937/how-create-a-temporary-file-in-shell-script#comment1096615_181939][here]], stating:
+
+#+begin_quote
+For those wondering, the trailing integers in trap "rm -f $temp_file" 0 2 3 15 are the /signals/ [[https://www.shellscript.sh/trap.html][upon which to run the first argument]]. 0: exit shell, 2: Interrupt, 3: Quit, 15: Terminate.
+#+end_quote
+
+#+begin_src shell
+trap "rm -rf $tmpf $tmpd $tmpCrypt" 0 2 3 15
+#+end_src
+
 Adapted from [[https://stackoverflow.com/users/2075062/epere4][epere4's]] answer [[https://stackoverflow.com/a/14892459/10827766][here]]:
 
 #+begin_src shell
@@ -4426,17 +4639,6 @@ for key in $(ls $tmpCrypt/keys/default/0/*gpg); do
     git crypt add-gpg-user $(basename $key .gpg)
 done
 [ -n "$1" ] && git crypt add-gpg-user $@ || :
-#+end_src
-
-Adapted from [[https://unix.stackexchange.com/users/83831/wurtel][wurtel's]] comment [[https://unix.stackexchange.com/questions/181937/how-create-a-temporary-file-in-shell-script#comment302878_181939][here]],
-and [[https://unix.stackexchange.com/users/20482/ijoseph][ijoseph's]] comment [[https://unix.stackexchange.com/questions/181937/how-create-a-temporary-file-in-shell-script#comment1096615_181939][here]], stating:
-
-#+begin_quote
-For those wondering, the trailing integers in trap "rm -f $temp_file" 0 2 3 15 are the /signals/ [[https://www.shellscript.sh/trap.html][upon which to run the first argument]]. 0: exit shell, 2: Interrupt, 3: Quit, 15: Terminate.
-#+end_quote
-
-#+begin_src shell
-trap "rm -rf $tmpf $tmpd $tmpCrypt" 0 2 3 15
 #+end_src
 
 ** powershell
@@ -5449,10 +5651,6 @@ fi
 #+end_src
 
 #+begin_src gitignore
-_gsdata_
-.boar
-.git
-.hg
 **/__pycache__
 **/_build
 **/.vscode
@@ -5468,6 +5666,12 @@ _gsdata_
 **/result
 **/tests
 **/unfinished
+/_gsdata_
+/.boar
+/.git
+/.hg
+**/.zfs/snapshot
+/test*.*
 temp
 #+end_src
 

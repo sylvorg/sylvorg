@@ -1,0 +1,27 @@
+<<: !include /etc/borgmatic/shared.yaml
+
+location:
+    source_directories:
+        - /chimchar/oreo
+    repositories:
+        - 9237@usw-s009.rsync.net/./oreo-rsync
+    remote_path: borg1
+    hooks:
+        before_backup:
+            - pass show backup/borg/oreo &> /dev/null || exit 75
+            - findmnt /chimchar/oreo > /dev/null || exit 75
+            - ping -qc 1 usw-s009.rsync.net || exit 75
+        # Healthchecks ping URL or UUID to notify when a backup
+        # begins, ends, or errors. Create an account at
+        # https://healthchecks.io if you'd like to use this service.
+        # See borgmatic monitoring documentation for details.
+        healthchecks: https://hc-ping.com/e6d79f19-8c5b-429a-99d0-0247fdb251ea
+storage:
+    encryption_passcommand: pass show backup/borg/oreo-rsync
+    archive_name_format: "borgmatic-oreo-rsync-{now:%Y%m%dT%H%M%S%f}"
+
+retention:
+    prefix: "borgmatic-oreo-rsync-"
+
+consistency:
+    prefix: "borgmatic-oreo-rsync-"

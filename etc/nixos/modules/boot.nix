@@ -23,11 +23,11 @@
                     ignores
                 ])))
             ]);
-            versionHasAnInfix = infix: j.functions.hasAnInfix (if (isList infix) then infix else [ infix ]) config.boot.kernelPackages.version;
+            versionhas.infix = infix: j.has.infix (if (isList infix) then infix else [ infix ]) config.boot.kernelPackages.version;
 
         # TODO: Doesn't work with the surface kernel; causes it to overheat during suspend
         in unique (flatten [
-            # (j.functions.myIf.list (versionHasAnInfix [ "xanmod" "zen" "lqx"]) (genCK [
+            # (j.mif.list (versionhas.infix [ "xanmod" "zen" "lqx"]) (genCK [
             #     "0001-MultiQueue-Skiplist-Scheduler-v0.210.patch"
             #     "0002-Unmask-ondemand-and-conservative-and-allow-schedutil.patch"
             #     "0003-Make-preemptible-kernel-default.patch"
@@ -36,7 +36,7 @@
             #     "0012-Make-threaded-IRQs-optionally-the-default-which-can-.patch"
             #     "0015-Make-nohz_full-not-be-picked-up-as-a-default-config-.patch"
             # ]))
-            # (j.functions.myIf.list (versionHasAnInfix "xanmod") (genCK [
+            # (j.mif.list (versionhas.infix "xanmod") (genCK [
             #     "0013-Reinstate-default-Hz-of-100-in-combination-with-MuQS.patch"
             #     "0014-Swap-sucks.patch"
             # ]))

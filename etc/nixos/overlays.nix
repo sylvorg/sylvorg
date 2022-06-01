@@ -6,9 +6,9 @@ in flatten [
 inputs.emacs.overlay
 (map (file:
     (final: prev: {
-        "${j.functions.name { inherit file; }}" = import file args;
+        "${j.name { inherit file; }}" = import file args;
     })
-) (j.functions.list { dir = ./overlays; }))
+) (j.import.list { dir = ./overlays; }))
 (let pkgsets = {
     # nixos-unstable = [ "networkmanager" "gnome-control-center" "bash" "bootstrap-tools" { gcc10 = "gcc11"; } ];
     # nixos-unstable = "nix";
@@ -22,7 +22,7 @@ in mapAttrsToList (
             pkg1 = if pkgIsAttrs then (last (attrNames pkg')) else pkg';
             pkg2 = if pkgIsAttrs then (last (attrValues pkg')) else pkg';
             self = (pkgchannel == channel) || (pkgchannel == "self");
-        in (final: prev: { "${pkg1}" = if self then prev.${pkg2} else final.j.pkgs.${pkgchannel}.${pkg2}; })
+        in final: prev: { "${pkg1}" = if self then prev.${pkg2} else final.j.pkgs.${pkgchannel}.${pkg2}; }
     ) pkglist
 ) pkgsets)
 ]

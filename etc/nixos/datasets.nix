@@ -1,12 +1,25 @@
-host: {
+host: { 
 	"${host}/system/root" = "/";
+	"${host}/hold" = "/hold";
 	"${host}/shadowrylander" = "/shadowrylander";
 	"${host}/shadowrylander/oreo" = "/home/shadowrylander/oreo";
+	"${host}/shadowrylander/oreo" = "/home/frost/oreo";
+	"${host}/shadowrylander/oreo" = "/home/curtis/oreo";
 	"${host}/shadowrylander/sylveon" = "/home/shadowrylander/sylveon";
+	"${host}/shadowrylander/sylveon" = "/home/frost/sylveon";
+	"${host}/shadowrylander/sylveon" = "/home/curtis/sylveon";
 	"${host}/shadowrylander/sylvorg" = "/home/shadowrylander/sylvorg";
+	"${host}/shadowrylander/sylvorg" = "/home/frost/sylvorg";
+	"${host}/shadowrylander/sylvorg" = "/home/curtis/sylvorg";
 	"${host}/shadowrylander/syvlorg" = "/home/shadowrylander/syvlorg";
-	"${host}/shadowrylander/dross" = "/home/shadowrylander/dross";
+	"${host}/shadowrylander/syvlorg" = "/home/frost/syvlorg";
+	"${host}/shadowrylander/syvlorg" = "/home/curtis/syvlorg";
+	"${host}/shadowrylander/aiern" = "/home/shadowrylander/aiern";
+	"${host}/shadowrylander/aiern" = "/home/frost/aiern";
+	"${host}/shadowrylander/aiern" = "/home/curtis/aiern";
 	"${host}/shadowrylander/uru" = "/home/shadowrylander/uru";
+	"${host}/shadowrylander/uru" = "/home/frost/uru";
+	"${host}/shadowrylander/uru" = "/home/curtis/uru";
 	"${host}/system/home" = "/home";
 	"${host}/system/home/root" = "/root";
 	"${host}/system/home/shadowrylander" = "/home/shadowrylander";
@@ -15,6 +28,9 @@ host: {
 	"${host}/system/nix" = "/nix";
 	"${host}/system/persist" = "/persist";
 	"${host}/system/persist/root" = "/persist/root";
+	"${host}/system/persist/shadowrylander" = "/persist/shadowrylander";
+	"${host}/system/persist/frost" = "/persist/frost";
+	"${host}/system/persist/curtis" = "/persist/curtis";
 	"${host}/system/tmp" = "/tmp";
 	"${host}/system/tmp/nix" = "/tmp/nix";
 	"${host}/virt" = "/var/lib";

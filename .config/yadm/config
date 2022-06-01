@@ -11,16 +11,33 @@
 [alias]
     cnm = commit --allow-empty-message -am ""
     chRun = !chmod +x $1 &&
-encrypted = !git crypt status -e | sed 's/.*: //'
-decrypted = !git crypt status -u | sed 's/.*: //'
-    dekey = !git chRun "$HOME/.config/git/scripts/dekey"
-    rekey = !git chRun "$HOME/.config/git/scripts/rekey"
+    user = !git -C "$HOME/aiern"
+    commit-user = user cnm
+    push-user = user push
+    super-user = !git commit-user && git push-user
+    settings = !git -C "$(git rev-parse --show-toplevel)/settings"
+    update-settings = !git settings pull origin main && git add "$(git rev-parse --show-toplevel)/settings" && git commit -m "Updated settings repo"
+    usp = !git us && git push
+    sub = submodule update --init --recursive --remote
+    submerge = sub --merge
+    crossmerge = !GIT_DISCOVERY_ACROSS_FILESYSTEM=1 git submerge
+    damerge = !GIT_SSL_NO_VERIFY=1 git crossmerge
+    subinit = sub --force
+    crossinit = !GIT_DISCOVERY_ACROSS_FILESYSTEM=1 git subinit
+    daminit = !GIT_SSL_NO_VERIFY=1 git crossinit
+    encrypted = !git crypt status -e | sed 's/.*: //'
+    decrypted = !git crypt status -u | sed 's/.*: //'
+    dekey = chRun "$HOME/.config/git/scripts/dekey"
+    rekey = chRun "$HOME/.config/git/scripts/rekey"
 
 [protocol "keybase"]
 	allow = always
 
 [protocol "restic"]
 	allow = always
+
+[pull]
+    rebase = false
 
 [filter "git"]
 	clean = cat

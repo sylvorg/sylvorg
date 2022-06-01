@@ -1,0 +1,28 @@
+<<: !include /etc/borgmatic/shared.yaml
+
+location:
+    source_directories:
+        - /home/shadowrylander/aiern
+    repositories:
+        - /home/shadowrylander/.user
+        - hpvlk40u@hpvlk40u.repo.borgbase.com/./repo
+    hooks:
+        before_backup:
+            - git -C /home/shadowrylander/aiern pull --all || :
+            - git -C /home/shadowrylander/aiern submodule update --init --recursive || :
+            - pass show backup/borg/user &> /dev/null || exit 75
+            - ping -qc 1 hpvlk40u.repo.borgbase.com || exit 75
+        # Healthchecks ping URL or UUID to notify when a backup
+        # begins, ends, or errors. Create an account at
+        # https://healthchecks.io if you'd like to use this service.
+        # See borgmatic monitoring documentation for details.
+        healthchecks: https://hc-ping.com/1ed0af6c-aa1d-4930-aa1e-3d1af89c9251
+storage:
+    encryption_passcommand: pass show backup/borg/user
+    archive_name_format: "borgmatic-user-{now:%Y%m%dT%H%M%S%f}"
+
+retention:
+    prefix: "borgmatic-user-"
+
+consistency:
+    prefix: "borgmatic-user-"

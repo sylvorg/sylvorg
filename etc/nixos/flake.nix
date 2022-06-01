@@ -1,9 +1,10 @@
 {
     nixConfig = {
         # Adapted From: https://github.com/divnix/digga/blob/main/examples/devos/flake.nix#L4
-        trusted-substituters = "https://cache.nixos.org/ https://nix-community.cachix.org/ https://sylvorg.cachix.org/";
-        # extra-trusted-public-keys = "cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs= sylvorg.cachix.org-1:xd1jb7cDkzX+D+Wqt6TemzkJH9u9esXEFu1yaR9p8H8=";
-        trusted-public-keys = "cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs= sylvorg.cachix.org-1:xd1jb7cDkzX+D+Wqt6TemzkJH9u9esXEFu1yaR9p8H8=";
+        # extra-substituters = "https://cache.nixos.org/ https://nix-community.cachix.org/";
+        trusted-substituters = "https://cache.nixos.org/";
+        # extra-trusted-public-keys = "cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY=";
+        trusted-public-keys = "cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY=";
         # keep-derivations = true;
         # keep-outputs = true;
         extra-experimental-features = "nix-command flakes";
@@ -13,24 +14,14 @@
     };
 
     inputs = rec {
-        # nixos-unstable.url = github:NixOS/nixpkgs/nixos-unstable;
-        nixos-unstable.url = "https://nixos.org/channels/nixos-unstable/nixexprs.tar.xz";
-
-        # nixos-unstable-small.url = github:NixOS/nixpkgs/nixos-unstable-small;
-        nixos-unstable-small.url = "https://nixos.org/channels/nixos-unstable-small/nixexprs.tar.xz";
-
-        # nixos-21-11.url = github:NixOS/nixpkgs/nixos-21.11;
-        nixos-21-11.url = "https://nixos.org/channels/nixos-21.11/nixexprs.tar.xz";
-
-        # nixos-21-11-small.url = github:NixOS/nixpkgs/nixos-21.11-small;
-        nixos-21-11-small.url = "https://nixos.org/channels/nixos-21.11-small/nixexprs.tar.xz";
-
-        release-21-11.url = github:NixOS/nixpkgs/release-21.11;
-
+        nixos-unstable.url = github:NixOS/nixpkgs/nixos-unstable;
+        nixos-unstable-small.url = github:NixOS/nixpkgs/nixos-unstable-small;
+        nixos-22-05.url = github:NixOS/nixpkgs/nixos-22.05;
+        nixos-22-05-small.url = github:NixOS/nixpkgs/nixos-22.05-small;
+        nixos-21-11.url = github:NixOS/nixpkgs/nixos-21.11;
+        nixos-21-11-small.url = github:NixOS/nixpkgs/nixos-21.11-small;
         master.url = github:NixOS/nixpkgs/master;
-
         j.url = github:shadowrylander/nixpkgs/j;
-
         nixpkgs.follows = "j";
 
         hardware.url = github:nixos/nixos-hardware;
@@ -67,11 +58,11 @@
         make = {
             pre-pkgs = system: import nixpkgs { inherit system; };
             lib = host: system: nixpkgs.lib.extend (final: prev: {
-                j = import ./lib.nix ({
+                j = import ./lib.nix (recursiveUpdate {
                     inherit inputs system;
                     pkgs = make.pre-pkgs system;
                     lib = final;
-                } // (if (host == null) then {} else { inherit host; }));
+                } (optionalAttrs (host != null) { inherit host; }));
             });
             pre-nixpkgset = system: lib: { inherit system; config = lib.j.attrs.configs.nixpkgs; };
             overlays = system: lib: import ./overlays.nix {
@@ -95,7 +86,7 @@
             config = name: system: nixosSystem rec {
                 specialArgs = make.specialArgs name system;
                 modules = with inputs; let
-                    j-list = specialArgs.lib.j.functions.list;
+                    j-list = specialArgs.lib.j.import.list;
                 in flatten [
                     "${toString ./.}/hosts/${name}"
                     home-manager.nixosModules.home-manager
@@ -109,5 +100,5 @@
                 (attrNames (filterAttrs (n: v: v == "directory") (readDir ./hosts)))
             ); };
         };
-    in (eachSystem allSystems make.nixosConfiguration) // { inherit make channel; };
+    in recursiveUpdate (eachSystem allSystems make.nixosConfiguration) { inherit make channel; };
 }

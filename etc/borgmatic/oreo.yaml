@@ -1,0 +1,26 @@
+<<: !include /etc/borgmatic/shared.yaml
+
+location:
+    source_directories:
+        - /chimchar/oreo
+    repositories:
+        - /oreo
+    hooks:
+        before_backup:
+            - pass show backup/borg/oreo &> /dev/null || exit 75
+            - findmnt /chimchar/oreo > /dev/null || exit 75
+            - findmnt /oreo > /dev/null || exit 75
+        # Healthchecks ping URL or UUID to notify when a backup
+        # begins, ends, or errors. Create an account at
+        # https://healthchecks.io if you'd like to use this service.
+        # See borgmatic monitoring documentation for details.
+        healthchecks: https://hc-ping.com/9660799a-0aba-44d7-a29f-3887a0ce82bd
+storage:
+    encryption_passcommand: pass show backup/borg/oreo
+    archive_name_format: "borgmatic-oreo-{now:%Y%m%dT%H%M%S%f}"
+
+retention:
+    prefix: "borgmatic-oreo-"
+
+consistency:
+    prefix: "borgmatic-oreo-"

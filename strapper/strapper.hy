@@ -38,15 +38,16 @@
             datasets     (D (.loads json (.strip #[[
                                 {
                                     "base": {  },
+                                    "hold": {  },
                                     "omniverse": {  },
                                     "reserved": {  },
                                     "shadowrylander": { "datasets": {
-                                            "oreo": { "mountpoint": "/home/shadowrylander/oreo" },
-                                            "sylveon": { "mountpoint": "/home/shadowrylander/sylveon" },
-                                            "sylvorg": { "mountpoint": "/home/shadowrylander/sylvorg" },
-                                            "syvlorg": { "mountpoint": "/home/shadowrylander/syvlorg" },
-                                            "dross": { "mountpoint": "/home/shadowrylander/dross" },
-                                            "uru": { "mountpoint": "/home/shadowrylander/uru" }},
+                                            "oreo": {  },
+                                            "sylveon": {  },
+                                            "sylvorg": {  },
+                                            "syvlorg": {  },
+                                            "aiern": {  },
+                                            "uru": {  }},
                                         "options": [ "mountpoint=legacy" ]},
                                     "system": {
                                         "datasets": {
@@ -72,11 +73,19 @@
                                     }
                                 }
                          ]])))
+            primary-user "shadowrylander"
             users        (D (.loads json (.strip #[[
                                 {
                                     "primary": "shadowrylander",
                                     "secondary": "frost",
                                     "nightingale": "curtis"
+                                }
+                         ]])))
+            homes        (D (.loads json (.strip #[[
+                                {
+                                    "primary": "/home/shadowrylander",
+                                    "secondary": "/home/frost",
+                                    "nightingale": "/home/curtis"
                                 }
                          ]]))))
       (assoc datasets "${host}" (D { "datasets" { "jails" { "datasets" { "base" (dict)}}}
@@ -86,7 +95,7 @@
            (assoc (. datasets [s] [d] persist [d]) user (dict))
            (assoc (. datasets virt [d] podman [d]) user (dict)))
       (if reserved-only
-          (.create zfs (+ host "/" reserved))
+          (.create zfs (+ host "/" reserved) :o "mountpoint=none")
           (do (with [dnix (open (+ resources "/datasets.nix") "w")]
                     (.write dnix (+ "host: { \n\t\""
                                     (or root-device "${host}/system/root")
@@ -103,7 +112,6 @@
                                                   "system/root"
                                                   "swap"
                                                   "base"
-                                                  "hold"
                                                   "omniverse"
                                                   reserved ))
                     (if cloning
@@ -117,25 +125,34 @@
                                 (if mountpoint
                                     (setv mountpoint (+ mountpoint "/" dname)
                                           recurse/mountpoint mountpoint)
-                                    (do (setv recurse/mountpoint (.removeprefix recurse/dataset "${host}/"))
+                                    (do (setv recurse/mountpoint (.removeprefix recurse/dataset (+ "${host}" "/")))
                                         (for [prefix prefixes]
                                              (setv recurse/mountpoint (.removeprefix recurse/mountpoint (+ prefix "/"))))
                                         (setv recurse/mountpoint (+ "/" recurse/mountpoint)))))
-                            (.write dnix (+ "\t\""
-                                            recurse/dataset
-                                            "\" = \""
-                                            recurse/mountpoint
-                                            "\";\n"))))
+                            (if (and (.startswith recurse/real-dataset (+ host "/" primary-user))
+                                     (not (= recurse/real-dataset (+ host "/" primary-user))))
+                                (for [user (.keys users)]
+                                     (.write dnix (+ "\t\""
+                                                     recurse/dataset
+                                                     "\" = \""
+                                                     (+ (get homes user) "/" dname)
+                                                     "\";\n")))
+                                (.write dnix (+ "\t\""
+                                                recurse/dataset
+                                                "\" = \""
+                                                recurse/mountpoint
+                                                "\";\n")))))
                     (if (and pool (not (in recurse/real-dataset recurse/datasets)))
                         (do (zfs :m/subcommand clone-or-create
                                  :o { "repeat-with-values" (.get ddict "options" []) }
                                  snapshot-or-none
                                  recurse/real-dataset)
-                            (.snapshot zfs :r True (+ recurse/real-dataset "@blank"))))
+                            (.snapshot zfs :r True (+ recurse/real-dataset "@blank"))
+                            (.hold zfs :r True "blank" (+ recurse/real-dataset "@blank"))))
                     (for [[key value] (.items (.get ddict d (D {  })))]
                          (recurse value key recurse/dataset mountpoint)))
               (for [[key value] (.items datasets)]
-                   (recurse value key host))
+                   (recurse value key "${host}"))
               (.write dnix "}"))))
       (if (or pool reserved-only)
           (let [pool-size-plus-metric (get (.get zpool :H True "size" host :m/list True :m/split True) 2)
@@ -199,38 +216,40 @@
    (.option click "-c" "--copy" :is-flag True)
    (.option click "-g" "--generate" :is-flag True)
    (.option click "-i" "--install" :is-flag True)
+   (.option click "-b" "--install-bootloader" :is-flag True :cls oreo.Option :req-one-of [ "install" ])
    (.option click "-r" "--replace" :is-flag True)
-(.option click "-R" "--rebuild")
-click.pass-context
-(defn main [ ctx all copy generate install program-arguments rebuild replace ]
-      (.bake-all- getconf :m/sudo True)
-      (setv copy-partial (partial rsync :m/run True :a True :v { "repeat" 2 } :c True :z { "repeat" 2 } f"{resources}/"))
-      (if rebuild
-          (do (if copy
-                  (copy-partial "/etc/nixos/"))
-              (nixos-rebuild rebuild #* ctx.args :show-trace True))
-          (do (if (or copy all)
-                  (do (update-datasets ctx.obj.host)
-                      (copy-partial "/mnt/etc/nixos/")))
-              (if (or generate all)
-                  (nixos-generate-config :m/run True :root "/mnt"))
-              (if (or replace all)
-                  (if ctx.obj.host
-                      (do (sd :m/run True
-                              "./hardware-configuration.nix"
-                              (+ "./hosts/" ctx.obj.host)
-                              "/mnt/etc/nixos/configuration.nix")
-                          (sd :m/run True
-                              "'device = \"\"'"
-                              "'device = \"!\"'"
-                              "/mnt/etc/nixos/hardware-configuration.nix"))
-                      (raise (NameError no-host-error-message))))
-              (if (or install all)
-                  (nixos-install #* ctx.args
-                                 :I "nixpkgs=https://github.com/shadowrylander/nixpkgs/archive/j.tar.gz"
-                                 :m/run True
-                                 :show-trace True
-:option "tarball-ttl 0"
+   (.option click "-R" "--rebuild")
+   click.pass-context
+   (defn main [ ctx all copy generate install program-arguments rebuild replace install-bootloader ]
+         (.bake-all- getconf :m/sudo True)
+         (setv copy-partial (partial rsync :m/run True :a True :v { "repeat" 2 } :c True :z { "repeat" 2 } f"{resources}/"))
+         (if rebuild
+             (do (if copy
+                     (copy-partial "/etc/nixos/"))
+                 (nixos-rebuild rebuild #* ctx.args :show-trace True))
+             (do (if (or copy all)
+                     (do (update-datasets ctx.obj.host)
+                         (copy-partial "/mnt/etc/nixos/")))
+                 (if (or generate all)
+                     (nixos-generate-config :m/run True :root "/mnt"))
+                 (if (or replace all)
+                     (if ctx.obj.host
+                         (do (sd :m/run True
+                                 "./hardware-configuration.nix"
+                                 (+ "./hosts/" ctx.obj.host)
+                                 "/mnt/etc/nixos/configuration.nix")
+                             (sd :m/run True
+                                 "'device = \"\"'"
+                                 "'device = \"!\"'"
+                                 "/mnt/etc/nixos/hardware-configuration.nix"))
+                         (raise (NameError no-host-error-message))))
+                 (if (or install all)
+                     (nixos-install #* ctx.args
+                                    :I "nixpkgs=https://github.com/shadowrylander/nixpkgs/archive/j.tar.gz"
+                                    :m/run True
+                                    :show-trace True
+                                    :install-bootloader install-bootloader
+                                    :option "tarball-ttl 0"
 ))))))
 #@((.command strapper :no-args-is-help True)
    (.option click "-B" "--boot-device" :type (, str int))
@@ -264,7 +283,7 @@ click.pass-context
                             pool-options-dict (D { "autotrim" "on"
                                                    "altroot" "/mnt"
                                                    "autoexpand" "on" })
-                            command (partial zpool.create :f True)
+                            command (partial zpool.create :f True :m/run True)
                             no-raid-error-message "Sorry! For multiple zfs devices a raid configuration must be provided using `-r / --raid'!"
                             zfs-device (if (= (len zfs-devices) 1)
                                         (if raid
@@ -276,7 +295,8 @@ click.pass-context
                            (if (or partition boot-device)
                                (.bake- parted :s True :a "optimal" "--"))
                            (if partition
-                               (do (parted zfs-device "mklabel" "gpt")
+                               (do (setv zfs-name ctx.obj.host)
+                                   (parted zfs-device "mklabel" "gpt")
                                    (for [[i p] (enumerate partition)]
                                         (parted zfs-device
                                                 "mkpart"
@@ -286,7 +306,8 @@ click.pass-context
                                                     len
                                                     dec
                                                     (= i)
-                                                    (if "100%" p))))))
+                                                    (if "100%" p))))
+                                   (parted zfs-device "name" (if (> (len partition) 1) 3 2) zfs-name)))
                            (if (or partition boot-device)
                                (if boot-device
                                    (let [ device (get boot-device 0)
@@ -294,13 +315,15 @@ click.pass-context
                                         (parted device "mkfs" index "fat32")
                                         (parted device "set" index "boot" "on")
                                         (parted device "set" index "esp" "on"))
-                                   (do (parted zfs-device "mkfs" 1 "fat32")
+                                   (do (parted zfs-device "name" 1 (+ ctx.obj.host "-boot"))
+                                       (parted zfs-device "mkfs" 1 "fat32")
                                        (parted zfs-device "set" 1 "boot" "on")
                                        (parted zfs-device "set" 1 "esp" "on"))))
                            (if (or (> (len partition) 1) swap-device)
                                (if swap-device
                                    (parted (get swap-device 0) "mkfs" (get swap-device 1) "linux-swap")
-                                   (parted zfs-device "mkfs" 2 "linux-swap")))
+                                   (do (parted zfs-device "name" 2 (+ ctx.obj.host "-swap"))
+                                       (parted zfs-device "mkfs" 2 "linux-swap"))))
                            (for [dataset (.list zfs :r True :H True :m/list True :m/split True)]
                                 (if (in ctx.obj.host dataset)
                                     (.export zpool :f True ctx.obj.host :m/ignore-stderr True)))
@@ -317,7 +340,7 @@ click.pass-context
                            (command :O { "repeat-with-values" (gfor [k v] (.items dataset-options-dict) f"{k}={v}") }
                                     :o { "repeat-with-values" (gfor [k v] (.items pool-options-dict) f"{k}={v}") }
                                     ctx.obj.host
-                                    zfs-device)
+                                    (if partition (+ "/dev/disk/by-label/" zfs-name) zfs-device))
                            (update-datasets ctx.obj.host swap encrypted deduplicated :pool True :reserved-only pool-only))
                       (print "Sorry; not continuing!\n\n"))
                   (finally (.export zpool :f True ctx.obj.host :m/ignore-stderr True)))
@@ -346,39 +369,41 @@ click.pass-context
                  (if root-device
                      (Mount root-device "/mnt")
                      (Mount :t "zfs" (+ ctx.obj.host "/system/root") "/mnt"))
-(try (.mkdir (Path "/mnt/mnt"))
-     (except [FileExistsError]
-             (if (.ismount os.path "/mnt/mnt")
-                 (umount :R True "/mnt/mnt"))))
-(Mount :bind True "/mnt" "/mnt/mnt")
-    (.mkdir (Path "/mnt/etc/nixos") :parents True :exist-ok True)
+                 (try (.mkdir (Path "/mnt/mnt"))
+                      (except [FileExistsError]
+                              (if (.ismount os.path "/mnt/mnt")
+                                  (umount :R True "/mnt/mnt"))))
+                 (Mount :bind True "/mnt" "/mnt/mnt")
+                 (.mkdir (Path "/mnt/etc/nixos") :parents True :exist-ok True)
 
-    (.mkdir (Path "/mnt/nix") :parents True :exist-ok True)
-    (Mount :t "zfs" (+ ctx.obj.host "/system/nix") "/mnt/nix")
+                 (.mkdir (Path "/mnt/nix") :parents True :exist-ok True)
+                 (Mount :t "zfs" (+ ctx.obj.host "/system/nix") "/mnt/nix")
 
-    (.mkdir (Path "/mnt/persist") :parents True :exist-ok True)
-    (Mount :t "zfs" (+ ctx.obj.host "/system/persist") "/mnt/persist")
+                 (.mkdir (Path "/mnt/persist") :parents True :exist-ok True)
+                 (Mount :t "zfs" (+ ctx.obj.host "/system/persist") "/mnt/persist")
 
-    (if boot-device
-        (let [boot "/mnt/boot/efi"]
-             (.mkdir (Path boot) :parents True :exist-ok True)
-             (Mount boot-device boot)))
-    (if swap
-        (swapon (+ "/dev/zvol/" ctx.obj.host "/swap" :m/run True)))
-    (if swap-device
-        (swapon swap-device :m/run True))
+                 (if boot-device
+                     (let [boot "/mnt/boot/efi"]
+                          (.mkdir (Path boot) :parents True :exist-ok True)
+                          (Mount boot-device boot)))
+                 (if swap
+                     (swapon (+ "/dev/zvol/" ctx.obj.host "/swap" :m/run True)))
+                 (if swap-device
+                     (swapon swap-device :m/run True))
 
-    (.mkdir (Path "/tmp") :parents True :exist-ok True)
-    (Mount :t "zfs" (+ ctx.obj.host "/system/tmp") "/tmp" :m/run True)
+                 ;; TODO: What do these two do again?
 
-    (.mkdir (Path "/tmp/nix") :parents True :exist-ok True)
-    (Mount :t "zfs" (+ ctx.obj.host "/system/tmp/nix") "/tmp/nix" :m/run True)
+                 (.mkdir (Path "/tmp") :parents True :exist-ok True)
+                 (Mount :t "zfs" (+ ctx.obj.host "/system/tmp") "/tmp" :m/run True)
 
-    ;; (rsync :a True :v { "repeat" 2 } :c True :z { "repeat" 2 } :delete True "/nix/" "/tmp/nix/")
-    ;; (Mount :t "zfs" (+ ctx.obj.host "/system/tmp/nix") "/nix" :m/run True)
+                 (.mkdir (Path "/tmp/nix") :parents True :exist-ok True)
+                 (Mount :t "zfs" (+ ctx.obj.host "/system/tmp/nix") "/tmp/nix" :m/run True)
 
-    )
-(raise (NameError no-host-error-message)))))
+                 ;; (rsync :a True :v { "repeat" 2 } :c True :z { "repeat" 2 } :delete True "/nix/" "/tmp/nix/")
+                 ;; (Mount :t "zfs" (+ ctx.obj.host "/system/tmp/nix") "/nix" :m/run True)
+
+                 )
+             (raise (NameError no-host-error-message)))))
 #@((.command strapper :no-args-is-help True)
    (.option click "-d" "--deduplicated" :is-flag True)
    (.option click "-e" "--encrypted" :is-flag True)

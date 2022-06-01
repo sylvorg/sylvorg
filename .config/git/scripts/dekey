@@ -12,5 +12,5 @@ for gpgID in $@; do
 set -eo pipefail
 root=$(git rev-parse --show-toplevel)
 for gpgID in $@; do
-rm "$root/.git-crypt/keys/default/0/$(gpg --fingerprint $gpgID | sed -n 2p | tr -d ' ').gpg"
+    rm "$root/.git-crypt/keys/default/0/$(gpg --fingerprint $gpgID | sed -n 2p | tr -d ' ').gpg"
 done

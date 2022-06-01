@@ -7,7 +7,7 @@
     ];
     networking = {
         hostName = baseNameOf (toString ./.);
-        hostId = "855b0848";
+        hostId = "81feb5fc";
         networkmanager.extraConfig = ''
             [connection]
             wifi.powersave = 2
@@ -16,12 +16,15 @@
             wifi.scan-rand-mac-address=false
         '';
     };
-    services.surface-dtx-daemon.detach = mkForce ''
-        #!/usr/bin/env sh
-        for usb in $(ls /dev/disk/by-id).split("\n"):
-            if usb and usb[:4] == "usb-":
-                for mnt in $(mount).split("\n"):
-                    if mnt and usb in mnt:
-                        umount @(mnt.split()[2])
-    '';
+
+    # TODO
+    # services.surface-dtx-daemon.detach = mkForce ''
+    #     #!/usr/bin/env sh
+    #     for usb in $(ls /dev/disk/by-id).split("\n"):
+    #         if usb and usb[:4] == "usb-":
+    #             for mnt in $(mount).split("\n"):
+    #                 if mnt and usb in mnt:
+    #                     umount @(mnt.split()[2])
+    # '';
+
 }

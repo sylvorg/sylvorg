@@ -1,0 +1,26 @@
+<<: !include /etc/borgmatic/shared.yaml
+
+location:
+    source_directories:
+        - /chimchar
+    repositories:
+        - /infernape
+    hooks:
+        before_backup:
+            - pass show backup/borg/syvlorg &> /dev/null || exit 75
+            - chmod +x /etc/borgmatic/mountable-mounted.hy && /etc/borgmatic/mountable-mounted.hy chimchar
+            - findmnt /infernape > /dev/null || exit 75
+        # Healthchecks ping URL or UUID to notify when a backup
+        # begins, ends, or errors. Create an account at
+        # https://healthchecks.io if you'd like to use this service.
+        # See borgmatic monitoring documentation for details.
+        healthchecks: https://hc-ping.com/aa90aa9a-d507-4c8e-92c9-a037cd42e585
+storage:
+    encryption_passcommand: pass show backup/borg/infernape
+    archive_name_format: "borgmatic-infernape-{now:%Y%m%dT%H%M%S%f}"
+
+retention:
+    prefix: "borgmatic-infernape-"
+
+consistency:
+    prefix: "borgmatic-infernape-"

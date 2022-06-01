@@ -1,7 +1,10 @@
 { config, ... }:
 
 {
-    imports = [ ../profiles/server.nix ];
+    imports = [
+        ../profiles/server.nix
+        "${(import ../..).inputs.nixos}/modules/profiles/qemu-guest.nix"
+    ];
     boot = {
         kernelParams = [ "console=ttyS0,19200n8" ];
         loader.grub.extraConfig = ''

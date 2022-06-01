@@ -4,10 +4,12 @@
     environment = {
         pathsToLink = [ "/share/nix-direnv" ];
         systemPackages = [
+            # ddar
+            # extra-container
+            # haskellPackages.hocker
             acpilight
             alacritty
             asdf-vm
-            assh
             atom
             autojump
             autossh
@@ -22,9 +24,9 @@
             ctop
             curl
             darling-dmg
-            # ddar
             direnv
             diskus
+            distrobox
             dos2unix
             duf
             elvish
@@ -32,7 +34,6 @@
             entr
             exa
             exfat
-            # extra-container
             fasd
             fd
             fd
@@ -55,7 +56,6 @@
             gotop
             gparted
             gptfdisk
-            # haskellPackages.hocker
             inetutils
             j-settings
             jupyter
@@ -67,13 +67,14 @@
             lolcat
             lorri
             man
+            meld
             micro
             mkpasswd
             monkeysphere
-            mosh
             mtr
             neo-cowsay
             neovim
+            nickel
             niv
             nix-direnv
             nnn
@@ -117,6 +118,7 @@
             wget
             win-qemu
             woeusb
+            wstunnel
             wtf
             xclip
             xclip
@@ -125,31 +127,31 @@
             yubico-pam yubico-piv-tool yubikey-manager yubikey-agent yubikey-personalization yubioath-desktop
             yubikey-manager-qt yubikey-personalization-gui
             zenith
-            zsh
             zoxide
+            zsh
         ] ++ (map (pkg: pkgs.gnome."gnome-${pkg}") [
             "boxes"
             "characters"
-            "tweaks"
             "session"
+            "tweaks"
         ]) ++ (map (pkg: pkgs."nix-prefetch-${pkg}") [
-            "github"
             "docker"
+            "github"
             "scripts"
         ]) ++ (with pkgs.gnome; [
             dconf-editor
         ]) ++ (with pkgs.gitAndTools; [
+            gh
             git-extras
             git-hub
             gitflow
-            gh
             hub
             lab
         ]) ++ (with pkgs.python310Packages; [
             black
             black-macchiato
-            poetry
             jupyterlab
+            poetry
             xonsh
         ]);
     };

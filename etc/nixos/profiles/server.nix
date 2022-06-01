@@ -1,4 +1,8 @@
-{ config, lib, pkgs, ... }: with lib; {
+{ config, pkgs, ... }: let
+    relayNo = if config.variables.relay then "no" else "yes";
+    relayYes = if config.variables.relay then "yes" else "no";
+in {
+    # imports = [ ../../variables.nix ]
     services.openssh = {
         enable = true;
         extraConfig = mkOrder 0 ''
@@ -7,7 +11,8 @@
             ClientAliveInterval 3m
         '';
         permitRootLogin = "yes";
+        openFirewall = config.variables.relay;
     };
-
     environment.systemPackages = with pkgs; [ inetutils mtr sysstat git ];
+    variables.server = true;
 }

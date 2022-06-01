@@ -1,0 +1,32 @@
+[tool.poetry]
+name = "oreo"
+version = "1.0.0.0"
+description = "A bunch of useful funtions"
+authors = ["sylvorg <jeet.ray@syvl.org>"]
+license = "OREO"
+include = [
+	"oreo/**/*.py",
+	"oreo/**/*.hy",
+]
+
+[tool.poetry.dependencies]
+python = "^3.9"
+addict = "*"
+autoslot = "*"
+click = "*"
+hy = "^1.0a4"
+hyrule = "*"
+nixpkgs = "*"
+more-itertools = "*"
+rich = { git = "https://github.com/syvlorg/rich.git", branch = "master" }
+toolz = "*"
+
+[tool.poetry.dev-dependencies]
+pytest = "^3.0"
+poetry = "*"
+poetry2setup = "*"
+pytest-hylang = "*"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
