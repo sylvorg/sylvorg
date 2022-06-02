@@ -4,6 +4,6 @@
     imports = [ ../../minimal.nix ];
     networking = {
         hostName = baseNameOf (toString ./.);
-        hostId = "bc35e5c2";
+        hostId = "91a3a62d";
     };
 }

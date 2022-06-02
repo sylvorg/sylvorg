@@ -8,7 +8,7 @@
                 home = {
                     homeDirectory = j.attrs.homes.${user};
                 };
-            }) j.attrs.allUsers)
+            }) j.attrs.allUsernames)
         ];
     };
 }

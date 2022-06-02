@@ -131,7 +131,7 @@ in with lib; {
                         ".screenrc"
                         ".viminfo"
                         ".zsh_history"
-                        config.services.vaddy.dataDir
+                        config.services.caddy.dataDir
                         redRepoFiles
                     ]));
                     directories = unique (map (directory: if (isString directory) then (recursiveUpdate { inherit directory; } userDirSet) else (recursiveUpdate userDirSet directory)) (flatten [
@@ -168,7 +168,7 @@ in with lib; {
                         { directory = ".ssh"; mode = "0700"; }
                         { directory = ".gnupgk"; mode = "0700"; }
                         redRepoDirectories
-                    ]));}) j.attrs.allUsers');
+                    ]));}) j.attrs.allDesignations);
             };
         };
     };
@@ -504,11 +504,11 @@ in with lib; {
         };
     in rec {
         users = mkMerge [
-            (genAttrs j.attrs.allUsers (user: base))
+            (genAttrs j.attrs.allUsernames (user: base))
             {
                 "${primary}" = {
                     uid = 4362;
-                    home = j.attrs.homes.${primary};
+                    home = j.attrs.homes.primary;
                     description = "Jeet Ray";
                     group = primary;
                     extraGroups = [ secondary ];
@@ -516,7 +516,7 @@ in with lib; {
                 };
                 "${secondary}" = {
                     uid = 1111;
-                    home = j.attrs.homes.${secondary};
+                    home = j.attrs.homes.secondary;
                     description = "Alicia Summers";
                     group = secondary;
                     extraGroups = [ primary ];
@@ -524,7 +524,7 @@ in with lib; {
                 };
                 "${nightingale}" = {
                     uid = 8888;
-                    home = j.attrs.homes.${nightingale};
+                    home = j.attrs.homes.nightingale;
                     description = "Curtis Nightingale";
                     group = "root";
                     extraGroups = [ primary secondary ];

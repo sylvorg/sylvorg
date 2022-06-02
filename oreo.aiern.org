@@ -1506,14 +1506,21 @@ Deprecated Set Function:
                 };
             };
             users = fromJSON (readFile ./users.json);
+            usernames = attrValues users;
+            designations = attrNames users;
+
             excludedUsers = { root = "root"; };
-            mainUsers = attrValues users;
-            excludedUsersList = attrValues excludedUsers;
-            allUsers = mainUsers ++ excludedUsersList;
-            allUsersAttrs = recursiveUpdate users excludedUsers;
-            allUsers' = attrNames allUsersAttrs;
+            excludedUsernames = attrValues excludedUsers;
+            excludedDesignations = attrNames excludedUsers;
+
+            allUsers = recursiveUpdate users excludedUsers;
+            allUsernames = attrValues allUsers;
+            allDesignations = attrNames allUsersAttrs;
+
             homes = fromJSON (readFile ./homes.json);
-            allHomes = recursiveUpdate homes { root = "/root"; };
+            excludedHomes = { root = "/root"; };
+            allHomes = recursiveUpdate homes excludedHomes;
+
             datasets = {
                 backup = [
                     "system/persist"
@@ -2048,7 +2055,7 @@ in with lib; {
                         ".screenrc"
                         ".viminfo"
                         ".zsh_history"
-                        config.services.vaddy.dataDir
+                        config.services.caddy.dataDir
                         redRepoFiles
                     ]));
                     directories = unique (map (directory: if (isString directory) then (recursiveUpdate { inherit directory; } userDirSet) else (recursiveUpdate userDirSet directory)) (flatten [
@@ -2085,7 +2092,7 @@ in with lib; {
                         { directory = ".ssh"; mode = "0700"; }
                         { directory = ".gnupgk"; mode = "0700"; }
                         redRepoDirectories
-                    ]));}) j.attrs.allUsers');
+                    ]));}) j.attrs.allDesignations);
             };
         };
     };
@@ -2511,11 +2518,11 @@ Adapted from [[https://www.reddit.com/r/NixOS/comments/ut8j10/nixos_zfs_podman_b
         };
     in rec {
         users = mkMerge [
-            (genAttrs j.attrs.allUsers (user: base))
+            (genAttrs j.attrs.allUsernames (user: base))
             {
                 "${primary}" = {
                     uid = 4362;
-                    home = j.attrs.homes.${primary};
+                    home = j.attrs.homes.primary;
                     description = "Jeet Ray";
                     group = primary;
                     extraGroups = [ secondary ];
@@ -2523,7 +2530,7 @@ Adapted from [[https://www.reddit.com/r/NixOS/comments/ut8j10/nixos_zfs_podman_b
                 };
                 "${secondary}" = {
                     uid = 1111;
-                    home = j.attrs.homes.${secondary};
+                    home = j.attrs.homes.secondary;
                     description = "Alicia Summers";
                     group = secondary;
                     extraGroups = [ primary ];
@@ -2531,7 +2538,7 @@ Adapted from [[https://www.reddit.com/r/NixOS/comments/ut8j10/nixos_zfs_podman_b
                 };
                 "${nightingale}" = {
                     uid = 8888;
-                    home = j.attrs.homes.${nightingale};
+                    home = j.attrs.homes.nightingale;
                     description = "Curtis Nightingale";
                     group = "root";
                     extraGroups = [ primary secondary ];
@@ -2909,7 +2916,7 @@ Help is available in the configuration.nix(5) man page and in the NixOS manual (
                 home = {
                     homeDirectory = j.attrs.homes.${user};
                 };
-            }) j.attrs.allUsers)
+            }) j.attrs.allUsernames)
         ];
     };
 }

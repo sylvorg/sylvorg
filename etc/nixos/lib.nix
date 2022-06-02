@@ -177,14 +177,21 @@ with builtins; { pkgs, lib, inputs ? {}, system ? currentSystem }: with lib; let
                 };
             };
             users = fromJSON (readFile ./users.json);
+            usernames = attrValues users;
+            designations = attrNames users;
+
             excludedUsers = { root = "root"; };
-            mainUsers = attrValues users;
-            excludedUsersList = attrValues excludedUsers;
-            allUsers = mainUsers ++ excludedUsersList;
-            allUsersAttrs = recursiveUpdate users excludedUsers;
-            allUsers' = attrNames allUsersAttrs;
+            excludedUsernames = attrValues excludedUsers;
+            excludedDesignations = attrNames excludedUsers;
+
+            allUsers = recursiveUpdate users excludedUsers;
+            allUsernames = attrValues allUsers;
+            allDesignations = attrNames allUsersAttrs;
+
             homes = fromJSON (readFile ./homes.json);
-            allHomes = recursiveUpdate homes { root = "/root"; };
+            excludedHomes = { root = "/root"; };
+            allHomes = recursiveUpdate homes excludedHomes;
+
             datasets = {
                 backup = [
                     "system/persist"
