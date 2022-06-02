@@ -24,7 +24,6 @@
 (try (import cytoolz [last])
      (except [ImportError]
              (import toolz [last])))
-(require hyrule [-> assoc])
 ;; (setv resources (+ (.dirname os.path (.realpath os.path __file__)) "/etc/nixos/"))
 (setv resources (+ (.getcwd os) "/etc/nixos/"))
 (defn update-datasets [host [swap 0] [encrypted False] [deduplicated False] [pool False] [root-device None] [reserved-only False]]
@@ -88,12 +87,28 @@
                                     "nightingale": "/home/curtis"
                                 }
                          ]]))))
-      (assoc datasets "${host}" (D { "datasets" { "jails" { "datasets" { "base" (dict)}}}
+
+      #_(assoc datasets host (D { "datasets" { "jails" { "datasets" { "base" (dict)}}}
                                      "options" [ ml ]}))
+
+      (setv (. datasets [host]) (D { "datasets" { "jails" { "datasets" { "base" (dict)}}}
+                                     "options" [ ml ]}))
+
       (for [user (.values users)]
-           (assoc (. datasets [s] [d] home [d]) user (dict))
-           (assoc (. datasets [s] [d] persist [d]) user (dict))
-           (assoc (. datasets virt [d] podman [d]) user (dict)))
+
+           #_(assoc (. datasets [s] [d] home [d]) user (dict))
+           
+           (setv (. datasets [s] [d] home [d] [user]) (dict))
+
+           #_(assoc (. datasets [s] [d] persist [d]) user (dict))
+
+           (setv (. datasets [s] [d] persist [d] [user]) (dict))
+
+           #_(assoc (. datasets virt [d] podman [d]) user (dict))
+
+           (setv (. datasets virt [d] podman [d] [user]) (dict))
+
+           )
       (if reserved-only
           (.create zfs (+ host "/" reserved) :o "mountpoint=none")
           (do (with [dnix (open (+ resources "/datasets.nix") "w")]
@@ -156,19 +171,20 @@
               (.write dnix "}"))))
       (if (or pool reserved-only)
           (let [pool-size-plus-metric (get (.get zpool :H True "size" host :m/list True :m/split True) 2)
-                pool-size             (-> pool-size-plus-metric
-                                          (cut 0 -1)
-                                          (float)
-                                          (round 2))
+                pool-size             (round (float (cut pool-size-plus-metric 0 -1)) 2)
                 pool-metric           (last pool-size-plus-metric)]
                (defn pool-percentage-value [percentage]
-                     (-> percentage
-                         (float)
+                     #_(-> percentage
+                         float
                          (/ 100)
                          (round 2)
-                         (str)
+                         str
                          (+ pool-metric)
-                         (return)))
+                         return)
+
+                     (return (+ (str (round (/ (float percentage) 100) 2)) pool-metric))
+
+                         )
                (.set zfs
                      (+ "refreservation=" (pool-percentage-value 15))
                      (+ host "/" reserved))
@@ -256,11 +272,19 @@
    (.option click "-c" "--copies" :type int :default 1)
    (.option click "-d" "--deduplicated" :is-flag True)
    (.option click "-e" "--encrypted" :is-flag True)
-   (.option click "-M" "--host-mountpoint" :help "Use the hostname as the mountpoint" :is-flag True)
-   (.option click "-m" "--mountpoint")
+   (.option click "-M" "--host-mountpoint" :help "Use the hostname as the mountpoint" :is-flag True :cls oreo.Option :xor [ "mountpoint" ])
+   (.option click "-m" "--mountpoint" :cls oreo.Option :xor [ "host-mountpoint" ])
    (.option click "-o" "--pool-options" :multiple True)
    (.option click "-O" "--dataset-options" :multiple True)
-   (.option click "-P" "--partition" :multiple True :cls oreo.Option :xor [ "raid" ])
+   (.option click
+            "-P"
+            "--partition"
+            :multiple True
+            :cls oreo.Option
+            :xor [ "raid" ]
+            :help "Set up an entire disk; a single `-P' sets up the boot partition with the size as the value passed in (with the unit, such as `2G' for 2 gibibytes),
+a second `-P' sets up the swap space similarly, and subsequent invocations sets up further unformatted partitions.
+The final partition will be the ZFS partition, and does not need to be specified.")
    (.option click "-p" "--pool-only" :is-flag True)
    (.option click "-r" "--raid" :cls oreo.Option :xor [ "partition" ])
    (.option click "-S" "--swap-device" :type (, str int))
@@ -302,11 +326,17 @@
                                                 "mkpart"
                                                 "primary"
                                                 (if i p "0%")
-                                                (-> partition
+
+                                                #_(-> partition
                                                     len
                                                     dec
                                                     (= i)
-                                                    (if "100%" p))))
+                                                    (if "100%" p))
+
+                                                
+                                                (if (= (- (len partition) 1) i) "100%" p)
+
+                                                    ))
                                    (parted zfs-device "name" (if (> (len partition) 1) 3 2) zfs-name)))
                            (if (or partition boot-device)
                                (if boot-device
