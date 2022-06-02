@@ -170,7 +170,7 @@ in with lib; {
                         { directory = ".ssh"; mode = "0700"; }
                         { directory = ".gnupgk"; mode = "0700"; }
                         redRepoDirectories
-                    ]));}) j.attrs.allUsers);
+                    ]));}) j.attrs.allUsers');
             };
         };
     };
@@ -270,8 +270,8 @@ in with lib; {
             inherit (config.boot) supportedFilesystems;
             compressor = "${lib.getBin pkgs.zstd}/bin/zstd";
             network.ssh.enable = true;
-            extraModprobeConfig = '' options kvm_intel_nested=1 '';
         };
+        extraModprobeConfig = '' options kvm_intel_nested=1 '';
         loader = {
             generic-extlinux-compatible.enable = mkForce false;
             systemd-boot = {
@@ -446,10 +446,7 @@ in with lib; {
         fish.enable = true;
         zsh.enable = true;
         tmux.enable = true;
-        fuse = {
-            enable = true;
-            userAllowOther = true;
-        };
+        fuse.userAllowOther = true;
         mosh = {
             enable = true;
             openFirewall = true;

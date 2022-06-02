@@ -1501,9 +1501,12 @@ Deprecated Set Function:
                 };
             };
             users = fromJSON (readFile ./users.json);
-            excludedUsers = [ "root" ];
+            excludedUsers = { root = "root"; };
             mainUsers = attrValues users;
-            allUsers = mainUsers ++ excludedUsers;
+            excludedUsersList = attrValues excludedUsers;
+            allUsers = mainUsers ++ excludedUsersList;
+            allUsersAttrs = recursiveUpdate users excludedUsers;
+            allUsers' = attrNames allUsersAttrs;
             homes = fromJSON (readFile ./homes.json);
             allHomes = recursiveUpdate homes { root = "/root"; };
             datasets = {
@@ -2080,7 +2083,7 @@ in with lib; {
                         { directory = ".ssh"; mode = "0700"; }
                         { directory = ".gnupgk"; mode = "0700"; }
                         redRepoDirectories
-                    ]));}) j.attrs.allUsers);
+                    ]));}) j.attrs.allUsers');
             };
         };
     };
@@ -2193,8 +2196,8 @@ Adapted from [[https://www.reddit.com/r/NixOS/comments/ut8j10/nixos_zfs_podman_b
             inherit (config.boot) supportedFilesystems;
             compressor = "${lib.getBin pkgs.zstd}/bin/zstd";
             network.ssh.enable = true;
-            extraModprobeConfig = '' options kvm_intel_nested=1 '';
         };
+        extraModprobeConfig = '' options kvm_intel_nested=1 '';
         loader = {
             generic-extlinux-compatible.enable = mkForce false;
             systemd-boot = {
@@ -2436,10 +2439,7 @@ Adapted from [[https://www.reddit.com/r/NixOS/comments/ut8j10/nixos_zfs_podman_b
         fish.enable = true;
         zsh.enable = true;
         tmux.enable = true;
-        fuse = {
-            enable = true;
-            userAllowOther = true;
-        };
+        fuse.userAllowOther = true;
         mosh = {
             enable = true;
             openFirewall = true;

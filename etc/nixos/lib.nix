@@ -177,9 +177,12 @@ with builtins; { pkgs, lib, inputs ? {}, system ? currentSystem }: with lib; let
                 };
             };
             users = fromJSON (readFile ./users.json);
-            excludedUsers = [ "root" ];
+            excludedUsers = { root = "root"; };
             mainUsers = attrValues users;
-            allUsers = mainUsers ++ excludedUsers;
+            excludedUsersList = attrValues excludedUsers;
+            allUsers = mainUsers ++ excludedUsersList;
+            allUsersAttrs = recursiveUpdate users excludedUsers;
+            allUsers' = attrNames allUsersAttrs;
             homes = fromJSON (readFile ./homes.json);
             allHomes = recursiveUpdate homes { root = "/root"; };
             datasets = {
