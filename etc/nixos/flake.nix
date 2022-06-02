@@ -57,12 +57,12 @@
         channel = "j";
         make = {
             pre-pkgs = system: import nixpkgs { inherit system; };
-            lib = host: system: nixpkgs.lib.extend (final: prev: {
-                j = import ./lib.nix (recursiveUpdate {
+            lib = system: nixpkgs.lib.extend (final: prev: {
+                j = import ./lib.nix {
                     inherit inputs system;
                     pkgs = make.pre-pkgs system;
                     lib = final;
-                } (optionalAttrs (host != null) { inherit host; }));
+                };
             });
             pre-nixpkgset = system: lib: { inherit system; config = lib.j.attrs.configs.nixpkgs; };
             overlays = system: lib: import ./overlays.nix {
@@ -77,7 +77,7 @@
             specialArgs = name: system: rec {
                 inherit inputs nixpkgs system;
                 host = name;
-                lib = make.lib name system;
+                lib = make.lib system;
                 pre-nixpkgset = make.pre-nixpkgset system lib;
                 overlays = make.overlays system lib;
                 nixpkgset = make.nixpkgset overlays system lib;
