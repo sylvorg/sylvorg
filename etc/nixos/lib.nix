@@ -186,7 +186,7 @@ with builtins; { pkgs, lib, inputs ? {}, system ? currentSystem }: with lib; let
 
             allUsers = recursiveUpdate users excludedUsers;
             allUsernames = attrValues allUsers;
-            allDesignations = attrNames allUsersAttrs;
+            allDesignations = attrNames allUsers;
 
             homes = fromJSON (readFile ./homes.json);
             excludedHomes = { root = "/root"; };

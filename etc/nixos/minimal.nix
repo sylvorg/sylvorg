@@ -104,8 +104,8 @@ in with lib; {
                     (attrNames (filterAttrs (n: v: v == "directory") redRepo))
                 ];
             in {
-                users = listToAttrs (map (user: let
-                    home = j.attrs.allHomes.${user};
+                users = mapAttrs' (designation: user: let
+                    home = j.attrs.allHomes.${designation};
                     userDirSet = {
                         inherit user;
                         group = user;
@@ -168,7 +168,7 @@ in with lib; {
                         { directory = ".ssh"; mode = "0700"; }
                         { directory = ".gnupgk"; mode = "0700"; }
                         redRepoDirectories
-                    ]));}) j.attrs.allDesignations);
+                    ]));}) j.attrs.allUsers;
             };
         };
     };
