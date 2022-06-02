@@ -325,18 +325,13 @@ The final partition will be the ZFS partition, and does not need to be specified
                                         (parted zfs-device
                                                 "mkpart"
                                                 "primary"
-                                                (if i p "0%")
 
-                                                #_(-> partition
-                                                    len
-                                                    dec
-                                                    (= i)
-                                                    (if "100%" p))
+                                                #_(if i (get partition (dec i)) "0%")
 
-                                                
-                                                (if (= (- (len partition) 1) i) "100%" p)
+                                                (if i (get partition (- i 1)) "0%")
 
-                                                    ))
+                                                p))
+                                   (parted zfs-device "mkpart" "primary" (get partition -1) "100%")
                                    (parted zfs-device "name" (if (> (len partition) 1) 3 2) zfs-name)))
                            (if (or partition boot-device)
                                (if boot-device
