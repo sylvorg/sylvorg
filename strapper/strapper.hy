@@ -146,7 +146,12 @@
                                         (setv recurse/mountpoint (+ "/" recurse/mountpoint)))))
                             (if (and (.startswith recurse/real-dataset (+ host "/" primary-user))
                                      (not (= recurse/real-dataset (+ host "/" primary-user))))
-                                (for [user (.keys users)]
+                                (.write dnix (+ "\t\""
+                                                recurse/dataset
+                                                "\" = [ "
+                                                (.join " " (gfor user (.keys users) (+ "\"" (get homes user) "/" dname "\"")))
+                                                " ];\n"))
+                                #_(for [user (.keys users)]
                                      (.write dnix (+ "\t\""
                                                      recurse/dataset
                                                      "\" = \""
@@ -429,7 +434,7 @@ The final partition will be the ZFS partition, and does not need to be specified
 
                  )
              (raise (NameError no-host-error-message)))))
-#@((.command strapper :no-args-is-help True)
+#@((.command strapper)
    (.option click "-d" "--deduplicated" :is-flag True)
    (.option click "-e" "--encrypted" :is-flag True)
    (.option click "-f" "--files" :is-flag True :help "Update datasets.nix with any new datasets; the default")
