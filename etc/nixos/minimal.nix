@@ -30,7 +30,7 @@ in with lib; {
     ];
     config = mkMerge [
         # (removeAttrs nixos-configurations.hardware-configuration.config [ "fileSystems" "nesting" "jobs" "fonts" "meta" "documentation" ])
-        (filterAttrs (n: v: elem n [ "boot" "powerManagement" "hardware" ]) nixos-configurations.hardware-configuration.config)
+        (filterAttrs (n: v: elem n [ "powerManagement" "hardware" ]) nixos-configurations.hardware-configuration.config)
 
         # TODO: What exactly from `system' am I taking? Merge it explicitly.
         # (if fromFlake then (filterAttrs (n: v: elem n [ "system" ]) nixos-configurations.configuration.config) else {})
@@ -176,7 +176,7 @@ in with lib; {
         };
     };
     fileSystems = with lib; let
-        forceMountpoint = dataset: mountpoint: mkForce (recursiveUpdate base { device = dataset; ${
+        forceMountpoint = dataset: mountpoint: mkForce (recursiveUpdate j.attrs.fileSystems.base { device = dataset; ${
             j.mif.null ((j.has.infix [
                 j.attrs.users.primary
                 "persist"
@@ -270,11 +270,15 @@ in with lib; {
 {
     boot = {
         supportedFilesystems = j.attrs.fileSystems.supported;
-        initrd = {
-            inherit (config.boot) supportedFilesystems;
-            compressor = "${lib.getBin pkgs.zstd}/bin/zstd";
-            network.ssh.enable = true;
-        };
+        initrd = mkMerge [
+            nixos-configurations.hardware-configuration.config.boot.initrd
+            {
+                inherit (config.boot) supportedFilesystems;
+                compressor = "${lib.getBin pkgs.zstd}/bin/zstd";
+                network.ssh.enable = true;
+            }
+        ];
+        inherit (nixos-configurations.hardware-configuration.config.boot) kernelModules extraModulePackages;
         extraModprobeConfig = '' options kvm_intel_nested=1 '';
         loader = {
             generic-extlinux-compatible.enable = mkForce false;

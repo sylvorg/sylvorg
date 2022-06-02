@@ -5,7 +5,7 @@
     services.tailscale.advertiseExitNode = true;
     networking = {
         hostName = baseNameOf (toString ./.);
-        hostId = "d6fd0af8";
+        hostId = "6a1b2632";
     };
     variables.relay = true;
 }
