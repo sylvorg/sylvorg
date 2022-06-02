@@ -1040,7 +1040,7 @@ Adapted from the following:
     relayNo = if config.variables.relay then "no" else "yes";
     relayYes = if config.variables.relay then "yes" else "no";
 in {
-    # imports = [ ../../variables.nix ]
+    imports = [ ../variables.nix ];
     services.openssh = {
         enable = true;
         extraConfig = lib.mkOrder 0 ''
@@ -1311,7 +1311,10 @@ With help from [[Henrik Lissner / hlissner][https://github.com/hlissner/dotfiles
 #+begin_src nix
 with builtins; { pkgs, lib, inputs ? {}, system ? currentSystem }: with lib; let
     newLib = self: rec {
+
+        # TODO: Is this necessary?
         mntConvert = dir: let mntDir = "/mnt/" + dir; in if (pathExists mntDir) then mntDir else dir;
+
         zipToSet = names: values: listToAttrs (
             map (nv: nameValuePair nv.fst nv.snd) (let hasAttrs = any isAttrs values; in zipLists (
                 if hasAttrs then names else (sort lessThan names)
@@ -1909,7 +1912,10 @@ with builtins; args@{ config, ... }: let
     inherit (inheritanceSet) lib overlays nixpkgset pkgs;
     dir = "<<userrepo>>";
     dirExists = pathExists dir;
+
+    # TODO: Is this necessary?
     repo = with lib; j.mntConvert (if dirExists then (fetchGit { url = "file://${dir}"; ref = "main"; }) else flake.inputs.${j.attrs.users.primary});
+
     nixos = "${(args.nixpkgs or <nixpkgs>)}/nixos";
     nixos-configuration = configuration: import nixos { configuration = import configuration (lib.recursiveUpdate args inheritanceSet); inherit system; };
     nixos-configurations = {

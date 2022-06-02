@@ -1,6 +1,9 @@
 with builtins; { pkgs, lib, inputs ? {}, system ? currentSystem }: with lib; let
     newLib = self: rec {
+
+        # TODO: Is this necessary?
         mntConvert = dir: let mntDir = "/mnt/" + dir; in if (pathExists mntDir) then mntDir else dir;
+
         zipToSet = names: values: listToAttrs (
             map (nv: nameValuePair nv.fst nv.snd) (let hasAttrs = any isAttrs values; in zipLists (
                 if hasAttrs then names else (sort lessThan names)
