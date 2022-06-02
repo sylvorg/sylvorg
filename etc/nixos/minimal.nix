@@ -30,7 +30,7 @@ in with lib; {
     ];
     config = mkMerge [
         # (removeAttrs nixos-configurations.hardware-configuration.config [ "fileSystems" "nesting" "jobs" "fonts" "meta" "documentation" ])
-        (filterAttrs (n: v: elem n [ "powerManagement" "hardware" ]) nixos-configurations.hardware-configuration.config)
+        (filterAttrs (n: v: elem n [ "powerManagement" ]) nixos-configurations.hardware-configuration.config)
 ( mkIf config.variables.zfs {
     boot = {
         extraModulePackages = with config.boot.kernelPackages; [ zfsUnstable ];
@@ -55,25 +55,29 @@ in with lib; {
     };
     environment = {
         persistence = let
-            rootDirSet = {
-                user = "root";
-                group = "root";
-            };
-            rootFileSet.parentDirectory = rootDirSet;
+            reallyUnique = list: let
+                attrs = remove null (map (item: if (isAttr item) then (item.file or item.directory) else null) list);
+            in unique (filter (item: ! elem item list) list);
+            mergePersisted = set: list: reallyUnique (map (item: if (isString item) then (recursiveUpdate { inherit item; } set) else (recursiveUpdate set item)) (flatten list));
         in {
             "/persist/root" = let
+                rootDirSet = {
+                    user = "root";
+                    group = "root";
+                };
+                rootFileSet.parentDirectory = rootDirSet;
                 etc-prefixes = [ "nixos" "containers" "NetworkManager/system-connections" "tailscale" ];
             in {
                 hideMounts = true;
-                files = unique (map (file: if (isString file) then (recursiveUpdate { inherit file; } rootFileSet) else (recursiveUpdate rootFileSet file)) (flatten [
+                files = mergePersisted rootFileSet [
                     "/etc/host"
                     "/etc/machine-id"
                     (map (directory: j.recurseDir { dir = "${repo}/${directory}"; local = 0; ignores.prefix = (map (d: d + "/") etc-prefixes); }) [
                         "etc"
                         "var"
                     ])
-                ]));
-                directories = unique (map (directory: if (isString directory) then (recursiveUpdate { inherit directory; } rootDirSet) else (recursiveUpdate rootDirSet directory)) (flatten [
+                ];
+                directories = mergePersisted rootDirSet [
                     (map (d: "/etc/" + d) etc-prefixes)
 
                     "/bin"
@@ -93,7 +97,7 @@ in with lib; {
                     # "/var/lib/tailscale"
 
                     config.services.tailscale.authenticationConfirmationFile
-                ]));
+                ];
             };
             "/persist" = let
                 redRepo = readDir repo;
@@ -120,7 +124,7 @@ in with lib; {
                     ];
                 in nameValuePair user {
                     inherit home;
-                    files = unique (map (file: if (isString file) then (recursiveUpdate { inherit file; } userFileSet) else (recursiveUpdate userFileSet file)) (flatten [
+                    files = mergePersisted userFileSet [
                         ".bash_history"
                         ".emacs-profile"
                         ".fasd"
@@ -133,8 +137,9 @@ in with lib; {
                         ".zsh_history"
                         config.services.caddy.dataDir
                         redRepoFiles
-                    ]));
-                    directories = unique (map (directory: if (isString directory) then (recursiveUpdate { inherit directory; } userDirSet) else (recursiveUpdate userDirSet directory)) (flatten [
+                        predRepoFiles
+                    ];
+                    directories = mergePersisted userDirSet [
                         ".atom"
                         ".byobu"
                         ".cache"
@@ -168,7 +173,8 @@ in with lib; {
                         { directory = ".ssh"; mode = "0700"; }
                         { directory = ".gnupgk"; mode = "0700"; }
                         redRepoDirectories
-                    ]));}) j.attrs.allUsers;
+                        predRepoDirectories
+                    ];}) j.attrs.allUsers;
             };
         };
     };
@@ -367,6 +373,7 @@ in with lib; {
 }
 {
     hardware = {
+        inherit (nixos-configurations.hardware-configuration.config.hardware) cpu;
         enableRedistributableFirmware = lib.mkDefault true;
         # Enable sound
         pulseaudio.enable = mkForce true;
