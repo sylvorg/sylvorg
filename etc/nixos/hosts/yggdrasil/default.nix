@@ -4,7 +4,7 @@
     imports = [ ../../devices/rpi4.nix ];
     networking = {
         hostName = baseNameOf (toString ./.);
-        hostId = "27f67e1d";
+        hostId = "7947c345";
     };
     variables.zfs = false;
 }

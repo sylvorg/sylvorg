@@ -186,7 +186,6 @@ with builtins; { pkgs, lib, inputs ? {}, system ? currentSystem }: with lib; let
             homes = fromJSON (readFile ./homes.json);
             allHomes = recursiveUpdate homes { root = "/root"; };
             datasets = {
-                fileSystems = import ./datasets.nix host;
                 backup = [
                     "system/persist"
                     "virt"

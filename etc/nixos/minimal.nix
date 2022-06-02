@@ -21,6 +21,7 @@ with builtins; args@{ config, ... }: let
             ({config, ... }: { networking.hostId = substring 0 8 (readFile "/etc/machine-id"); boot.loader.grub.devices = [ "nodev" ]; })
         ]; };
     };
+    datasets = import ./datasets.nix host;
 in with lib; {
     imports = with flake.inputs; flatten [
         ./cachix.nix
@@ -45,7 +46,7 @@ in with lib; {
             ] d) || (elem d [
                 "${host}/system/root"
                 # "${host}/system/tmp"
-            ])) (attrNames j.attrs.datasets.fileSystems)));
+            ])) (attrNames datasets)));
             kernelModules = [ "zfs" "r8169" ];
             availableKernelModules = config.boot.initrd.kernelModules;
         };
@@ -182,7 +183,7 @@ in with lib; {
                 "home"
             ] dataset) || (elem dataset [ ])) "neededForBoot"
         } = true; })
-    )) j.attrs.datasets.fileSystems);
+    )) datasets);
     services = {
         sanoid = let
             sanoidBase = {
