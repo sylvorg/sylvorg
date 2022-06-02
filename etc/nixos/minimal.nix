@@ -11,7 +11,7 @@ with builtins; args@{ config, ... }: let
     # TODO: Is this necessary?
     repo = with lib; j.mntConvert (if dirExists then (fetchGit { url = "file://${dir}"; ref = "main"; }) else flake.inputs.${j.attrs.users.primary});
 
-    nixos = "${(flake.inputs.nixpkgs or <nixpkgs>)}/nixos";
+    nixos = "${flake.inputs.nixpkgs}/nixos";
     nixos-configuration = configuration: import nixos { configuration = import configuration (lib.recursiveUpdate args inheritanceSet); inherit system; };
     nixos-configurations = {
         server = nixos-configuration ./profiles/server.nix;
@@ -267,14 +267,12 @@ in with lib; {
 {
     boot = {
         supportedFilesystems = j.attrs.fileSystems.supported;
-        initrd = mkMerge [
-            nixos-configurations.hardware-configuration.config.boot.initrd
-            {
-                inherit (config.boot) supportedFilesystems;
-                compressor = "${lib.getBin pkgs.zstd}/bin/zstd";
-                network.ssh.enable = true;
-            }
-        ];
+        initrd = {
+            inherit (nixos-configurations.hardware-configuration.config.boot.initrd) availableKernelModules kernelModules;
+            inherit (config.boot) supportedFilesystems;
+            compressor = "${lib.getBin pkgs.zstd}/bin/zstd";
+            network.ssh.enable = true;
+        };
         inherit (nixos-configurations.hardware-configuration.config.boot) kernelModules extraModulePackages;
         extraModprobeConfig = '' options kvm_intel_nested=1 '';
         loader = {
