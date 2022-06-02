@@ -1,4 +1,4 @@
-with builtins; { pkgs, lib, inputs ? {}, host ? "nixos", system ? currentSystem }: with lib; let
+with builtins; { pkgs, lib, inputs ? {}, system ? currentSystem }: with lib; let
     newLib = self: rec {
         mntConvert = dir: let mntDir = "/mnt/" + dir; in if (pathExists mntDir) then mntDir else dir;
         zipToSet = names: values: listToAttrs (

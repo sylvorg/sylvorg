@@ -9,7 +9,7 @@ with builtins; args@{ config, ... }: let
     dirExists = pathExists dir;
     repo = with lib; j.mntConvert (if dirExists then (fetchGit { url = "file://${dir}"; ref = "main"; }) else flake.inputs.${j.attrs.users.primary});
     nixos = "${(args.nixpkgs or <nixpkgs>)}/nixos";
-    nixos-configuration = configuration: import nixos { configuration = import configuration (recursiveUpdate args inheritanceSet); inherit system; };
+    nixos-configuration = configuration: import nixos { configuration = import configuration (;ib.recursiveUpdate args inheritanceSet); inherit system; };
     nixos-configurations = {
         server = nixos-configuration ./profiles/server.nix;
         configuration = nixos-configuration ./configuration.nix;
@@ -26,20 +26,10 @@ in with lib; {
     ];
     config = mkMerge [
         # (removeAttrs nixos-configurations.hardware-configuration.config [ "fileSystems" "nesting" "jobs" "fonts" "meta" "documentation" ])
-        (filterAttrs (n: v: elem n [ "boot" "networking" "powerManagement" "hardware" ]) nixos-configurations.hardware-configuration.config)
+        (filterAttrs (n: v: elem n [ "boot" "powerManagement" "hardware" ]) nixos-configurations.hardware-configuration.config)
 
         # TODO: What exactly from `system' am I taking? Merge it explicitly.
         # (if fromFlake then (filterAttrs (n: v: elem n [ "system" ]) nixos-configurations.configuration.config) else {})
-{
-    variables = mapAttrs (n: v: mkDefault v) rec {
-        zfs = true;
-        relay = false;
-        server = relay;
-        client = (! server) && (! relay);
-        minimal = false;
-    };
-    _module.args.variables = config.variables;
-}
 ( mkIf config.variables.zfs {
     boot = {
         extraModulePackages = with config.boot.kernelPackages; [ zfsUnstable ];
@@ -404,7 +394,7 @@ in with lib; {
 
         firewall = recursiveUpdate {
             enable = true;
-        } (if config.variables.relay {
+        } (if config.variables.relay then {
             allowedTCPPorts = [ 80 222 443 2022 8080 9418 ];
         } else if config.variables.server then {
             allowedTCPPorts = [ ];
