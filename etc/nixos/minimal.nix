@@ -31,9 +31,6 @@ in with lib; {
     config = mkMerge [
         # (removeAttrs nixos-configurations.hardware-configuration.config [ "fileSystems" "nesting" "jobs" "fonts" "meta" "documentation" ])
         (filterAttrs (n: v: elem n [ "powerManagement" "hardware" ]) nixos-configurations.hardware-configuration.config)
-
-        # TODO: What exactly from `system' am I taking? Merge it explicitly.
-        # (if fromFlake then (filterAttrs (n: v: elem n [ "system" ]) nixos-configurations.configuration.config) else {})
 ( mkIf config.variables.zfs {
     boot = {
         extraModulePackages = with config.boot.kernelPackages; [ zfsUnstable ];
@@ -368,14 +365,13 @@ in with lib; {
 {
     fileSystems = let
         inherit (j.attrs.fileSystems) base;
-    # in filterAttrs (n: v: !elem "bind" v.options) nixos-configurations.hardware-configuration.config.fileSystems;
-    in filterAttrs (n: v: elem n [ "/boot" "/boot/efi" ]) nixos-configurations.hardware-configuration.config.fileSystems;
+    in if config.variables.zfs then (filterAttrs (n: v: elem n [ "/boot" "/boot/efi" ]) nixos-configurations.hardware-configuration.config.fileSystems) else nixos-configurations.hardware-configuration.config.fileSystems;
 }
 {
     hardware = {
         enableRedistributableFirmware = lib.mkDefault true;
         # Enable sound
-        pulseaudio.enable = true;
+        pulseaudio.enable = mkForce true;
     };
     sound.enable = true;
 }

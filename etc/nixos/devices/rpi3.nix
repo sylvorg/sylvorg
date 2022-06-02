@@ -8,7 +8,7 @@
     hardware.enableRedistributableFirmware = true;
     networking.wireless.enable = true;
     sound.enable = true;
-    hardware.pulseaudio.enable = true;
+    hardware.pulseaudio.enable = mkForce true;
     boot.loader.raspberryPi.firmwareConfig = ''
         dtparam=audio=on
     '';

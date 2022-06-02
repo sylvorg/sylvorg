@@ -1108,7 +1108,7 @@ Adapted from [[https://nixos.wiki/wiki/NixOS_on_ARM/Raspberry_Pi_3][here]]:
     hardware.enableRedistributableFirmware = true;
     networking.wireless.enable = true;
     sound.enable = true;
-    hardware.pulseaudio.enable = true;
+    hardware.pulseaudio.enable = mkForce true;
     boot.loader.raspberryPi.firmwareConfig = ''
         dtparam=audio=on
     '';
@@ -1943,9 +1943,6 @@ in with lib; {
     config = mkMerge [
         # (removeAttrs nixos-configurations.hardware-configuration.config [ "fileSystems" "nesting" "jobs" "fonts" "meta" "documentation" ])
         (filterAttrs (n: v: elem n [ "powerManagement" "hardware" ]) nixos-configurations.hardware-configuration.config)
-
-        # TODO: What exactly from `system' am I taking? Merge it explicitly.
-        # (if fromFlake then (filterAttrs (n: v: elem n [ "system" ]) nixos-configurations.configuration.config) else {})
 #+end_src
 
 ***** ZFS
@@ -2335,8 +2332,7 @@ Adapted from [[https://www.reddit.com/r/NixOS/comments/ut8j10/nixos_zfs_podman_b
 {
     fileSystems = let
         inherit (j.attrs.fileSystems) base;
-    # in filterAttrs (n: v: !elem "bind" v.options) nixos-configurations.hardware-configuration.config.fileSystems;
-    in filterAttrs (n: v: elem n [ "/boot" "/boot/efi" ]) nixos-configurations.hardware-configuration.config.fileSystems;
+    in if config.variables.zfs then (filterAttrs (n: v: elem n [ "/boot" "/boot/efi" ]) nixos-configurations.hardware-configuration.config.fileSystems) else nixos-configurations.hardware-configuration.config.fileSystems;
 }
 #+end_src
 
@@ -2347,7 +2343,7 @@ Adapted from [[https://www.reddit.com/r/NixOS/comments/ut8j10/nixos_zfs_podman_b
     hardware = {
         enableRedistributableFirmware = lib.mkDefault true;
         # Enable sound
-        pulseaudio.enable = true;
+        pulseaudio.enable = mkForce true;
     };
     sound.enable = true;
 }
@@ -2877,13 +2873,7 @@ Help is available in the configuration.nix(5) man page and in the NixOS manual (
     };
     time.timeZone = "America/Toronto";
     system = {
-        # This value determines the NixOS release from which the default
-        # settings for stateful data, like file locations and database versions
-        # on your system were taken. It's perfectly fine and recommended to leave
-        # this value at the release version of the first install of this system.
-        # Before changing this value read the documentation for this option
-        # (e.g. man configuration.nix or on https://nixos.org/nixos/options.html).
-        # stateVersion = "20.09"; # Did you read the comment?
+        inherit (nixos-configurations.configuration.config.system) stateVersion;
         autoUpgrade = {
             enable = true;
             allowReboot = false;
