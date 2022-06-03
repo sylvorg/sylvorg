@@ -12,7 +12,7 @@ with builtins; args@{ config, ... }: let
     # TODO: Is this necessary?
     repo = with lib; j.mntConvert (if dirExists then (fetchGit { url = "file://${dir}"; ref = "main"; }) else flake.inputs.${j.attrs.users.primary});
 
-    nixos = "${flake.inputs.nixpkgs}/nixos";
+    nixos = "${(if fromFlake then args else flake.inputs).nixpkgs}/nixos";
     nixos-configuration = configuration: import nixos { configuration = import configuration (lib.recursiveUpdate args inheritanceSet); inherit system; };
     nixos-configurations = {
         server = nixos-configuration ./profiles/server.nix;
