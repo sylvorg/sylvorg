@@ -5,6 +5,7 @@ with builtins; args@{ config, ... }: let
     fromFlake = args ? inputs;
     inheritanceSet = if fromFlake then args else (flake.make.specialArgs host system);
     inherit (inheritanceSet) lib overlays nixpkgset pkgs;
+
     dir = "/home/shadowrylander/aiern";
     dirExists = pathExists dir;
 
@@ -18,6 +19,7 @@ with builtins; args@{ config, ... }: let
         configuration = nixos-configuration ./configuration.nix;
         hardware-configuration = import nixos { inherit system; configuration.imports = [
             ./hardware-configuration.nix
+            ./boot.nix
             ({config, ... }: { networking.hostId = substring 0 8 (readFile "/etc/machine-id"); boot.loader.grub.devices = [ "nodev" ]; })
         ]; };
     };
@@ -25,8 +27,9 @@ with builtins; args@{ config, ... }: let
 in with lib; {
     imports = with flake.inputs; flatten [
         ./cachix.nix
-        (if fromFlake then [] else [ home-manager.nixosModules.home-manager impermanence.nixosModules.impermanence ])
+        (optionals (! fromFlake) [ home-manager.nixosModules.home-manager impermanence.nixosModules.impermanence ])
         ./variables.nix
+        ./boot.nix
     ];
     config = mkMerge [
         # (removeAttrs nixos-configurations.hardware-configuration.config [ "fileSystems" "nesting" "jobs" "fonts" "meta" "documentation" ])
@@ -272,11 +275,8 @@ in with lib; {
 })
 {
     boot = {
-        supportedFilesystems = j.attrs.fileSystems.supported;
         initrd = {
             inherit (nixos-configurations.hardware-configuration.config.boot.initrd) availableKernelModules kernelModules;
-            inherit (config.boot) supportedFilesystems;
-            compressor = "${lib.getBin pkgs.zstd}/bin/zstd";
             network.ssh.enable = true;
         };
         inherit (nixos-configurations.hardware-configuration.config.boot) kernelModules extraModulePackages;
@@ -319,12 +319,6 @@ in with lib; {
             # initScript.enable = mkForce true;
 
         };
-        kernelPackages = mkDefault pkgs.linuxPackages_xanmod;
-        # kernelPackages = mkDefault pkgs.linuxPackages_lqx;
-        # kernelPackages = mkDefault pkgs.linuxPackages_zen;
-        kernelPatches = flatten [
-            (optionals (elem "bcachefs" config.boot.supportedFilesystems) (filter (set: hasInfix "bcachefs" set.name) pkgs.linuxKernel.kernels.linux_testing_bcachefs.kernelPatches))
-        ];
     };
 }
 {
