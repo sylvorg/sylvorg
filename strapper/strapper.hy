@@ -237,41 +237,43 @@
    (.option click "-c" "--copy" :is-flag True)
    (.option click "-g" "--generate" :is-flag True)
    (.option click "-i" "--install" :is-flag True)
-   (.option click "-b" "--install-bootloader" :is-flag True :cls oreo.Option :req-one-of [ "install" ])
+   (.option click "-b" "--install-bootloader" :is-flag True :cls oreo.Option :req-one-of [ "install" "all" ])
    (.option click "-r" "--replace" :is-flag True)
    (.option click "-R" "--rebuild")
    click.pass-context
    (defn main [ ctx all copy generate install program-arguments rebuild replace install-bootloader ]
-         (.bake-all- getconf :m/sudo True)
-         (setv copy-partial (partial rsync :m/run True :a True :v { "repeat" 2 } :c True :z { "repeat" 2 } f"{resources}/"))
-         (if rebuild
-             (do (if copy
-                     (copy-partial "/etc/nixos/"))
-                 (nixos-rebuild rebuild #* ctx.args :show-trace True))
-             (do (if (or copy all)
-                     (do (update-datasets ctx.obj.host)
-                         (copy-partial "/mnt/etc/nixos/")))
-                 (if (or generate all)
-                     (nixos-generate-config :m/run True :root "/mnt"))
-                 (if (or replace all)
-                     (if ctx.obj.host
-                         (do (sd :m/run True
-                                 "./hardware-configuration.nix"
-                                 (+ "./hosts/" ctx.obj.host)
-                                 "/mnt/etc/nixos/configuration.nix")
-                             (sd :m/run True
-                                 "'device = \"\"'"
-                                 "'device = \"!\"'"
-                                 "/mnt/etc/nixos/hardware-configuration.nix"))
-                         (raise (NameError no-host-error-message))))
-                 (if (or install all)
-                     (nixos-install #* ctx.args
-                                    :I "nixpkgs=https://github.com/shadowrylander/nixpkgs/archive/j.tar.gz"
-                                    :m/run True
-                                    :show-trace True
-                                    :install-bootloader install-bootloader
-                                    :option "tarball-ttl 0"
-))))))
+         (if ctx.obj.host
+             (do (.bake-all- getconf :m/sudo True)
+                 (setv copy-partial (partial rsync :m/run True :a True :v { "repeat" 2 } :c True :z { "repeat" 2 } f"{resources}/"))
+                 (if rebuild
+                     (do (if copy
+                             (copy-partial "/etc/nixos/"))
+                         (nixos-rebuild rebuild #* ctx.args :show-trace True))
+                     (do (if (or copy all)
+                             (do (update-datasets ctx.obj.host)
+                                 (copy-partial "/mnt/etc/nixos/")))
+                         (if (or generate all)
+                             (nixos-generate-config :m/run True :root "/mnt"))
+                         (if (or replace all)
+                             (if ctx.obj.host
+                                 (do (sd :m/run True
+                                         "./hardware-configuration.nix"
+                                         (+ "./hosts/" ctx.obj.host)
+                                         "/mnt/etc/nixos/configuration.nix")
+                                     (sd :m/run True
+                                         "'device = \"\"'"
+                                         "'device = \"!\"'"
+                                         "/mnt/etc/nixos/hardware-configuration.nix"))
+                                 (raise (NameError no-host-error-message))))
+                         (if (or install all)
+                             (nixos-install #* ctx.args
+                                            :I "nixpkgs=https://github.com/shadowrylander/nixpkgs/archive/j.tar.gz"
+                                            :m/run True
+                                            :show-trace True
+                                            :install-bootloader install-bootloader
+                                            :option "tarball-ttl 0"
+                             )))))
+             (raise (NameError no-host-error-message)))))
 #@((.command strapper :no-args-is-help True)
    (.option click "-B" "--boot-device" :type (, str int))
    (.option click "-c" "--copies" :type int :default 1)
@@ -382,8 +384,10 @@ The final partition will be the ZFS partition, and does not need to be specified
    (.option click "-r" "--root-device")
    (.option click "-s" "--swap" :cls oreo.Option :xor [ "swap-device" ] :is-flag True)
    (.option click "-S" "--swap-device" :cls oreo.Option :xor [ "swap" ])
+   (.option click "-i" "--install")
+   (.option click "-I" "--install-bootloader")
    click.pass-context
-   (defn mount [ ctx boot-device deduplicated encrypted root-device swap swap-device ]
+   (defn mount [ ctx boot-device deduplicated encrypted root-device swap swap-device install install-bootloader ]
          (if ctx.obj.host
              (do (update-datasets ctx.obj.host :root-device root-device :encrypted encrypted :deduplicated deduplicated :swap swap)
                  (for [dataset (.list zfs :r True :H True :m/list True :m/split True)]
@@ -432,7 +436,8 @@ The final partition will be the ZFS partition, and does not need to be specified
                  ;; (rsync :a True :v { "repeat" 2 } :c True :z { "repeat" 2 } :delete True "/nix/" "/tmp/nix/")
                  ;; (Mount :t "zfs" (+ ctx.obj.host "/system/tmp/nix") "/nix" :m/run True)
 
-                 )
+                 (if (or install install-bootloader)
+                     (.invoke ctx main :all True :install-bootloader install-bootloader)))
              (raise (NameError no-host-error-message)))))
 #@((.command strapper)
    (.option click "-d" "--deduplicated" :is-flag True)
