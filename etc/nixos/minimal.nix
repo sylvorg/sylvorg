@@ -373,6 +373,17 @@ in with lib; {
     sound.enable = true;
 }
 {
+    home-manager = {
+        useGlobalPkgs = true;
+        users = mapAttrs' (designation: user: nameValuePair user {
+            home = {
+                activation = "ykpamcfg -2 -v";
+                homeDirectory = j.attrs.homes.${designation};
+            };
+        }) j.attrs.allUsers;
+    };
+}
+{
     networking = {
         networkmanager.enable = mkForce true;
         interfaces = if fromFlake then (mapAttrs (n: v: recursiveUpdate v {

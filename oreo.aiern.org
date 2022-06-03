@@ -547,8 +547,8 @@ The final partition will be the ZFS partition, and does not need to be specified
    (.option click "-r" "--root-device")
    (.option click "-s" "--swap" :cls oreo.Option :xor [ "swap-device" ] :is-flag True)
    (.option click "-S" "--swap-device" :cls oreo.Option :xor [ "swap" ])
-   (.option click "-i" "--install")
-   (.option click "-I" "--install-bootloader")
+   (.option click "-i" "--install" :is-flag True)
+   (.option click "-I" "--install-bootloader" :is-flag True)
    click.pass-context
    (defn mount [ ctx boot-device deduplicated encrypted root-device swap swap-device install install-bootloader ]
          (if ctx.obj.host
@@ -2401,6 +2401,22 @@ Adapted from [[https://www.reddit.com/r/NixOS/comments/ut8j10/nixos_zfs_podman_b
 }
 #+end_src
 
+***** Home-Manager
+
+#+begin_src nix
+{
+    home-manager = {
+        useGlobalPkgs = true;
+        users = mapAttrs' (designation: user: nameValuePair user {
+            home = {
+                activation = "ykpamcfg -2 -v";
+                homeDirectory = j.attrs.homes.${designation};
+            };
+        }) j.attrs.allUsers;
+    };
+}
+#+end_src
+
 ***** Networking
 
 #+begin_src nix
@@ -2955,14 +2971,7 @@ Help is available in the configuration.nix(5) man page and in the NixOS manual (
 
 {
     home-manager = {
-        useGlobalPkgs = true;
-        users = j.foldToSet [
-            listToAttrs (map (user: nameValuePair user {
-                home = {
-                    homeDirectory = j.attrs.homes.${user};
-                };
-            }) j.attrs.allUsernames)
-        ];
+        users = mapAttrs' (designation: user: nameValuePair user {}) j.attrs.allUsers;
     };
 }
 #+end_src

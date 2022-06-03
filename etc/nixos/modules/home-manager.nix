@@ -2,13 +2,6 @@
 
 {
     home-manager = {
-        useGlobalPkgs = true;
-        users = j.foldToSet [
-            listToAttrs (map (user: nameValuePair user {
-                home = {
-                    homeDirectory = j.attrs.homes.${user};
-                };
-            }) j.attrs.allUsernames)
-        ];
+        users = mapAttrs' (designation: user: nameValuePair user {}) j.attrs.allUsers;
     };
 }

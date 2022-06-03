@@ -384,8 +384,8 @@ The final partition will be the ZFS partition, and does not need to be specified
    (.option click "-r" "--root-device")
    (.option click "-s" "--swap" :cls oreo.Option :xor [ "swap-device" ] :is-flag True)
    (.option click "-S" "--swap-device" :cls oreo.Option :xor [ "swap" ])
-   (.option click "-i" "--install")
-   (.option click "-I" "--install-bootloader")
+   (.option click "-i" "--install" :is-flag True)
+   (.option click "-I" "--install-bootloader" :is-flag True)
    click.pass-context
    (defn mount [ ctx boot-device deduplicated encrypted root-device swap swap-device install install-bootloader ]
          (if ctx.obj.host
