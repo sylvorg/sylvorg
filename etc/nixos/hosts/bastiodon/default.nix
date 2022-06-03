@@ -2,10 +2,13 @@
 
 {
     imports = [ ../../devices/rpi3.nix ];
-    services.tailscale.advertiseExitNode = true;
+    services.tailscale = {
+        exitNode.advertise = true;
+        acceptDNS = ! config.services.tailscale.exitNode.advertise;
+    };
     networking = {
         hostName = baseNameOf (toString ./.);
-        hostId = "50919b49";
+        hostId = "e4d6a194";
     };
     variables.relay = true;
 }

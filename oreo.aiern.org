@@ -1176,7 +1176,10 @@ Adapted from [[https://nixos.wiki/wiki/NixOS_on_ARM/Raspberry_Pi_3][here]]:
 
 {
     imports = [ ../../devices/rpi3.nix ];
-    services.tailscale.advertiseExitNode = true;
+    services.tailscale = {
+        exitNode.advertise = true;
+        acceptDNS = ! config.services.tailscale.exitNode.advertise;
+    };
     networking = {
         hostName = baseNameOf (toString ./.);
         hostId = <<hostId()>>;
