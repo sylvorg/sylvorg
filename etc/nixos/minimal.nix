@@ -8,9 +8,7 @@ with builtins; args@{ config, ... }: let
 
     dir = "/home/shadowrylander/aiern";
     dirExists = pathExists dir;
-
-    # TODO: Is this necessary?
-    repo = with lib; j.mntConvert (if dirExists then (fetchGit { url = "file://${dir}"; ref = "main"; }) else flake.inputs.${j.attrs.users.primary});
+    repo = if dirExists then (fetchGit { url = "file://${dir}"; ref = "main"; }) else flake.inputs.${lib.j.attrs.users.primary};
 
     nixos = "${(if fromFlake then args else flake.inputs).nixpkgs}/nixos";
     nixos-configuration = configuration: import nixos { configuration = import configuration (lib.recursiveUpdate args inheritanceSet); inherit system; };
@@ -586,6 +584,8 @@ in with lib; {
     environment = {
         systemPackages = with pkgs; [
             pcsctools
+            yubico-pam yubico-piv-tool yubikey-manager yubikey-agent yubikey-personalization yubioath-desktop
+            yubikey-manager-qt yubikey-personalization-gui
         ];
     };
     security.pam = {

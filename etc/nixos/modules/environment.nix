@@ -124,8 +124,6 @@
             xclip
             xfce.thunar
             xz
-            yubico-pam yubico-piv-tool yubikey-manager yubikey-agent yubikey-personalization yubioath-desktop
-            yubikey-manager-qt yubikey-personalization-gui
             zenith
             zoxide
             zsh

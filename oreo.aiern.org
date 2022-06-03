@@ -1556,7 +1556,12 @@ Deprecated Set Function:
                     fsType = "zfs";
                     options = [ "defaults" "x-systemd.device-timeout=5" "nofail" ];
                 };
-                supported = [ "zfs" "xfs" "btrfs" "ext4" "fat" "vfat" "bcachefs" ];
+                supported = [ "zfs" "xfs" "btrfs" "ext4" "fat" "vfat"
+
+                    # TODO
+                    # "bcachefs"
+
+                ];
             };
             commands = {
                 rebuild = "nixos-rebuild --show-trace";
@@ -1935,7 +1940,9 @@ in with lib; {
         # kernelPackages = mkDefault pkgs.linuxPackages_lqx;
         # kernelPackages = mkDefault pkgs.linuxPackages_zen;
         kernelPatches = flatten [
-            (optionals (elem "bcachefs" config.boot.supportedFilesystems) (filter (set: hasInfix "bcachefs" set.name) pkgs.linuxKernel.kernels.linux_testing_bcachefs.kernelPatches))
+
+            # TODO
+            # (optionals (elem "bcachefs" config.boot.supportedFilesystems) (filter (set: hasInfix "bcachefs" set.name) pkgs.linuxKernel.kernels.linux_testing_bcachefs.kernelPatches))
 #+end_src
 
 # TODO: Apparently doesn't work with bcachefs
@@ -1980,9 +1987,7 @@ with builtins; args@{ config, ... }: let
 
     dir = "<<userrepo>>";
     dirExists = pathExists dir;
-
-    # TODO: Is this necessary?
-    repo = with lib; j.mntConvert (if dirExists then (fetchGit { url = "file://${dir}"; ref = "main"; }) else flake.inputs.${j.attrs.users.primary});
+    repo = if dirExists then (fetchGit { url = "file://${dir}"; ref = "main"; }) else flake.inputs.${lib.j.attrs.users.primary};
 
     nixos = "${(if fromFlake then args else flake.inputs).nixpkgs}/nixos";
     nixos-configuration = configuration: import nixos { configuration = import configuration (lib.recursiveUpdate args inheritanceSet); inherit system; };
@@ -2646,6 +2651,8 @@ Adapted from [[https://www.reddit.com/r/NixOS/comments/ut8j10/nixos_zfs_podman_b
     environment = {
         systemPackages = with pkgs; [
             pcsctools
+            yubico-pam yubico-piv-tool yubikey-manager yubikey-agent yubikey-personalization yubioath-desktop
+            yubikey-manager-qt yubikey-personalization-gui
         ];
     };
     security.pam = {
@@ -2861,8 +2868,6 @@ Adapted from [[https://www.reddit.com/r/NixOS/comments/ut8j10/nixos_zfs_podman_b
             xclip
             xfce.thunar
             xz
-            yubico-pam yubico-piv-tool yubikey-manager yubikey-agent yubikey-personalization yubioath-desktop
-            yubikey-manager-qt yubikey-personalization-gui
             zenith
             zoxide
             zsh

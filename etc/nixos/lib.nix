@@ -224,7 +224,12 @@ with builtins; { pkgs, lib, inputs ? {}, system ? currentSystem }: with lib; let
                     fsType = "zfs";
                     options = [ "defaults" "x-systemd.device-timeout=5" "nofail" ];
                 };
-                supported = [ "zfs" "xfs" "btrfs" "ext4" "fat" "vfat" "bcachefs" ];
+                supported = [ "zfs" "xfs" "btrfs" "ext4" "fat" "vfat"
+
+                    # TODO
+                    # "bcachefs"
+
+                ];
             };
             commands = {
                 rebuild = "nixos-rebuild --show-trace";
