@@ -63,6 +63,7 @@
                     pkgs = make.pre-pkgs system;
                     lib = final;
                 };
+                inherit (inputs.home-manager.lib) hm;
             });
             pre-nixpkgset = system: lib: { inherit system; config = lib.j.attrs.configs.nixpkgs; };
             overlays = system: lib: import ./overlays.nix {
