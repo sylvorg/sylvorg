@@ -2351,6 +2351,7 @@ Adapted from [[https://www.reddit.com/r/NixOS/comments/ut8j10/nixos_zfs_podman_b
             fasd
             fd
             fzf
+            git
             git-crypt
             gnupg
             gopass
@@ -2360,6 +2361,7 @@ Adapted from [[https://www.reddit.com/r/NixOS/comments/ut8j10/nixos_zfs_podman_b
             starship
             tailscale
             tailapi
+            yadm
             zoxide
         ];
     };
@@ -2587,7 +2589,8 @@ Adapted from [[https://www.reddit.com/r/NixOS/comments/ut8j10/nixos_zfs_podman_b
                     description = "Jeet Ray";
                     group = primary;
                     extraGroups = [ secondary ];
-                    shell = pkgs.xonsh;
+                    # shell = pkgs.xonsh;
+                    shell = pkgs.zsh;
                 };
                 "${secondary}" = {
                     uid = 1111;

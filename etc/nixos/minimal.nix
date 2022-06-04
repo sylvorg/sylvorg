@@ -339,6 +339,7 @@ in with lib; {
             fasd
             fd
             fzf
+            git
             git-crypt
             gnupg
             gopass
@@ -348,6 +349,7 @@ in with lib; {
             starship
             tailscale
             tailapi
+            yadm
             zoxide
         ];
     };
@@ -520,7 +522,8 @@ in with lib; {
                     description = "Jeet Ray";
                     group = primary;
                     extraGroups = [ secondary ];
-                    shell = pkgs.xonsh;
+                    # shell = pkgs.xonsh;
+                    shell = pkgs.zsh;
                 };
                 "${secondary}" = {
                     uid = 1111;
