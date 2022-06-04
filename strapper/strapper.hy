@@ -223,6 +223,8 @@
    (.option click "-p" "--print" :is-flag True :cls oreo.Option :xor [ "print-run" ])
    click.pass-context
    (defn strapper [ ctx dazzle host inspect print-run print ]
+         (if (!= (.getlogin os) "root")
+             (raise (SystemError "Sorry; this program needs to be run as root!")))
          (.ensure-object ctx dict)
          (setv ctx.obj.host host)
          (if dazzle (.bake-all- getconf :m/dazzle True))
@@ -324,7 +326,7 @@ The final partition will be the ZFS partition, and does not need to be specified
                                             #[f[{raid} {(.join " " zfs-devices)}]f]
                                             (raise (NameError no-raid-error-message))))]
                            (if (or partition boot-device)
-                               (.bake- parted :s True :a "optimal" "--"))
+                               (.bake- parted :m/sudo True :s True :a "optimal" "--"))
                            (if partition
                                (do (setv zfs-name ctx.obj.host)
                                    (parted zfs-device "mklabel" "gpt")
