@@ -379,8 +379,8 @@ in with lib; {
         useGlobalPkgs = true;
         users = mapAttrs' (designation: user: nameValuePair user {
             home = {
-                activation = "ykpamcfg -2 -v";
-                homeDirectory = j.attrs.homes.${designation};
+                activation.setup-yubikey-sudo = lib.hm.dag.entryAfter ["writeBoundary"] "ykpamcfg -2 -v";
+                homeDirectory = j.attrs.allHomes.${designation};
             };
         }) j.attrs.allUsers;
     };
