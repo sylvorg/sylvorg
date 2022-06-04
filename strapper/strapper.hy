@@ -223,7 +223,7 @@
    (.option click "-p" "--print" :is-flag True :cls oreo.Option :xor [ "print-run" ])
    click.pass-context
    (defn strapper [ ctx dazzle host inspect print-run print ]
-         (if (!= (.getlogin os) "root")
+         (if (!= (.geteuid os) 0)
              (raise (SystemError "Sorry; this program needs to be run as root!")))
          (.ensure-object ctx dict)
          (setv ctx.obj.host host)
