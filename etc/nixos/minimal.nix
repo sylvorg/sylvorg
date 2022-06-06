@@ -422,7 +422,8 @@ in with lib; {
 }
 {
     nix = rec {
-        gc = j.foldToSet [
+        package = pkgs.nixUnstable;
+        gc = mkMerge [
             { automatic = true; }
             { dates = "monthly"; }
             # {

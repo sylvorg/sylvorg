@@ -2,6 +2,7 @@ args@{ lib, nixpkgs, inputs, pkgs, channel }: with builtins; with lib;
 let
 in flatten [
 (final: prev: { j = { inherit pkgs; };})
+inputs.nix.overlay
 (final: prev: { nur = import inputs.nur { nurpkgs = nixpkgs; pkgs = prev; }; })
 inputs.emacs.overlay
 (map (file:
