@@ -1755,10 +1755,12 @@ inputs.extra-container.overlay
 
 **** Overrides from Older Channels
 
+You can use attribute sets to reassign packages from a particular channel, such as ~{ gcc10 = "gcc11" }~ assigned to ~nixos-unstable~ will have ~pkgs.gcc10~ call ~nixos-unstable.gcc11~ instead:
+
 #+begin_src nix
 (let pkgsets = {
-    # nixos-unstable = [ "networkmanager" "gnome-control-center" "bash" "bootstrap-tools" { gcc10 = "gcc11"; } ];
-    nixos-unstable = "gnome-tour";
+    nixos-unstable = [ "gnome-tour" "gcc11" ];
+    # nixos-unstable = "gnome-tour";
 };
 in mapAttrsToList (
     pkgchannel: pkglist': let
@@ -1779,9 +1781,9 @@ in mapAttrsToList (
 #+begin_src nix
 (let pkgsets = {
     # nixos-unstable = [ { python310Packages = "mypy"; } { python310Packages = [ "mypy" ]; } ];
-    # nixos-unstable = { python310Packages = "mypy"; };
+    nixos-unstable = { python310Packages = "mypy"; };
     # nixos-unstable = { python310Packages = [ "mypy" ]; };
-    nixos-22-05 = { python310Packages = "mypy"; };
+    # nixos-22-05 = { python310Packages = "mypy"; };
 };
 in mapAttrsToList (
     pkgchannel: pkglist': let
