@@ -422,7 +422,7 @@ in with lib; {
 }
 {
     nix = rec {
-        package = pkgs.nixUnstable;
+        # package = pkgs.nixUnstable;
         gc = mkMerge [
             { automatic = true; }
             { dates = "monthly"; }

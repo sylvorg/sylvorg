@@ -8,7 +8,7 @@
     };
     networking = {
         hostName = baseNameOf (toString ./.);
-        hostId = "d1f560b3";
+        hostId = "402c27d2";
     };
     variables.relay = true;
 }

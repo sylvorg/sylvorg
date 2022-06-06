@@ -1758,7 +1758,7 @@ inputs.extra-container.overlay
 #+begin_src nix
 (let pkgsets = {
     # nixos-unstable = [ "networkmanager" "gnome-control-center" "bash" "bootstrap-tools" { gcc10 = "gcc11"; } ];
-    # nixos-unstable = "nix";
+    nixos-unstable = "gnome-tour";
 };
 in mapAttrsToList (
     pkgchannel: pkglist': let
@@ -2465,7 +2465,7 @@ Adapted from [[https://www.reddit.com/r/NixOS/comments/ut8j10/nixos_zfs_podman_b
 #+begin_src nix
 {
     nix = rec {
-        package = pkgs.nixUnstable;
+        # package = pkgs.nixUnstable;
         gc = mkMerge [
             { automatic = true; }
             { dates = "monthly"; }
