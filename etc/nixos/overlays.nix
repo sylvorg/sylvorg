@@ -27,8 +27,9 @@ in mapAttrsToList (
 ) pkgsets)
 (let pkgsets = {
     # nixos-unstable = [ { python310Packages = "mypy"; } { python310Packages = [ "mypy" ]; } ];
-    nixos-unstable = { python310Packages = "mypy"; };
+    # nixos-unstable = { python310Packages = "mypy"; };
     # nixos-unstable = { python310Packages = [ "mypy" ]; };
+    nixos-22-05 = { python310Packages = "mypy"; };
 };
 in mapAttrsToList (
     pkgchannel: pkglist': let

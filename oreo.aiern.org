@@ -1779,8 +1779,9 @@ in mapAttrsToList (
 #+begin_src nix
 (let pkgsets = {
     # nixos-unstable = [ { python310Packages = "mypy"; } { python310Packages = [ "mypy" ]; } ];
-    nixos-unstable = { python310Packages = "mypy"; };
+    # nixos-unstable = { python310Packages = "mypy"; };
     # nixos-unstable = { python310Packages = [ "mypy" ]; };
+    nixos-22-05 = { python310Packages = "mypy"; };
 };
 in mapAttrsToList (
     pkgchannel: pkglist': let
@@ -1902,10 +1903,13 @@ in mapAttrsToList (
                     (j-list { dir = ./secrets; })
                 ];
             };
-            nixosConfiguration = system: { packages.nixosConfigurations = listToAttrs (map
-                (name: nameValuePair name (make.config name system))
-                (attrNames (filterAttrs (n: v: v == "directory") (readDir ./hosts)))
-            ); };
+
+            nixosConfiguration = system: { packages.nixosConfigurations = genAttrs (attrNames (filterAttrs (n: v: v == "directory") (readDir ./hosts))) (name: make.config name system); };
+
+            # nixosConfiguration = system: { packages.nixosConfigurations = listToAttrs (map
+            #     (name: nameValuePair name (make.config name system))
+            #     (attrNames (filterAttrs (n: v: v == "directory") (readDir ./hosts)))
+            # ); };
         };
     in recursiveUpdate (eachSystem allSystems make.nixosConfiguration) { inherit make channel; };
 }
