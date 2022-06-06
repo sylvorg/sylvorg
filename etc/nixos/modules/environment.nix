@@ -42,7 +42,6 @@
             figlet
             filet
             firefox
-            fish
             fzf
             gcc
             git
@@ -126,7 +125,6 @@
             xz
             zenith
             zoxide
-            zsh
         ] ++ (map (pkg: pkgs.gnome."gnome-${pkg}") [
             "boxes"
             "characters"
@@ -150,7 +148,6 @@
             black-macchiato
             jupyterlab
             poetry
-            xonsh
         ]);
     };
 }

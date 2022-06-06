@@ -2813,7 +2813,6 @@ Adapted from [[https://www.reddit.com/r/NixOS/comments/ut8j10/nixos_zfs_podman_b
             figlet
             filet
             firefox
-            fish
             fzf
             gcc
             git
@@ -2897,7 +2896,6 @@ Adapted from [[https://www.reddit.com/r/NixOS/comments/ut8j10/nixos_zfs_podman_b
             xz
             zenith
             zoxide
-            zsh
         ] ++ (map (pkg: pkgs.gnome."gnome-${pkg}") [
             "boxes"
             "characters"
@@ -2921,7 +2919,6 @@ Adapted from [[https://www.reddit.com/r/NixOS/comments/ut8j10/nixos_zfs_podman_b
             black-macchiato
             jupyterlab
             poetry
-            xonsh
         ]);
     };
 }
