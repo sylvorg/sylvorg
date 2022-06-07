@@ -10,7 +10,7 @@ inputs.emacs.overlay
     })
 ) (j.import.list { dir = ./overlays; }))
 (let pkgsets = {
-    nixos-unstable = [ "gnome-tour" "gcc11" ];
+    nixos-unstable = [ "gnome-tour" { stdenv = "gcc11Stdenv"} ];
     # nixos-unstable = "gnome-tour";
 };
 in mapAttrsToList (
