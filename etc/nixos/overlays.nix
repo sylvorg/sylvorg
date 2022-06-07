@@ -10,7 +10,7 @@ inputs.emacs.overlay
     })
 ) (j.import.list { dir = ./overlays; }))
 (let pkgsets = {
-    nixos-unstable = [ "gnome-tour" { stdenv = "gcc11Stdenv"; } ];
+    nixos-unstable = [ "gnome-tour" { gcc11 = "gcc12"; } ];
     # nixos-unstable = "gnome-tour";
 };
 in mapAttrsToList (
@@ -22,7 +22,7 @@ in mapAttrsToList (
             pkg1 = if pkgIsAttrs then (last (attrNames pkg')) else pkg';
             pkg2 = if pkgIsAttrs then (last (attrValues pkg')) else pkg';
             self = (pkgchannel == channel) || (pkgchannel == "self");
-        in final: prev: { "${pkg1}" = if ("pkg1" == "stdenv") then pkgs.${pkgchannel}.${pkg2} else if self then prev.${pkg2} else final.j.pkgs.${pkgchannel}.${pkg2}; }
+        in final: prev: { "${pkg1}" = if self then prev.${pkg2} else final.j.pkgs.${pkgchannel}.${pkg2}; }
     ) pkglist
 ) pkgsets)
 (let pkgsets = {
