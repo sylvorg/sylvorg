@@ -1689,6 +1689,15 @@ in flatten [
 })
 #+end_src
 
+**** Python
+
+#+begin_src nix
+(final: prev: {
+    python3 = final.python310;
+    python3Packages = dontRecurseIntoAttrs final.python310Packages;
+})
+#+end_src
+
 **** NIX
 
 #+begin_src nix :noweb-ref no
@@ -1760,7 +1769,8 @@ You can use attribute sets to reassign packages from a particular channel, such 
 #+begin_src nix
 (let pkgsets = {
     # nixos-unstable = [ "gnome-tour" ];
-    nixos-unstable = "gnome-tour";
+    # nixos-unstable = "gnome-tour";
+    # nixos-unstable = { python3 = "python310"; };
 };
 in mapAttrsToList (
     pkgchannel: pkglist': let
@@ -1792,7 +1802,7 @@ in mapAttrsToList (
         pkg': let
             pkg1 = last (attrNames pkg');
             pkg2Pre = last (attrValues pkg');
-            pkg2IsString = isStr pkg2Pre;
+            pkg2IsString = isString pkg2Pre;
             self = (pkgchannel == channel) || (pkgchannel == "self");
             pkgFunc = pkg: { "${pkg}" = if self then prev.${pkg} else final.j.pkgs.${pkgchannel}.${pkg1}.${pkg}; };
             pkg2 = if pkg2IsString then (pkgFunc pkg2Pre) else (genAttrs pkg2Pre pkgFunc);

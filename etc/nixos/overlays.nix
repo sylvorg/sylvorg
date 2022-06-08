@@ -2,6 +2,10 @@ args@{ lib, nixpkgs, inputs, pkgs, channel }: with builtins; with lib;
 let
 in flatten [
 (final: prev: { j = { inherit pkgs; };})
+(final: prev: {
+    python3 = final.python310;
+    python3Packages = dontRecurseIntoAttrs final.python310Packages;
+})
 (final: prev: { nur = import inputs.nur { nurpkgs = nixpkgs; pkgs = prev; }; })
 inputs.emacs.overlay
 (map (file:
@@ -11,7 +15,8 @@ inputs.emacs.overlay
 ) (j.import.list { dir = ./overlays; }))
 (let pkgsets = {
     # nixos-unstable = [ "gnome-tour" ];
-    nixos-unstable = "gnome-tour";
+    # nixos-unstable = "gnome-tour";
+    # nixos-unstable = { python3 = "python310"; };
 };
 in mapAttrsToList (
     pkgchannel: pkglist': let
@@ -38,7 +43,7 @@ in mapAttrsToList (
         pkg': let
             pkg1 = last (attrNames pkg');
             pkg2Pre = last (attrValues pkg');
-            pkg2IsString = isStr pkg2Pre;
+            pkg2IsString = isString pkg2Pre;
             self = (pkgchannel == channel) || (pkgchannel == "self");
             pkgFunc = pkg: { "${pkg}" = if self then prev.${pkg} else final.j.pkgs.${pkgchannel}.${pkg1}.${pkg}; };
             pkg2 = if pkg2IsString then (pkgFunc pkg2Pre) else (genAttrs pkg2Pre pkgFunc);
