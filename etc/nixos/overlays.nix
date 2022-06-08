@@ -10,8 +10,8 @@ inputs.emacs.overlay
     })
 ) (j.import.list { dir = ./overlays; }))
 (let pkgsets = {
-    nixos-unstable = [ "gnome-tour" { gcc11 = "gcc12"; } ];
-    # nixos-unstable = "gnome-tour";
+    # nixos-unstable = [ "gnome-tour" ];
+    nixos-unstable = "gnome-tour";
 };
 in mapAttrsToList (
     pkgchannel: pkglist': let
@@ -27,7 +27,7 @@ in mapAttrsToList (
 ) pkgsets)
 (let pkgsets = {
     # nixos-unstable = [ { python310Packages = "mypy"; } { python310Packages = [ "mypy" ]; } ];
-    nixos-unstable = { python310Packages = "mypy"; };
+    # nixos-unstable = { python310Packages = "mypy"; };
     # nixos-unstable = { python310Packages = [ "mypy" ]; };
     # nixos-22-05 = { python310Packages = "mypy"; };
 };

@@ -1759,8 +1759,8 @@ You can use attribute sets to reassign packages from a particular channel, such 
 
 #+begin_src nix
 (let pkgsets = {
-    nixos-unstable = [ "gnome-tour" { gcc11 = "gcc12"; } ];
-    # nixos-unstable = "gnome-tour";
+    # nixos-unstable = [ "gnome-tour" ];
+    nixos-unstable = "gnome-tour";
 };
 in mapAttrsToList (
     pkgchannel: pkglist': let
@@ -1781,7 +1781,7 @@ in mapAttrsToList (
 #+begin_src nix
 (let pkgsets = {
     # nixos-unstable = [ { python310Packages = "mypy"; } { python310Packages = [ "mypy" ]; } ];
-    nixos-unstable = { python310Packages = "mypy"; };
+    # nixos-unstable = { python310Packages = "mypy"; };
     # nixos-unstable = { python310Packages = [ "mypy" ]; };
     # nixos-22-05 = { python310Packages = "mypy"; };
 };
@@ -2495,7 +2495,7 @@ Adapted from [[https://www.reddit.com/r/NixOS/comments/ut8j10/nixos_zfs_podman_b
 #+begin_src nix
 {
     nix = rec {
-        # package = pkgs.nixUnstable;
+        package = pkgs.nixUnstable;
         gc = mkMerge [
             { automatic = true; }
             { dates = "monthly"; }

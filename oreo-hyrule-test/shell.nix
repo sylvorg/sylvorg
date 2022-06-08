@@ -15,5 +15,5 @@ in with pkgs; mkShell {
         src = ./.;
         propagatedBuildInputs = (filter (p: ! elem p.pname [ "hy" "hyrule" ]) prev.propagatedBuildInputs) ++ [ hy hyrule ];
     })) ];
-    shellHook = "hy tests.hy; exit";
+    # shellHook = "hy tests.hy; exit";
 }
