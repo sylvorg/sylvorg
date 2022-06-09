@@ -2,9 +2,14 @@ args@{ lib, nixpkgs, inputs, pkgs, channel }: with builtins; with lib;
 let
 in flatten [
 (final: prev: { j = { inherit pkgs; };})
-(final: prev: {
-    python3 = final.python310;
-    python3Packages = dontRecurseIntoAttrs final.python310Packages;
+(let
+    v2 = j.attrs.versions.python.two;
+    v3 = j.attrs.versions.python.three;
+in final: prev: {
+    python2 = final."python2${v2}";
+    python2Packages = dontRecurseIntoAttrs final."python2${v2}Packages";
+    python3 = final."python3${v3}";
+    python3Packages = dontRecurseIntoAttrs final."python3${v3}Packages";
 })
 (final: prev: { nur = import inputs.nur { nurpkgs = nixpkgs; pkgs = prev; }; })
 inputs.emacs.overlay

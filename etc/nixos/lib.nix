@@ -235,6 +235,12 @@ with builtins; { pkgs, lib, inputs ? {}, system ? currentSystem }: with lib; let
                 rebuild = "nixos-rebuild --show-trace";
                 install = "nixos-install --show-trace";
             };
+            versions = {
+                python = {
+                    two = 7;
+                    three = 10;
+                };
+            };
         };
     };
     extension = makeExtensible newLib;
