@@ -96,11 +96,11 @@
                 ];
             };
 
-            nixosConfiguration = system: { packages.nixosConfigurations = genAttrs (attrNames (filterAttrs (n: v: v == "directory") (readDir ./hosts))) (name: make.config name system); };
+            nixosConfiguration = system: { packages.nixosConfigurations = genAttrs (dirCon.dirs ./hosts) (name: make.config name system); };
 
             # nixosConfiguration = system: { packages.nixosConfigurations = listToAttrs (map
             #     (name: nameValuePair name (make.config name system))
-            #     (attrNames (filterAttrs (n: v: v == "directory") (readDir ./hosts)))
+            #     (dirCon.dirs ./hosts)
             # ); };
         };
     in recursiveUpdate (eachSystem allSystems make.nixosConfiguration) { inherit make channel; };

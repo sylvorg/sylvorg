@@ -101,12 +101,11 @@ in with lib; {
                 ];
             };
             "/persist" = let
-                redRepo = readDir repo;
                 redRepoFiles = flatten [
-                    (attrNames (filterAttrs (n: v: v != "directory") redRepo))
+                    (dirCon.others repo)
                 ];
                 redRepoDirectories = flatten [
-                    (attrNames (filterAttrs (n: v: v == "directory") redRepo))
+                    (dirCon.dirs repo)
                 ];
             in {
                 users = mapAttrs' (designation: user: let
@@ -116,12 +115,11 @@ in with lib; {
                         group = user;
                     };
                     userFileSet.parentDirectory = userDirSet;
-                    predRepo = let pHome = "/persist/${home}"; in j.readDirExists pHome;
                     predRepoFiles = flatten [
-                        (attrNames (filterAttrs (n: v: v != "directory") predRepo))
+                        (dirCon.others pHome)
                     ];
                     predRepoDirectories = flatten [
-                        (attrNames (filterAttrs (n: v: v == "directory") predRepo))
+                        (dirCon.dirs pHome)
                     ];
                 in nameValuePair user {
                     inherit home;

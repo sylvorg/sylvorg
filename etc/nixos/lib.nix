@@ -37,12 +37,20 @@ with builtins; { pkgs, lib, inputs ? {}, system ? currentSystem }: with lib; let
                 infix = ignores: list: filter (f: ! any (i: hasInfix i f) ignores) list;
             };
         };
+        dirCon = let
+            aord = dir: func: attrNames (filterAttrs func (if (isAttrs dir') then dir' else (readDirExists dir')));
+        in {
+            dirs = dir: aord dir (n: v: v == "directory");
+            others = dir: aord dir (n: v: v != "directory");
+            files = dir: aord dir (n: v: v == "regular");
+            sym = dir: aord dir (n: v: v == "symlink");
+            unknown = dir: aord dir (n: v: v == "unknown");
+        };
         recurseDir = { dir, local ? false, iter ? 0, ignores ? {} }: with lib; let
             stringDir = toString dir;
-            redDir = readDirExists dir;
             recurse = unique (flatten [
-                (map (n: "${stringDir}/${n}") (attrNames (filterAttrs (n: v: v != "directory") redDir)))
-                (map (dir': recurseDir { dir = "${stringDir}/${dir'}"; inherit local; iter = iter + 1; }) (attrNames (filterAttrs (n: v: v == "directory") redDir)))
+                (map (n: "${stringDir}/${n}") (dirCon.others dir))
+                (map (dir': recurseDir { dir = "${stringDir}/${dir'}"; inherit local; iter = iter + 1; }) (dirCon.dirs dir))
             ]);
             processed-prefix = map (i: if (local == null) then i else if (local == 0) then "/${i}" else if local then "./${i}" else if (! local) then "${stringDir}/${i}" else i) (ignores.prefix or []);
             process' = recurse': let
@@ -54,15 +62,6 @@ with builtins; { pkgs, lib, inputs ? {}, system ? currentSystem }: with lib; let
             prefix = prefixes: string: any (prefix: hasPrefix prefix string) prefixes;
             suffix = suffixes: string: any (suffix: hasSuffix suffix string) suffixes;
             infix = infixes: string: any (infix: hasInfix infix string) infixes;
-        };
-        dir = let
-            aord = dir': if (isAttrs dir') then dir' else (readDirExists dir');
-        in {
-            dirs = dir: attrNames (filterAttrs (n: v: v == "directory") (aord dir));
-            else = dir: attrNames (filterAttrs (n: v: v != "directory") (aord dir));
-            files = dir: attrNames (filterAttrs (n: v: v == "regular") (aord dir));
-            sym = dir: attrNames (filterAttrs (n: v: v == "symlink") (aord dir));
-            unknown = dir: attrNames (filterAttrs (n: v: v == "unknown") (aord dir));
         };
         import = let
             args = {

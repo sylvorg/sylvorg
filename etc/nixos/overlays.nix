@@ -13,7 +13,7 @@ in final: prev: rec {
     python = python3;
     pythonPackages = python3Packages;
 })
-(final: prev: python3Packages.rich = prev.python3Packages.rich.overridePythonAttrs (old: {
+(final: prev: { python3Packages.rich = prev.python3Packages.rich.overridePythonAttrs (old: {
     version = "12.0.0";
     src = final.fetchFromGitHub {
         owner = "syvlorg";
@@ -27,15 +27,15 @@ in final: prev: rec {
         homepage = "https://github.com/syvlorg/rich";
         license = lib.licenses.mit;
     };
-}))
-(final: prev: xonsh = prev.xonsh.overridePythonAttrs (old: { propagatedBuildInputs = (with final.python3Packages; [ 
+}); })
+(final: prev: { xonsh = prev.xonsh.overridePythonAttrs (old: { propagatedBuildInputs = (with final.python3Packages; [ 
     bakery
     xontrib-sh
     xontrib-readable-traceback
     xontrib-pipeliner
     xonsh-autoxsh
     xonsh-direnv
-]) ++ old.propagatedBuildInputs; }))
+]) ++ old.propagatedBuildInputs; }); })
 (final: prev: { nur = import inputs.nur { nurpkgs = nixpkgs; pkgs = prev; }; })
 inputs.emacs.overlay
 (final: prev: let dir = ./callPackages; in j.import.set { call = true; inherit dir; ignores = j.dir.dirs dir; })
