@@ -38,9 +38,9 @@ in final: prev: rec {
 ]) ++ old.propagatedBuildInputs; }); })
 (final: prev: { nur = import inputs.nur { nurpkgs = nixpkgs; pkgs = prev; }; })
 inputs.emacs.overlay
-(final: prev: let dir = ./callPackages; in j.import.set { call = true; inherit dir; ignores = j.dir.dirs dir; })
-(final: prev: let dir = ./callPackages/python; in { python3Packages = j.import.set { call = final.python3Packages; inherit dir; ignores = j.dir.dirs dir; }; })
-(final: prev: let dir = ./overlays; in j.import.set { inherit dir; ignores = j.dir.dirs dir; })
+(final: prev: let dir = ./callPackages; in j.import.set { call = true; inherit dir; ignores = j.dirCon.dirs dir; })
+(final: prev: let dir = ./callPackages/python; in { python3Packages = j.import.set { call = final.python3Packages; inherit dir; ignores = j.dirCon.dirs dir; }; })
+(final: prev: let dir = ./overlays; in j.import.set { inherit dir; ignores = j.dirCon.dirs dir; })
 (let pkgsets = {
     # nixos-unstable = [ "gnome-tour" ];
     # nixos-unstable = "gnome-tour";

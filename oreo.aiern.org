@@ -1457,7 +1457,7 @@ with builtins; { pkgs, lib, inputs ? {}, system ? currentSystem }: with lib; let
                 func ? (n: v: dir + "/" + n),
 
             }: let
-                files = list (filterAttrs (arg: v: !elem arg [ "modules" "self" ]) _args);
+                files = list (filterAttrs (arg: v: !elem arg [ "modules" "self" "call" ]) _args);
             in listToAttrs (map (file: nameValuePair
                 (name { inherit suffix file; })
                 (if (! isBool call) then (call.callPackage file modules)
@@ -2313,19 +2313,19 @@ inputs.emacs.overlay
 **** My Packages
 
 #+begin_src nix
-(final: prev: let dir = ./callPackages; in j.import.set { call = true; inherit dir; ignores = j.dir.dirs dir; })
+(final: prev: let dir = ./callPackages; in j.import.set { call = true; inherit dir; ignores = j.dirCon.dirs dir; })
 #+end_src
 
 ***** Python
 
 #+begin_src nix
-(final: prev: let dir = ./callPackages/python; in { python3Packages = j.import.set { call = final.python3Packages; inherit dir; ignores = j.dir.dirs dir; }; })
+(final: prev: let dir = ./callPackages/python; in { python3Packages = j.import.set { call = final.python3Packages; inherit dir; ignores = j.dirCon.dirs dir; }; })
 #+end_src
 
 **** Overlays in Overlays Directory
 
 #+begin_src nix
-(final: prev: let dir = ./overlays; in j.import.set { inherit dir; ignores = j.dir.dirs dir; })
+(final: prev: let dir = ./overlays; in j.import.set { inherit dir; ignores = j.dirCon.dirs dir; })
 #+end_src
 
 **** Overrides from Older Channels

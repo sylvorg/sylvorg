@@ -131,7 +131,7 @@ with builtins; { pkgs, lib, inputs ? {}, system ? currentSystem }: with lib; let
                 func ? (n: v: dir + "/" + n),
 
             }: let
-                files = list (filterAttrs (arg: v: !elem arg [ "modules" "self" ]) _args);
+                files = list (filterAttrs (arg: v: !elem arg [ "modules" "self" "call" ]) _args);
             in listToAttrs (map (file: nameValuePair
                 (name { inherit suffix file; })
                 (if (! isBool call) then (call.callPackage file modules)
