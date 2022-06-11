@@ -2,7 +2,7 @@
     relayNo = if config.variables.relay then "no" else "yes";
     relayYes = if config.variables.relay then "yes" else "no";
 in {
-    imports = [ ../variables.nix ];
+    imports = [ ../options.nix ];
     services.openssh = {
         enable = true;
         extraConfig = lib.mkOrder 0 ''

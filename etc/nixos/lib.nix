@@ -55,12 +55,21 @@ with builtins; { pkgs, lib, inputs ? {}, system ? currentSystem }: with lib; let
             suffix = suffixes: string: any (suffix: hasSuffix suffix string) suffixes;
             infix = infixes: string: any (infix: hasInfix infix string) infixes;
         };
+        dir = let
+            aord = dir': if (isAttrs dir') then dir' else (readDirExists dir');
+        in {
+            dirs = dir: attrNames (filterAttrs (n: v: v == "directory") (aord dir));
+            else = dir: attrNames (filterAttrs (n: v: v != "directory") (aord dir));
+            files = dir: attrNames (filterAttrs (n: v: v == "regular") (aord dir));
+            sym = dir: attrNames (filterAttrs (n: v: v == "symlink") (aord dir));
+            unknown = dir: attrNames (filterAttrs (n: v: v == "unknown") (aord dir));
+        };
         import = let
             args = {
                 suffix = "";
                 ignores = [];
             };
-            baseNameNoSuffix = {
+            name = {
                 suffix ? args.suffix,
                 noSuffix ? suffix == "",
                 file
@@ -85,13 +94,14 @@ with builtins; { pkgs, lib, inputs ? {}, system ? currentSystem }: with lib; let
                     (hasSuffix ".nix" file) || (value == "directory")
                 ) else (hasSuffix suffix file)) &&
                 (!hasPrefix "_" file) &&
-                (!elem (baseNameNoSuffix { inherit suffix file noSuffix; }) _ignores);
+                (!elem (name { inherit suffix file noSuffix; }) _ignores);
             contents = _args@{
                 suffix ? args.suffix,
                 ignores ? args.ignores,
                 dir,
             }: filterAttrs (filterFunc _args) (readDir dir);
-        in {
+        in rec {
+            inherit name;
             list = _args@{
                 suffix ? args.suffix,
                 ignores ? args.ignores,
@@ -109,9 +119,10 @@ with builtins; { pkgs, lib, inputs ? {}, system ? currentSystem }: with lib; let
                 dir
             }: list {
                 inherit suffix ignores dir;
-                func = (n: v: baseNameNoSuffix { inherit suffix; file = n; });
+                func = (n: v: name { inherit suffix; file = n; });
             };
             set = _args@{
+                call ? false,
                 suffix ? args.suffix,
                 ignores ? args.ignores,
                 dir,
@@ -123,8 +134,10 @@ with builtins; { pkgs, lib, inputs ? {}, system ? currentSystem }: with lib; let
             }: let
                 files = list (filterAttrs (arg: v: !elem arg [ "modules" "self" ]) _args);
             in listToAttrs (map (file: nameValuePair
-                (baseNameNoSuffix { inherit suffix file; })
-                (import file (foldToSet [ modules inputs ]))
+                (name { inherit suffix file; })
+                (if (! isBool call) then (call.callPackage file modules)
+                 else if call then (pkgs.callPackage file modules)
+                 else (import file (foldToSet [ modules inputs ])))
             ) files);
         };
         attrs = rec {
@@ -237,8 +250,8 @@ with builtins; { pkgs, lib, inputs ? {}, system ? currentSystem }: with lib; let
             };
             versions = {
                 python = {
-                    two = 7;
-                    three = 10;
+                    two = "7";
+                    three = "10";
                 };
             };
         };

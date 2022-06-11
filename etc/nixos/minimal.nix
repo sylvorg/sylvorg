@@ -26,7 +26,7 @@ in with lib; {
     imports = with flake.inputs; flatten [
         ./cachix.nix
         (optionals (! fromFlake) [ home-manager.nixosModules.home-manager impermanence.nixosModules.impermanence ])
-        ./variables.nix
+        ./options.nix
         ./boot.nix
     ];
     config = mkMerge [

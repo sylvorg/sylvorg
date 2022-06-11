@@ -1052,7 +1052,7 @@ Adapted from the following:
     relayNo = if config.variables.relay then "no" else "yes";
     relayYes = if config.variables.relay then "yes" else "no";
 in {
-    imports = [ ../variables.nix ];
+    imports = [ ../options.nix ];
     services.openssh = {
         enable = true;
         extraConfig = lib.mkOrder 0 ''
@@ -1381,12 +1381,21 @@ with builtins; { pkgs, lib, inputs ? {}, system ? currentSystem }: with lib; let
             suffix = suffixes: string: any (suffix: hasSuffix suffix string) suffixes;
             infix = infixes: string: any (infix: hasInfix infix string) infixes;
         };
+        dir = let
+            aord = dir': if (isAttrs dir') then dir' else (readDirExists dir');
+        in {
+            dirs = dir: attrNames (filterAttrs (n: v: v == "directory") (aord dir));
+            else = dir: attrNames (filterAttrs (n: v: v != "directory") (aord dir));
+            files = dir: attrNames (filterAttrs (n: v: v == "regular") (aord dir));
+            sym = dir: attrNames (filterAttrs (n: v: v == "symlink") (aord dir));
+            unknown = dir: attrNames (filterAttrs (n: v: v == "unknown") (aord dir));
+        };
         import = let
             args = {
                 suffix = "";
                 ignores = [];
             };
-            baseNameNoSuffix = {
+            name = {
                 suffix ? args.suffix,
                 noSuffix ? suffix == "",
                 file
@@ -1411,13 +1420,14 @@ with builtins; { pkgs, lib, inputs ? {}, system ? currentSystem }: with lib; let
                     (hasSuffix ".nix" file) || (value == "directory")
                 ) else (hasSuffix suffix file)) &&
                 (!hasPrefix "_" file) &&
-                (!elem (baseNameNoSuffix { inherit suffix file noSuffix; }) _ignores);
+                (!elem (name { inherit suffix file noSuffix; }) _ignores);
             contents = _args@{
                 suffix ? args.suffix,
                 ignores ? args.ignores,
                 dir,
             }: filterAttrs (filterFunc _args) (readDir dir);
-        in {
+        in rec {
+            inherit name;
             list = _args@{
                 suffix ? args.suffix,
                 ignores ? args.ignores,
@@ -1435,9 +1445,10 @@ with builtins; { pkgs, lib, inputs ? {}, system ? currentSystem }: with lib; let
                 dir
             }: list {
                 inherit suffix ignores dir;
-                func = (n: v: baseNameNoSuffix { inherit suffix; file = n; });
+                func = (n: v: name { inherit suffix; file = n; });
             };
             set = _args@{
+                call ? false,
                 suffix ? args.suffix,
                 ignores ? args.ignores,
                 dir,
@@ -1449,8 +1460,10 @@ with builtins; { pkgs, lib, inputs ? {}, system ? currentSystem }: with lib; let
             }: let
                 files = list (filterAttrs (arg: v: !elem arg [ "modules" "self" ]) _args);
             in listToAttrs (map (file: nameValuePair
-                (baseNameNoSuffix { inherit suffix file; })
-                (import file (foldToSet [ modules inputs ]))
+                (name { inherit suffix file; })
+                (if (! isBool call) then (call.callPackage file modules)
+                 else if call then (pkgs.callPackage file modules)
+                 else (import file (foldToSet [ modules inputs ])))
             ) files);
 #+end_src
 
@@ -1469,7 +1482,7 @@ Deprecated Set Function:
             }: let
                 files = list (filterAttrs (arg: v: !elem arg [ "modules" "self" ]) _args);
             in zipToSet
-                (map (file: baseNameNoSuffix { inherit suffix file; }) files)
+                (map (file: name { inherit suffix file; }) files)
                 (map (file: import file (foldToSet [ modules inputs ])) files);
 #+end_src
 
@@ -1576,8 +1589,8 @@ Deprecated Set Function:
             };
             versions = {
                 python = {
-                    two = 7;
-                    three = 10;
+                    two = "7";
+                    three = "10";
                 };
             };
         };
@@ -1592,51 +1605,47 @@ in with lib; extension.extend (final: prev: extension.foldToSet (attrValues prev
 Adapted from [[https://github.com/NixOS/nixpkgs/issues/14671#issuecomment-1016376290][here]]; allows me to build ~caddy~ with plugins:
 
 #+begin_src nix :tangle (meq/tangle-path)
-{ lib, fetchFromGitHub, buildGoModule, plugins ? [], vendorSha256 ? "" }:
-
-with lib;
-
-let imports = flip concatMapStrings plugins (pkg: "\t\t\t_ \"${pkg}\"\n");
-
+{ lib, fetchFromGitHub, buildGoModule }: with lib; let
+    imports = flip concatMapStrings [
+        "github.com/mholt/caddy-l4@latest"
+        "github.com/abiosoft/caddy-yaml@latest"
+        "github.com/caddy-dns/cloudflare@latest"
+    ] (pkg: "\t\t\t_ \"${pkg}\"\n");
 	main = ''
 		package main
 
 		import (
 			caddycmd "github.com/caddyserver/caddy/v2/cmd"
-
 			_ "github.com/caddyserver/caddy/v2/modules/standard"
-${imports}
+			${imports}
 		)
 
 		func main() {
 			caddycmd.Main()
 		}
 	'';
-
-
 in buildGoModule rec {
 	pname = "caddy";
-	version = "2.4.6";
-  runVend = true;
+	version = "2.5.1";
+    runVend = true;
 	subPackages = [ "cmd/caddy" ];
 
-  src = fetchFromGitHub {
-    owner = "caddyserver";
-    repo = "caddy";
-    rev = "v${version}";
-    sha256 = "sha256-xNCxzoNpXkj8WF9+kYJfO18ux8/OhxygkGjA49+Q4vY=";
-  };
+	src = fetchFromGitHub {
+		owner = "caddyserver";
+		repo = "caddy";
+		rev = "v${version}";
+		sha256 = "sha256-Y4GAx/8XcW7+6eXCQ6k4e/3WZ/6MkTr5za1AXp6El9o=";
+	};
 
-	inherit vendorSha256;
+	vendorSha256 = "sha256-xu3klc9yb4Ws8fvXRV286IDhi/zQVN1PKCiFKb8VJBo=";
 
 	overrideModAttrs = (_: {
 		preBuild    = "echo '${main}' > cmd/caddy/main.go";
-		postInstall = "cp go.sum go.mod $out/ && ls $out/";
+		postInstall = "cp go.sum go.mod $out/";
 	});
 
 	postPatch = ''
 		echo '${main}' > cmd/caddy/main.go
-		cat cmd/caddy/main.go
 	'';
 
 	postConfigure = ''
@@ -1648,8 +1657,531 @@ in buildGoModule rec {
 		homepage = https://caddyserver.com;
 		description = "Fast, cross-platform HTTP/2 web server with automatic HTTPS";
 		license = licenses.asl20;
-    maintainers = with maintainers; [ Br1ght0ne ];
+    	maintainers = with maintainers; [ Br1ght0ne ];
 	};
+}
+#+end_src
+
+**** guix.nix
+
+Adapted from [[https://github.com/pukkamustard/nixpkgs/blob/guix/pkgs/development/guix/guix.nix][here]]:
+
+#+begin_src nix :tangle (meq/tangle-path)
+{stdenv, fetchurl, lib}: stdenv.mkDerivation rec {
+    name = "guix-${version}";
+    version = "1.0.0";
+
+    src = fetchurl {
+      url = "https://ftp.gnu.org/gnu/guix/guix-binary-${version}.${stdenv.targetPlatform.system}.tar.xz";
+      sha256 = {
+        "x86_64-linux" = "11y9nnicd3ah8dhi51mfrjmi8ahxgvx1mhpjvsvdzaz07iq56333";
+        "i686-linux" = "14qkz12nsw0cm673jqx0q6ls4m2bsig022iqr0rblpfrgzx20f0i";
+        "aarch64-linux" = "0qzlpvdkiwz4w08xvwlqdhz35mjfmf1v3q8mv7fy09bk0y3cwzqs";
+        }."${stdenv.targetPlatform.system}";
+    };
+    sourceRoot = ".";
+
+    outputs = [ "out" "store" "var" ];
+    phases = [ "unpackPhase" "installPhase" ];
+
+    installPhase = ''
+      # copy the /gnu/store content
+      mkdir -p $store
+      cp -r gnu $store
+
+      # copy /var content
+      mkdir -p $var
+      cp -r var $var
+
+      # link guix binaries
+      mkdir -p $out/bin
+      ln -s /var/guix/profiles/per-user/root/current-guix/bin/guix $out/bin/guix
+      ln -s /var/guix/profiles/per-user/root/current-guix/bin/guix-daemon $out/bin/guix-daemon
+    '';
+
+    meta = with lib; {
+      description = "The GNU Guix package manager";
+      homepage = https://www.gnu.org/software/guix/;
+      license = licenses.gpl3Plus;
+      maintainers = [ maintainers.johnazoidberg ];
+      platforms = [ "aarch64-linux" "i686-linux" "x86_64-linux" ];
+    };
+}
+#+end_src
+
+**** flk.nix
+
+#+begin_src nix :tangle (meq/tangle-path)
+{ stdenv, fetchgit, lib }: stdenv.mkDerivation rec {
+    pname = "flk";
+    version = "1.0.0.0";
+
+    src = fetchgit {
+        url = "https://github.com/chr15m/flk.git";
+        rev = "46a88bdb461dda336d5aca851c16d938e05304dc";
+        sha256 = "sha256-NAhWe0O1K3LOdIwYNOHfkBzkGm+h0wckpsCuY/lY/+8=";
+        deepClone = true;
+    };
+
+    installPhase = ''
+        mkdir --parents $out/bin
+        cp ./docs/flk $out/bin/
+    '';
+
+    meta = {
+        description = "A LISP that runs wherever Bash is";
+        homepage = "https://github.com/chr15m/flk";
+        license = lib.licenses.mpl20;
+    };
+}
+#+end_src
+
+**** mdsh.nix
+
+#+begin_src nix :tangle (meq/tangle-path)
+{ stdenv, fetchgit, lib }: stdenv.mkDerivation rec {
+    pname = "mdsh";
+    version = "1.0.0.0";
+
+    src = fetchgit {
+        url = "https://github.com/bashup/mdsh.git";
+        rev = "7e7af618a341eebd50e7825b062bc192079ad5fc";
+        sha256 = "sha256-l03BHDHjlhwRepVDW9FnKCAXZ8AC6pgHQdQJtYOP5fE=";
+    };
+
+    installPhase = ''
+        mkdir --parents $out/bin
+        cp "$src/bin/mdsh" $out/bin/
+    '';
+
+    meta = {
+        description = "Multi-lingual, Markdown-based Literate Programming... in run-anywhere bash";
+        homepage = "https://github.com/bashup/mdsh";
+        license = lib.licenses.mit;
+    };
+}
+#+end_src
+
+**** poetry2setup.nix
+
+#+begin_src nix :tangle (meq/tangle-path)
+{ lib
+, python3
+, fetchFromGitHub
+, gawk
+}:
+
+python3.pkgs.buildPythonApplication rec {
+  pname = "poetry2setup";
+  version = "1.0.0";
+  format = "pyproject";
+
+  src = fetchFromGitHub {
+    owner = "abersheeran";
+    repo = pname;
+    rev = "6d3345f488fda4d0f6eed1bd3438ea6207e55e3a";
+    sha256 = "07z776ikj37whhx7pw1f3pwp25w04aw22vwipjjmvi8c642qxni4";
+  };
+
+  propagatedBuildInputs = with python3.pkgs; [ poetry-core ];
+
+  buildInputs = with python3.pkgs; [ poetry-core ];
+
+  installPhase = ''
+    mkdir --parents $out/bin
+    cp $src/${pname}.py $out/bin/${pname}
+    chmod +x $out/bin/${pname}
+    ${gawk}/bin/awk -i inplace 'BEGINFILE{print "#!/usr/bin/env python3"}{print}' $out/bin/${pname}
+  '';
+
+  postFixup = "wrapProgram $out/bin/${pname} $makeWrapperArgs";
+
+  makeWrapperArgs = [ "--prefix PYTHONPATH : ${placeholder "out"}/lib/${python3.pkgs.python.libPrefix}/site-packages" ];
+
+  meta = {
+    description = "Convert python-poetry(pyproject.toml) to setup.py.";
+    homepage = "https://github.com/abersheeran/${pname}";
+    license = lib.licenses.mit;
+  };
+}
+#+end_src
+
+**** settings.nix
+
+#+begin_src nix :tangle (meq/tangle-path)
+{ stdenv, fetchFromGitHub }: with builtins; stdenv.mkDerivation rec {
+    pname = "settings";
+    version = "1.0.0.0";
+
+    src = fetchFromGitHub {
+        owner = "sylvorg";
+        repo = "settings";
+        rev = "3b8f7d1afe67f147807e48a510674b6088fc2af0";
+    	sha256 = "1fn0pwv2pss6dslsy7ykbfaz43mplzdlamp8pwzkrk8mc9hk3ilf";
+    };
+
+    phases = [ "installPhase" ];
+
+    installPhase = ''
+        mkdir --parents $out
+        cp -r $src/bin $out/bin
+        chmod +x $out/bin/*
+    '';
+}
+#+end_src
+
+**** tailapi
+
+#+begin_src :tangle (meq/tangle-path)
+{ lib
+, python310
+, fetchFromGitHub
+}:
+
+python310.pkgs.buildPythonApplication rec {
+  pname = "tailapi";
+  version = "1.0.0.0";
+
+  src = fetchFromGitHub {
+    owner = "syvlorg";
+    repo = pname;
+    rev = "ada101b9c2919cfbe365c7d5fe71710d95425ca3";
+    sha256 = "0bywlkbwxsnf11i1kv36ls2yax0pp30qmgcyfq3gcmzzhcgk2q3k";
+  };
+
+  propagatedBuildInputs = with python310.pkgs; [
+    oreo
+    requests
+  ];
+
+  installPhase = ''
+    mkdir --parents $out/bin
+    cp $src/${pname}.py $out/bin/${pname}
+    chmod +x $out/bin/${pname}
+  '';
+
+  postFixup = "wrapProgram $out/bin/${pname} $makeWrapperArgs";
+
+  makeWrapperArgs = [
+    # "--prefix" "PATH" ":" (lib.makeBinPath [ git ])
+    "--prefix PYTHONPATH : ${placeholder "out"}/lib/${python310.pkgs.python.libPrefix}/site-packages"
+  ];
+
+  meta = {
+    homepage = "https://github.com/syvlorg/${pname}";
+    license = lib.licenses.oreo;
+  };
+}
+#+end_src
+
+**** python
+***** autoslot.nix
+
+#+begin_src nix :tangle (meq/tangle-path)
+{ lib
+, buildPythonPackage
+, fetchFromGitHub
+, pytestCheckHook
+, flit
+}:
+
+buildPythonPackage rec {
+  pname = "autoslot";
+  version = "2021.10.1";
+  format = "pyproject";
+
+  src = fetchFromGitHub {
+    owner = "cjrh";
+    repo = pname;
+    rev = "master";
+    sha256 = "1dds9dwf5bqxi84s1fzcdykiqgcc1iq3rh6p76wjz6h7cb451h08";
+  };
+
+  nativeBuildInputs = [ flit ];
+
+  checkInputs = [ pytestCheckHook ];
+
+  pythonImportsCheck = [ "autoslot" ];
+
+  meta = {
+    description = "Automatic __slots__ for your Python classes";
+    homepage = "https://github.com/cjrh/autoslot";
+    license = lib.licenses.asl20;
+  };
+}
+#+end_src
+
+***** oreo.nix
+
+#+begin_src nix :tangle (meq/tangle-path)
+{ buildPythonPackage
+, fetchFromGitHub
+, pythonOlder
+, poetry-core
+, addict
+, autoslot
+, click
+, coconut
+, cytoolz
+, hy
+, hyrule
+, more-itertools
+, nixpkgs
+, rich
+, toolz
+}:
+
+buildPythonPackage rec {
+  pname = "oreo";
+  version = "1.0.0.0";
+  format = "pyproject";
+  disabled = pythonOlder "3.9";
+
+  src = fetchFromGitHub {
+    owner = "syvlorg";
+    repo = pname;
+    rev = "6cb1453b0d13613ca1d19bd1b419b107b99a2f6d";
+    sha256 = "0cizhp6p70sx8a388iyy005q0xm83db052f0rwcwmcaxmqvq74zb";
+  };
+
+  buildInputs = [ poetry-core ];
+
+  propagatedBuildInputs = [
+      addict
+      autoslot
+      click
+      coconut
+      cytoolz
+      hy
+      hyrule
+      more-itertools
+      nixpkgs
+      rich
+      toolz
+  ];
+
+  pythonImportsCheck = [ "oreo" ];
+
+  postPatch = ''
+    substituteInPlace pyproject.toml --replace "rich = { git = \"https://github.com/syvlorg/rich.git\", branch = \"master\" }" ""
+    substituteInPlace setup.py --replace "'rich @ git+https://github.com/syvlorg/rich.git@master'," ""
+  '';
+
+  meta = {
+    description = "The Stuffing for Other Functions!";
+    homepage = "https://github.com/syvlorg/oreo";
+  };
+}
+#+end_src
+
+***** bakery.nix
+
+#+begin_src nix :tangle (meq/tangle-path)
+{ buildPythonPackage
+, fetchFromGitHub
+, pythonOlder
+, poetry-core
+, oreo
+}:
+
+buildPythonPackage rec {
+  pname = "bakery";
+  version = "2.0.0.0";
+  format = "pyproject";
+  disabled = pythonOlder "3.9";
+
+  src = fetchFromGitHub {
+    owner = "syvlorg";
+    repo = pname;
+    rev = "9fadd8a2ec2f2e7ea9d2b0e8b9e378c34dfc21e8";
+    sha256 = "0xlf3nw2kwyb1899rsbshixpb054l3gpw6xc50ccyjvcqcv28v1z";
+  };
+
+  buildInputs = [ poetry-core ];
+
+  propagatedBuildInputs = [ oreo ];
+
+  pythonImportsCheck = [ "bakery" ];
+
+  postPatch = ''
+    substituteInPlace pyproject.toml --replace "oreo = { git = \"https://github.com/syvlorg/oreo.git\", branch = \"main\" }" ""
+    substituteInPlace setup.py --replace "'oreo @ git+https://github.com/syvlorg/oreo.git@main'" ""
+  '';
+
+  meta = {
+    homepage = "https://github.com/syvlorg/bakery";
+  };
+}
+#+end_src
+
+***** backtrace.nix
+
+#+begin_src nix :tangle (meq/tangle-path)
+{ lib
+, buildPythonPackage
+, fetchFromGitHub
+, pytestCheckHook
+, colorama
+}:
+
+buildPythonPackage rec {
+  pname = "backtrace";
+  version = "0.2.1";
+
+  src = fetchFromGitHub {
+    owner = "nir0s";
+    repo = pname;
+    rev = "master";
+    sha256 = "1i3xj04zxz9vi57gbkmnnyh9cypf3bm966ic685s162p1xhnz2qp";
+  };
+
+  propagatedBuildInputs = [ colorama ];
+
+  checkInputs = [ pytestCheckHook ];
+
+  pythonImportsCheck = [ "backtrace" ];
+
+  meta = {
+    description = "Makes Python tracebacks human friendly";
+    homepage = "https://github.com/nir0s/backtrace";
+    license = lib.licenses.asl20;
+  };
+}
+#+end_src
+
+***** xontrib-readable-traceback.nix
+
+#+begin_src nix :tangle (meq/tangle-path)
+{ lib
+, buildPythonPackage
+, fetchPypi
+, colorama
+, backtrace
+}:
+
+buildPythonPackage rec {
+  pname = "xontrib-readable-traceback";
+  version = "0.3.2";
+
+  src = fetchPypi {
+    inherit pname version;
+    sha256 = "sha256-1D/uyiA3A1dn9IPakjighckZT5Iy2WOMroBkLMp/FZM=";
+  };
+
+  propagatedBuildInputs = [ colorama backtrace ];
+
+  meta = {
+    description = "xonsh readable traceback";
+    homepage = "https://github.com/vaaaaanquish/xontrib-readable-traceback";
+    license = lib.licenses.mit;
+  };
+}
+#+end_src
+
+***** xonsh-autoxsh.nix
+
+#+begin_src nix :tangle (meq/tangle-path)
+{ lib
+, buildPythonPackage
+, fetchPypi
+}:
+
+buildPythonPackage rec {
+  pname = "xonsh-autoxsh";
+  version = "0.3";
+
+  src = fetchPypi {
+    inherit pname version;
+    sha256 = "sha256-qwXbNbQ5mAwkZ4N+htv0Juw2a3NF6pv0XpolLIQfIe4=";
+  };
+
+  meta = {
+    description = "Automatically execute scripts for directories in Xonsh Shell.";
+    homepage = "https://github.com/Granitosaurus/xonsh-autoxsh";
+    license = lib.licenses.mit;
+  };
+}
+#+end_src
+
+***** xonsh-direnv.nix
+
+#+begin_src nix :tangle (meq/tangle-path)
+{ lib
+, buildPythonPackage
+, fetchPypi
+}:
+
+buildPythonPackage rec {
+  pname = "xonsh-direnv";
+  version = "1.5.0";
+
+  src = fetchPypi {
+    inherit pname version;
+    sha256 = "sha256-OLjtGD2lX4Yf3aHrxCWmAbSPZnf8OuVrBu0VFbsna1Y=";
+  };
+
+  meta = {
+    description = "xonsh extension for using direnv";
+    homepage = "https://github.com/Granitosaurus/xonsh-direnv";
+    license = lib.licenses.mit;
+  };
+}
+#+end_src
+
+***** xonsh-pipeliner.nix
+
+#+begin_src nix :tangle (meq/tangle-path)
+{ lib
+, buildPythonPackage
+, fetchPypi
+, six
+}:
+
+buildPythonPackage rec {
+  pname = "xontrib-pipeliner";
+  version = "0.3.4";
+
+  src = fetchPypi {
+    inherit pname version;
+    sha256 = "sha256-f8tUjPEQYbycq1b3bhXwPU2YF9fkp1URqDDLH2CeNpo=";
+  };
+
+  propagatedBuildInputs = [ six ];
+
+  postPatch = ''
+    substituteInPlace setup.py --replace "'xonsh', " ""
+  '';
+
+  meta = {
+    description = "Let your pipe lines flow thru the Python code in xonsh.";
+    homepage = "https://github.com/anki-code/xontrib-sh";
+    license = lib.licenses.mit;
+  };
+}
+#+end_src
+
+***** xontrib-sh.nix
+
+#+begin_src nix :tangle (meq/tangle-path)
+{ lib
+, buildPythonPackage
+, fetchPypi
+}:
+
+buildPythonPackage rec {
+  pname = "xontrib-sh";
+  version = "0.3.0";
+
+  src = fetchPypi {
+    inherit pname version;
+    sha256 = "sha256-eV++ZuopnAzNXRuafXXZM7tmcay1NLBIB/U+SVrQV+U=";
+  };
+
+  meta = {
+    description = "Paste and run commands from bash, zsh, fish, tcsh in xonsh shell.";
+    homepage = "https://github.com/anki-code/xontrib-sh";
+    license = lib.licenses.mit;
+  };
 }
 #+end_src
 
@@ -1701,12 +2233,47 @@ in flatten [
 (let
     v2 = j.attrs.versions.python.two;
     v3 = j.attrs.versions.python.three;
-in final: prev: {
+in final: prev: rec {
     python2 = final."python2${v2}";
     python2Packages = dontRecurseIntoAttrs final."python2${v2}Packages";
     python3 = final."python3${v3}";
     python3Packages = dontRecurseIntoAttrs final."python3${v3}Packages";
+    python = python3;
+    pythonPackages = python3Packages;
 })
+#+end_src
+
+***** Rich
+
+#+begin_src nix
+(final: prev: python3Packages.rich = prev.python3Packages.rich.overridePythonAttrs (old: {
+    version = "12.0.0";
+    src = final.fetchFromGitHub {
+        owner = "syvlorg";
+        repo = old.pname;
+        rev = "a6c20ce10adc7b8cfacfd74e0b025e8c2c8c19eb";
+        sha256 = "1ld3ihvssfk56240wignmd6hv7gynid5wmcynl58ng8sbfywm3ly";
+    };
+    propagatedBuildInputs = (with final.python3Packages; [ hy ]) ++ old.propagatedBuildInputs;
+    meta = {
+        description = "Render rich text, tables, progress bars, syntax highlighting, markdown and more to the terminal";
+        homepage = "https://github.com/syvlorg/rich";
+        license = lib.licenses.mit;
+    };
+}))
+#+end_src
+
+***** Xonsh
+
+#+begin_src nix
+(final: prev: xonsh = prev.xonsh.overridePythonAttrs (old: { propagatedBuildInputs = (with final.python3Packages; [ 
+    bakery
+    xontrib-sh
+    xontrib-readable-traceback
+    xontrib-pipeliner
+    xonsh-autoxsh
+    xonsh-direnv
+]) ++ old.propagatedBuildInputs; }))
 #+end_src
 
 **** NIX
@@ -1736,25 +2303,6 @@ inputs.emacs.overlay
 (final: prev: { systemd = prev.systemd.overrideAttrs (old: { withHomed = true; }); })
 #+end_src
 
-**** Containers
-***** Extra-Containers
-
-#+begin_src nix :noweb-ref no
-inputs.extra-container.overlay
-#+end_src
-
-**** Caddy With Plugins
-
-#+begin_src nix :noweb-ref no
-(final: prev: { caddy = prev.callPackage ./callPackages/caddy.nix {
-    plugins = [
-        "github.com/mholt/caddy-l4@latest"
-        "github.com/abiosoft/caddy-yaml@latest"
-        "github.com/caddy-dns/cloudflare@latest"
-    ];
-}; })
-#+end_src
-
 **** Mozilla
 
 # TODO
@@ -1763,14 +2311,22 @@ inputs.extra-container.overlay
 (final: prev: inputs.mozilla.overlays)
 #+end_src
 
+**** My Packages
+
+#+begin_src nix
+(final: prev: let dir = ./callPackages; in j.import.set { call = true; inherit dir; ignores = j.dir.dirs dir; })
+#+end_src
+
+***** Python
+
+#+begin_src nix
+(final: prev: let dir = ./callPackages/python; in { python3Packages = j.import.set { call = final.python3Packages; inherit dir; ignores = j.dir.dirs dir; }; })
+#+end_src
+
 **** Overlays in Overlays Directory
 
 #+begin_src nix
-(map (file:
-    (final: prev: {
-        "${j.name { inherit file; }}" = import file args;
-    })
-) (j.import.list { dir = ./overlays; }))
+(final: prev: let dir = ./overlays; in j.import.set { inherit dir; ignores = j.dir.dirs dir; })
 #+end_src
 
 **** Overrides from Older Channels
@@ -1822,12 +2378,6 @@ in mapAttrsToList (
 ) pkgsets)
 #+end_src
 
-**** Guix
-
-#+begin_src nix :noweb-ref no
-(final: prev: { guix = final.callPackage "${fetchGit { url = "https://github.com/${j.attrs.users.primary}/nixpkgs"; ref = "guix"; }}/pkgs/development/guix/guix.nix" {  }; })
-#+end_src
-
 **** End of overlays.nix
 
 #+begin_src nix
@@ -1851,8 +2401,7 @@ in mapAttrsToList (
         nixos-21-11.url = github:NixOS/nixpkgs/nixos-21.11;
         nixos-21-11-small.url = github:NixOS/nixpkgs/nixos-21.11-small;
         master.url = github:NixOS/nixpkgs/master;
-        j.url = github:<<username>>/nixpkgs/j;
-        nixpkgs.follows = "j";
+        nixpkgs.follows = "nixos-22-05";
 
         hardware.url = github:nixos/nixos-hardware;
 
@@ -1938,36 +2487,837 @@ in mapAttrsToList (
 }
 #+end_src
 
-*** variables.nix
+*** options.nix
+:PROPERTIES:
+:header-args:nix+: :noweb-ref ea6bb5f8-9240-40e0-a149-ad89f320c90b
+:END:
 
-#+begin_src nix :tangle (meq/tangle-path)
+#+begin_src text :tangle (meq/tangle-path)
+<<ea6bb5f8-9240-40e0-a149-ad89f320c90b>>
+#+end_src
+
+#+begin_src nix
 { config, options, lib, ... }: with lib;
 
 {
-    options.variables = {
-        zfs = mkOption {
-            type = types.bool;
-            default = true;
+    options = {
+#+end_src
+
+Adapted from [[https://discourse.nixos.org/t/variables-for-a-system/2342/6][here]]:
+
+#+begin_src nix
+        variables = {
+            zfs = mkOption {
+                type = types.bool;
+                default = true;
+            };
+            relay = mkOption {
+                type = types.bool;
+                default = false;
+            };
+            server = mkOption {
+                type = types.bool;
+                default = config.variables.relay;
+            };
+            client = mkOption {
+                type = types.bool;
+                default = (! config.variables.server) && (! config.variables.relay);
+            };
+            minimal = mkOption {
+                type = types.bool;
+                default = false;
+            };
         };
-        relay = mkOption {
-            type = types.bool;
-            default = false;
+#+end_src
+
+#+begin_src nix
+        programs = {
+            mosh = {
+                openFirewall = mkOption {
+                    type = types.bool;
+                    default = false;
+                    description = "Whether to automatically open the specified port in the firewall.";
+                };
+            };
         };
-        server = mkOption {
-            type = types.bool;
-            default = config.variables.relay;
-        };
-        client = mkOption {
-            type = types.bool;
-            default = (! config.variables.server) && (! config.variables.relay);
-        };
-        minimal = mkOption {
-            type = types.bool;
-            default = false;
+        services = {
+            tailscale = {
+                autoconnect = mkOption {
+                    type = types.bool;
+                    default = false;
+                    description = "Automatically run `tailscale up' on boot.";
+                };
+                openFirewall = mkOption {
+                    type = types.bool;
+                    default = false;
+                    description = "Whether to automatically open the specified port in the firewall.";
+                };
+                trustInterface = mkOption {
+                    type = types.bool;
+                    default = false;
+                    description = "Whether to automatically trust the specified interface in the firewall.";
+                };
+                hostName = mkOption {
+                    type = with types; nullOr nonEmptyStr;
+                    default = null;
+                    description = "The hostname for this device; defaults to `config.networking.hostName'.";
+                };
+                useUUID = mkOption {
+                    type = types.bool;
+                    default = false;
+                    description = "Use a new UUID as the hostname on every boot; enables `config.services.tailscale.api.ephemeral' by default.";
+                };
+                deleteHostBeforeAuth = mkOption {
+                    type = types.bool;
+                    default = false;
+                    description = ''
+                        Delete the hostname from the tailnet before authentication, if it exists.
+                        Does nothing if already authenticated, as determined by the existence of the path from `config.services.tailscale.authenticationConfirmationFile'.
+                    '';
+                };
+                strictReversePathFiltering = mkOption {
+                    type = types.bool;
+                    default = true;
+                    description = "Whether to enable strict reverse path filtering.";
+                };
+                authkey = mkOption {
+                    type = types.nullOr types.nonEmptyStr;
+                    default = null;
+                    description = ''
+                        Authentication key.
+
+                        Warning: Consider using authfile instead if you do not
+                        want to store the key in the world-readable Nix store.
+                    '';
+                };
+                authfile = mkOption {
+                    example = "/private/tailscale_auth_key";
+                    type = with types; nullOr nonEmptyStr;
+                    default = null;
+                    description = "File with authentication key.";
+                };
+                api.key = mkOption {
+                    type = types.nullOr types.nonEmptyStr;
+                    default = null;
+                    description = ''
+                        API key.
+
+                        Warning: Consider using api.file instead if you do not
+                        want to store the key in the world-readable Nix store.
+                    '';
+                };
+                api.file = mkOption {
+                    example = "/private/tailscale_api_key";
+                    type = with types; nullOr nonEmptyStr;
+                    default = null;
+                    description = "File with API key.";
+                };
+                api.tags = mkOption {
+                    example = [ "relay" "server" ];
+                    type = types.listOf types.nonEmptyStr;
+                    default = [ ];
+                    description = "Tags to be used when creating new auth keys.";
+                };
+                api.reusable = mkOption {
+                    type = types.bool;
+                    default = false;
+                    description = "Create a reusable auth key.";
+                };
+                api.ephemeral = mkOption {
+                    type = with types; nullOr bool;
+                    default = null;
+                    description = "Create an ephemeral auth key; is enabled by default by `config.services.tailscale.useUUID'.";
+                };
+                api.preauthorized = mkOption {
+                    type = types.bool;
+                    default = true;
+                    description = "Create a pre-authorized auth key.";
+                };
+                api.domain = mkOption {
+                    type = with types; nullOr nonEmptyStr;
+                    default = null;
+                    description = "Your tailscale domain.";
+                };
+                state.text = mkOption {
+                    type = types.nullOr types.lines;
+                    default = null;
+                    description = ''
+                        The state of tailscale, written to /var/lib/tailscale/tailscaled.state
+
+                        Warning: Consider using state.{file|dir} instead if you do not
+                        want to store the state in the world-readable Nix store.
+                    '';
+                };
+                state.file = mkOption {
+                    example = "/private/tailscale/tailscaled.state";
+                    type = with types; nullOr nonEmptyStr;
+                    default = null;
+                    description = "File with the state of tailscale.";
+                };
+                state.dir = mkOption {
+                    example = "/private/tailscale";
+                    type = with types; nullOr nonEmptyStr;
+                    default = null;
+                    description = "Directory with the state file (tailscaled.state) of tailscale.";
+                };
+                magicDNS.enable = mkEnableOption "MagicDNS";
+                magicDNS.searchDomains = mkOption {
+                    type = types.listOf types.nonEmptyStr;
+                    default = [ ];
+                    description = "MagicDNS search domains.";
+                };
+                magicDNS.nameservers = mkOption {
+                    type = types.listOf types.nonEmptyStr;
+                    default = [ ];
+                    description = "MagicDNS nameservers.";
+                };
+                acceptDNS = mkOption {
+                    type = types.bool;
+                    default = true;
+                    description = "Whether this tailscale instance will use the preconfigured DNS servers on the tailscale admin page.";
+                };
+                exitNode.advertise = mkOption {
+                    type = types.bool;
+                    default = false;
+                    description = "Whether this tailscale instance will used as an exit node.";
+                };
+                exitNode.ip = mkOption {
+                    type = with types; nullOr nonEmptyStr;
+                    default = null;
+                    description = "The exit node, as an ip address, to be used with this device.";
+                };
+                exitNode.hostName = mkOption {
+                    type = with types; nullOr nonEmptyStr;
+                    default = null;
+                    description = "The exit node, as a hostname, to be used with this device; requires an api key provided via `config.services.tailscale.api.{key|file}'.";
+                };
+                exitNode.allowLANAccess = mkOption {
+                    type = types.bool;
+                    default = false;
+                    description = "Allow direct access to your local network when traffic is routed via an exit node.";
+                };
+                extraConfig = mkOption {
+                    type = types.attrs;
+                    default = { };
+                    description = "An attribute set of options and values; if an option is a single character, a single dash will be prepended, otherwise two.";
+                };
+                authenticationConfirmationFile = mkOption {
+                    type = types.nonEmptyStr;
+                    example = "/private/tailscale/tailscaled.authenticated";
+                    default = "/var/lib/tailscale/tailscale.authenticated";
+                    description = "Path to the `tailscale.authenticated' file.";
+                };
+            };
+#+end_src
+
+Adapted from [[https://github.com/pukkamustard/nixpkgs/blob/guix/nixos/modules/services/development/guix.nix][here]]:
+
+#+begin_src nix
+            guix = {
+                enable = mkEnableOption "GNU Guix package manager";
+                package = mkOption {
+                    type = types.package;
+                    default = pkgs.guix;
+                    defaultText = "pkgs.guix";
+                    description = "Package that contains the guix binary and initial store.";
+                };
+            };
+#+end_src
+
+#+begin_src nix
         };
     };
-    config._module.args.variables = config.variables;
+    imports = [ ./var ];
+    config = mkMerge [
+#+end_src
+
+Adapted from [[https://discourse.nixos.org/t/variables-for-a-system/2342/12][here]]:
+
+#+begin_src nix
+        { _module.args.variables = config.variables; }
+#+end_src
+
+**** Mosh
+
+#+begin_src nix
+        (let cfg = config.programs.mosh; in mkIf cfg.enable {
+            networking.firewall.allowedUDPPortRanges = optional cfg.openFirewall { from = 60000; to = 61000; };
+        })
+#+end_src
+
+**** Guix
+
+Adapted from [[https://github.com/pukkamustard/nixpkgs/blob/guix/nixos/modules/services/development/guix.nix][here]]:
+
+#+begin_src nix
+        (let cfg = config.services.guix; in mkIf cfg.enable {
+            users = {
+                extraUsers = lib.fold (a: b: a // b) {} (builtins.map buildGuixUser (lib.range 1 10));
+                extraGroups.guixbuild = {name = "guixbuild";};
+            };
+            systemd.services.guix-daemon = {
+                enable = true;
+                description = "Build daemon for GNU Guix";
+                serviceConfig = {
+                    ExecStart="/var/guix/profiles/per-user/root/current-guix/bin/guix-daemon --build-users-group=guixbuild";
+                    Environment="GUIX_LOCPATH=/var/guix/profiles/per-user/root/guix-profile/lib/locale";
+                    RemainAfterExit="yes";
+
+                    # See <https://lists.gnu.org/archive/html/guix-devel/2016-04/msg00608.html>.
+                    # Some package builds (for example, go@1.8.1) may require even more than
+                    # 1024 tasks.
+                    TasksMax="8192";
+                };
+                wantedBy = [ "multi-user.target" ];
+            };
+            system.activationScripts.guix = ''
+                # copy initial /gnu/store
+                if [ ! -d /gnu/store ]
+                then
+                    mkdir -p /gnu
+                    cp -ra ${cfg.package.store}/gnu/store /gnu/
+                fi
+
+                # copy initial /var/guix content
+                if [ ! -d /var/guix ]
+                then
+                    mkdir -p /var
+                    cp -ra ${cfg.package.var}/var/guix /var/
+                fi
+
+                # root profile
+                if [ ! -d ~root/.config/guix ]
+                then
+                    mkdir -p ~root/.config/guix
+                    ln -sf /var/guix/profiles/per-user/root/current-guix \
+                    ~root/.config/guix/current
+                fi
+
+                # authorize substitutes
+                GUIX_PROFILE="`echo ~root`/.config/guix/current"; source $GUIX_PROFILE/etc/profile
+                guix archive --authorize < ~root/.config/guix/current/share/guix/ci.guix.info.pub
+            '';
+
+            environment.shellInit = ''
+                # Make the Guix command available to users
+                export PATH="/var/guix/profiles/per-user/root/current-guix/bin:$PATH"
+
+                export GUIX_LOCPATH="$HOME/.guix-profile/lib/locale"
+                export PATH="$HOME/.guix-profile/bin:$PATH"
+                export INFOPATH="$HOME/.guix-profile/share/info:$INFOPATH"
+            '';
+        })
+#+end_src
+
+**** Tailscale
+
+#+begin_src nix
+        (let cfg = config.services.tailscale; in mkIf cfg.enable {
+            assertions = flatten [
+                (optional ((count (state: state != null) (with cfg.state; [ text file dir ])) > 1)
+                          "Sorry; only one of `config.services.tailscale.state.{text|file|dir}' may be set!")
+                (optional ((cfg.exitNode.ip != null) && (cfg.exitNode.hostName != null))
+                          "Sorry; only one of `config.services.tailscale.exitNode.{ip|hostName}' may be set!")
+                (optional ((cfg.exitNode.hostName != null) && (cfg.api.key == null) && (cfg.api.file == null))
+                          "Sorry; `config.services.tailscale.api.{key|file}' must be set when using `config.services.tailscale.exitNode.hostName'!")
+                (optional ((count (auth: auth != null) (with cfg; [ authkey authfile api.key api.file ])) > 1)
+                          "Sorry; only one of `config.services.tailscale.{authkey|authfile|api.key|api.file}' may be set!")
+                (optional ((cfg.api.domain == null) && ((cfg.api.key != null) || (cfg.api.file != null)))
+                          "Sorry; `config.services.tailscale.api.domain' must be set when using `config.services.tailscale.api.{key|file}'!")
+            ];
+            warnings = flatten [
+                (optional ((cfg.api.key != null) || (cfg.api.file != null))
+                          "To users who wipe their root directories: persist your `config.services.tailscale.authenticationConfirmationFile'!")
+                (optional (cfg.exitNode.advertise && cfg.acceptDNS)
+                          "Advertising this device as an exit node and accepting the preconfigured DNS servers on the tailscale admin page at the same time may result in this device attempting to use itself as a DNS server.")
+            ];
+            services.tailscale = {
+                api.ephemeral = if (cfg.api.ephemeral == null) then config.services.tailscale.useUUID else cfg.api.ephemeral;
+                hostName = if (cfg.hostName == null) then config.networking.hostName else cfg.hostName;
+            };
+            environment.vars = let
+                nullText = cfg.state.text != null;
+                nullFile = cfg.state.file != null;
+                nullDir = cfg.state.dir != null;
+            in optionalAttrs (nullText || nullFile || nullDir) {
+                "lib/tailscale/tailscaled.state" = mkIf (nullText || nullFile) {
+                    ${if nullText then "text" else "source"} = if (nullText) then cfg.state.text else cfg.state.file;
+                };
+                "lib/tailscale" = mkIf nullDir { source = cfg.state.dir; };
+            };
+            networking = {
+                nameservers = optionals cfg.magicDNS.enable (flatten [ cfg.magicDNS.nameservers "100.100.100.100" ]);
+                search = optionals cfg.magicDNS.enable cfg.magicDNS.searchDomains;
+                firewall = {
+                    ${if cfg.strictReversePathFiltering then null else "checkReversePath"} = "loose";
+                    trustedInterfaces = optional cfg.trustInterface cfg.interfaceName;
+                    allowedUDPPorts = optional cfg.openFirewall cfg.port;
+                };
+            };
+            systemd.services.tailscale-autoconnect = let
+                api_and_no_authConFile = ((cfg.api.key != null) || (cfg.api.file != null)) && (! pathExists cfg.authenticationConfirmationFile);
+            in mkIf cfg.autoconnect {
+                description = "Automatic connection to Tailscale";
+
+                # make sure tailscale is running before trying to connect to tailscale
+                after = [ "network-pre.target" "tailscale.service" ];
+                wants = [ "network-pre.target" "tailscale.service" ];
+                wantedBy = [ "multi-user.target" ];
+
+                environment = mkIf api_and_no_authConFile {
+                TAILSCALE_APIKEY = if (cfg.api.key != null) then cfg.api.key else (readFile cfg.api.file);
+                };
+
+                # set this service as a oneshot job
+                serviceConfig = {
+                    Type = "oneshot";
+                    ExecStart = let
+                        extraConfig = mapAttrsToList (opt: val: let
+                        value = optionalString (! isBool val) " ${toString val}";
+                        in (if ((stringLength opt) == 1) then "-" else "--") + opt + value) cfg.extraConfig;
+                    in ''
+                        # wait for tailscaled to settle
+                        sleep 2
+
+                        # check if we are already authenticated to tailscale
+                        echo "Waiting for tailscale.service start completion ..."
+                        status="$(${cfg.package}/bin/tailscale status -json | ${pkgs.jq}/bin/jq -r .BackendState)"
+                        if [ $status = "Running" ]; then # if so, then do nothing
+                            echo "Already authenticated to Tailscale, exiting."
+                            exit 0
+                        fi
+
+                        # Delete host from tailnet if:
+                        # * `config.services.tailscale.deleteHostBeforeAuth' is enabled
+                        # * `config.services.tailscale.api.{key|file}' is not null
+                        # * path at `config.services.tailscale.authenticationConfirmationFile` does not exist
+                        ${optionalString (cfg.deleteHostBeforeAuth && api_and_no_authConFile) ''${pkgs.tailapi}/bin/tailapi --domain ${cfg.api.domain} \
+                                                                                                                            --recreate-response \
+                                                                                                                            --devices ${cfg.hostName} \
+                                                                                                                            delete \
+                                                                                                                            --do-not-prompt &> /dev/null''}
+
+                        # otherwise authenticate with tailscale
+                        echo "Authenticating with Tailscale ..."
+                        ${cfg.package}/bin/tailscale up --hostname ${if cfg.useUUID then "$(${pkgs.util-linux}/bin/uuidgen)" else cfg.hostName} \
+                        ${optionalString cfg.acceptDNS "--accept-dns \"}
+                        ${optionalString cfg.exitNode.advertise "--advertise-exit-node \"}
+                        ${optionalString (cfg.exitNode.ip != null) "--exit-node ${cfg.exitNode.ip} \"}
+                        ${optionalString (cfg.exitNode.hostName != null) ''--exit-node $(${pkgs.tailapi}/bin/tailapi --domain ${cfg.api.domain} \
+                                                                           --recreate-response \
+                                                                           --devices ${cfg.exitNode.hostName} \
+                                                                           ip -f4) \''}
+                        ${optionalString (((cfg.exitNode.ip != null) || (cfg.exitNode.hostName != null)) && cfg.exitNode.allowLANAccess)
+                                         "--exit-node-allow-lan-access \"}
+
+                        # TODO
+                        ${concatStringsSep " " (mapAttrsToList (n: v: let
+                            opt = (if ((stringLength n) == 1) then "-" else "--") + n;
+                        in "${opt} ${v}") extraConfig)} \
+
+                        ${optionalString (cfg.authkey != null) "--authkey ${cfg.authkey} \"}
+                        ${optionalString (cfg.authfile != null) "--authkey ${readFile cfg.authfile} \"}
+                        ${optionalString api_and_no_authConFile ''--authkey $(${pkgs.tailapi}/bin/tailapi --domain ${cfg.api.domain} \
+                                                                                                          --recreate-response \
+                                                                                                          create \
+                                                                                                          ${optionalString cfg.api.reusable "--reusable \"}
+                                                                                                          ${optionalString cfg.api.ephemeral "--ephemeral \"}
+                                                                                                          ${optionalString cfg.api.reusable "--preauthorized \"}
+                                                                                                          ${optionalString (cfg.api.tags != null)
+                                                                                                                           (concatStringsSep " " cfg.api.tags)} \
+                                                                                                          --just-key)''}
+
+                        ${optionalString ((cfg.state.file != null) && (! pathExists cfg.state.file)) "cp /var/lib/tailscale/tailscaled.state ${cfg.state.file}"}
+                        ${optionalString ((cfg.state.dir != null) && ((! pathExists cfg.state.dir) || ((length (attrNames (readDir cfg.state.dir))) == 0)))
+                                         "${pkgs.rsync}/bin/rsync -avvczz /var/lib/tailscale/ ${cfg.state.dir}/"}
+
+                        touch ${cfg.authenticationConfirmationFile}
+                    '';
+                };
+            };
+        })
+#+end_src
+
+**** End of options.nix
+
+#+begin_src nix
+    ];
 }
+#+end_src
+
+*** var
+**** default.nix
+
+Adapted from [[https://github.com/NixOS/nixpkgs/blob/master/nixos/modules/system/etc/etc-activation.nix][here]]:
+
+#+begin_src nix :tangle (meq/tangle-path)
+{ config, lib, ... }: {
+    imports = [ ./var.nix ];
+    config.system.activationScripts.vars = lib.stringAfter [ "users" "groups" ] config.system.build.varActivationCommands;
+}
+#+end_src
+
+**** var.nix
+
+Adapted from [[https://github.com/NixOS/nixpkgs/blob/master/nixos/modules/system/etc/etc.nix][here]]:
+
+#+begin_src nix :tangle (meq/tangle-path)
+# Management of static files in /var.
+
+{ config, lib, pkgs, ... }:
+
+with lib;
+
+let
+
+  flake = import ..;
+
+  var' = filter (f: f.enable) (attrValues config.environment.vars);
+
+  var = pkgs.runCommandLocal "var" {
+    # This is needed for the systemd module
+    passthru.targets = map (x: x.target) var';
+  } /* sh */ ''
+    set -euo pipefail
+
+    makevarEntry() {
+      src="$1"
+      target="$2"
+      mode="$3"
+      user="$4"
+      group="$5"
+
+      if [[ "$src" = *'*'* ]]; then
+        # If the source name contains '*', perform globbing.
+        mkdir -p "$out/var/$target"
+        for fn in $src; do
+            ln -s "$fn" "$out/var/$target/"
+        done
+      else
+
+        mkdir -p "$out/var/$(dirname "$target")"
+        if ! [ -e "$out/var/$target" ]; then
+          ln -s "$src" "$out/var/$target"
+        else
+          echo "duplicate entry $target -> $src"
+          if [ "$(readlink "$out/var/$target")" != "$src" ]; then
+            echo "mismatched duplicate entry $(readlink "$out/var/$target") <-> $src"
+            ret=1
+
+            continue
+          fi
+        fi
+
+        if [ "$mode" != symlink ]; then
+          echo "$mode" > "$out/var/$target.mode"
+          echo "$user" > "$out/var/$target.uid"
+          echo "$group" > "$out/var/$target.gid"
+        fi
+      fi
+    }
+
+    mkdir -p "$out/var"
+    ${concatMapStringsSep "\n" (varEntry: escapeShellArgs [
+      "makevarEntry"
+      # Force local source paths to be added to the store
+      "${varEntry.source}"
+      varEntry.target
+      varEntry.mode
+      varEntry.user
+      varEntry.group
+    ]) var'}
+  '';
+
+in
+
+{
+
+  imports = [ "${flake.inputs.nixpkgs}/nixos/modules/system/build.nix" ];
+
+  ###### interface
+
+  options = {
+
+    environment.vars = mkOption {
+      default = {};
+      example = literalExpression ''
+        { example-configuration-file =
+            { source = "/nix/store/.../var/dir/file.conf.example";
+              mode = "0440";
+            };
+          "default/useradd".text = "GROUP=100 ...";
+        }
+      '';
+      description = ''
+        Set of files that have to be linked in <filename>/var</filename>.
+      '';
+
+      type = with types; attrsOf (submodule (
+        { name, config, options, ... }:
+        { options = {
+
+            enable = mkOption {
+              type = types.bool;
+              default = true;
+              description = ''
+                Whether this /var file should be generated.  This
+                option allows specific /var files to be disabled.
+              '';
+            };
+
+            target = mkOption {
+              type = types.str;
+              description = ''
+                Name of symlink (relative to
+                <filename>/var</filename>).  Defaults to the attribute
+                name.
+              '';
+            };
+
+            text = mkOption {
+              default = null;
+              type = types.nullOr types.lines;
+              description = "Text of the file.";
+            };
+
+            source = mkOption {
+              type = types.path;
+              description = "Path of the source file.";
+            };
+
+            mode = mkOption {
+              type = types.str;
+              default = "symlink";
+              example = "0600";
+              description = ''
+                If set to something else than <literal>symlink</literal>,
+                the file is copied instead of symlinked, with the given
+                file mode.
+              '';
+            };
+
+            uid = mkOption {
+              default = 0;
+              type = types.int;
+              description = ''
+                UID of created file. Only takes effect when the file is
+                copied (that is, the mode is not 'symlink').
+                '';
+            };
+
+            gid = mkOption {
+              default = 0;
+              type = types.int;
+              description = ''
+                GID of created file. Only takes effect when the file is
+                copied (that is, the mode is not 'symlink').
+              '';
+            };
+
+            user = mkOption {
+              default = "+${toString config.uid}";
+              type = types.str;
+              description = ''
+                User name of created file.
+                Only takes effect when the file is copied (that is, the mode is not 'symlink').
+                Changing this option takes precedence over <literal>uid</literal>.
+              '';
+            };
+
+            group = mkOption {
+              default = "+${toString config.gid}";
+              type = types.str;
+              description = ''
+                Group name of created file.
+                Only takes effect when the file is copied (that is, the mode is not 'symlink').
+                Changing this option takes precedence over <literal>gid</literal>.
+              '';
+            };
+
+          };
+
+          config = {
+            target = mkDefault name;
+            source = mkIf (config.text != null) (
+              let name' = "var-" + baseNameOf name;
+              in mkDerivedConfig options.text (pkgs.writeText name')
+            );
+          };
+
+        }));
+
+    };
+
+  };
+
+
+  ###### implementation
+
+  config = {
+
+    system.build.var = var;
+    system.build.varActivationCommands =
+      ''
+        # Set up the statically computed bits of /var.
+        echo "setting up /var..."
+        ${pkgs.perl.withPackages (p: [ p.FileSlurp ])}/bin/perl ${./setup-var.pl} ${var}/var
+      '';
+  };
+
+}
+#+end_src
+
+**** setup-var.pl
+
+Adapted from [[https://github.com/NixOS/nixpkgs/blob/master/nixos/modules/system/etc/setup-etc.pl][here]]:
+
+#+begin_src perl :tangle (meq/tangle-path)
+use strict;
+use File::Find;
+use File::Copy;
+use File::Path;
+use File::Basename;
+use File::Slurp;
+
+my $var = $ARGV[0] or die;
+my $static = "/var/static";
+
+sub atomicSymlink {
+    my ($source, $target) = @_;
+    my $tmp = "$target.tmp";
+    unlink $tmp;
+    symlink $source, $tmp or return 0;
+    rename $tmp, $target or return 0;
+    return 1;
+}
+
+
+# Atomically update /var/static to point at the var files of the
+# current configuration.
+atomicSymlink $var, $static or die;
+
+# Returns 1 if the argument points to the files in /var/static.  That
+# means either argument is a symlink to a file in /var/static or a
+# directory with all children being static.
+sub isStatic {
+    my $path = shift;
+
+    if (-l $path) {
+        my $target = readlink $path;
+        return substr($target, 0, length "/var/static/") eq "/var/static/";
+    }
+
+    if (-d $path) {
+        opendir DIR, "$path" or return 0;
+        my @names = readdir DIR or die;
+        closedir DIR;
+
+        foreach my $name (@names) {
+            next if $name eq "." || $name eq "..";
+            unless (isStatic("$path/$name")) {
+                return 0;
+            }
+        }
+        return 1;
+    }
+
+    return 0;
+}
+
+# Remove dangling symlinks that point to /var/static.  These are
+# configuration files that existed in a previous configuration but not
+# in the current one.  For efficiency, don't look under /var/nixos
+# (where all the NixOS sources live).
+sub cleanup {
+    if ($File::Find::name eq "/var/nixos") {
+        $File::Find::prune = 1;
+        return;
+    }
+    if (-l $_) {
+        my $target = readlink $_;
+        if (substr($target, 0, length $static) eq $static) {
+            my $x = "/var/static/" . substr($File::Find::name, length "/var/");
+            unless (-l $x) {
+                print STDERR "removing obsolete symlink ‘$File::Find::name’...\n";
+                unlink "$_";
+            }
+        }
+    }
+}
+
+find(\&cleanup, "/var");
+
+
+# Use /var/.clean to keep track of copied files.
+my @oldCopied = read_file("/var/.clean", chomp => 1, err_mode => 'quiet');
+open CLEAN, ">>/var/.clean";
+
+
+# For every file in the var tree, create a corresponding symlink in
+# /var to /var/static.  The indirection through /var/static is to make
+# switching to a new configuration somewhat more atomic.
+my %created;
+my @copied;
+
+sub link {
+    my $fn = substr $File::Find::name, length($var) + 1 or next;
+    my $target = "/var/$fn";
+    File::Path::make_path(dirname $target);
+    $created{$fn} = 1;
+
+    # Rename doesn't work if target is directory.
+    if (-l $_ && -d $target) {
+        if (isStatic $target) {
+            rmtree $target or warn;
+        } else {
+            warn "$target directory contains user files. Symlinking may fail.";
+        }
+    }
+
+    if (-e "$_.mode") {
+        my $mode = read_file("$_.mode"); chomp $mode;
+        if ($mode eq "direct-symlink") {
+            atomicSymlink readlink("$static/$fn"), $target or warn;
+        } else {
+            my $uid = read_file("$_.uid"); chomp $uid;
+            my $gid = read_file("$_.gid"); chomp $gid;
+            copy "$static/$fn", "$target.tmp" or warn;
+            $uid = getpwnam $uid unless $uid =~ /^\+/;
+            $gid = getgrnam $gid unless $gid =~ /^\+/;
+            chown int($uid), int($gid), "$target.tmp" or warn;
+            chmod oct($mode), "$target.tmp" or warn;
+            rename "$target.tmp", $target or warn;
+        }
+        push @copied, $fn;
+        print CLEAN "$fn\n";
+    } elsif (-l "$_") {
+        atomicSymlink "$static/$fn", $target or warn;
+    }
+}
+
+find(\&link, $var);
+
+
+# Delete files that were copied in a previous version but not in the
+# current.
+foreach my $fn (@oldCopied) {
+    if (!defined $created{$fn}) {
+        $fn = "/var/$fn";
+        print STDERR "removing obsolete file ‘$fn’...\n";
+        unlink "$fn";
+    }
+}
+
+
+# Rewrite /var/.clean.
+close CLEAN;
+write_file("/var/.clean", map { "$_\n" } @copied);
+
+# Create /var/NIXOS tag if not exists.
+# When /var is not on a persistent filesystem, it will be wiped after reboot,
+# so we need to check and re-create it during activation.
+open TAG, ">>/var/NIXOS";
+close TAG;
 #+end_src
 
 *** boot.nix
@@ -2062,7 +3412,7 @@ in with lib; {
     imports = with flake.inputs; flatten [
         ./cachix.nix
         (optionals (! fromFlake) [ home-manager.nixosModules.home-manager impermanence.nixosModules.impermanence ])
-        ./variables.nix
+        ./options.nix
         ./boot.nix
     ];
     config = mkMerge [

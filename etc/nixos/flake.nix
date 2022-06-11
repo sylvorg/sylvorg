@@ -21,8 +21,7 @@
         nixos-21-11.url = github:NixOS/nixpkgs/nixos-21.11;
         nixos-21-11-small.url = github:NixOS/nixpkgs/nixos-21.11-small;
         master.url = github:NixOS/nixpkgs/master;
-        j.url = github:shadowrylander/nixpkgs/j;
-        nixpkgs.follows = "j";
+        nixpkgs.follows = "nixos-22-05";
 
         hardware.url = github:nixos/nixos-hardware;
 
