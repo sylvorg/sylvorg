@@ -11,7 +11,7 @@ in final: prev: rec {
     python3 = final."python3${v3}";
     python3Packages = dontRecurseIntoAttrs final."python3${v3}Packages";
     python = python3;
-    pythonPackages = python3Packages;
+    pythonPackages = dontRecurseIntoAttrs final."python3${v3}Packages";
 })
 (final: prev: { python3Packages.rich = prev.python3Packages.rich.overridePythonAttrs (old: {
     version = "12.0.0";

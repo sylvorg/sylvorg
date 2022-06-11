@@ -38,7 +38,7 @@ with builtins; { pkgs, lib, inputs ? {}, system ? currentSystem }: with lib; let
             };
         };
         dirCon = let
-            aord = dir: func: attrNames (filterAttrs func (if (isAttrs dir') then dir' else (readDirExists dir')));
+            aord = dir: func: attrNames (filterAttrs func (if (isAttrs dir) then dir else (readDirExists dir)));
         in {
             dirs = dir: aord dir (n: v: v == "directory");
             others = dir: aord dir (n: v: v != "directory");

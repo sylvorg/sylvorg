@@ -1,6 +1,8 @@
-with builtins; let flake = import ./etc/nixos;
-in with import flake.inputs.nixpkgs (flake.make.specialArgs null currentSystem).nixpkgset; let
-    strapper = { lib, python3, fetchFromGitHub }: python3.pkgs.buildPythonApplication rec {
+with builtins; let
+    flake = import ./etc/nixos;
+    pkgs = import flake.inputs.nixpkgs (flake.make.specialArgs null currentSystem).nixpkgset;
+in with pkgs; let
+    strapper = { python3, fetchFromGitHub }: python3.pkgs.buildPythonApplication rec {
         pname = "strapper";
         version = "1.0.0.0";
         src = ./strapper;
@@ -15,14 +17,8 @@ in with import flake.inputs.nixpkgs (flake.make.specialArgs null currentSystem).
         '';
         postInstall = "wrapProgram $out/bin/strapper $makeWrapperArgs";
         makeWrapperArgs = [ "--prefix PYTHONPATH : ${placeholder "out"}/lib/${python3.pkgs.python.libPrefix}/site-packages" ];
-        meta = with lib; {
-            # description = "";
-            homepage = "https://github.com/shadowrylander/shadowrylander";
-            license = licenses.oreo;
-            maintainers = with maintainers; [ sylvorg ];
-        };
     };
 in mkShell rec {
-    buildInputs = [ (callPackage strapper {}) sd gcc rsync ];
+    buildInputs = [ (let _ = callPackage strapper {}; trace pkgs.pythonPackages.oreo _) sd gcc rsync ];
     nativeBuildInputs = buildInputs;
 }
