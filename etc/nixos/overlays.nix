@@ -1,5 +1,6 @@
 args@{ lib, nixpkgs, inputs, pkgs, channel }: with builtins; with lib;
 let
+    updatePython3 = prev: attrs: { python3Packages = recursiveUpdate prev.python3Packages attrs; }
 in flatten [
 (final: prev: { j = { inherit pkgs; };})
 (let
@@ -13,7 +14,7 @@ in final: prev: rec {
     python = python3;
     pythonPackages = python3Packages;
 })
-(final: prev: { python3Packages.rich = prev.python3Packages.rich.overridePythonAttrs (old: {
+(final: prev: updatePython3 prev { rich = prev.python3Packages.rich.overridePythonAttrs (old: {
     version = "12.0.0";
     src = final.fetchFromGitHub {
         owner = "syvlorg";
@@ -27,7 +28,7 @@ in final: prev: rec {
         homepage = "https://github.com/syvlorg/rich";
         license = lib.licenses.mit;
     };
-}); })
+}); };)
 (final: prev: { xonsh = prev.xonsh.overridePythonAttrs (old: { propagatedBuildInputs = (with final.python3Packages; [ 
     bakery
     xontrib-sh
@@ -39,7 +40,8 @@ in final: prev: rec {
 (final: prev: { nur = import inputs.nur { nurpkgs = nixpkgs; pkgs = prev; }; })
 inputs.emacs.overlay
 (final: prev: let dir = ./callPackages; in j.import.set { call = true; inherit dir; ignores = j.dirCon.dirs dir; })
-(final: prev: let dir = ./callPackages/python; in { python3Packages = recursiveUpdate prev.python3Packages (j.import.set { call = final.python3Packages; inherit dir; ignores = j.dirCon.dirs dir; }); })
+(let dir = ./callPackages/python; in (map (file: [(final: prev: updatePython3 prev { "${j.import.name { inherit file; }}" = final.python3Packages.callPackage file; })]) (j.import.list { inherit dir; ignores = j.dirCon.dirs dir; })))
+# (final: prev: let dir = ./callPackages/python; in updatePython3 prev (j.import.set { call = final.python3Packages; inherit dir; ignores = j.dirCon.dirs dir; }))
 (final: prev: let dir = ./overlays; in j.import.set { inherit dir; ignores = j.dirCon.dirs dir; })
 (let pkgsets = {
     # nixos-unstable = [ "gnome-tour" ];
