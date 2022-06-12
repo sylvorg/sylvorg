@@ -1,10 +1,10 @@
 args@{ lib, nixpkgs, inputs, pkgs, channel }: with builtins; with lib;
 let
-    pv2 = "python${j.attrs.versions.python.two}";
-    updatePython2 = prev: attrs: { "${pv2}" = prev.${pv2}.pkgs // attrs; };
+    pv2 = "python2${j.attrs.versions.python.two}";
+    updatePython2 = prev: attrs: { "${pv2}" = prev.${pv2} // { pkgs = prev.${pv2}.pkgs // attrs; }; };
     updatePython2Packages = prev: dir: updatePython2 prev (j.import.set { call = final.${pv2}.pkgs; inherit dir; ignores = j.dirCon.dirs dir; });
-    pv3 = "python${j.attrs.versions.python.three}";
-    updatePython3 = prev: attrs: { "${pv3}" = prev.${pv3}.pkgs // attrs; };
+    pv3 = "python3${j.attrs.versions.python.three}";
+    updatePython3 = prev: attrs: { "${pv3}" = prev.${pv3} // { pkgs = prev.${pv3}.pkgs // attrs; }; };
     updatePython3Packages = prev: dir: updatePython3 prev (j.import.set { call = final.${pv3}.pkgs; inherit dir; ignores = j.dirCon.dirs dir; });
 in flatten [
 (final: prev: { j = { inherit pkgs; };})
