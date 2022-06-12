@@ -27,7 +27,7 @@ in with pkgs; let
         makeWrapperArgs = [ "--prefix PYTHONPATH : ${placeholder "out"}/lib/${python3.pkgs.python.libPrefix}/site-packages" ];
     };
 in mkShell rec {
-    buildInputs = [ (let _ = callPackage strapper {}; in trace pkgs.python3Packages.oreo _) sd gcc rsync ];
+    buildInputs = [ (callPackage strapper {}) sd gcc rsync ];
     nativeBuildInputs = buildInputs;
 }
 #+end_src
@@ -1456,7 +1456,7 @@ with builtins; { pkgs, lib, inputs ? {}, system ? currentSystem }: with lib; let
                 files = list (filterAttrs (arg: v: !elem arg [ "modules" "self" "call" ]) _args);
             in listToAttrs (map (file: nameValuePair
                 (name { inherit suffix file; })
-                (if (! isBool call) then (let _ = call.callPackage file modules; in trace (attrNames call) _)
+                (if (! isBool call) then (call.callPackage file modules)
                  else if call then (pkgs.callPackage file modules)
                  else (import file (foldToSet [ modules inputs ])))
             ) files);
@@ -2204,7 +2204,7 @@ let
 ***** Recursively Update Python Packages
 
 #+begin_src nix
-    updatePython3 = prev: attrs: { python3Packages = recursiveUpdate prev.python3Packages attrs; };
+    updatePython3 = prev: attrs: { python3Packages = prev.python3Packages // attrs; };
 #+end_src
 
 ***** End of Let
@@ -2324,8 +2324,8 @@ inputs.emacs.overlay
 ***** Python
 
 #+begin_src nix
-(let dir = ./callPackages/python; in (map (file: [(final: prev: updatePython3 prev { "${j.import.name { inherit file; }}" = final.python3Packages.callPackage file {}; })]) (j.import.list { inherit dir; ignores = j.dirCon.dirs dir; })))
-# (final: prev: let dir = ./callPackages/python; in updatePython3 prev (j.import.set { call = final.python3Packages; inherit dir; ignores = j.dirCon.dirs dir; }))
+# (let dir = ./callPackages/python; in (map (file: [(final: prev: updatePython3 prev { "${j.import.name { inherit file; }}" = final.python3Packages.callPackage file {}; })]) (j.import.list { inherit dir; ignores = j.dirCon.dirs dir; })))
+(final: prev: let dir = ./callPackages/python; in updatePython3 prev (j.import.set { call = final.python3Packages; inherit dir; ignores = j.dirCon.dirs dir; }))
 #+end_src
 
 **** Overlays in Overlays Directory

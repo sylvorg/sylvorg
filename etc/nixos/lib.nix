@@ -134,7 +134,7 @@ with builtins; { pkgs, lib, inputs ? {}, system ? currentSystem }: with lib; let
                 files = list (filterAttrs (arg: v: !elem arg [ "modules" "self" "call" ]) _args);
             in listToAttrs (map (file: nameValuePair
                 (name { inherit suffix file; })
-                (if (! isBool call) then (let _ = call.callPackage file modules; in trace (attrNames call) _)
+                (if (! isBool call) then (call.callPackage file modules)
                  else if call then (pkgs.callPackage file modules)
                  else (import file (foldToSet [ modules inputs ])))
             ) files);

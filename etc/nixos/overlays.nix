@@ -1,6 +1,6 @@
 args@{ lib, nixpkgs, inputs, pkgs, channel }: with builtins; with lib;
 let
-    updatePython3 = prev: attrs: { python3Packages = recursiveUpdate prev.python3Packages attrs; };
+    updatePython3 = prev: attrs: { python3Packages = prev.python3Packages // attrs; };
 in flatten [
 (final: prev: { j = { inherit pkgs; };})
 (let
@@ -43,8 +43,8 @@ in [
 (final: prev: { nur = import inputs.nur { nurpkgs = nixpkgs; pkgs = prev; }; })
 inputs.emacs.overlay
 (final: prev: let dir = ./callPackages; in j.import.set { call = true; inherit dir; ignores = j.dirCon.dirs dir; })
-(let dir = ./callPackages/python; in (map (file: [(final: prev: updatePython3 prev { "${j.import.name { inherit file; }}" = final.python3Packages.callPackage file {}; })]) (j.import.list { inherit dir; ignores = j.dirCon.dirs dir; })))
-# (final: prev: let dir = ./callPackages/python; in updatePython3 prev (j.import.set { call = final.python3Packages; inherit dir; ignores = j.dirCon.dirs dir; }))
+# (let dir = ./callPackages/python; in (map (file: [(final: prev: updatePython3 prev { "${j.import.name { inherit file; }}" = final.python3Packages.callPackage file {}; })]) (j.import.list { inherit dir; ignores = j.dirCon.dirs dir; })))
+(final: prev: let dir = ./callPackages/python; in updatePython3 prev (j.import.set { call = final.python3Packages; inherit dir; ignores = j.dirCon.dirs dir; }))
 (final: prev: let dir = ./overlays; in j.import.set { inherit dir; ignores = j.dirCon.dirs dir; })
 (let pkgsets = {
     # nixos-unstable = [ "gnome-tour" ];

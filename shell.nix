@@ -19,6 +19,6 @@ in with pkgs; let
         makeWrapperArgs = [ "--prefix PYTHONPATH : ${placeholder "out"}/lib/${python3.pkgs.python.libPrefix}/site-packages" ];
     };
 in mkShell rec {
-    buildInputs = [ (let _ = callPackage strapper {}; in trace pkgs.python3Packages.oreo _) sd gcc rsync ];
+    buildInputs = [ (callPackage strapper {}) sd gcc rsync ];
     nativeBuildInputs = buildInputs;
 }
