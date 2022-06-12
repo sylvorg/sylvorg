@@ -1420,7 +1420,7 @@ with builtins; { pkgs, lib, inputs ? {}, system ? currentSystem }: with lib; let
                 suffix ? args.suffix,
                 ignores ? args.ignores,
                 dir,
-            }: filterAttrs (filterFunc _args) (readDir dir);
+            }: filterAttrs (filterFunc _args) (readDirExists dir);
         in rec {
             inherit name;
             list = _args@{
@@ -1869,7 +1869,7 @@ python310.pkgs.buildPythonApplication rec {
 }
 #+end_src
 
-**** python
+**** python3
 ***** autoslot.nix
 
 #+begin_src nix :tangle (meq/tangle-path)
@@ -2204,7 +2204,12 @@ let
 ***** Recursively Update Python Packages
 
 #+begin_src nix
-    updatePython3 = prev: attrs: { python3Packages = prev.python3Packages // attrs; };
+    updatePython2 = let
+        v = "python${j.attrs.versions.python.two}Packages";
+    in prev: attrs: { "${v}" = prev."${v}" // attrs; };
+    updatePython3 = let
+        v = "python${j.attrs.versions.python.three}Packages";
+    in prev: attrs: { "${v}" = prev."${v}" // attrs; };
 #+end_src
 
 ***** End of Let
@@ -2226,25 +2231,6 @@ in flatten [
     fetchurl = prev.fetchurl.overrideAttrs (attrs: { patches = j.attrs.patches ++ [ ./patches/fetchurl.patch ];});
     fetchpypi = prev.fetchpypi.overrideAttrs (attrs: { patches = j.attrs.patches ++ [ ./patches/fetchpypi.patch ];});
 })
-#+end_src
-
-**** Python
-
-#+begin_src nix
-(let
-    v2 = j.attrs.versions.python.two;
-    v3 = j.attrs.versions.python.three;
-in [
-    (final: prev: { python2 = final."python2${v2}"; })
-    (final: prev: { python2Packages = dontRecurseIntoAttrs final."python2${v2}Packages"; })
-    (final: prev: { python2.pkgs = final.python2Packages; })
-    (final: prev: { python3 = final."python3${v3}"; })
-    (final: prev: { python3Packages = dontRecurseIntoAttrs final."python3${v3}Packages"; })
-    (final: prev: { python3.pkgs = final.python3Packages; })
-    (final: prev: { python = final.python3; })
-    (final: prev: { pythonPackages = final.python3Packages; })
-    (final: prev: { python.pkgs = final.pythonPackages; })
-])
 #+end_src
 
 ***** Rich
@@ -2321,11 +2307,16 @@ inputs.emacs.overlay
 (final: prev: let dir = ./callPackages; in j.import.set { call = true; inherit dir; ignores = j.dirCon.dirs dir; })
 #+end_src
 
-***** Python
+***** Python2
 
 #+begin_src nix
-# (let dir = ./callPackages/python; in (map (file: [(final: prev: updatePython3 prev { "${j.import.name { inherit file; }}" = final.python3Packages.callPackage file {}; })]) (j.import.list { inherit dir; ignores = j.dirCon.dirs dir; })))
-(final: prev: let dir = ./callPackages/python; in updatePython3 prev (j.import.set { call = final.python3Packages; inherit dir; ignores = j.dirCon.dirs dir; }))
+(final: prev: let dir = ./callPackages/python2; in updatePython2 prev (j.import.set { call = final."python${j.attrs.versions.two}Packages"; inherit dir; ignores = j.dirCon.dirs dir; }))
+#+end_src
+
+***** Python3
+
+#+begin_src nix
+(final: prev: let dir = ./callPackages/python3; in updatePython3 prev (j.import.set { call = final.."python${j.attrs.versions.three}Packages"; inherit dir; ignores = j.dirCon.dirs dir; }))
 #+end_src
 
 **** Overlays in Overlays Directory

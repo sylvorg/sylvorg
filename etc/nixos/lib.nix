@@ -98,7 +98,7 @@ with builtins; { pkgs, lib, inputs ? {}, system ? currentSystem }: with lib; let
                 suffix ? args.suffix,
                 ignores ? args.ignores,
                 dir,
-            }: filterAttrs (filterFunc _args) (readDir dir);
+            }: filterAttrs (filterFunc _args) (readDirExists dir);
         in rec {
             inherit name;
             list = _args@{

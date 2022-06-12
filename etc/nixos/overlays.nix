@@ -1,22 +1,13 @@
 args@{ lib, nixpkgs, inputs, pkgs, channel }: with builtins; with lib;
 let
-    updatePython3 = prev: attrs: { python3Packages = prev.python3Packages // attrs; };
+    updatePython2 = let
+        v = "python${j.attrs.versions.python.two}Packages";
+    in prev: attrs: { "${v}" = prev."${v}" // attrs; };
+    updatePython3 = let
+        v = "python${j.attrs.versions.python.three}Packages";
+    in prev: attrs: { "${v}" = prev."${v}" // attrs; };
 in flatten [
 (final: prev: { j = { inherit pkgs; };})
-(let
-    v2 = j.attrs.versions.python.two;
-    v3 = j.attrs.versions.python.three;
-in [
-    (final: prev: { python2 = final."python2${v2}"; })
-    (final: prev: { python2Packages = dontRecurseIntoAttrs final."python2${v2}Packages"; })
-    (final: prev: { python2.pkgs = final.python2Packages; })
-    (final: prev: { python3 = final."python3${v3}"; })
-    (final: prev: { python3Packages = dontRecurseIntoAttrs final."python3${v3}Packages"; })
-    (final: prev: { python3.pkgs = final.python3Packages; })
-    (final: prev: { python = final.python3; })
-    (final: prev: { pythonPackages = final.python3Packages; })
-    (final: prev: { python.pkgs = final.pythonPackages; })
-])
 (final: prev: updatePython3 prev { rich = prev.python3Packages.rich.overridePythonAttrs (old: {
     version = "12.0.0";
     src = final.fetchFromGitHub {
@@ -43,8 +34,8 @@ in [
 (final: prev: { nur = import inputs.nur { nurpkgs = nixpkgs; pkgs = prev; }; })
 inputs.emacs.overlay
 (final: prev: let dir = ./callPackages; in j.import.set { call = true; inherit dir; ignores = j.dirCon.dirs dir; })
-# (let dir = ./callPackages/python; in (map (file: [(final: prev: updatePython3 prev { "${j.import.name { inherit file; }}" = final.python3Packages.callPackage file {}; })]) (j.import.list { inherit dir; ignores = j.dirCon.dirs dir; })))
-(final: prev: let dir = ./callPackages/python; in updatePython3 prev (j.import.set { call = final.python3Packages; inherit dir; ignores = j.dirCon.dirs dir; }))
+(final: prev: let dir = ./callPackages/python2; in updatePython2 prev (j.import.set { call = final."python${j.attrs.versions.two}Packages"; inherit dir; ignores = j.dirCon.dirs dir; }))
+(final: prev: let dir = ./callPackages/python3; in updatePython3 prev (j.import.set { call = final.."python${j.attrs.versions.three}Packages"; inherit dir; ignores = j.dirCon.dirs dir; }))
 (final: prev: let dir = ./overlays; in j.import.set { inherit dir; ignores = j.dirCon.dirs dir; })
 (let pkgsets = {
     # nixos-unstable = [ "gnome-tour" ];
