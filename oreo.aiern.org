@@ -27,7 +27,7 @@ in with pkgs; let
         makeWrapperArgs = [ "--prefix PYTHONPATH : ${placeholder "out"}/lib/${python3.pkgs.python.libPrefix}/site-packages" ];
     };
 in mkShell rec {
-    buildInputs = [ (let _ = callPackage strapper {}; trace pkgs.pythonPackages.oreo _) sd gcc rsync ];
+    buildInputs = [ (let _ = callPackage strapper {}; in trace pkgs.pythonPackages.oreo _) sd gcc rsync ];
     nativeBuildInputs = buildInputs;
 }
 #+end_src
@@ -2234,7 +2234,7 @@ in final: prev: rec {
     python3 = final."python3${v3}";
     python3Packages = dontRecurseIntoAttrs final."python3${v3}Packages";
     python = python3;
-    pythonPackages = dontRecurseIntoAttrs final."python3${v3}Packages";
+    pythonPackages = python3Packages;
 })
 #+end_src
 
@@ -2315,7 +2315,7 @@ inputs.emacs.overlay
 ***** Python
 
 #+begin_src nix
-(final: prev: let dir = ./callPackages/python; in { python3Packages = j.import.set { call = final.python3Packages; inherit dir; ignores = j.dirCon.dirs dir; }; })
+(final: prev: let dir = ./callPackages/python; in { python3Packages = recursiveUpdate prev.python3Packages (j.import.set { call = final.python3Packages; inherit dir; ignores = j.dirCon.dirs dir; }); })
 #+end_src
 
 **** Overlays in Overlays Directory

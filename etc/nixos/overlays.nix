@@ -11,7 +11,7 @@ in final: prev: rec {
     python3 = final."python3${v3}";
     python3Packages = dontRecurseIntoAttrs final."python3${v3}Packages";
     python = python3;
-    pythonPackages = dontRecurseIntoAttrs final."python3${v3}Packages";
+    pythonPackages = python3Packages;
 })
 (final: prev: { python3Packages.rich = prev.python3Packages.rich.overridePythonAttrs (old: {
     version = "12.0.0";
@@ -39,7 +39,7 @@ in final: prev: rec {
 (final: prev: { nur = import inputs.nur { nurpkgs = nixpkgs; pkgs = prev; }; })
 inputs.emacs.overlay
 (final: prev: let dir = ./callPackages; in j.import.set { call = true; inherit dir; ignores = j.dirCon.dirs dir; })
-(final: prev: let dir = ./callPackages/python; in { python3Packages = j.import.set { call = final.python3Packages; inherit dir; ignores = j.dirCon.dirs dir; }; })
+(final: prev: let dir = ./callPackages/python; in { python3Packages = recursiveUpdate prev.python3Packages (j.import.set { call = final.python3Packages; inherit dir; ignores = j.dirCon.dirs dir; }); })
 (final: prev: let dir = ./overlays; in j.import.set { inherit dir; ignores = j.dirCon.dirs dir; })
 (let pkgsets = {
     # nixos-unstable = [ "gnome-tour" ];
