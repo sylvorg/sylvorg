@@ -2202,15 +2202,13 @@ args@{ lib, nixpkgs, inputs, pkgs, channel }: with builtins; with lib;
 let
 #+end_src
 
-***** Recursively Update Python Packages
+***** Update Python Packages
 
 #+begin_src nix
+    updatePython = pv: prev: attrs: { "${pv}" = prev.${pv} // { pkgs = prev.${pv}.pkgs // attrs; }; }
+    updatePythonPackages = pv: final: prev: dir: updatePython pv prev (j.import.set { call = final.${pv}.pkgs; inherit dir; ignores = j.dirCon.dirs dir; });
     pv2 = "python2${j.attrs.versions.python.two}";
-    updatePython2 = prev: attrs: { "${pv2}" = prev.${pv2} // { pkgs = prev.${pv2}.pkgs // attrs; }; };
-    updatePython2Packages = prev: dir: updatePython2 prev (j.import.set { call = final.${pv2}.pkgs; inherit dir; ignores = j.dirCon.dirs dir; });
     pv3 = "python3${j.attrs.versions.python.three}";
-    updatePython3 = prev: attrs: { "${pv3}" = prev.${pv3} // { pkgs = prev.${pv3}.pkgs // attrs; }; };
-    updatePython3Packages = prev: dir: updatePython3 prev (j.import.set { call = final.${pv3}.pkgs; inherit dir; ignores = j.dirCon.dirs dir; });
 #+end_src
 
 ***** End of Let
@@ -2249,7 +2247,7 @@ Nothing else needs to be overidden: https://github.com/NixOS/nixpkgs/blob/master
 ***** Rich
 
 #+begin_src nix
-(final: prev: updatePython3 prev { rich = prev.pythonPackages.rich.overridePythonAttrs (old: {
+(final: prev: updatePython pv3 prev { rich = prev.pythonPackages.rich.overridePythonAttrs (old: {
     version = "12.0.0";
     src = final.fetchFromGitHub {
         owner = "syvlorg";
@@ -2323,13 +2321,13 @@ inputs.emacs.overlay
 ***** Python2
 
 #+begin_src nix
-(final: prev: updatePython2Packages prev ./callPackages/python2)
+(final: prev: updatePythonPackages pv2 final prev ./callPackages/python2)
 #+end_src
 
 ***** Python3
 
 #+begin_src nix
-(final: prev: updatePython3Packages prev ./callPackages/python3)
+(final: prev: updatePythonPackages pv3 final prev ./callPackages/python3)
 #+end_src
 
 **** Overlays in Overlays Directory
@@ -2357,7 +2355,7 @@ in mapAttrsToList (
             pkg1 = if pkgIsAttrs then (last (attrNames pkg')) else pkg';
             pkg2 = if pkgIsAttrs then (last (attrValues pkg')) else pkg';
             self = (pkgchannel == channel) || (pkgchannel == "self");
-        in final: prev: { "${pkg1}" = if self then prev.${pkg2} else final.j.pkgs.${pkgchannel}.${pkg2}; }
+        in final: prev: { "${pkg1}" = if self then (if pkgIsAttrs then final.${pkg2} else prev.${pkg2}) else final.j.pkgs.${pkgchannel}.${pkg2}; }
     ) pkglist
 ) pkgsets)
 #+end_src
@@ -2380,7 +2378,7 @@ in mapAttrsToList (
             pkg2Pre = last (attrValues pkg');
             pkg2IsString = isString pkg2Pre;
             self = (pkgchannel == channel) || (pkgchannel == "self");
-            pkgFunc = pkg: { "${pkg}" = if self then prev.${pkg} else final.j.pkgs.${pkgchannel}.${pkg1}.${pkg}; };
+            pkgFunc = pkg: { "${pkg}" = if self then (if pkgIsAttrs then final.${pkg} else prev.${pkg}) else final.j.pkgs.${pkgchannel}.${pkg1}.${pkg}; };
             pkg2 = if pkg2IsString then (pkgFunc pkg2Pre) else (genAttrs pkg2Pre pkgFunc);
         in final: prev: { "${pkg1}" = pkg2; }
     ) pkglist
