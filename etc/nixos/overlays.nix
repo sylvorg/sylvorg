@@ -1,6 +1,7 @@
 args@{ lib, nixpkgs, inputs, pkgs, channel }: with builtins; with lib;
 let
-    updatePython = pv: prev: attrs: { "${pv}" = prev.${pv} // { pkgs = prev.${pv}.pkgs // attrs; }; };
+    # updatePython = pv: prev: attrs: { "${pv}" = prev.${pv} // { pkgs = prev.${pv}.pkgs // attrs; }; };
+    updatePython = pv: prev: attrs: { "${pv}" = prev.${pv}.override { packageOverrides = final: prev: attrs; } };
     updatePythonPackages = pv: final: prev: dir: updatePython pv prev (j.import.set { call = final.${pv}.pkgs; inherit dir; ignores = j.dirCon.dirs dir; });
     pv2 = "python2${j.attrs.versions.python.two}";
     pv3 = "python3${j.attrs.versions.python.three}";
@@ -37,21 +38,8 @@ in flatten [
 (final: prev: { nur = import inputs.nur { nurpkgs = nixpkgs; pkgs = prev; }; })
 inputs.emacs.overlay
 (final: prev: let dir = ./callPackages; in j.import.set { call = true; inherit dir; ignores = j.dirCon.dirs dir; })
-(final: prev: updatePython pv3 prev {
-    autoslot = final.${pv3}.pkgs.callPackage ./callPackages/python3/autoslot.nix {};
-    backtrace = final.${pv3}.pkgs.callPackage ./callPackages/python3/backtrace.nix {};
-    oreo = final.${pv3}.pkgs.callPackage ./callPackages/python3/oreo.nix {};
-})
-(final: prev: updatePython pv3 prev {
-    bakery = final.${pv3}.pkgs.callPackage ./callPackages/python3/bakery.nix {};
-    xonsh-autoxsh = final.${pv3}.pkgs.callPackage ./callPackages/python3/xonsh-autoxsh.nix {};
-    xonsh-direnv = final.${pv3}.pkgs.callPackage ./callPackages/python3/xonsh-direnv.nix {};
-    xonsh-pipeliner = final.${pv3}.pkgs.callPackage ./callPackages/python3/xonsh-pipeliner.nix {};
-    xontrib-readable-traceback = final.${pv3}.pkgs.callPackage ./callPackages/python3/xontrib-readable-traceback.nix {};
-    xontrib-sh = final.${pv3}.pkgs.callPackage ./callPackages/python3/xontrib-sh.nix {};
-})
-# (final: prev: updatePythonPackages pv2 final prev ./callPackages/python2)
-# (final: prev: updatePythonPackages pv3 final prev ./callPackages/python3)
+(final: prev: updatePythonPackages pv2 final prev ./callPackages/python2)
+(final: prev: updatePythonPackages pv3 final prev ./callPackages/python3)
 (final: prev: let dir = ./overlays; in j.import.set { inherit dir; ignores = j.dirCon.dirs dir; })
 (let pkgsets = {
     # nixos-unstable = [ "gnome-tour" ];
