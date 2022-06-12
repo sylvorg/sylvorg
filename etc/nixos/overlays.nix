@@ -1,6 +1,6 @@
 args@{ lib, nixpkgs, inputs, pkgs, channel }: with builtins; with lib;
 let
-    updatePython3 = prev: attrs: { python3Packages = recursiveUpdate prev.python3Packages attrs; }
+    updatePython3 = prev: attrs: { python3Packages = recursiveUpdate prev.python3Packages attrs; };
 in flatten [
 (final: prev: { j = { inherit pkgs; };})
 (let
@@ -9,10 +9,13 @@ in flatten [
 in final: prev: rec {
     python2 = final."python2${v2}";
     python2Packages = dontRecurseIntoAttrs final."python2${v2}Packages";
+    python2.pkgs = python2Packages;
     python3 = final."python3${v3}";
     python3Packages = dontRecurseIntoAttrs final."python3${v3}Packages";
+    python3.pkgs = python3Packages;
     python = python3;
     pythonPackages = python3Packages;
+    python.pkgs = pythonPackages;
 })
 (final: prev: updatePython3 prev { rich = prev.python3Packages.rich.overridePythonAttrs (old: {
     version = "12.0.0";
@@ -28,7 +31,7 @@ in final: prev: rec {
         homepage = "https://github.com/syvlorg/rich";
         license = lib.licenses.mit;
     };
-}); };)
+}); })
 (final: prev: { xonsh = prev.xonsh.overridePythonAttrs (old: { propagatedBuildInputs = (with final.python3Packages; [ 
     bakery
     xontrib-sh
