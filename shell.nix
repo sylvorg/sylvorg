@@ -1,22 +1,23 @@
 with builtins; let
     flake = import ./etc/nixos;
-    pkgs = import flake.inputs.nixpkgs (flake.make.specialArgs null currentSystem).nixpkgset;
+    inherit (flake.make.specialArgs null currentSystem) nixpkgset lib;
+    pkgs = import flake.inputs.nixpkgs nixpkgset;
 in with pkgs; let
-    strapper = { python3, fetchFromGitHub }: python3.pkgs.buildPythonApplication rec {
+    strapper = { python, fetchFromGitHub }: python.pkgs.buildPythonApplication rec {
         pname = "strapper";
         version = "1.0.0.0";
-        src = ./strapper;
-        propagatedBuildInputs = with python3.pkgs; [ bakery ];
+        src = "./${pname}";
+        propagatedBuildInputs = with python.pkgs; [ bakery ];
         dontBuild = true;
         installPhase = ''
             mkdir --parents $out/bin
-            cp $src/strapper.py $out/bin/strapper
-            cp $src/strapper.hy $out/bin/
-            chmod +x $out/bin/strapper
-            patchShebangs $out/bin/strapper
+            cp $src/${pname}.py $out/bin/${pname}
+            cp $src/${pname}.hy $out/bin/
+            chmod +x $out/bin/${pname}
+            patchShebangs $out/bin/${pname}
         '';
-        postInstall = "wrapProgram $out/bin/strapper $makeWrapperArgs";
-        makeWrapperArgs = [ "--prefix PYTHONPATH : ${placeholder "out"}/lib/${python3.pkgs.python.libPrefix}/site-packages" ];
+        postInstall = "wrapProgram $out/bin/${pname} $makeWrapperArgs";
+        makeWrapperArgs = [ "--prefix PYTHONPATH : ${placeholder "out"}/lib/${python.pkgs.python.libPrefix}/site-packages" ];
     };
 in mkShell rec {
     buildInputs = [ (callPackage strapper {}) sd gcc rsync ];
