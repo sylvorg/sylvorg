@@ -2326,6 +2326,8 @@ inputs.emacs.overlay
     autoslot = final.${pv3}.pkgs.callPackage ./callPackages/python3/autoslot.nix {};
     backtrace = final.${pv3}.pkgs.callPackage ./callPackages/python3/backtrace.nix {};
     oreo = final.${pv3}.pkgs.callPackage ./callPackages/python3/oreo.nix {};
+})
+(final: prev: updatePython pv3 prev {
     bakery = final.${pv3}.pkgs.callPackage ./callPackages/python3/bakery.nix {};
     xonsh-autoxsh = final.${pv3}.pkgs.callPackage ./callPackages/python3/xonsh-autoxsh.nix {};
     xonsh-direnv = final.${pv3}.pkgs.callPackage ./callPackages/python3/xonsh-direnv.nix {};
