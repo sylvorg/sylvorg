@@ -12,11 +12,11 @@ in [
     (final: prev: { python2.pkgs = final.python2Packages; })
     (final: prev: { python3 = final."python3${v3}"; })
     (final: prev: { python3Packages = dontRecurseIntoAttrs final."python3${v3}Packages"; })
-    (final: prev: { python3.pkgs = python3Packages; })
-    (final: prev: { python = python3; })
-    (final: prev: { pythonPackages = python3Packages; })
-    (final: prev: { python.pkgs = pythonPackages; })
-}])
+    (final: prev: { python3.pkgs = final.python3Packages; })
+    (final: prev: { python = final.python3; })
+    (final: prev: { pythonPackages = final.python3Packages; })
+    (final: prev: { python.pkgs = final.pythonPackages; })
+])
 (final: prev: updatePython3 prev { rich = prev.python3Packages.rich.overridePythonAttrs (old: {
     version = "12.0.0";
     src = final.fetchFromGitHub {
@@ -43,7 +43,7 @@ in [
 (final: prev: { nur = import inputs.nur { nurpkgs = nixpkgs; pkgs = prev; }; })
 inputs.emacs.overlay
 (final: prev: let dir = ./callPackages; in j.import.set { call = true; inherit dir; ignores = j.dirCon.dirs dir; })
-(let dir = ./callPackages/python; in (map (file: [(final: prev: updatePython3 prev { "${j.import.name { inherit file; }}" = final.python3Packages.callPackage file; })]) (j.import.list { inherit dir; ignores = j.dirCon.dirs dir; })))
+(let dir = ./callPackages/python; in (map (file: [(final: prev: updatePython3 prev { "${j.import.name { inherit file; }}" = final.python3Packages.callPackage file {}; })]) (j.import.list { inherit dir; ignores = j.dirCon.dirs dir; })))
 # (final: prev: let dir = ./callPackages/python; in updatePython3 prev (j.import.set { call = final.python3Packages; inherit dir; ignores = j.dirCon.dirs dir; }))
 (final: prev: let dir = ./overlays; in j.import.set { inherit dir; ignores = j.dirCon.dirs dir; })
 (let pkgsets = {
