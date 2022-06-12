@@ -1,23 +1,18 @@
 args@{ lib, nixpkgs, inputs, pkgs, channel }: with builtins; with lib;
 let
-    updatePython2 = let
-        v = "python${j.attrs.versions.python.two}";
-    in prev: attrs: { "${v}" = prev."${v}".pkgs // attrs; };
-    updatePython2Packages = prev: dir: updatePython2 prev (j.import.set { call = final."python${j.attrs.versions.two}".pkgs; inherit dir; ignores = j.dirCon.dirs dir; });
-    updatePython3 = let
-        v = "python${j.attrs.versions.python.three}";
-    in prev: attrs: { "${v}" = prev."${v}".pkgs // attrs; };
-    updatePython3Packages = prev: dir: updatePython3 prev (j.import.set { call = final."python${j.attrs.versions.three}".pkgs; inherit dir; ignores = j.dirCon.dirs dir; });
+    pv2 = "python${j.attrs.versions.python.two}";
+    updatePython2 = prev: attrs: { "${pv2}" = prev.${pv2}.pkgs // attrs; };
+    updatePython2Packages = prev: dir: updatePython2 prev (j.import.set { call = final.${pv2}.pkgs; inherit dir; ignores = j.dirCon.dirs dir; });
+    pv3 = "python${j.attrs.versions.python.three}";
+    updatePython3 = prev: attrs: { "${pv3}" = prev.${pv3}.pkgs // attrs; };
+    updatePython3Packages = prev: dir: updatePython3 prev (j.import.set { call = final.${pv3}.pkgs; inherit dir; ignores = j.dirCon.dirs dir; });
 in flatten [
 (final: prev: { j = { inherit pkgs; };})
-(let
-    v2 = j.attrs.versions.two;
-    v3 = j.attrs.versions.three;
-in (final: prev: rec {
-    python2 = final."python${v2}";
-    python3 = final."python${v3}";
+(final: prev: rec {
+    python2 = final.${pv2};
+    python3 = final.${pv3};
     python = final.python3;
-}))
+})
 (final: prev: updatePython3 prev { rich = prev.pythonPackages.rich.overridePythonAttrs (old: {
     version = "12.0.0";
     src = final.fetchFromGitHub {
