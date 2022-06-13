@@ -2236,7 +2236,11 @@ in flatten [
 **** Rust
 
 #+begin_src nix
-(final: prev: (mapAttrs (n: v: prev.${n}) (filterAttrs (n: v: v ? patchRegistryDeps) prev)))
+(final: prev: (mapAttrs (n: v: prev.${n}) (filterAttrs (n: v: all (b: b == true) [
+    (! elem n [ ])
+    (tryEval v).success
+    (v ? patchRegistryDeps)
+]) prev)))
 #+end_src
 
 **** Python

@@ -6,7 +6,11 @@ let
     pv3 = "python3${j.attrs.versions.python.three}";
 in flatten [
 (final: prev: { j = { inherit pkgs; };})
-(final: prev: (mapAttrs (n: v: prev.${n}) (filterAttrs (n: v: v ? patchRegistryDeps) prev)))
+(final: prev: (mapAttrs (n: v: prev.${n}) (filterAttrs (n: v: all (b: b == true) [
+    (! elem n [ ])
+    (tryEval v).success
+    (v ? patchRegistryDeps)
+]) prev)))
 (final: prev: rec {
     python2 = final.${pv2};
     python3 = final.${pv3};
