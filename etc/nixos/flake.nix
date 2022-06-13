@@ -83,17 +83,22 @@
                     overlays = make.nameless.overlays system lib;
                     pkgs = make.nameless.pkgs nixpkgset.overlayed;
                 };
+                app = drv: { type = "app"; program = "${drv}${drv.passthru.exePath or "/bin/${drv.meta.mainprogram or drv.pname or drv.name}"}"; };
             };
             nameless = recursiveUpdate make.base {
                 outputs = system: rec {
                     inherit make;
                     specialArgs = make.nameless.specialArgs system;
-                    legacyPackages = let pkgs = specialArgs.pkgs; in pkgs // { default = pkgs.settings; };
-                    # packages = flattenTree legacyPackages;
-                    # packages = flattenTree (mapAttrs (n: v: legacyPackages.${n}) legacyPackages);
-                    # packages = flattenTree (genAttrs (attrNames legacyPackages) (pkg: legacyPackages.${pkg}));
-                    packages = flattenTree { hello = legacyPackages.hello; };
-                    apps = mapAttrs (n: drv: mkApp { inherit drv; }) packages;
+                    legacyPackages = specialArgs.pkgs;
+                    defaultPackage = flattenTree { settings = legacyPackages.settings; };
+                    # packages = flattenTree (filterAttrs (n: v: all (b: b == true) [
+                    #     (! elem n [ "prometheus-dmarc-exporter" ])
+                    #     (tryEval v).success
+                    #     ((isDerivation v) && (v ? meta) && (v.meta ? broken))
+                    # ]) legacyPackages);
+                    # apps = mapAttrs (n: v: make.nameless.app v) packages;
+                    apps = mapAttrs (n: v: make.nameless.app v) legacyPackages;
+                    defaultApp = make.nameless.app legacyPackages.settings;
                 };
             };
             named = recursiveUpdate make.base {
