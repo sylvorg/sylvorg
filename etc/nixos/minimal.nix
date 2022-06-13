@@ -3,8 +3,8 @@ with builtins; args@{ config, ... }: let
     system = args.system or currentSystem;
     host = args.host or config.networking.hostName;
     fromFlake = args ? inputs;
-    inheritanceSet = if fromFlake then args else (flake.make.specialArgs host system);
-    inherit (inheritanceSet) lib overlays nixpkgset pkgs;
+    inheritanceSet = if fromFlake then args else (flake.make.named.specialArgs host system);
+    inherit (inheritanceSet) lib pkgs;
 
     dir = "/home/shadowrylander/aiern";
     dirExists = pathExists dir;
@@ -445,7 +445,7 @@ in with lib; {
         # sandboxPaths = [];
     };
 }
-{ nixpkgs = nixpkgset; }
+{ nixpkgs = inheritanceSet.nixpkgset.overlayed; }
 {
     services.logind.lidSwitch = "hybrid-sleep";
     powerManagement = {

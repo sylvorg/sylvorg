@@ -6,8 +6,6 @@ with lib;
 
 let
 
-  flake = import ..;
-
   var' = filter (f: f.enable) (attrValues config.environment.vars);
 
   var = pkgs.runCommandLocal "var" {
@@ -68,7 +66,7 @@ in
 
 {
 
-  imports = [ "${flake.inputs.nixpkgs}/nixos/modules/system/build.nix" ];
+  imports = [ "${(import ..).inputs.nixpkgs}/nixos/modules/system/build.nix" ];
 
   ###### interface
 

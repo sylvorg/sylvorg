@@ -1,7 +1,6 @@
 #! /usr/bin/env nix-shell
 #[9debb8f7-e891-48e9-8bd9-3b5b40d0ebbb[
-#! nix-shell -p python310 python310Packages.bakery
-#! nix-shell -I nixpkgs=https://github.com/shadowrylander/nixpkgs/archive/j.tar.gz
+#! nix-shell borgmatic-shell.nix
 #! nix-shell -i hy
 ]9debb8f7-e891-48e9-8bd9-3b5b40d0ebbb]
 (import bakery [zfs])

@@ -2,8 +2,8 @@ with builtins; args@{ config, ... }: let
     flake = import ./.;
     system = args.system or currentSystem;
     host = args.host or config.networking.hostName;
-    inheritanceSet = if (args ? inputs) then args else (flake.make.specialArgs host system);
-    inherit (inheritanceSet) lib overlays nixpkgset pkgs;
+    inheritanceSet = if (args ? inputs) then args else (flake.make.named.specialArgs host system);
+    inherit (inheritanceSet) lib pkgs;
 in with lib; {
     boot = {
         supportedFilesystems = j.attrs.fileSystems.supported;

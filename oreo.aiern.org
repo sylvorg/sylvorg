@@ -6,15 +6,11 @@ which was written by [[https://emacs.stackexchange.com/users/2710/andrew-swann][
 * shell.nix
 
 #+begin_src nix :tangle (meq/tangle-path)
-with builtins; let
-    flake = import ./etc/nixos;
-    inherit (flake.make.specialArgs null currentSystem) nixpkgset lib;
-    pkgs = import flake.inputs.nixpkgs nixpkgset;
-in with pkgs; let
-    strapper = { python, fetchFromGitHub }: python.pkgs.buildPythonApplication rec {
+with (import ./etc/nixos).legacyPackages.${builtins.currentSystem}; let
+    strapper = { python }: python.pkgs.buildPythonApplication rec {
         pname = "strapper";
         version = "1.0.0.0";
-        src = "./${pname}";
+        src = ./strapper;
         propagatedBuildInputs = with python.pkgs; [ bakery ];
         dontBuild = true;
         installPhase = ''
@@ -27,10 +23,7 @@ in with pkgs; let
         postInstall = "wrapProgram $out/bin/${pname} $makeWrapperArgs";
         makeWrapperArgs = [ "--prefix PYTHONPATH : ${placeholder "out"}/lib/${python.pkgs.python.libPrefix}/site-packages" ];
     };
-in mkShell rec {
-    buildInputs = [ (callPackage strapper {}) sd gcc rsync ];
-    nativeBuildInputs = buildInputs;
-}
+in mkShell rec { buildInputs = [ (callPackage strapper {}) sd rsync ]; }
 #+end_src
 
 * strapper
@@ -405,7 +398,8 @@ This can't use a default value, as that would trigger a rebuild all the time.
                                  (raise (NameError no-host-error-message))))
                          (if (or install all)
                              (nixos-install #* ctx.args
-                                            :I "nixpkgs=https://github.com/<<username>>/nixpkgs/archive/j.tar.gz"
+                                            :I (with [f (open (+ resources "/flake.lock"))]
+                                                     f"nixpkgs=https://github.com/nixos/nixpkgs/archive/{(D (.load json f)).nodes.nixos-22-05.locked.rev}.tar.gz")
                                             :m/run True
                                             :show-trace True
                                             :install-bootloader install-bootloader
@@ -1805,7 +1799,7 @@ python3.pkgs.buildPythonApplication rec {
 **** settings.nix
 
 #+begin_src nix :tangle (meq/tangle-path)
-{ stdenv, fetchFromGitHub }: with builtins; stdenv.mkDerivation rec {
+{ stdenv, fetchFromGitHub }: stdenv.mkDerivation rec {
     pname = "settings";
     version = "1.0.0.0";
 
@@ -1823,6 +1817,8 @@ python3.pkgs.buildPythonApplication rec {
         cp -r $src/bin $out/bin
         chmod +x $out/bin/*
     '';
+
+    meta.mainprogram = "org-tangle";
 }
 #+end_src
 
@@ -1830,11 +1826,11 @@ python3.pkgs.buildPythonApplication rec {
 
 #+begin_src nix :tangle (meq/tangle-path)
 { lib
-, python310
+, python3
 , fetchFromGitHub
 }:
 
-python310.pkgs.buildPythonApplication rec {
+python3.pkgs.buildPythonApplication rec {
   pname = "tailapi";
   version = "1.0.0.0";
 
@@ -1845,7 +1841,7 @@ python310.pkgs.buildPythonApplication rec {
     sha256 = "0bywlkbwxsnf11i1kv36ls2yax0pp30qmgcyfq3gcmzzhcgk2q3k";
   };
 
-  propagatedBuildInputs = with python310.pkgs; [
+  propagatedBuildInputs = with python3.pkgs; [
     oreo
     requests
   ];
@@ -1860,7 +1856,7 @@ python310.pkgs.buildPythonApplication rec {
 
   makeWrapperArgs = [
     # "--prefix" "PATH" ":" (lib.makeBinPath [ git ])
-    "--prefix PYTHONPATH : ${placeholder "out"}/lib/${python310.pkgs.python.libPrefix}/site-packages"
+    "--prefix PYTHONPATH : ${placeholder "out"}/lib/${python3.pkgs.python.libPrefix}/site-packages"
   ];
 
   meta = {
@@ -2204,9 +2200,13 @@ let
 
 ***** Update Python Packages
 
+Adapted from [[https://discourse.nixos.org/t/how-to-add-custom-python-package/536/4][here]]:
+
 #+begin_src nix
-    # updatePython = pv: prev: attrs: { "${pv}" = prev.${pv} // { pkgs = prev.${pv}.pkgs // attrs; }; };
-    updatePython = pv: prev: attrs: { "${pv}" = prev.${pv}.override { packageOverrides = final: prev: attrs; } };
+    updatePython = pv: prev: attrs: { "${pv}" = prev.${pv}.override { packageOverrides = new: old: attrs; }; };
+#+end_src
+
+#+begin_src nix
     updatePythonPackages = pv: final: prev: dir: updatePython pv prev (j.import.set { call = final.${pv}.pkgs; inherit dir; ignores = j.dirCon.dirs dir; });
     pv2 = "python2${j.attrs.versions.python.two}";
     pv3 = "python3${j.attrs.versions.python.three}";
@@ -2408,7 +2408,7 @@ in mapAttrsToList (
         nixos-22-05-small.url = github:NixOS/nixpkgs/nixos-22.05-small;
         nixos-21-11.url = github:NixOS/nixpkgs/nixos-21.11;
         nixos-21-11-small.url = github:NixOS/nixpkgs/nixos-21.11-small;
-        master.url = github:NixOS/nixpkgs/master;
+        nixos-master.url = github:NixOS/nixpkgs/master;
         nixpkgs.follows = "nixos-22-05";
 
         hardware.url = github:nixos/nixos-hardware;
@@ -2441,57 +2441,72 @@ in mapAttrsToList (
     };
 
     outputs = inputs@{ self, nixpkgs, flake-utils, ... }: with builtins; with nixpkgs.lib; with flake-utils.lib; let
-        channel = "j";
+        channel = "nixos-22-05";
         make = {
-            pre-pkgs = system: import nixpkgs { inherit system; };
-            lib = system: nixpkgs.lib.extend (final: prev: {
-                j = import ./lib.nix {
-                    inherit inputs system;
-                    pkgs = make.pre-pkgs system;
-                    lib = final;
+            base = {
+                lib = system: nixpkgs.lib.extend (final: prev: {
+                    j = import ./lib.nix {
+                        inherit inputs system;
+                        pkgs = import nixpkgs { inherit system; };
+                        lib = final;
+                    };
+                    inherit (inputs.home-manager.lib) hm;
+                });
+                nixpkgset = {
+                    default = system: lib: { inherit system; config = lib.j.attrs.configs.nixpkgs; };
+                    overlayed = overlays: system: lib: { inherit overlays system; config = lib.j.attrs.configs.nixpkgs; };
                 };
-                inherit (inputs.home-manager.lib) hm;
-            });
-            pre-nixpkgset = system: lib: { inherit system; config = lib.j.attrs.configs.nixpkgs; };
-            overlays = system: lib: import ./overlays.nix {
-                inherit lib nixpkgs inputs channel;
-                pkgs = mapAttrs (n: v: import v (make.pre-nixpkgset system lib)) (
-                    (filterAttrs (n: v: (hasPrefix "nixos-" n) || (hasPrefix "release-" n)) inputs) //
-                    (with inputs; { inherit master j; })
-                );
+                overlays = system: lib: import ./overlays.nix {
+                    inherit lib nixpkgs inputs channel;
+                    pkgs = mapAttrs (n: v: import v (make.base.nixpkgset.default system lib)) (filterAttrs (n: v: (hasPrefix "nixos-" n) || (hasPrefix "release-" n)) inputs);
+                };
+                pkgs = nixpkgset: import nixpkgs nixpkgset;
+                specialArgs = system: rec {
+                    inherit inputs nixpkgs system;
+                    lib = make.nameless.lib system;
+                    nixpkgset = {
+                        default = make.nameless.nixpkgset.default system lib;
+                        overlayed = make.nameless.nixpkgset.overlayed overlays system lib;
+                    };
+                    overlays = make.nameless.overlays system lib;
+                    pkgs = make.nameless.pkgs nixpkgset.overlayed;
+                };
             };
-            nixpkgset = overlays: system: lib: { inherit overlays system; config = lib.j.attrs.configs.nixpkgs; };
-            pkgs = nixpkgset: import nixpkgs nixpkgset;
-            specialArgs = name: system: rec {
-                inherit inputs nixpkgs system;
-                host = name;
-                lib = make.lib system;
-                pre-nixpkgset = make.pre-nixpkgset system lib;
-                overlays = make.overlays system lib;
-                nixpkgset = make.nixpkgset overlays system lib;
-                pkgs = make.pkgs nixpkgset;
+            nameless = recursiveUpdate make.base {
+                outputs = system: rec {
+                    inherit make;
+                    specialArgs = make.nameless.specialArgs system;
+                    legacyPackages = let pkgs = specialArgs.pkgs; in pkgs // { default = pkgs.settings; };
+                    packages = flattenTree legacyPackages;
+                    apps = mapAttrs (n: drv: mkApp { inherit drv; }) packages;
+                };
             };
-            config = name: system: nixosSystem rec {
-                specialArgs = make.specialArgs name system;
-                modules = with inputs; let
-                    j-list = specialArgs.lib.j.import.list;
-                in flatten [
-                    "${toString ./.}/hosts/${name}"
-                    home-manager.nixosModules.home-manager
-                    impermanence.nixosModules.impermanence
-                    (j-list { dir = ./modules; })
-                    (j-list { dir = ./secrets; })
-                ];
-            };
+            named = recursiveUpdate make.base {
+                specialArgs = name: system: recursiveUpdate (make.named.specialArgs system) { host = name; };
+                config = name: system: nixosSystem rec {
+                    specialArgs = make.named.specialArgs name system;
+                    modules = with inputs; let
+                        j-list = specialArgs.lib.j.import.list;
+                    in flatten [
+                        "${toString ./.}/hosts/${name}"
+                        home-manager.nixosModules.home-manager
+                        impermanence.nixosModules.impermanence
+                        (j-list { dir = ./modules; })
+                        (j-list { dir = ./secrets; })
+                    ];
+                };
 
-            nixosConfiguration = system: { packages.nixosConfigurations = genAttrs (dirCon.dirs ./hosts) (name: make.config name system); };
+                nixosConfiguration = system: { packages.nixosConfigurations = genAttrs (dirCon.dirs ./hosts) (name: make.named.config name system); };
 
-            # nixosConfiguration = system: { packages.nixosConfigurations = listToAttrs (map
-            #     (name: nameValuePair name (make.config name system))
-            #     (dirCon.dirs ./hosts)
-            # ); };
+                # nixosConfiguration = system: { packages.nixosConfigurations = listToAttrs (map
+                #     (name: nameValuePair name (make.named.config name system))
+                #     (dirCon.dirs ./hosts)
+                # ); };
+            };
+            both = system: (make.named.nixosConfiguration system) // (make.nameless.outputs system);
         };
-    in recursiveUpdate (eachSystem allSystems make.nixosConfiguration) { inherit make channel; };
+
+    in (let _ = eachSystem allSystems make.both; in trace _ _);
 }
 #+end_src
 
@@ -2978,8 +2993,6 @@ with lib;
 
 let
 
-  flake = import ..;
-
   var' = filter (f: f.enable) (attrValues config.environment.vars);
 
   var = pkgs.runCommandLocal "var" {
@@ -3040,7 +3053,7 @@ in
 
 {
 
-  imports = [ "${flake.inputs.nixpkgs}/nixos/modules/system/build.nix" ];
+  imports = [ "${(import ..).inputs.nixpkgs}/nixos/modules/system/build.nix" ];
 
   ###### interface
 
@@ -3342,8 +3355,8 @@ with builtins; args@{ config, ... }: let
     flake = import ./.;
     system = args.system or currentSystem;
     host = args.host or config.networking.hostName;
-    inheritanceSet = if (args ? inputs) then args else (flake.make.specialArgs host system);
-    inherit (inheritanceSet) lib overlays nixpkgset pkgs;
+    inheritanceSet = if (args ? inputs) then args else (flake.make.named.specialArgs host system);
+    inherit (inheritanceSet) lib pkgs;
 in with lib; {
     boot = {
         supportedFilesystems = j.attrs.fileSystems.supported;
@@ -3397,8 +3410,8 @@ with builtins; args@{ config, ... }: let
     system = args.system or currentSystem;
     host = args.host or config.networking.hostName;
     fromFlake = args ? inputs;
-    inheritanceSet = if fromFlake then args else (flake.make.specialArgs host system);
-    inherit (inheritanceSet) lib overlays nixpkgset pkgs;
+    inheritanceSet = if fromFlake then args else (flake.make.named.specialArgs host system);
+    inherit (inheritanceSet) lib pkgs;
 
     dir = "<<userrepo>>";
     dirExists = pathExists dir;
@@ -3902,7 +3915,7 @@ Adapted from [[https://www.reddit.com/r/NixOS/comments/ut8j10/nixos_zfs_podman_b
 ***** Nixpkgs
 
 #+begin_src nix
-{ nixpkgs = nixpkgset; }
+{ nixpkgs = inheritanceSet.nixpkgset.overlayed; }
 #+end_src
 
 ***** Power
@@ -4233,7 +4246,6 @@ Adapted from [[https://www.reddit.com/r/NixOS/comments/ut8j10/nixos_zfs_podman_b
             gparted
             gptfdisk
             inetutils
-            j-settings
             jupyter
             keybase-gui kitty
             libffi
@@ -4270,6 +4282,7 @@ Adapted from [[https://www.reddit.com/r/NixOS/comments/ut8j10/nixos_zfs_podman_b
             ripgrep
             rsync
             sd
+            settings
             shadowfox
             shellcheck
             silver-searcher
@@ -4337,7 +4350,7 @@ Help is available in the configuration.nix(5) man page and in the NixOS manual (
 #+end_quote
 
 #+begin_src nix :tangle (meq/tangle-path)
-{ config, pkgs, lib, system, ... }: with lib;
+{ config, pkgs, lib, system, inputs, ... }: with lib;
 
 {
     xdg.portal = {
@@ -4354,8 +4367,7 @@ Help is available in the configuration.nix(5) man page and in the NixOS manual (
         autoUpgrade = {
             enable = true;
             allowReboot = false;
-            # flake = "https://github.com/nixos/nixpkgs/archive/master.tar.gz";
-            flake = "https://github.com/${j.attrs.users.primary}/nixpkgs/archive/j.tar.gz";
+            flake = "https://github.com/nixos/nixpkgs/archive/${inputs.nixpkgs.rev}.tar.gz";
         };
     };
 }
@@ -4831,6 +4843,17 @@ hooks:
     # umask: 0077
 #+end_src
 
+*** borgmatic-shell.nix
+
+#+begin_src nix :tangle (meq/tangle-path)
+with builtins; with (import "${(fetchGit {
+    url = "https://github.com/<<username>>/<<username>>";
+    ref = "main";
+})}/etc/nixos").legacyPackages.${currentSystem}; mkShell {
+    buildInputs = with pythonPackages; [ bakery ];
+}
+#+end_src
+
 *** mountable-mounted.hy
 :PROPERTIES:
 :header-args:hy+: :noweb-ref 755d259c-5582-4cd7-bd51-70b33598f264
@@ -4842,8 +4865,7 @@ hooks:
 
 #+begin_src hy
 #[9debb8f7-e891-48e9-8bd9-3b5b40d0ebbb[
-#! nix-shell -p python310 python310Packages.bakery
-#! nix-shell -I nixpkgs=https://github.com/<<username>>/nixpkgs/archive/j.tar.gz
+#! nix-shell borgmatic-shell.nix
 #! nix-shell -i hy
 ]9debb8f7-e891-48e9-8bd9-3b5b40d0ebbb]
 #+end_src
@@ -4984,7 +5006,7 @@ location:
 ** nix
 *** nix.conf
 
-Adapted from [[][here]]:
+Adapted from [[https://github.com/divnix/digga/blob/main/examples/devos/flake.nix#L4][here]]:
 
 #+name: 270d5d30-951e-4171-8c23-67fc45d20578
 #+begin_src emacs-lisp :var delim="" comment="" quoted='nil flake='nil
@@ -6065,6 +6087,17 @@ Adapted from [[https://unix.stackexchange.com/users/48083/graeme][Graeme's]] ans
 #+end_src
 
 *** scripts
+**** git-shell.nix
+
+#+begin_src nix :tangle (meq/tangle-path)
+with builtins; with (import "${(fetchGit {
+    url = "https://github.com/<<username>>/<<username>>";
+    ref = "main";
+})}/etc/nixos").legacyPackages.${currentSystem}; mkShell {
+    buildInputs = [ git-crypt git-filter-repo rsync realpath ];
+}
+#+end_src
+
 **** dekey
 :PROPERTIES:
 :header-args:shell+: :noweb-ref d4fe01d0-adf7-42b4-886c-fd6c22b4065f
@@ -6075,8 +6108,7 @@ Adapted from [[https://unix.stackexchange.com/users/48083/graeme][Graeme's]] ans
 #+end_src
 
 #+begin_src shell :tangle (meq/tangle-path) :shebang "#! /usr/bin/env nix-shell"
-#! nix-shell -p git-crypt git-filter-repo rsync realpath
-#! nix-shell -I nixpkgs=https://github.com/<<username>>/nixpkgs/archive/j.tar.gz
+#! nix-shell git-shell.nix
 #! nix-shell -i sh
 set -eo pipefail
 root=$(git rev-parse --show-toplevel)
@@ -6103,8 +6135,7 @@ done
 #+end_src
 
 #+begin_src shell :tangle (meq/tangle-path) :shebang "#! /usr/bin/env nix-shell"
-#! nix-shell -p git-crypt git-filter-repo rsync realpath
-#! nix-shell -I nixpkgs=https://github.com/<<username>>/nixpkgs/archive/j.tar.gz
+#! nix-shell git-shell.nix
 #! nix-shell -i sh
 set -eo pipefail
 root=$(git rev-parse --show-toplevel)

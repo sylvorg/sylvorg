@@ -56,7 +56,6 @@
             gparted
             gptfdisk
             inetutils
-            j-settings
             jupyter
             keybase-gui kitty
             libffi
@@ -93,6 +92,7 @@
             ripgrep
             rsync
             sd
+            settings
             shadowfox
             shellcheck
             silver-searcher

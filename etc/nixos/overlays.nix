@@ -1,7 +1,6 @@
 args@{ lib, nixpkgs, inputs, pkgs, channel }: with builtins; with lib;
 let
-    # updatePython = pv: prev: attrs: { "${pv}" = prev.${pv} // { pkgs = prev.${pv}.pkgs // attrs; }; };
-    updatePython = pv: prev: attrs: { "${pv}" = prev.${pv}.override { packageOverrides = final: prev: attrs; } };
+    updatePython = pv: prev: attrs: { "${pv}" = prev.${pv}.override { packageOverrides = new: old: attrs; }; };
     updatePythonPackages = pv: final: prev: dir: updatePython pv prev (j.import.set { call = final.${pv}.pkgs; inherit dir; ignores = j.dirCon.dirs dir; });
     pv2 = "python2${j.attrs.versions.python.two}";
     pv3 = "python3${j.attrs.versions.python.three}";

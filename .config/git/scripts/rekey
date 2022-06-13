@@ -1,12 +1,10 @@
 #! /usr/bin/env nix-shell
-#! nix-shell -p git-crypt git-filter-repo rsync realpath
-#! nix-shell -I nixpkgs=https://github.com/shadowrylander/nixpkgs/archive/j.tar.gz
+#! nix-shell git-shell.nix
 #! nix-shell -i sh
 set -eo pipefail
 root=$(git rev-parse --show-toplevel)
 
-#! nix-shell -p git-crypt git-filter-repo rsync realpath
-#! nix-shell -I nixpkgs=https://github.com/shadowrylander/nixpkgs/archive/j.tar.gz
+#! nix-shell git-shell.nix
 #! nix-shell -i sh
 set -eo pipefail
 root=$(git rev-parse --show-toplevel)

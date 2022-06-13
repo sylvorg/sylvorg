@@ -1,4 +1,4 @@
-{ config, pkgs, lib, system, ... }: with lib;
+{ config, pkgs, lib, system, inputs, ... }: with lib;
 
 {
     xdg.portal = {
@@ -15,8 +15,7 @@
         autoUpgrade = {
             enable = true;
             allowReboot = false;
-            # flake = "https://github.com/nixos/nixpkgs/archive/master.tar.gz";
-            flake = "https://github.com/${j.attrs.users.primary}/nixpkgs/archive/j.tar.gz";
+            flake = "https://github.com/nixos/nixpkgs/archive/${inputs.nixpkgs.rev}.tar.gz";
         };
     };
 }

@@ -1,4 +1,4 @@
-{ stdenv, fetchFromGitHub }: with builtins; stdenv.mkDerivation rec {
+{ stdenv, fetchFromGitHub }: stdenv.mkDerivation rec {
     pname = "settings";
     version = "1.0.0.0";
 
@@ -16,4 +16,6 @@
         cp -r $src/bin $out/bin
         chmod +x $out/bin/*
     '';
+
+    meta.mainprogram = "org-tangle";
 }

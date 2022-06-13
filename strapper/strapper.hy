@@ -269,7 +269,8 @@
                                  (raise (NameError no-host-error-message))))
                          (if (or install all)
                              (nixos-install #* ctx.args
-                                            :I "nixpkgs=https://github.com/shadowrylander/nixpkgs/archive/j.tar.gz"
+                                            :I (with [f (open (+ resources "/flake.lock"))]
+                                                     f"nixpkgs=https://github.com/nixos/nixpkgs/archive/{(D (.load json f)).nodes.nixos-22-05.locked.rev}.tar.gz")
                                             :m/run True
                                             :show-trace True
                                             :install-bootloader install-bootloader

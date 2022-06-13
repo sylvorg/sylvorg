@@ -20,7 +20,7 @@
         nixos-22-05-small.url = github:NixOS/nixpkgs/nixos-22.05-small;
         nixos-21-11.url = github:NixOS/nixpkgs/nixos-21.11;
         nixos-21-11-small.url = github:NixOS/nixpkgs/nixos-21.11-small;
-        master.url = github:NixOS/nixpkgs/master;
+        nixos-master.url = github:NixOS/nixpkgs/master;
         nixpkgs.follows = "nixos-22-05";
 
         hardware.url = github:nixos/nixos-hardware;
@@ -53,55 +53,70 @@
     };
 
     outputs = inputs@{ self, nixpkgs, flake-utils, ... }: with builtins; with nixpkgs.lib; with flake-utils.lib; let
-        channel = "j";
+        channel = "nixos-22-05";
         make = {
-            pre-pkgs = system: import nixpkgs { inherit system; };
-            lib = system: nixpkgs.lib.extend (final: prev: {
-                j = import ./lib.nix {
-                    inherit inputs system;
-                    pkgs = make.pre-pkgs system;
-                    lib = final;
+            base = {
+                lib = system: nixpkgs.lib.extend (final: prev: {
+                    j = import ./lib.nix {
+                        inherit inputs system;
+                        pkgs = import nixpkgs { inherit system; };
+                        lib = final;
+                    };
+                    inherit (inputs.home-manager.lib) hm;
+                });
+                nixpkgset = {
+                    default = system: lib: { inherit system; config = lib.j.attrs.configs.nixpkgs; };
+                    overlayed = overlays: system: lib: { inherit overlays system; config = lib.j.attrs.configs.nixpkgs; };
                 };
-                inherit (inputs.home-manager.lib) hm;
-            });
-            pre-nixpkgset = system: lib: { inherit system; config = lib.j.attrs.configs.nixpkgs; };
-            overlays = system: lib: import ./overlays.nix {
-                inherit lib nixpkgs inputs channel;
-                pkgs = mapAttrs (n: v: import v (make.pre-nixpkgset system lib)) (
-                    (filterAttrs (n: v: (hasPrefix "nixos-" n) || (hasPrefix "release-" n)) inputs) //
-                    (with inputs; { inherit master j; })
-                );
+                overlays = system: lib: import ./overlays.nix {
+                    inherit lib nixpkgs inputs channel;
+                    pkgs = mapAttrs (n: v: import v (make.base.nixpkgset.default system lib)) (filterAttrs (n: v: (hasPrefix "nixos-" n) || (hasPrefix "release-" n)) inputs);
+                };
+                pkgs = nixpkgset: import nixpkgs nixpkgset;
+                specialArgs = system: rec {
+                    inherit inputs nixpkgs system;
+                    lib = make.nameless.lib system;
+                    nixpkgset = {
+                        default = make.nameless.nixpkgset.default system lib;
+                        overlayed = make.nameless.nixpkgset.overlayed overlays system lib;
+                    };
+                    overlays = make.nameless.overlays system lib;
+                    pkgs = make.nameless.pkgs nixpkgset.overlayed;
+                };
             };
-            nixpkgset = overlays: system: lib: { inherit overlays system; config = lib.j.attrs.configs.nixpkgs; };
-            pkgs = nixpkgset: import nixpkgs nixpkgset;
-            specialArgs = name: system: rec {
-                inherit inputs nixpkgs system;
-                host = name;
-                lib = make.lib system;
-                pre-nixpkgset = make.pre-nixpkgset system lib;
-                overlays = make.overlays system lib;
-                nixpkgset = make.nixpkgset overlays system lib;
-                pkgs = make.pkgs nixpkgset;
+            nameless = recursiveUpdate make.base {
+                outputs = system: rec {
+                    inherit make;
+                    specialArgs = make.nameless.specialArgs system;
+                    legacyPackages = let pkgs = specialArgs.pkgs; in pkgs // { default = pkgs.settings; };
+                    packages = flattenTree legacyPackages;
+                    apps = mapAttrs (n: drv: mkApp { inherit drv; }) packages;
+                };
             };
-            config = name: system: nixosSystem rec {
-                specialArgs = make.specialArgs name system;
-                modules = with inputs; let
-                    j-list = specialArgs.lib.j.import.list;
-                in flatten [
-                    "${toString ./.}/hosts/${name}"
-                    home-manager.nixosModules.home-manager
-                    impermanence.nixosModules.impermanence
-                    (j-list { dir = ./modules; })
-                    (j-list { dir = ./secrets; })
-                ];
-            };
+            named = recursiveUpdate make.base {
+                specialArgs = name: system: recursiveUpdate (make.named.specialArgs system) { host = name; };
+                config = name: system: nixosSystem rec {
+                    specialArgs = make.named.specialArgs name system;
+                    modules = with inputs; let
+                        j-list = specialArgs.lib.j.import.list;
+                    in flatten [
+                        "${toString ./.}/hosts/${name}"
+                        home-manager.nixosModules.home-manager
+                        impermanence.nixosModules.impermanence
+                        (j-list { dir = ./modules; })
+                        (j-list { dir = ./secrets; })
+                    ];
+                };
 
-            nixosConfiguration = system: { packages.nixosConfigurations = genAttrs (dirCon.dirs ./hosts) (name: make.config name system); };
+                nixosConfiguration = system: { packages.nixosConfigurations = genAttrs (dirCon.dirs ./hosts) (name: make.named.config name system); };
 
-            # nixosConfiguration = system: { packages.nixosConfigurations = listToAttrs (map
-            #     (name: nameValuePair name (make.config name system))
-            #     (dirCon.dirs ./hosts)
-            # ); };
+                # nixosConfiguration = system: { packages.nixosConfigurations = listToAttrs (map
+                #     (name: nameValuePair name (make.named.config name system))
+                #     (dirCon.dirs ./hosts)
+                # ); };
+            };
+            both = system: (make.named.nixosConfiguration system) // (make.nameless.outputs system);
         };
-    in recursiveUpdate (eachSystem allSystems make.nixosConfiguration) { inherit make channel; };
+
+    in (let _ = eachSystem allSystems make.both; in trace _ _);
 }

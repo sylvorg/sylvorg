@@ -1,9 +1,9 @@
 { lib
-, python310
+, python3
 , fetchFromGitHub
 }:
 
-python310.pkgs.buildPythonApplication rec {
+python3.pkgs.buildPythonApplication rec {
   pname = "tailapi";
   version = "1.0.0.0";
 
@@ -14,7 +14,7 @@ python310.pkgs.buildPythonApplication rec {
     sha256 = "0bywlkbwxsnf11i1kv36ls2yax0pp30qmgcyfq3gcmzzhcgk2q3k";
   };
 
-  propagatedBuildInputs = with python310.pkgs; [
+  propagatedBuildInputs = with python3.pkgs; [
     oreo
     requests
   ];
@@ -29,7 +29,7 @@ python310.pkgs.buildPythonApplication rec {
 
   makeWrapperArgs = [
     # "--prefix" "PATH" ":" (lib.makeBinPath [ git ])
-    "--prefix PYTHONPATH : ${placeholder "out"}/lib/${python310.pkgs.python.libPrefix}/site-packages"
+    "--prefix PYTHONPATH : ${placeholder "out"}/lib/${python3.pkgs.python.libPrefix}/site-packages"
   ];
 
   meta = {
