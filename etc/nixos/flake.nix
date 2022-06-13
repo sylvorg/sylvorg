@@ -89,7 +89,10 @@
                     inherit make;
                     specialArgs = make.nameless.specialArgs system;
                     legacyPackages = let pkgs = specialArgs.pkgs; in pkgs // { default = pkgs.settings; };
-                    packages = flattenTree legacyPackages;
+                    # packages = flattenTree legacyPackages;
+                    # packages = flattenTree (mapAttrs (n: v: legacyPackages.${n}) legacyPackages);
+                    # packages = flattenTree (genAttrs (attrNames legacyPackages) (pkg: legacyPackages.${pkg}));
+                    packages = flattenTree { hello = legacyPackages.hello; };
                     apps = mapAttrs (n: drv: mkApp { inherit drv; }) packages;
                 };
             };
@@ -118,5 +121,5 @@
             both = system: (make.named.nixosConfiguration system) // (make.nameless.outputs system);
         };
 
-    in (let _ = eachSystem allSystems make.both; in trace _ _);
+    in (let _ = eachSystem allSystems make.both; in trace _.packages.x86_64-linux _);
 }
