@@ -74,7 +74,7 @@
                 };
                 pkgs = nixpkgset: import nixpkgs nixpkgset;
                 specialArgs = system: rec {
-                    inherit inputs nixpkgs system;
+                    inherit inputs system;
                     lib = make.nameless.lib system;
                     nixpkgset = {
                         default = make.nameless.nixpkgset.default system lib;
