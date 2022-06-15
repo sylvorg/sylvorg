@@ -6,7 +6,7 @@ let
     pv3 = "python3${j.attrs.versions.python.three}";
 in flatten [
 (final: prev: { j = { inherit pkgs; };})
-(final: prev: genAttrs error: access to absolute path '/home/shadowrylander/shadowrylander/etc/nixos' is forbidden in pure eval mode (use '--impure' to override) (pkg: final.j.pkgs.${channel}.${pkg}))
+(final: prev: genAttrs (import ./rust-packages.nix) (pkg: final.j.pkgs.${channel}.${pkg}))
 (final: prev: rec {
     python2 = final.${pv2};
     python3 = final.${pv3};
@@ -62,7 +62,6 @@ in mapAttrsToList (
     # nixos-unstable = [ { python310Packages = "mypy"; } { python310Packages = [ "mypy" ]; } ];
     # nixos-unstable = { python310Packages = "mypy"; };
     # nixos-unstable = { python310Packages = [ "mypy" ]; };
-    # nixos-22-05 = { python310Packages = "mypy"; };
 };
 in mapAttrsToList (
     pkgchannel: pkglist': let

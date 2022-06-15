@@ -89,16 +89,15 @@
                 outputs = system: rec {
                     inherit make;
                     specialArgs = make.nameless.specialArgs system;
-                    legacyPackages = specialArgs.pkgs;
-                    defaultPackage = flattenTree { settings = legacyPackages.settings; };
-                    # packages = flattenTree (filterAttrs (n: v: all (b: b == true) [
-                    #     (! elem n [ "prometheus-dmarc-exporter" ])
-                    #     (tryEval v).success
-                    #     ((isDerivation v) && (v ? meta) && (v.meta ? broken))
-                    # ]) legacyPackages);
+                    legacyPackages = let pkgs = specialArgs.pkgs; in pkgs // { default = pkgs.settings; };
+
+                    # TODO: `nixpkgs' doesn't have its own `packages' attribute
+                    # packages = nixpkgs.packages // ;
+
+                    # defaultPackage = packages.settings;
                     # apps = mapAttrs (n: v: make.nameless.app v) packages;
                     apps = mapAttrs (n: v: make.nameless.app v) legacyPackages;
-                    defaultApp = make.nameless.app legacyPackages.settings;
+                    defaultApp = apps.settings;
                 };
             };
             named = recursiveUpdate make.base {

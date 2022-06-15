@@ -11,11 +11,8 @@ with builtins; { pkgs, lib, inputs ? {}, system ? currentSystem }: with lib; let
                 if hasAttrs then values else (sort lessThan values)
             ))
         );
-
-        # TODO: Why is the filter necessary?
         foldToSet = list: foldr (new: old: recursiveUpdate new old) {} (filter isAttrs list);
         foldToSet' = list: foldr (new: old: new // old) {} (filter isAttrs list);
-
         mif = {
             list = condition: value: optionals condition value;
             list' = condition: value: optional condition value;
