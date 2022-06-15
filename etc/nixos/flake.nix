@@ -90,14 +90,8 @@
                     inherit make;
                     specialArgs = make.nameless.specialArgs system;
                     legacyPackages = let pkgs = specialArgs.pkgs; in pkgs // { default = pkgs.settings; };
-
-                    # TODO: `nixpkgs' doesn't have its own `packages' attribute
-                    # packages = nixpkgs.packages // ;
-
-                    # defaultPackage = packages.settings;
-                    # apps = mapAttrs (n: v: make.nameless.app v) packages;
                     apps = mapAttrs (n: v: make.nameless.app v) legacyPackages;
-                    defaultApp = apps.settings;
+                    defaultApp = apps.default;
                 };
             };
             named = recursiveUpdate make.base {
@@ -125,5 +119,5 @@
             both = system: (make.named.nixosConfiguration system) // (make.nameless.outputs system);
         };
 
-    in (let _ = eachSystem allSystems make.both; in trace _.packages.x86_64-linux _);
+    in eachSystem allSystems make.both;
 }

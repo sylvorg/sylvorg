@@ -30,6 +30,5 @@ with builtins; let
             else (fetchGit {
                 url = "https://github.com/shadowrylander/shadowrylander";
                 ref = "main";
-                rev = "1010101";
             });
 in import flake

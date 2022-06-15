@@ -1,7 +1,6 @@
-with builtins; with (fetchGit {
+with builtins; with (import (fetchGit {
     url = "https://github.com/shadowrylander/shadowrylander";
     ref = "main";
-    rev = "1010101";
-}).legacyPackages.${currentSystem}; mkShell {
+})).legacyPackages.${currentSystem}; mkShell {
     buildInputs = [ git-crypt git-filter-repo rsync realpath ];
 }

@@ -678,7 +678,6 @@ with builtins; let
             else (fetchGit {
                 url = "https://github.com/<<username>>/<<username>>";
                 ref = "main";
-                rev = "1010101";
             });
 in import flake
 #+end_src
@@ -2552,14 +2551,8 @@ in mapAttrsToList (
                     inherit make;
                     specialArgs = make.nameless.specialArgs system;
                     legacyPackages = let pkgs = specialArgs.pkgs; in pkgs // { default = pkgs.settings; };
-
-                    # TODO: `nixpkgs' doesn't have its own `packages' attribute
-                    # packages = nixpkgs.packages // ;
-
-                    # defaultPackage = packages.settings;
-                    # apps = mapAttrs (n: v: make.nameless.app v) packages;
                     apps = mapAttrs (n: v: make.nameless.app v) legacyPackages;
-                    defaultApp = apps.settings;
+                    defaultApp = apps.default;
                 };
             };
             named = recursiveUpdate make.base {
@@ -2587,7 +2580,7 @@ in mapAttrsToList (
             both = system: (make.named.nixosConfiguration system) // (make.nameless.outputs system);
         };
 
-    in (let _ = eachSystem allSystems make.both; in trace _.packages.x86_64-linux _);
+    in eachSystem allSystems make.both;
 }
 #+end_src
 
@@ -4928,11 +4921,10 @@ hooks:
 *** borgmatic-shell.nix
 
 #+begin_src nix :tangle (meq/tangle-path)
-with builtins; with (fetchGit {
+with builtins; with (import (fetchGit {
     url = "https://github.com/<<username>>/<<username>>";
     ref = "main";
-    rev = "1010101";
-}).legacyPackages.${currentSystem}; mkShell {
+})).legacyPackages.${currentSystem}; mkShell {
     buildInputs = with pythonPackages; [ bakery ];
 }
 #+end_src
@@ -6173,11 +6165,10 @@ Adapted from [[https://unix.stackexchange.com/users/48083/graeme][Graeme's]] ans
 **** git-shell.nix
 
 #+begin_src nix :tangle (meq/tangle-path)
-with builtins; with (fetchGit {
+with builtins; with (import (fetchGit {
     url = "https://github.com/<<username>>/<<username>>";
     ref = "main";
-    rev = "1010101";
-}).legacyPackages.${currentSystem}; mkShell {
+})).legacyPackages.${currentSystem}; mkShell {
     buildInputs = [ git-crypt git-filter-repo rsync realpath ];
 }
 #+end_src
