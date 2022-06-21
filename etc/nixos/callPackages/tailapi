@@ -1,9 +1,9 @@
 { lib
-, python3
+, Python
 , fetchFromGitHub
 }:
 
-python3.pkgs.buildPythonApplication rec {
+Python.pkgs.buildPythonApplication rec {
   pname = "tailapi";
   version = "1.0.0.0";
 
@@ -14,7 +14,7 @@ python3.pkgs.buildPythonApplication rec {
     sha256 = "0bywlkbwxsnf11i1kv36ls2yax0pp30qmgcyfq3gcmzzhcgk2q3k";
   };
 
-  propagatedBuildInputs = with python3.pkgs; [
+  propagatedBuildInputs = with Python.pkgs; [
     oreo
     requests
   ];
@@ -29,7 +29,7 @@ python3.pkgs.buildPythonApplication rec {
 
   makeWrapperArgs = [
     # "--prefix" "PATH" ":" (lib.makeBinPath [ git ])
-    "--prefix PYTHONPATH : ${placeholder "out"}/lib/${python3.pkgs.python.libPrefix}/site-packages"
+    "--prefix PYTHONPATH : ${placeholder "out"}/lib/${Python.pkgs.python.libPrefix}/site-packages"
   ];
 
   meta = {

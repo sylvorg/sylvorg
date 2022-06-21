@@ -29,6 +29,7 @@ buildPythonPackage rec {
   };
 
   buildInputs = [ poetry-core ];
+  nativeBuildInputs = buildInputs;
 
   propagatedBuildInputs = [
       addict

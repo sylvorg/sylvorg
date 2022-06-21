@@ -6,12 +6,14 @@ which was written by [[https://emacs.stackexchange.com/users/2710/andrew-swann][
 * shell.nix
 
 #+begin_src nix :tangle (meq/tangle-path)
-with (import ./etc/nixos).legacyPackages.${builtins.currentSystem}; let
-    strapper = { python }: python.pkgs.buildPythonApplication rec {
+with builtins; let
+    flake = import ./etc/nixos;
+in with flake.legacyPackages.${currentSystem}; let
+    strapper = { Python }: Python.pkgs.buildPythonApplication rec {
         pname = "strapper";
         version = "1.0.0.0";
         src = ./strapper;
-        propagatedBuildInputs = with python.pkgs; [ bakery ];
+        propagatedBuildInputs = with Python.pkgs; [ bakery ];
         dontBuild = true;
         installPhase = ''
             mkdir --parents $out/bin
@@ -21,9 +23,9 @@ with (import ./etc/nixos).legacyPackages.${builtins.currentSystem}; let
             patchShebangs $out/bin/${pname}
         '';
         postInstall = "wrapProgram $out/bin/${pname} $makeWrapperArgs";
-        makeWrapperArgs = [ "--prefix PYTHONPATH : ${placeholder "out"}/lib/${python.pkgs.python.libPrefix}/site-packages" ];
+        makeWrapperArgs = [ "--prefix PYTHONPATH : ${placeholder "out"}/lib/${Python.pkgs.python.libPrefix}/site-packages" ];
     };
-in mkShell rec { buildInputs = [ (callPackage strapper {}) sd rsync ]; }
+in mkShell rec { buildInputs = [ (callPackage strapper { }) sd rsync ]; }
 #+end_src
 
 * strapper
@@ -399,7 +401,7 @@ This can't use a default value, as that would trigger a rebuild all the time.
                          (if (or install all)
                              (nixos-install #* ctx.args
                                             :I (with [f (open (+ resources "/flake.lock"))]
-                                                     f"nixpkgs=https://github.com/nixos/nixpkgs/archive/{(D (.load json f)).nodes.<<channel>>.locked.rev}.tar.gz")
+                                                     f"nixpkgs=https://github.com/nixos/nixpkgs/archive/{(. (D (.load json f)) nodes <<channel>> locked rev)}.tar.gz")
                                             :m/run True
                                             :show-trace True
                                             :install-bootloader install-bootloader
@@ -588,8 +590,6 @@ Taken from [[https://github.com/NixOS/nixpkgs/issues/73404#issuecomment-10114854
                      (swapon (+ "/dev/zvol/" ctx.obj.host "/swap" :m/run True)))
                  (if swap-device
                      (swapon swap-device :m/run True))
-
-                 ;; TODO: What do these two do again?
 
                  (.mkdir (Path "/tmp") :parents True :exist-ok True)
                  (Mount :t "zfs" (+ ctx.obj.host "/system/tmp") "/tmp" :m/run True)
@@ -1246,6 +1246,7 @@ Adapted from [[https://nixos.wiki/wiki/NixOS_on_ARM/Raspberry_Pi_3][here]]:
         ../../minimal.nix
         (import ../..).inputs.hardware.microsoft-surface
     ];
+    variables.encrypted = true;
     networking = {
         hostName = baseNameOf (toString ./.);
         hostId = <<hostId()>>;
@@ -1364,8 +1365,8 @@ Adapted from [[https://nixos.wiki/wiki/NixOS_on_ARM/Raspberry_Pi_3][here]]:
 With help from [[Henrik Lissner / hlissner][https://github.com/hlissner/dotfiles]]:
 
 #+begin_src nix
-with builtins; { pkgs, lib, inputs ? {}, system ? currentSystem }: with lib; let
-    newLib = self: rec {
+with builtins; { hello, lib, inputs ? {}, system ? currentSystem, extras ? {} }: with lib; let
+    newLib = self: extras // (rec {
 
         # TODO: Is this necessary?
         mntConvert = dir: let mntDir = "/mnt/" + dir; in if (pathExists mntDir) then mntDir else dir;
@@ -1386,7 +1387,7 @@ with builtins; { pkgs, lib, inputs ? {}, system ? currentSystem }: with lib; let
             num = condition: value: if condition then value else 0;
             null = condition: value: if condition then value else null;
             str = condition: value: optionalString condition value;
-            drv = condition: value: if condition then value else pkgs.hello;
+            drv = condition: value: if condition then value else hello;
         };
         readDirExists = dir: mif.set (pathExists dir) (readDir dir);
         toCapital = string: concatImapStrings (
@@ -1484,7 +1485,7 @@ with builtins; { pkgs, lib, inputs ? {}, system ? currentSystem }: with lib; let
                 func = (n: v: name { inherit suffix; file = n; });
             };
             set = _args@{
-                call ? false,
+                call ? null,
                 suffix ? args.suffix,
                 ignores ? args.ignores,
                 dir,
@@ -1497,8 +1498,7 @@ with builtins; { pkgs, lib, inputs ? {}, system ? currentSystem }: with lib; let
                 files = list (filterAttrs (arg: v: !elem arg [ "modules" "self" "call" ]) _args);
             in listToAttrs (map (file: nameValuePair
                 (name { inherit suffix file; })
-                (if (! isBool call) then (call.callPackage file modules)
-                 else if call then (pkgs.callPackage file modules)
+                (if (call != null) then (call.callPackage file modules)
                  else (import file (foldToSet [ modules inputs ])))
             ) files);
 #+end_src
@@ -1612,12 +1612,7 @@ Deprecated Set Function:
                     fsType = "zfs";
                     options = [ "defaults" "x-systemd.device-timeout=5" "nofail" ];
                 };
-                supported = [ "zfs" "xfs" "btrfs" "ext4" "fat" "vfat"
-
-                    # TODO
-                    # "bcachefs"
-
-                ];
+                supported = [ "zfs" "xfs" "btrfs" "ext4" "fat" "vfat" "bcachefs" ];
             };
             commands = {
                 rebuild = "nixos-rebuild --show-trace";
@@ -1630,7 +1625,7 @@ Deprecated Set Function:
                 };
             };
         };
-    };
+    });
     extension = makeExtensible newLib;
 in with lib; extension.extend (final: prev: extension.foldToSet (attrValues prev))
 #+end_src
@@ -1802,12 +1797,12 @@ Adapted from [[https://github.com/pukkamustard/nixpkgs/blob/guix/pkgs/developmen
 
 #+begin_src nix :tangle (meq/tangle-path)
 { lib
-, python3
+, Python
 , fetchFromGitHub
 , gawk
 }:
 
-python3.pkgs.buildPythonApplication rec {
+Python.pkgs.buildPythonApplication rec {
   pname = "poetry2setup";
   version = "1.0.0";
   format = "pyproject";
@@ -1819,9 +1814,9 @@ python3.pkgs.buildPythonApplication rec {
     sha256 = "07z776ikj37whhx7pw1f3pwp25w04aw22vwipjjmvi8c642qxni4";
   };
 
-  propagatedBuildInputs = with python3.pkgs; [ poetry-core ];
+  propagatedBuildInputs = with Python.pkgs; [ poetry-core ];
 
-  buildInputs = with python3.pkgs; [ poetry-core ];
+  buildInputs = with Python.pkgs; [ poetry-core ];
 
   installPhase = ''
     mkdir --parents $out/bin
@@ -1832,7 +1827,7 @@ python3.pkgs.buildPythonApplication rec {
 
   postFixup = "wrapProgram $out/bin/${pname} $makeWrapperArgs";
 
-  makeWrapperArgs = [ "--prefix PYTHONPATH : ${placeholder "out"}/lib/${python3.pkgs.python.libPrefix}/site-packages" ];
+  makeWrapperArgs = [ "--prefix PYTHONPATH : ${placeholder "out"}/lib/${Python.pkgs.python.libPrefix}/site-packages" ];
 
   meta = {
     description = "Convert python-poetry(pyproject.toml) to setup.py.";
@@ -1872,11 +1867,11 @@ python3.pkgs.buildPythonApplication rec {
 
 #+begin_src nix :tangle (meq/tangle-path)
 { lib
-, python3
+, Python
 , fetchFromGitHub
 }:
 
-python3.pkgs.buildPythonApplication rec {
+Python.pkgs.buildPythonApplication rec {
   pname = "tailapi";
   version = "1.0.0.0";
 
@@ -1887,7 +1882,7 @@ python3.pkgs.buildPythonApplication rec {
     sha256 = "0bywlkbwxsnf11i1kv36ls2yax0pp30qmgcyfq3gcmzzhcgk2q3k";
   };
 
-  propagatedBuildInputs = with python3.pkgs; [
+  propagatedBuildInputs = with Python.pkgs; [
     oreo
     requests
   ];
@@ -1902,7 +1897,7 @@ python3.pkgs.buildPythonApplication rec {
 
   makeWrapperArgs = [
     # "--prefix" "PATH" ":" (lib.makeBinPath [ git ])
-    "--prefix PYTHONPATH : ${placeholder "out"}/lib/${python3.pkgs.python.libPrefix}/site-packages"
+    "--prefix PYTHONPATH : ${placeholder "out"}/lib/${Python.pkgs.python.libPrefix}/site-packages"
   ];
 
   meta = {
@@ -1935,7 +1930,8 @@ buildPythonPackage rec {
     sha256 = "1dds9dwf5bqxi84s1fzcdykiqgcc1iq3rh6p76wjz6h7cb451h08";
   };
 
-  nativeBuildInputs = [ flit ];
+  buildInputs = [ flit ];
+  nativeBuildInputs = buildInputs;
 
   checkInputs = [ pytestCheckHook ];
 
@@ -1983,6 +1979,7 @@ buildPythonPackage rec {
   };
 
   buildInputs = [ poetry-core ];
+  nativeBuildInputs = buildInputs;
 
   propagatedBuildInputs = [
       addict
@@ -2036,6 +2033,7 @@ buildPythonPackage rec {
   };
 
   buildInputs = [ poetry-core ];
+  nativeBuildInputs = buildInputs;
 
   propagatedBuildInputs = [ oreo ];
 
@@ -2249,10 +2247,11 @@ let
 Adapted from [[https://discourse.nixos.org/t/how-to-add-custom-python-package/536/4][here]]:
 
 #+begin_src nix
-    updatePython = pv: prev: attrs: { "${pv}" = prev.${pv}.override { packageOverrides = new: old: attrs; }; };
+    updatePython = pv: prev: attrs: { "${pv}" = prev.${pv}.override { packageOverrides = new: old: old // attrs; }; };
 #+end_src
 
 #+begin_src nix
+    updatePythonPackage = pv: prev: pkg: func: updatePython pv prev { "${pkg}" = prev.${pv}.pkgs.${pkg}.overridePythonAttrs func; };
     updatePythonPackages = pv: final: prev: dir: updatePython pv prev (j.import.set { call = final.${pv}.pkgs; inherit dir; ignores = j.dirCon.dirs dir; });
     pv2 = "python2${j.attrs.versions.python.two}";
     pv3 = "python3${j.attrs.versions.python.three}";
@@ -2268,6 +2267,12 @@ in flatten [
 
 #+begin_src nix
 (final: prev: { j = { inherit pkgs; };})
+#+end_src
+
+**** lib
+
+#+begin_src nix
+(final: prev: { inherit lib; })
 #+end_src
 
 **** Patched Fetchers
@@ -2309,20 +2314,30 @@ nix eval --impure --expr 'with builtins; let pkgs = import (import ./.).inputs.n
 
 **** Python
 
-Nothing else needs to be overidden: https://github.com/NixOS/nixpkgs/blob/master/doc/languages-frameworks/python.section.md#overview-overview
-
 #+begin_src nix
 (final: prev: rec {
-    python2 = final.${pv2};
-    python3 = final.${pv3};
-    python = final.python3;
+    Python2 = final.${pv2};
+    Python2Packages = final."${pv2}Packages";
+    Python3 = final.${pv3};
+    Python3Packages = final."${pv3}Packages";
+    Python = Python3;
+    PythonPackages = Python3Package;
 })
+#+end_src
+
+***** Flit
+
+#+begin_src nix
+(final: prev: let newInputs = [ final.git ]; in updatePythonPackage pv3 prev "flit" (old: {
+    buildInputs = newInputs ++ (old.buildInputs or []);
+    nativeBuildInputs = newInputs ++ (old.nativeBuildInputs or []);
+}))
 #+end_src
 
 ***** Rich
 
 #+begin_src nix
-(final: prev: updatePython pv3 prev { rich = prev.pythonPackages.rich.overridePythonAttrs (old: {
+(final: prev: updatePythonPackage pv3 prev "rich" (old: {
     version = "12.0.0";
     src = final.fetchFromGitHub {
         owner = "syvlorg";
@@ -2330,19 +2345,19 @@ Nothing else needs to be overidden: https://github.com/NixOS/nixpkgs/blob/master
         rev = "a6c20ce10adc7b8cfacfd74e0b025e8c2c8c19eb";
         sha256 = "1ld3ihvssfk56240wignmd6hv7gynid5wmcynl58ng8sbfywm3ly";
     };
-    propagatedBuildInputs = (with final.pythonPackages; [ hy ]) ++ old.propagatedBuildInputs;
+    propagatedBuildInputs = (with final.PythonPackages; [ hy ]) ++ old.propagatedBuildInputs;
     meta = {
         description = "Render rich text, tables, progress bars, syntax highlighting, markdown and more to the terminal";
         homepage = "https://github.com/syvlorg/rich";
         license = lib.licenses.mit;
     };
-}); })
+}))
 #+end_src
 
 ***** Xonsh
 
 #+begin_src nix
-(final: prev: { xonsh = prev.xonsh.overridePythonAttrs (old: { propagatedBuildInputs = (with final.pythonPackages; [ 
+(final: prev: { xonsh = prev.xonsh.overridePythonAttrs (old: { propagatedBuildInputs = (with final.PythonPackages; [ 
     bakery
     xontrib-sh
     xontrib-readable-traceback
@@ -2390,7 +2405,13 @@ inputs.emacs.overlay
 **** My Packages
 
 #+begin_src nix
-(final: prev: let dir = ./callPackages; in j.import.set { call = true; inherit dir; ignores = j.dirCon.dirs dir; })
+(final: prev: let dir = ./callPackages; in j.import.set { call = final; inherit dir; ignores = j.dirCon.dirs dir; })
+#+end_src
+
+***** Default
+
+#+begin_src nix
+(final: prev: { default = final.settings; })
 #+end_src
 
 ***** Python2
@@ -2515,48 +2536,98 @@ in mapAttrsToList (
 
     outputs = inputs@{ self, nixpkgs, flake-utils, ... }: with builtins; with nixpkgs.lib; with flake-utils.lib; let
         channel = "<<channel>>";
+        patch = {
+            nixpkgs = let
+                patches' = [ ./patches/nixpkgs/bcachefs-module.patch ];
+            in {
+                default = src: config: nixpkgs // ((import src config).applyPatches {
+                    name = "defaultPatches";
+                    inherit src;
+                    patches = patches';
+                });
+                extras = src: config: patches: nixpkgs // ((import src config).applyPatches { name = "extraPatches"; inherit src patches; });
+                both = src: config: patches: nixpkgs // ((import src config).applyPatches {
+                    name = "bothPatches";
+                    inherit src;
+                    patches = patches' ++ patches;
+                });
+            };
+            pkgs = {
+                default = src: config: import (patch.nixpkgs.default src config) config;
+                extras = src: config: patches: import (patch.nixpkgs.extras src config patches) config;
+            };
+        };
         make = {
             base = {
-                lib = system: nixpkgs.lib.extend (final: prev: {
+                nixpkgset = {
+                    base = system: { inherit system; };
+                    default = system: lib: (make.base.nixpkgset.base system) // { config = lib.j.attrs.configs.nixpkgs; };
+                    overlayed = overlays: system: lib: (make.base.nixpkgset.default system lib) // { inherit overlays; };
+                };
+                nixpkgs = {
+                    base = system: patch.nixpkgs.default nixpkgs (make.base.nixpkgset.base system);
+                    default = system: lib: patch.nixpkgs.default nixpkgs (make.base.nixpkgset.default system lib);
+                    overlayed = overlays: system: lib: patch.nixpkgs.default nixpkgs (make.base.nixpkgset.overlayed overlays system lib);
+                };
+                pkgs = {
+                    base = system: patch.pkgs.default nixpkgs (make.base.nixpkgset.base system);
+                    default = system: lib: patch.pkgs.default nixpkgs (make.base.nixpkgset.default system lib);
+                    overlayed = overlays: system: lib: patch.pkgs.default nixpkgs (make.base.nixpkgset.overlayed overlays system lib);
+                };
+                lib = system: (make.base.nixpkgs.base system).lib.extend (final: prev: {
                     j = import ./lib.nix {
                         inherit inputs system;
-                        pkgs = import nixpkgs { inherit system; };
+                        inherit (make.base.pkgs.default system final) hello;
                         lib = final;
+                        extras = { inherit patch; };
                     };
                     inherit (inputs.home-manager.lib) hm;
                 });
-                nixpkgset = {
-                    default = system: lib: { inherit system; config = lib.j.attrs.configs.nixpkgs; };
-                    overlayed = overlays: system: lib: { inherit overlays system; config = lib.j.attrs.configs.nixpkgs; };
-                };
                 overlays = system: lib: import ./overlays.nix {
-                    inherit lib nixpkgs inputs channel;
-                    pkgs = mapAttrs (n: v: import v (make.base.nixpkgset.default system lib)) (filterAttrs (n: v: (hasPrefix "nixos-" n) || (hasPrefix "release-" n)) inputs);
+                    inherit lib inputs channel;
+                    nixpkgs = make.base.nixpkgs system;
+                    pkgs = mapAttrs (n: v: patch.pkgs.default v (make.base.nixpkgset.default system lib))
+                                    (filterAttrs (n: v: (hasPrefix "nixos-" n) || (hasPrefix "release-" n)) inputs);
                 };
-                pkgs = nixpkgset: import nixpkgs nixpkgset;
                 specialArgs = system: rec {
-                    inherit inputs system;
-                    lib = make.nameless.lib system;
+                    inherit inputs;
+                    lib = make.base.lib system;
                     nixpkgset = {
-                        default = make.nameless.nixpkgset.default system lib;
-                        overlayed = make.nameless.nixpkgset.overlayed overlays system lib;
+                        base = make.base.nixpkgset.base system;
+                        default = make.base.nixpkgset.default system lib;
+                        overlayed = make.base.nixpkgset.overlayed overlays system lib;
                     };
-                    overlays = make.nameless.overlays system lib;
-                    pkgs = make.nameless.pkgs nixpkgset.overlayed;
+                    nixpkgs = {
+                        base = make.base.nixpkgs.base system;
+                        default = make.base.nixpkgs.default system lib;
+                        overlayed = make.base.nixpkgs.overlayed overlays system lib;
+                    };
+                    pkgs = {
+                        base = make.base.pkgs.base system;
+                        default = make.base.pkgs.default system lib;
+                        overlayed = make.base.pkgs.overlayed overlays system lib;
+                    };
+                    overlays = make.base.overlays system lib;
                 };
                 app = drv: { type = "app"; program = "${drv}${drv.passthru.exePath or "/bin/${drv.meta.mainprogram or drv.pname or drv.name}"}"; };
             };
             nameless = recursiveUpdate make.base {
                 outputs = system: rec {
-                    inherit make;
+                    inherit make system;
                     specialArgs = make.nameless.specialArgs system;
-                    legacyPackages = let pkgs = specialArgs.pkgs; in pkgs // { default = pkgs.settings; };
-                    apps = mapAttrs (n: v: make.nameless.app v) legacyPackages;
-                    defaultApp = apps.default;
+                    inherit (specialArgs) nixpkgset nixpkgs pkgs overlays lib;
+                    overlay = final: prev: { settings = final.callPackage ./callPackages/settings.nix {}; };
+                    defaultOverlay = overlay;
+                    legacyPackages = pkgs.overlayed;
+                    apps = mapAttrs (n: v: make.nameless.app v) pkgs.overlayed;
+                    app = apps.default;
+                    defaultApp = app;
+                    package = packages.settings;
+                    defaultPackage = package;
                 };
             };
             named = recursiveUpdate make.base {
-                specialArgs = name: system: recursiveUpdate (make.named.specialArgs system) { host = name; };
+                specialArgs = name: system: (make.named.specialArgs system) // { host = name; };
                 config = name: system: nixosSystem rec {
                     specialArgs = make.named.specialArgs name system;
                     modules = with inputs; let
@@ -2621,6 +2692,10 @@ Adapted from [[https://discourse.nixos.org/t/variables-for-a-system/2342/6][here
                 default = (! config.variables.server) && (! config.variables.relay);
             };
             minimal = mkOption {
+                type = types.bool;
+                default = false;
+            };
+            encrypted = mkOption {
                 type = types.bool;
                 default = false;
             };
@@ -2772,6 +2847,16 @@ Adapted from [[https://discourse.nixos.org/t/variables-for-a-system/2342/6][here
                     type = types.bool;
                     default = true;
                     description = "Whether this tailscale instance will use the preconfigured DNS servers on the tailscale admin page.";
+                };
+                routes.accept = mkOption {
+                    type = with types; nullOr bool;
+                    default = null;
+                    description = "Use subnet routers; enabled by default if `config.services.tailscale.routes.advertise' is null.";
+                };
+                routes.advertise = mkOption {
+                    type = with types; nullOr nonEmptyStr;
+                    default = null;
+                    description = "Start tailscale as a subnet router with the specified subnets.";
                 };
                 exitNode.advertise = mkOption {
                     type = types.bool;
@@ -2927,10 +3012,16 @@ Adapted from [[https://github.com/pukkamustard/nixpkgs/blob/guix/nixos/modules/s
                           "To users who wipe their root directories: persist your `config.services.tailscale.authenticationConfirmationFile'!")
                 (optional (cfg.exitNode.advertise && cfg.acceptDNS)
                           "Advertising this device as an exit node and accepting the preconfigured DNS servers on the tailscale admin page at the same time may result in this device attempting to use itself as a DNS server.")
+                
+                # TODO
+                (optional (cfg.routes.accept && (cfg.routes.advertise != null))
+                          "Advertising this device as a subnet router and accepting the preconfigured subnet routes on the tailscale admin page at the same time may result in this device #TODO")
+
             ];
             services.tailscale = {
                 api.ephemeral = if (cfg.api.ephemeral == null) then config.services.tailscale.useUUID else cfg.api.ephemeral;
                 hostName = if (cfg.hostName == null) then config.networking.hostName else cfg.hostName;
+                routes.accept = if (cfg.routes.accept == null) then (cfg.routes.advertise == null) else cfg.routes.accept;
             };
             environment.vars = let
                 nullText = cfg.state.text != null;
@@ -2998,6 +3089,8 @@ Adapted from [[https://github.com/pukkamustard/nixpkgs/blob/guix/nixos/modules/s
                         echo "Authenticating with Tailscale ..."
                         ${cfg.package}/bin/tailscale up --hostname ${if cfg.useUUID then "$(${pkgs.util-linux}/bin/uuidgen)" else cfg.hostName} \
                         ${optionalString cfg.acceptDNS "--accept-dns \"}
+                        ${optionalString cfg.routes.accept "--accept-routes \"}
+                        ${optionalString (cfg.routes.advertise != null) "--advertise-routes ${cfg.routes.advertise} \"}
                         ${optionalString cfg.exitNode.advertise "--advertise-exit-node \"}
                         ${optionalString (cfg.exitNode.ip != null) "--exit-node ${cfg.exitNode.ip} \"}
                         ${optionalString (cfg.exitNode.hostName != null) ''--exit-node $(${pkgs.tailapi}/bin/tailapi --domain ${cfg.api.domain} \
@@ -3007,7 +3100,6 @@ Adapted from [[https://github.com/pukkamustard/nixpkgs/blob/guix/nixos/modules/s
                         ${optionalString (((cfg.exitNode.ip != null) || (cfg.exitNode.hostName != null)) && cfg.exitNode.allowLANAccess)
                                          "--exit-node-allow-lan-access \"}
 
-                        # TODO
                         ${concatStringsSep " " (mapAttrsToList (n: v: let
                             opt = (if ((stringLength n) == 1) then "-" else "--") + n;
                         in "${opt} ${v}") extraConfig)} \
@@ -3442,9 +3534,7 @@ in with lib; {
         # kernelPackages = mkDefault pkgs.linuxPackages_lqx;
         # kernelPackages = mkDefault pkgs.linuxPackages_zen;
         kernelPatches = flatten [
-
-            # TODO
-            # (optionals (elem "bcachefs" config.boot.supportedFilesystems) (filter (set: hasInfix "bcachefs" set.name) pkgs.linuxKernel.kernels.linux_testing_bcachefs.kernelPatches))
+            (optionals (elem "bcachefs" config.boot.supportedFilesystems) (filter (set: hasInfix "bcachefs" set.name) pkgs.linuxKernel.kernels.linux_testing_bcachefs.kernelPatches))
 #+end_src
 
 # TODO: Apparently doesn't work with bcachefs
@@ -3717,17 +3807,14 @@ in with lib; {
                     "--create-bookmark"
                 ];
                 }
-
-                # TODO
-                # (mkIf vars.encrypted {
-                #     sendOptions = "vvwRI";
-                #     recvOptions = "vvFs";
-                # })
-                # (mkIf (!vars.encrypted) {
-                #     recvOptions = "vvFds";
-                #     sendOptions = "vvRI";
-                # })
-
+                (mkIf vars.encrypted {
+                    sendOptions = "vvwRI";
+                    recvOptions = "vvFs";
+                })
+                (mkIf (!vars.encrypted) {
+                    recvOptions = "vvFds";
+                    sendOptions = "vvRI";
+                })
             ];
         in {
             enable = false;
@@ -3839,6 +3926,7 @@ Adapted from [[https://www.reddit.com/r/NixOS/comments/ut8j10/nixos_zfs_podman_b
         etc."nix/nix.conf".text = mkForce j.attrs.configs.nix;
         systemPackages = with pkgs; flatten [
             (pass.withExtensions (ext: with ext; [pass-tomb pass-genphrase]))
+            (Python.withPackages (ppkgs: with ppkgs; [ bakery nixpkgs ]))
             assh
             cachix
             direnv
@@ -4350,8 +4438,7 @@ Adapted from [[https://www.reddit.com/r/NixOS/comments/ut8j10/nixos_zfs_podman_b
             peru
             pfetch
             pypy
-            python310
-            python39Packages.pipx
+            Python
             ranger
             refind
             ripgrep
@@ -4408,11 +4495,12 @@ Adapted from [[https://www.reddit.com/r/NixOS/comments/ut8j10/nixos_zfs_podman_b
             gitflow
             hub
             lab
-        ]) ++ (with pkgs.python310Packages; [
+        ]) ++ (with pkgs.PythonPackages; [
             black
             black-macchiato
             jupyterlab
             poetry
+            pipx
         ]);
     };
 }
@@ -4924,9 +5012,7 @@ hooks:
 with builtins; with (import (fetchGit {
     url = "https://github.com/<<username>>/<<username>>";
     ref = "main";
-})).legacyPackages.${currentSystem}; mkShell {
-    buildInputs = with pythonPackages; [ bakery ];
-}
+})).legacyPackages.${currentSystem}; mkShell { buildInputs = with PythonPackages; [ bakery ]; }
 #+end_src
 
 *** mountable-mounted.hy
@@ -6168,9 +6254,7 @@ Adapted from [[https://unix.stackexchange.com/users/48083/graeme][Graeme's]] ans
 with builtins; with (import (fetchGit {
     url = "https://github.com/<<username>>/<<username>>";
     ref = "main";
-})).legacyPackages.${currentSystem}; mkShell {
-    buildInputs = [ git-crypt git-filter-repo rsync realpath ];
-}
+})).legacyPackages.${currentSystem}; mkShell { buildInputs = [ git-crypt git-filter-repo rsync realpath ]; }
 #+end_src
 
 **** dekey
@@ -7300,6 +7384,8 @@ fi
 **/.zfs/snapshot
 /test*.*
 temp
+/etc/nixos/configuration.nix
+/etc/nixos/hardware-configuration.nix
 #+end_src
 
 * .gitconfig

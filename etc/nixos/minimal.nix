@@ -231,17 +231,14 @@ in with lib; {
                     "--create-bookmark"
                 ];
                 }
-
-                # TODO
-                # (mkIf vars.encrypted {
-                #     sendOptions = "vvwRI";
-                #     recvOptions = "vvFs";
-                # })
-                # (mkIf (!vars.encrypted) {
-                #     recvOptions = "vvFds";
-                #     sendOptions = "vvRI";
-                # })
-
+                (mkIf vars.encrypted {
+                    sendOptions = "vvwRI";
+                    recvOptions = "vvFs";
+                })
+                (mkIf (!vars.encrypted) {
+                    recvOptions = "vvFds";
+                    sendOptions = "vvRI";
+                })
             ];
         in {
             enable = false;
@@ -330,6 +327,7 @@ in with lib; {
         etc."nix/nix.conf".text = mkForce j.attrs.configs.nix;
         systemPackages = with pkgs; flatten [
             (pass.withExtensions (ext: with ext; [pass-tomb pass-genphrase]))
+            (Python.withPackages (ppkgs: with ppkgs; [ bakery nixpkgs ]))
             assh
             cachix
             direnv

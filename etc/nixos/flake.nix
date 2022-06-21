@@ -54,48 +54,98 @@
 
     outputs = inputs@{ self, nixpkgs, flake-utils, ... }: with builtins; with nixpkgs.lib; with flake-utils.lib; let
         channel = "nixos-22-05";
+        patch = {
+            nixpkgs = let
+                patches' = [ ./patches/nixpkgs/bcachefs-module.patch ];
+            in {
+                default = src: config: nixpkgs // ((import src config).applyPatches {
+                    name = "defaultPatches";
+                    inherit src;
+                    patches = patches';
+                });
+                extras = src: config: patches: nixpkgs // ((import src config).applyPatches { name = "extraPatches"; inherit src patches; });
+                both = src: config: patches: nixpkgs // ((import src config).applyPatches {
+                    name = "bothPatches";
+                    inherit src;
+                    patches = patches' ++ patches;
+                });
+            };
+            pkgs = {
+                default = src: config: import (patch.nixpkgs.default src config) config;
+                extras = src: config: patches: import (patch.nixpkgs.extras src config patches) config;
+            };
+        };
         make = {
             base = {
-                lib = system: nixpkgs.lib.extend (final: prev: {
+                nixpkgset = {
+                    base = system: { inherit system; };
+                    default = system: lib: (make.base.nixpkgset.base system) // { config = lib.j.attrs.configs.nixpkgs; };
+                    overlayed = overlays: system: lib: (make.base.nixpkgset.default system lib) // { inherit overlays; };
+                };
+                nixpkgs = {
+                    base = system: patch.nixpkgs.default nixpkgs (make.base.nixpkgset.base system);
+                    default = system: lib: patch.nixpkgs.default nixpkgs (make.base.nixpkgset.default system lib);
+                    overlayed = overlays: system: lib: patch.nixpkgs.default nixpkgs (make.base.nixpkgset.overlayed overlays system lib);
+                };
+                pkgs = {
+                    base = system: patch.pkgs.default nixpkgs (make.base.nixpkgset.base system);
+                    default = system: lib: patch.pkgs.default nixpkgs (make.base.nixpkgset.default system lib);
+                    overlayed = overlays: system: lib: patch.pkgs.default nixpkgs (make.base.nixpkgset.overlayed overlays system lib);
+                };
+                lib = system: (make.base.nixpkgs.base system).lib.extend (final: prev: {
                     j = import ./lib.nix {
                         inherit inputs system;
-                        pkgs = import nixpkgs { inherit system; };
+                        inherit (make.base.pkgs.default system final) hello;
                         lib = final;
+                        extras = { inherit patch; };
                     };
                     inherit (inputs.home-manager.lib) hm;
                 });
-                nixpkgset = {
-                    default = system: lib: { inherit system; config = lib.j.attrs.configs.nixpkgs; };
-                    overlayed = overlays: system: lib: { inherit overlays system; config = lib.j.attrs.configs.nixpkgs; };
-                };
                 overlays = system: lib: import ./overlays.nix {
-                    inherit lib nixpkgs inputs channel;
-                    pkgs = mapAttrs (n: v: import v (make.base.nixpkgset.default system lib)) (filterAttrs (n: v: (hasPrefix "nixos-" n) || (hasPrefix "release-" n)) inputs);
+                    inherit lib inputs channel;
+                    nixpkgs = make.base.nixpkgs system;
+                    pkgs = mapAttrs (n: v: patch.pkgs.default v (make.base.nixpkgset.default system lib))
+                                    (filterAttrs (n: v: (hasPrefix "nixos-" n) || (hasPrefix "release-" n)) inputs);
                 };
-                pkgs = nixpkgset: import nixpkgs nixpkgset;
                 specialArgs = system: rec {
-                    inherit inputs system;
-                    lib = make.nameless.lib system;
+                    inherit inputs;
+                    lib = make.base.lib system;
                     nixpkgset = {
-                        default = make.nameless.nixpkgset.default system lib;
-                        overlayed = make.nameless.nixpkgset.overlayed overlays system lib;
+                        base = make.base.nixpkgset.base system;
+                        default = make.base.nixpkgset.default system lib;
+                        overlayed = make.base.nixpkgset.overlayed overlays system lib;
                     };
-                    overlays = make.nameless.overlays system lib;
-                    pkgs = make.nameless.pkgs nixpkgset.overlayed;
+                    nixpkgs = {
+                        base = make.base.nixpkgs.base system;
+                        default = make.base.nixpkgs.default system lib;
+                        overlayed = make.base.nixpkgs.overlayed overlays system lib;
+                    };
+                    pkgs = {
+                        base = make.base.pkgs.base system;
+                        default = make.base.pkgs.default system lib;
+                        overlayed = make.base.pkgs.overlayed overlays system lib;
+                    };
+                    overlays = make.base.overlays system lib;
                 };
                 app = drv: { type = "app"; program = "${drv}${drv.passthru.exePath or "/bin/${drv.meta.mainprogram or drv.pname or drv.name}"}"; };
             };
             nameless = recursiveUpdate make.base {
                 outputs = system: rec {
-                    inherit make;
+                    inherit make system;
                     specialArgs = make.nameless.specialArgs system;
-                    legacyPackages = let pkgs = specialArgs.pkgs; in pkgs // { default = pkgs.settings; };
-                    apps = mapAttrs (n: v: make.nameless.app v) legacyPackages;
-                    defaultApp = apps.default;
+                    inherit (specialArgs) nixpkgset nixpkgs pkgs overlays lib;
+                    overlay = final: prev: { settings = final.callPackage ./callPackages/settings.nix {}; };
+                    defaultOverlay = overlay;
+                    legacyPackages = pkgs.overlayed;
+                    apps = mapAttrs (n: v: make.nameless.app v) pkgs.overlayed;
+                    app = apps.default;
+                    defaultApp = app;
+                    package = packages.settings;
+                    defaultPackage = package;
                 };
             };
             named = recursiveUpdate make.base {
-                specialArgs = name: system: recursiveUpdate (make.named.specialArgs system) { host = name; };
+                specialArgs = name: system: (make.named.specialArgs system) // { host = name; };
                 config = name: system: nixosSystem rec {
                     specialArgs = make.named.specialArgs name system;
                     modules = with inputs; let

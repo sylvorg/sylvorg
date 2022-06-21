@@ -15,9 +15,7 @@ in with lib; {
         # kernelPackages = mkDefault pkgs.linuxPackages_lqx;
         # kernelPackages = mkDefault pkgs.linuxPackages_zen;
         kernelPatches = flatten [
-
-            # TODO
-            # (optionals (elem "bcachefs" config.boot.supportedFilesystems) (filter (set: hasInfix "bcachefs" set.name) pkgs.linuxKernel.kernels.linux_testing_bcachefs.kernelPatches))
+            (optionals (elem "bcachefs" config.boot.supportedFilesystems) (filter (set: hasInfix "bcachefs" set.name) pkgs.linuxKernel.kernels.linux_testing_bcachefs.kernelPatches))
         ];
     };
 }

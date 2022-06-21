@@ -1,10 +1,10 @@
 { lib
-, python3
+, Python
 , fetchFromGitHub
 , gawk
 }:
 
-python3.pkgs.buildPythonApplication rec {
+Python.pkgs.buildPythonApplication rec {
   pname = "poetry2setup";
   version = "1.0.0";
   format = "pyproject";
@@ -16,9 +16,9 @@ python3.pkgs.buildPythonApplication rec {
     sha256 = "07z776ikj37whhx7pw1f3pwp25w04aw22vwipjjmvi8c642qxni4";
   };
 
-  propagatedBuildInputs = with python3.pkgs; [ poetry-core ];
+  propagatedBuildInputs = with Python.pkgs; [ poetry-core ];
 
-  buildInputs = with python3.pkgs; [ poetry-core ];
+  buildInputs = with Python.pkgs; [ poetry-core ];
 
   installPhase = ''
     mkdir --parents $out/bin
@@ -29,7 +29,7 @@ python3.pkgs.buildPythonApplication rec {
 
   postFixup = "wrapProgram $out/bin/${pname} $makeWrapperArgs";
 
-  makeWrapperArgs = [ "--prefix PYTHONPATH : ${placeholder "out"}/lib/${python3.pkgs.python.libPrefix}/site-packages" ];
+  makeWrapperArgs = [ "--prefix PYTHONPATH : ${placeholder "out"}/lib/${Python.pkgs.python.libPrefix}/site-packages" ];
 
   meta = {
     description = "Convert python-poetry(pyproject.toml) to setup.py.";

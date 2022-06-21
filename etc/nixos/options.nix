@@ -23,6 +23,10 @@
                 type = types.bool;
                 default = false;
             };
+            encrypted = mkOption {
+                type = types.bool;
+                default = false;
+            };
         };
         programs = {
             mosh = {
@@ -169,6 +173,16 @@
                     default = true;
                     description = "Whether this tailscale instance will use the preconfigured DNS servers on the tailscale admin page.";
                 };
+                routes.accept = mkOption {
+                    type = with types; nullOr bool;
+                    default = null;
+                    description = "Use subnet routers; enabled by default if `config.services.tailscale.routes.advertise' is null.";
+                };
+                routes.advertise = mkOption {
+                    type = with types; nullOr nonEmptyStr;
+                    default = null;
+                    description = "Start tailscale as a subnet router with the specified subnets.";
+                };
                 exitNode.advertise = mkOption {
                     type = types.bool;
                     default = false;
@@ -293,10 +307,16 @@
                           "To users who wipe their root directories: persist your `config.services.tailscale.authenticationConfirmationFile'!")
                 (optional (cfg.exitNode.advertise && cfg.acceptDNS)
                           "Advertising this device as an exit node and accepting the preconfigured DNS servers on the tailscale admin page at the same time may result in this device attempting to use itself as a DNS server.")
+                
+                # TODO
+                (optional (cfg.routes.accept && (cfg.routes.advertise != null))
+                          "Advertising this device as a subnet router and accepting the preconfigured subnet routes on the tailscale admin page at the same time may result in this device #TODO")
+
             ];
             services.tailscale = {
                 api.ephemeral = if (cfg.api.ephemeral == null) then config.services.tailscale.useUUID else cfg.api.ephemeral;
                 hostName = if (cfg.hostName == null) then config.networking.hostName else cfg.hostName;
+                routes.accept = if (cfg.routes.accept == null) then (cfg.routes.advertise == null) else cfg.routes.accept;
             };
             environment.vars = let
                 nullText = cfg.state.text != null;
@@ -364,6 +384,8 @@
                         echo "Authenticating with Tailscale ..."
                         ${cfg.package}/bin/tailscale up --hostname ${if cfg.useUUID then "$(${pkgs.util-linux}/bin/uuidgen)" else cfg.hostName} \
                         ${optionalString cfg.acceptDNS "--accept-dns \"}
+                        ${optionalString cfg.routes.accept "--accept-routes \"}
+                        ${optionalString (cfg.routes.advertise != null) "--advertise-routes ${cfg.routes.advertise} \"}
                         ${optionalString cfg.exitNode.advertise "--advertise-exit-node \"}
                         ${optionalString (cfg.exitNode.ip != null) "--exit-node ${cfg.exitNode.ip} \"}
                         ${optionalString (cfg.exitNode.hostName != null) ''--exit-node $(${pkgs.tailapi}/bin/tailapi --domain ${cfg.api.domain} \
@@ -373,7 +395,6 @@
                         ${optionalString (((cfg.exitNode.ip != null) || (cfg.exitNode.hostName != null)) && cfg.exitNode.allowLANAccess)
                                          "--exit-node-allow-lan-access \"}
 
-                        # TODO
                         ${concatStringsSep " " (mapAttrsToList (n: v: let
                             opt = (if ((stringLength n) == 1) then "-" else "--") + n;
                         in "${opt} ${v}") extraConfig)} \

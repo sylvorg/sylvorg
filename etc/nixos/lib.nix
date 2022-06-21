@@ -1,5 +1,5 @@
-with builtins; { pkgs, lib, inputs ? {}, system ? currentSystem }: with lib; let
-    newLib = self: rec {
+with builtins; { hello, lib, inputs ? {}, system ? currentSystem, extras ? {} }: with lib; let
+    newLib = self: extras // (rec {
 
         # TODO: Is this necessary?
         mntConvert = dir: let mntDir = "/mnt/" + dir; in if (pathExists mntDir) then mntDir else dir;
@@ -20,7 +20,7 @@ with builtins; { pkgs, lib, inputs ? {}, system ? currentSystem }: with lib; let
             num = condition: value: if condition then value else 0;
             null = condition: value: if condition then value else null;
             str = condition: value: optionalString condition value;
-            drv = condition: value: if condition then value else pkgs.hello;
+            drv = condition: value: if condition then value else hello;
         };
         readDirExists = dir: mif.set (pathExists dir) (readDir dir);
         toCapital = string: concatImapStrings (
@@ -118,7 +118,7 @@ with builtins; { pkgs, lib, inputs ? {}, system ? currentSystem }: with lib; let
                 func = (n: v: name { inherit suffix; file = n; });
             };
             set = _args@{
-                call ? false,
+                call ? null,
                 suffix ? args.suffix,
                 ignores ? args.ignores,
                 dir,
@@ -131,8 +131,7 @@ with builtins; { pkgs, lib, inputs ? {}, system ? currentSystem }: with lib; let
                 files = list (filterAttrs (arg: v: !elem arg [ "modules" "self" "call" ]) _args);
             in listToAttrs (map (file: nameValuePair
                 (name { inherit suffix file; })
-                (if (! isBool call) then (call.callPackage file modules)
-                 else if call then (pkgs.callPackage file modules)
+                (if (call != null) then (call.callPackage file modules)
                  else (import file (foldToSet [ modules inputs ])))
             ) files);
         };
@@ -233,12 +232,7 @@ with builtins; { pkgs, lib, inputs ? {}, system ? currentSystem }: with lib; let
                     fsType = "zfs";
                     options = [ "defaults" "x-systemd.device-timeout=5" "nofail" ];
                 };
-                supported = [ "zfs" "xfs" "btrfs" "ext4" "fat" "vfat"
-
-                    # TODO
-                    # "bcachefs"
-
-                ];
+                supported = [ "zfs" "xfs" "btrfs" "ext4" "fat" "vfat" "bcachefs" ];
             };
             commands = {
                 rebuild = "nixos-rebuild --show-trace";
@@ -251,6 +245,6 @@ with builtins; { pkgs, lib, inputs ? {}, system ? currentSystem }: with lib; let
                 };
             };
         };
-    };
+    });
     extension = makeExtensible newLib;
 in with lib; extension.extend (final: prev: extension.foldToSet (attrValues prev))

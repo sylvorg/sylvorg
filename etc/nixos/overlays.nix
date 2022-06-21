@@ -1,18 +1,27 @@
 args@{ lib, nixpkgs, inputs, pkgs, channel }: with builtins; with lib;
 let
-    updatePython = pv: prev: attrs: { "${pv}" = prev.${pv}.override { packageOverrides = new: old: attrs; }; };
+    updatePython = pv: prev: attrs: { "${pv}" = prev.${pv}.override { packageOverrides = new: old: old // attrs; }; };
+    updatePythonPackage = pv: prev: pkg: func: updatePython pv prev { "${pkg}" = prev.${pv}.pkgs.${pkg}.overridePythonAttrs func; };
     updatePythonPackages = pv: final: prev: dir: updatePython pv prev (j.import.set { call = final.${pv}.pkgs; inherit dir; ignores = j.dirCon.dirs dir; });
     pv2 = "python2${j.attrs.versions.python.two}";
     pv3 = "python3${j.attrs.versions.python.three}";
 in flatten [
 (final: prev: { j = { inherit pkgs; };})
+(final: prev: { inherit lib; })
 (final: prev: genAttrs (import ./rust-packages.nix) (pkg: final.j.pkgs.${channel}.${pkg}))
 (final: prev: rec {
-    python2 = final.${pv2};
-    python3 = final.${pv3};
-    python = final.python3;
+    Python2 = final.${pv2};
+    Python2Packages = final."${pv2}Packages";
+    Python3 = final.${pv3};
+    Python3Packages = final."${pv3}Packages";
+    Python = Python3;
+    PythonPackages = Python3Package;
 })
-(final: prev: updatePython pv3 prev { rich = prev.pythonPackages.rich.overridePythonAttrs (old: {
+(final: prev: let newInputs = [ final.git ]; in updatePythonPackage pv3 prev "flit" (old: {
+    buildInputs = newInputs ++ (old.buildInputs or []);
+    nativeBuildInputs = newInputs ++ (old.nativeBuildInputs or []);
+}))
+(final: prev: updatePythonPackage pv3 prev "rich" (old: {
     version = "12.0.0";
     src = final.fetchFromGitHub {
         owner = "syvlorg";
@@ -20,14 +29,14 @@ in flatten [
         rev = "a6c20ce10adc7b8cfacfd74e0b025e8c2c8c19eb";
         sha256 = "1ld3ihvssfk56240wignmd6hv7gynid5wmcynl58ng8sbfywm3ly";
     };
-    propagatedBuildInputs = (with final.pythonPackages; [ hy ]) ++ old.propagatedBuildInputs;
+    propagatedBuildInputs = (with final.PythonPackages; [ hy ]) ++ old.propagatedBuildInputs;
     meta = {
         description = "Render rich text, tables, progress bars, syntax highlighting, markdown and more to the terminal";
         homepage = "https://github.com/syvlorg/rich";
         license = lib.licenses.mit;
     };
-}); })
-(final: prev: { xonsh = prev.xonsh.overridePythonAttrs (old: { propagatedBuildInputs = (with final.pythonPackages; [ 
+}))
+(final: prev: { xonsh = prev.xonsh.overridePythonAttrs (old: { propagatedBuildInputs = (with final.PythonPackages; [ 
     bakery
     xontrib-sh
     xontrib-readable-traceback
@@ -37,7 +46,8 @@ in flatten [
 ]) ++ old.propagatedBuildInputs; }); })
 (final: prev: { nur = import inputs.nur { nurpkgs = nixpkgs; pkgs = prev; }; })
 inputs.emacs.overlay
-(final: prev: let dir = ./callPackages; in j.import.set { call = true; inherit dir; ignores = j.dirCon.dirs dir; })
+(final: prev: let dir = ./callPackages; in j.import.set { call = final; inherit dir; ignores = j.dirCon.dirs dir; })
+(final: prev: { default = final.settings; })
 (final: prev: updatePythonPackages pv2 final prev ./callPackages/python2)
 (final: prev: updatePythonPackages pv3 final prev ./callPackages/python3)
 (final: prev: let dir = ./overlays; in j.import.set { inherit dir; ignores = j.dirCon.dirs dir; })

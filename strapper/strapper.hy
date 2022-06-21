@@ -270,7 +270,7 @@
                          (if (or install all)
                              (nixos-install #* ctx.args
                                             :I (with [f (open (+ resources "/flake.lock"))]
-                                                     f"nixpkgs=https://github.com/nixos/nixpkgs/archive/{(D (.load json f)).nodes.nixos-22-05.locked.rev}.tar.gz")
+                                                     f"nixpkgs=https://github.com/nixos/nixpkgs/archive/{(. (D (.load json f)) nodes nixos-22-05 locked rev)}.tar.gz")
                                             :m/run True
                                             :show-trace True
                                             :install-bootloader install-bootloader
@@ -427,8 +427,6 @@ The final partition will be the ZFS partition, and does not need to be specified
                      (swapon (+ "/dev/zvol/" ctx.obj.host "/swap" :m/run True)))
                  (if swap-device
                      (swapon swap-device :m/run True))
-
-                 ;; TODO: What do these two do again?
 
                  (.mkdir (Path "/tmp") :parents True :exist-ok True)
                  (Mount :t "zfs" (+ ctx.obj.host "/system/tmp") "/tmp" :m/run True)

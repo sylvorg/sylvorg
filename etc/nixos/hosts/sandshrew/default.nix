@@ -5,9 +5,10 @@
         ../../minimal.nix
         (import ../..).inputs.hardware.microsoft-surface
     ];
+    variables.encrypted = true;
     networking = {
         hostName = baseNameOf (toString ./.);
-        hostId = "c433759a";
+        hostId = "2a3f301a";
         networkmanager.extraConfig = ''
             [connection]
             wifi.powersave = 2

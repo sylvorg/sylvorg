@@ -85,8 +85,7 @@
             peru
             pfetch
             pypy
-            python310
-            python39Packages.pipx
+            Python
             ranger
             refind
             ripgrep
@@ -143,11 +142,12 @@
             gitflow
             hub
             lab
-        ]) ++ (with pkgs.python310Packages; [
+        ]) ++ (with pkgs.PythonPackages; [
             black
             black-macchiato
             jupyterlab
             poetry
+            pipx
         ]);
     };
 }
