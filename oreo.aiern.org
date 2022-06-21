@@ -2286,7 +2286,7 @@ in flatten [
 This is used to get all the rust packages in ~nixpkgs~:
 
 #+begin_src shell
-nix eval --impure --expr 'with builtins; let pkgs = import (fetchGit { url = "https://github.com/nixos/nixpkgs"; ref = (fromJSON (readFile ./etc/nixos/flake.lock)).nodes.<<channel>>.original.ref; }) {}; in with pkgs; with lib; attrNames (filterAttrs (n: v: all (b: b == true) [ (! elem n [ ]) (tryEval v).success (v ? patchRegistryDeps) ]) pkgs)' 1> ./etc/nixos/rust-packages.nix 2> /dev/null
+nix eval --impure --expr 'with builtins; let pkgs = import (fetchGit { url = "https://github.com/nixos/nixpkgs"; ref = (fromJSON (readFile ./etc/nixos/flake.lock)).nodes.<<channel>>.original.ref; }) {}; in with pkgs; with lib; attrNames (filterAttrs (n: v: all (b: b == true) [ (! elem n [ ]) (tryEval v).success (v ? patchRegistryDeps) ]) pkgs)' 1> ./etc/nixos/rust-packages.nix
 #+end_src
 
 #+name: 947c9d7c-a6bc-4ddc-b2a5-38830b0521d2
@@ -2303,8 +2303,7 @@ nix eval --impure --expr 'with builtins; let pkgs = import (fetchGit { url = "ht
                                       "(tryEval v).success "
                                       "(v ? patchRegistryDeps) "
                                   "]) pkgs)' "
-                        "1> ./etc/nixos/rust-packages.nix "
-                        "2> /dev/null"))
+                        "&> ./etc/nixos/rust-packages.nix"))
 "(import ./rust-packages.nix)"
 #+end_src
 
