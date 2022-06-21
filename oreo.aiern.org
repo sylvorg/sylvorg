@@ -401,7 +401,7 @@ This can't use a default value, as that would trigger a rebuild all the time.
                          (if (or install all)
                              (nixos-install #* ctx.args
                                             :I (with [f (open (+ resources "/flake.lock"))]
-                                                     f"nixpkgs=https://github.com/nixos/nixpkgs/archive/{(. (D (.load json f)) nodes <<channel>> locked rev)}.tar.gz")
+                                                     f"nixpkgs=https://github.com/nixos/nixpkgs/archive/{(. (D (.load json f)) nodes <<channel>> original ref)}.tar.gz")
                                             :m/run True
                                             :show-trace True
                                             :install-bootloader install-bootloader
@@ -2286,14 +2286,17 @@ in flatten [
 This is used to get all the rust packages in ~nixpkgs~:
 
 #+begin_src shell
-nix eval --impure --expr 'with builtins; let pkgs = import (import ./.).inputs.nixpkgs {}; in with pkgs; with lib; attrNames (filterAttrs (n: v: all (b: b == true) [ (! elem n [ ]) (tryEval v).success (v ? patchRegistryDeps) ]) pkgs)' 1> ./etc/nixos/rust-packages.nix 2> /dev/null
+nix eval --impure --expr 'with builtins; let pkgs = import (fetchGit { url = "https://github.com/nixos/nixpkgs"; ref = (fromJSON (readFile ./etc/nixos/flake.lock)).nodes.<<channel>>.original.ref; }) {}; in with pkgs; with lib; attrNames (filterAttrs (n: v: all (b: b == true) [ (! elem n [ ]) (tryEval v).success (v ? patchRegistryDeps) ]) pkgs)' 1> ./etc/nixos/rust-packages.nix 2> /dev/null
 #+end_src
 
 #+name: 947c9d7c-a6bc-4ddc-b2a5-38830b0521d2
 #+begin_src emacs-lisp
 (shell-command (concat "nix eval --impure --expr "
                             "'with builtins; let "
-                                  "pkgs = import (import ./.).inputs.nixpkgs {}; "
+                                  "pkgs = import (fetchGit {"
+                                      "url = \"https://github.com/nixos/nixpkgs\"; "
+                                      "rev = (fromJSON (readFile ./etc/nixos/flake.lock)).nodes.<<channel>>.original.ref; "
+                                  "}) {}; "
                               "in with pkgs; with lib; "
                                   "attrNames (filterAttrs (n: v: all (b: b == true) [ "
                                       "(! elem n [ ]) "
