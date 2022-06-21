@@ -32,8 +32,5 @@ Python.pkgs.buildPythonApplication rec {
     "--prefix PYTHONPATH : ${placeholder "out"}/lib/${Python.pkgs.python.libPrefix}/site-packages"
   ];
 
-  meta = {
-    homepage = "https://github.com/syvlorg/${pname}";
-    license = lib.licenses.oreo;
-  };
+  meta.homepage = "https://github.com/syvlorg/${pname}";
 }

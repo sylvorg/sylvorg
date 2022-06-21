@@ -1,0 +1,16 @@
+diff --git a/lib/licenses.nix b/lib/licenses.nix
+index 4fa6d6abc7a..198b570e0ae 100644
+--- a/lib/licenses.nix
++++ b/lib/licenses.nix
+@@ -690,6 +690,11 @@ in mkLicense lset) ({
+     fullName = "OpenSSL License";
+   };
+ 
++  oreo = {
++    fullName = "Oreo Public License";
++    free = true;
++  };
++
+   osl2 = {
+     spdxId = "OSL-2.0";
+     fullName = "Open Software License 2.0";

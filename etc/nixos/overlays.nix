@@ -15,7 +15,7 @@ in flatten [
     Python3 = final.${pv3};
     Python3Packages = final."${pv3}Packages";
     Python = Python3;
-    PythonPackages = Python3Package;
+    PythonPackages = Python3Packages;
 })
 (final: prev: let newInputs = [ final.git ]; in updatePythonPackage pv3 prev "flit" (old: {
     buildInputs = newInputs ++ (old.buildInputs or []);

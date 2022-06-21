@@ -1863,7 +1863,7 @@ Python.pkgs.buildPythonApplication rec {
 }
 #+end_src
 
-**** tailapi
+**** tailapi.nix
 
 #+begin_src nix :tangle (meq/tangle-path)
 { lib
@@ -1900,10 +1900,7 @@ Python.pkgs.buildPythonApplication rec {
     "--prefix PYTHONPATH : ${placeholder "out"}/lib/${Python.pkgs.python.libPrefix}/site-packages"
   ];
 
-  meta = {
-    homepage = "https://github.com/syvlorg/${pname}";
-    license = lib.licenses.oreo;
-  };
+  meta.homepage = "https://github.com/syvlorg/${pname}";
 }
 #+end_src
 
@@ -2164,7 +2161,7 @@ buildPythonPackage rec {
 }
 #+end_src
 
-***** xonsh-pipeliner.nix
+***** xontrib-pipeliner.nix
 
 #+begin_src nix :tangle (meq/tangle-path)
 { lib
@@ -2321,7 +2318,7 @@ nix eval --impure --expr 'with builtins; let pkgs = import (import ./.).inputs.n
     Python3 = final.${pv3};
     Python3Packages = final."${pv3}Packages";
     Python = Python3;
-    PythonPackages = Python3Package;
+    PythonPackages = Python3Packages;
 })
 #+end_src
 
@@ -3014,9 +3011,9 @@ Adapted from [[https://github.com/pukkamustard/nixpkgs/blob/guix/nixos/modules/s
                 (optional (cfg.exitNode.advertise && cfg.acceptDNS)
                           "Advertising this device as an exit node and accepting the preconfigured DNS servers on the tailscale admin page at the same time may result in this device attempting to use itself as a DNS server.")
 
-                # TODO
-                (optional (((isBool cfg.routes.accept) && cfg.routes.accept) && (cfg.routes.advertise != null))
-                          "Advertising this device as a subnet router and accepting the preconfigured subnet routes on the tailscale admin page at the same time may result in this device #TODO")
+                # TODO: Why is this causing an infinite recursion error?
+                # (optional (((isBool cfg.routes.accept) && cfg.routes.accept) && (cfg.routes.advertise != null))
+                #           "Advertising this device as a subnet router and accepting the preconfigured subnet routes on the tailscale admin page at the same time may result in this device #TODO")
 
             ];
             services.tailscale = {
@@ -3990,6 +3987,8 @@ Adapted from [[https://www.reddit.com/r/NixOS/comments/ut8j10/nixos_zfs_podman_b
 
 ***** Home-Manager
 
+# TODO: Patch home-manager ~fonts.fontconfig.enable~
+
 #+begin_src nix :noweb-ref no
 {
     home-manager = {
@@ -4049,8 +4048,19 @@ Adapted from [[https://www.reddit.com/r/NixOS/comments/ut8j10/nixos_zfs_podman_b
 #+begin_src nix
 {
     nix = rec {
-        registry = { "${j.attrs.users.primary}" = (args.inputs or flake.inputs).j.attrs.users.primary; };
-        # registry = { inherit (args.inputs or flake.inputs) <<username>>; };
+        registry = {
+            "${j.attrs.users.primary}" = {
+                from = {
+                    id = j.attrs.users.primary;
+                    type = "indirect";
+                };
+                to = {
+                    type = "github";
+                    owner = j.attrs.users.primary;
+                    repo = j.attrs.users.primary;
+                };
+            };
+        };
         package = pkgs.nixUnstable;
         gc = mkMerge [
             { automatic = true; }

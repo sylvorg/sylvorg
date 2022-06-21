@@ -409,8 +409,19 @@ in with lib; {
 }
 {
     nix = rec {
-        registry = { "${j.attrs.users.primary}" = (args.inputs or flake.inputs).j.attrs.users.primary; };
-        # registry = { inherit (args.inputs or flake.inputs) shadowrylander; };
+        registry = {
+            "${j.attrs.users.primary}" = {
+                from = {
+                    id = j.attrs.users.primary;
+                    type = "indirect";
+                };
+                to = {
+                    type = "github";
+                    owner = j.attrs.users.primary;
+                    repo = j.attrs.users.primary;
+                };
+            };
+        };
         package = pkgs.nixUnstable;
         gc = mkMerge [
             { automatic = true; }
