@@ -2613,7 +2613,7 @@ in mapAttrsToList (
             };
             nameless = recursiveUpdate make.base {
                 outputs = system: rec {
-                    inherit make system;
+                    inherit system;
                     specialArgs = make.nameless.specialArgs system;
                     inherit (specialArgs) nixpkgset nixpkgs pkgs overlays lib;
                     overlay = final: prev: { settings = final.callPackage ./callPackages/settings.nix {}; };
@@ -2627,7 +2627,7 @@ in mapAttrsToList (
                 };
             };
             named = recursiveUpdate make.base {
-                specialArgs = name: system: (make.named.specialArgs system) // { host = name; };
+                specialArgs = name: system: (make.nameless.specialArgs system) // { host = name; };
                 config = name: system: nixosSystem rec {
                     specialArgs = make.named.specialArgs name system;
                     modules = with inputs; let
@@ -2651,7 +2651,7 @@ in mapAttrsToList (
             both = system: (make.named.nixosConfiguration system) // (make.nameless.outputs system);
         };
 
-    in eachSystem allSystems make.both;
+    in (eachSystem allSystems make.both) // { inherit make; };
 }
 #+end_src
 
@@ -3088,30 +3088,30 @@ Adapted from [[https://github.com/pukkamustard/nixpkgs/blob/guix/nixos/modules/s
                         # otherwise authenticate with tailscale
                         echo "Authenticating with Tailscale ..."
                         ${cfg.package}/bin/tailscale up --hostname ${if cfg.useUUID then "$(${pkgs.util-linux}/bin/uuidgen)" else cfg.hostName} \
-                        ${optionalString cfg.acceptDNS "--accept-dns \"}
-                        ${optionalString cfg.routes.accept "--accept-routes \"}
-                        ${optionalString (cfg.routes.advertise != null) "--advertise-routes ${cfg.routes.advertise} \"}
-                        ${optionalString cfg.exitNode.advertise "--advertise-exit-node \"}
-                        ${optionalString (cfg.exitNode.ip != null) "--exit-node ${cfg.exitNode.ip} \"}
+                        ${optionalString cfg.acceptDNS "--accept-dns \\"}
+                        ${optionalString cfg.routes.accept "--accept-routes \\"}
+                        ${optionalString (cfg.routes.advertise != null) "--advertise-routes ${cfg.routes.advertise} \\"}
+                        ${optionalString cfg.exitNode.advertise "--advertise-exit-node \\"}
+                        ${optionalString (cfg.exitNode.ip != null) "--exit-node ${cfg.exitNode.ip} \\"}
                         ${optionalString (cfg.exitNode.hostName != null) ''--exit-node $(${pkgs.tailapi}/bin/tailapi --domain ${cfg.api.domain} \
                                                                            --recreate-response \
                                                                            --devices ${cfg.exitNode.hostName} \
                                                                            ip -f4) \''}
                         ${optionalString (((cfg.exitNode.ip != null) || (cfg.exitNode.hostName != null)) && cfg.exitNode.allowLANAccess)
-                                         "--exit-node-allow-lan-access \"}
+                                         "--exit-node-allow-lan-access \\"}
 
                         ${concatStringsSep " " (mapAttrsToList (n: v: let
                             opt = (if ((stringLength n) == 1) then "-" else "--") + n;
                         in "${opt} ${v}") extraConfig)} \
 
-                        ${optionalString (cfg.authkey != null) "--authkey ${cfg.authkey} \"}
-                        ${optionalString (cfg.authfile != null) "--authkey ${readFile cfg.authfile} \"}
+                        ${optionalString (cfg.authkey != null) "--authkey ${cfg.authkey} \\"}
+                        ${optionalString (cfg.authfile != null) "--authkey ${readFile cfg.authfile} \\"}
                         ${optionalString api_and_no_authConFile ''--authkey $(${pkgs.tailapi}/bin/tailapi --domain ${cfg.api.domain} \
                                                                                                           --recreate-response \
                                                                                                           create \
-                                                                                                          ${optionalString cfg.api.reusable "--reusable \"}
-                                                                                                          ${optionalString cfg.api.ephemeral "--ephemeral \"}
-                                                                                                          ${optionalString cfg.api.reusable "--preauthorized \"}
+                                                                                                          ${optionalString cfg.api.reusable "--reusable \\"}
+                                                                                                          ${optionalString cfg.api.ephemeral "--ephemeral \\"}
+                                                                                                          ${optionalString cfg.api.reusable "--preauthorized \\"}
                                                                                                           ${optionalString (cfg.api.tags != null)
                                                                                                                            (concatStringsSep " " cfg.api.tags)} \
                                                                                                           --just-key)''}

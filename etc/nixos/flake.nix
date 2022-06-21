@@ -131,7 +131,7 @@
             };
             nameless = recursiveUpdate make.base {
                 outputs = system: rec {
-                    inherit make system;
+                    inherit system;
                     specialArgs = make.nameless.specialArgs system;
                     inherit (specialArgs) nixpkgset nixpkgs pkgs overlays lib;
                     overlay = final: prev: { settings = final.callPackage ./callPackages/settings.nix {}; };
@@ -145,7 +145,7 @@
                 };
             };
             named = recursiveUpdate make.base {
-                specialArgs = name: system: (make.named.specialArgs system) // { host = name; };
+                specialArgs = name: system: (make.nameless.specialArgs system) // { host = name; };
                 config = name: system: nixosSystem rec {
                     specialArgs = make.named.specialArgs name system;
                     modules = with inputs; let
@@ -169,5 +169,5 @@
             both = system: (make.named.nixosConfiguration system) // (make.nameless.outputs system);
         };
 
-    in eachSystem allSystems make.both;
+    in (eachSystem allSystems make.both) // { inherit make; };
 }

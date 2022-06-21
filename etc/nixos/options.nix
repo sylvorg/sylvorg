@@ -383,30 +383,30 @@
                         # otherwise authenticate with tailscale
                         echo "Authenticating with Tailscale ..."
                         ${cfg.package}/bin/tailscale up --hostname ${if cfg.useUUID then "$(${pkgs.util-linux}/bin/uuidgen)" else cfg.hostName} \
-                        ${optionalString cfg.acceptDNS "--accept-dns \"}
-                        ${optionalString cfg.routes.accept "--accept-routes \"}
-                        ${optionalString (cfg.routes.advertise != null) "--advertise-routes ${cfg.routes.advertise} \"}
-                        ${optionalString cfg.exitNode.advertise "--advertise-exit-node \"}
-                        ${optionalString (cfg.exitNode.ip != null) "--exit-node ${cfg.exitNode.ip} \"}
+                        ${optionalString cfg.acceptDNS "--accept-dns \\"}
+                        ${optionalString cfg.routes.accept "--accept-routes \\"}
+                        ${optionalString (cfg.routes.advertise != null) "--advertise-routes ${cfg.routes.advertise} \\"}
+                        ${optionalString cfg.exitNode.advertise "--advertise-exit-node \\"}
+                        ${optionalString (cfg.exitNode.ip != null) "--exit-node ${cfg.exitNode.ip} \\"}
                         ${optionalString (cfg.exitNode.hostName != null) ''--exit-node $(${pkgs.tailapi}/bin/tailapi --domain ${cfg.api.domain} \
                                                                            --recreate-response \
                                                                            --devices ${cfg.exitNode.hostName} \
                                                                            ip -f4) \''}
                         ${optionalString (((cfg.exitNode.ip != null) || (cfg.exitNode.hostName != null)) && cfg.exitNode.allowLANAccess)
-                                         "--exit-node-allow-lan-access \"}
+                                         "--exit-node-allow-lan-access \\"}
 
                         ${concatStringsSep " " (mapAttrsToList (n: v: let
                             opt = (if ((stringLength n) == 1) then "-" else "--") + n;
                         in "${opt} ${v}") extraConfig)} \
 
-                        ${optionalString (cfg.authkey != null) "--authkey ${cfg.authkey} \"}
-                        ${optionalString (cfg.authfile != null) "--authkey ${readFile cfg.authfile} \"}
+                        ${optionalString (cfg.authkey != null) "--authkey ${cfg.authkey} \\"}
+                        ${optionalString (cfg.authfile != null) "--authkey ${readFile cfg.authfile} \\"}
                         ${optionalString api_and_no_authConFile ''--authkey $(${pkgs.tailapi}/bin/tailapi --domain ${cfg.api.domain} \
                                                                                                           --recreate-response \
                                                                                                           create \
-                                                                                                          ${optionalString cfg.api.reusable "--reusable \"}
-                                                                                                          ${optionalString cfg.api.ephemeral "--ephemeral \"}
-                                                                                                          ${optionalString cfg.api.reusable "--preauthorized \"}
+                                                                                                          ${optionalString cfg.api.reusable "--reusable \\"}
+                                                                                                          ${optionalString cfg.api.ephemeral "--ephemeral \\"}
+                                                                                                          ${optionalString cfg.api.reusable "--preauthorized \\"}
                                                                                                           ${optionalString (cfg.api.tags != null)
                                                                                                                            (concatStringsSep " " cfg.api.tags)} \
                                                                                                           --just-key)''}
