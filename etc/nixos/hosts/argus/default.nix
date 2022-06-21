@@ -4,7 +4,7 @@
     imports = [ ../../devices/linode.nix ../../minimal.nix ];
     networking = {
         hostName = baseNameOf (toString ./.);
-        hostId = "c85cbc7d";
+        hostId = "3f5744b9";
     };
     variables.relay = true;
 }

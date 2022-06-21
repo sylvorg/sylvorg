@@ -401,7 +401,7 @@ This can't use a default value, as that would trigger a rebuild all the time.
                          (if (or install all)
                              (nixos-install #* ctx.args
                                             :I (with [f (open (+ resources "/flake.lock"))]
-                                                     f"nixpkgs=https://github.com/nixos/nixpkgs/archive/{(. (D (.load json f)) nodes <<channel>> original ref)}.tar.gz")
+                                                     f"nixpkgs=https://github.com/nixos/nixpkgs/archive/{(. (.load json f) ["nodes"] ["<<channel>>"] ["original"] ["ref"])}.tar.gz")
                                             :m/run True
                                             :show-trace True
                                             :install-bootloader install-bootloader
@@ -1612,7 +1612,12 @@ Deprecated Set Function:
                     fsType = "zfs";
                     options = [ "defaults" "x-systemd.device-timeout=5" "nofail" ];
                 };
-                supported = [ "zfs" "xfs" "btrfs" "ext4" "fat" "vfat" "bcachefs" ];
+                supported = [ "zfs" "xfs" "btrfs" "ext4" "fat" "vfat"
+
+                    # TODO
+                    # "bcachefs"
+
+                ];
             };
             commands = {
                 rebuild = "nixos-rebuild --show-trace";
@@ -1631,6 +1636,17 @@ in with lib; extension.extend (final: prev: extension.foldToSet (attrValues prev
 #+end_src
 
 *** callPackages
+
+#+name: 56570a1c-ade7-4b60-8c2d-3179f062cf32
+#+begin_src emacs-lisp :var owner="" :var repo="" :var rev=""
+(format "src = fetchFromGitHub {
+  owner = \"%s\";
+  repo = \"%s\";
+  rev = \"%s\";
+  sha256 = (fromJSON ''%s'').sha256;
+};" owner repo rev (shell-command-to-string (format "nix-prefetch-git --fetch-submodules --quiet https://github.com/%s/%s %s" owner repo rev)))
+#+end_src
+
 **** caddy.nix
 
 Adapted from [[https://github.com/NixOS/nixpkgs/issues/14671#issuecomment-1016376290][here]]; allows me to build ~caddy~ with plugins:
@@ -1968,12 +1984,7 @@ buildPythonPackage rec {
   format = "pyproject";
   disabled = pythonOlder "3.9";
 
-  src = fetchFromGitHub {
-    owner = "syvlorg";
-    repo = pname;
-    rev = "6cb1453b0d13613ca1d19bd1b419b107b99a2f6d";
-    sha256 = "0cizhp6p70sx8a388iyy005q0xm83db052f0rwcwmcaxmqvq74zb";
-  };
+  <<56570a1c-ade7-4b60-8c2d-3179f062cf32(owner="syvlorg", repo="oreo", rev="6cb1453b0d13613ca1d19bd1b419b107b99a2f6d")>>
 
   buildInputs = [ poetry-core ];
   nativeBuildInputs = buildInputs;
@@ -2304,7 +2315,7 @@ nix eval --impure --expr 'with builtins; let pkgs = import (fetchGit { url = "ht
                                   "(v ? patchRegistryDeps) "
                               "]) pkgs)' "
                       "&> ./etc/nixos/rust-packages.nix"))
-(message command)
+;; (message command)
 (shell-command command)
 "(import ./rust-packages.nix)"
 #+end_src
@@ -3535,7 +3546,9 @@ in with lib; {
         # kernelPackages = mkDefault pkgs.linuxPackages_lqx;
         # kernelPackages = mkDefault pkgs.linuxPackages_zen;
         kernelPatches = flatten [
-            (optionals (elem "bcachefs" config.boot.supportedFilesystems) (filter (set: hasInfix "bcachefs" set.name) pkgs.linuxKernel.kernels.linux_testing_bcachefs.kernelPatches))
+
+            # TODO
+            # (optionals (elem "bcachefs" config.boot.supportedFilesystems) (filter (set: hasInfix "bcachefs" set.name) pkgs.linuxKernel.kernels.linux_testing_bcachefs.kernelPatches))
 #+end_src
 
 # TODO: Apparently doesn't work with bcachefs
