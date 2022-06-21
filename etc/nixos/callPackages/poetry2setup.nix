@@ -13,7 +13,7 @@ Python.pkgs.buildPythonApplication rec {
     owner = "abersheeran";
     repo = pname;
     rev = "6d3345f488fda4d0f6eed1bd3438ea6207e55e3a";
-    sha256 = "07z776ikj37whhx7pw1f3pwp25w04aw22vwipjjmvi8c642qxni4";
+    sha256 = "sha256-JNqOBTEMxV2lvJFvIbgigBdx+R0u8Hs6hPwMOaM55x8=";
   };
 
   propagatedBuildInputs = with Python.pkgs; [ poetry-core ];

@@ -15,7 +15,7 @@ buildPythonPackage rec {
     owner = "syvlorg";
     repo = pname;
     rev = "9fadd8a2ec2f2e7ea9d2b0e8b9e378c34dfc21e8";
-    sha256 = "0xlf3nw2kwyb1899rsbshixpb054l3gpw6xc50ccyjvcqcv28v1z";
+    sha256 = "sha256-P2wkNsNsS88YKKwbft+gpIB1e4R66ZwSCsvzKbgdjnY=";
   };
 
   buildInputs = [ poetry-core ];

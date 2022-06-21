@@ -6,7 +6,6 @@ in with flake.legacyPackages.${currentSystem}; let
         version = "1.0.0.0";
         src = ./strapper;
         propagatedBuildInputs = with Python.pkgs; [ bakery ];
-        dontBuild = true;
         installPhase = ''
             mkdir --parents $out/bin
             cp $src/${pname}.py $out/bin/${pname}

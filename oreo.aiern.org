@@ -14,7 +14,6 @@ in with flake.legacyPackages.${currentSystem}; let
         version = "1.0.0.0";
         src = ./strapper;
         propagatedBuildInputs = with Python.pkgs; [ bakery ];
-        dontBuild = true;
         installPhase = ''
             mkdir --parents $out/bin
             cp $src/${pname}.py $out/bin/${pname}
@@ -1775,12 +1774,13 @@ Adapted from [[https://github.com/pukkamustard/nixpkgs/blob/guix/pkgs/developmen
 **** mdsh.nix
 
 #+begin_src nix :tangle (meq/tangle-path)
-{ stdenv, fetchgit, lib }: stdenv.mkDerivation rec {
+{ stdenv, fetchFromGitHub, lib }: stdenv.mkDerivation rec {
     pname = "mdsh";
     version = "1.0.0.0";
 
-    src = fetchgit {
-        url = "https://github.com/bashup/mdsh.git";
+    src = fetchFromGitHub {
+        owner = "bashup";
+        repo = "mdsh";
         rev = "7e7af618a341eebd50e7825b062bc192079ad5fc";
         sha256 = "sha256-l03BHDHjlhwRepVDW9FnKCAXZ8AC6pgHQdQJtYOP5fE=";
     };
@@ -1816,7 +1816,7 @@ Python.pkgs.buildPythonApplication rec {
     owner = "abersheeran";
     repo = pname;
     rev = "6d3345f488fda4d0f6eed1bd3438ea6207e55e3a";
-    sha256 = "07z776ikj37whhx7pw1f3pwp25w04aw22vwipjjmvi8c642qxni4";
+    sha256 = "sha256-JNqOBTEMxV2lvJFvIbgigBdx+R0u8Hs6hPwMOaM55x8=";
   };
 
   propagatedBuildInputs = with Python.pkgs; [ poetry-core ];
@@ -1852,8 +1852,8 @@ Python.pkgs.buildPythonApplication rec {
     src = fetchFromGitHub {
         owner = "sylvorg";
         repo = "settings";
-        rev = "3b8f7d1afe67f147807e48a510674b6088fc2af0";
-    	sha256 = "1fn0pwv2pss6dslsy7ykbfaz43mplzdlamp8pwzkrk8mc9hk3ilf";
+        rev = "3ce398e9eb5bd054526366d0965119c83265efe2";
+    	sha256 = "sha256-sGof/jMtRcZky3mAHUCXI9w+JcDuSWbUGcGYxrybBzM=";
     };
 
     phases = [ "installPhase" ];
@@ -1884,7 +1884,7 @@ Python.pkgs.buildPythonApplication rec {
     owner = "syvlorg";
     repo = pname;
     rev = "ada101b9c2919cfbe365c7d5fe71710d95425ca3";
-    sha256 = "0bywlkbwxsnf11i1kv36ls2yax0pp30qmgcyfq3gcmzzhcgk2q3k";
+    sha256 = "sha256-c2AxH4P/V/YGdp69isG4F3TlhaZm7BliCM7qztek3C8=";
   };
 
   propagatedBuildInputs = with Python.pkgs; [
@@ -1928,8 +1928,8 @@ buildPythonPackage rec {
   src = fetchFromGitHub {
     owner = "cjrh";
     repo = pname;
-    rev = "master";
-    sha256 = "1dds9dwf5bqxi84s1fzcdykiqgcc1iq3rh6p76wjz6h7cb451h08";
+    rev = "a36ea378136bc7dfdc11f3f950186f6ed8bee8c5";
+    sha256 = "sha256-CMBQyGIHmi+5OdfAPHAMjD0cp2/su6AJih2v4nhLurU=";
   };
 
   buildInputs = [ flit ];
@@ -2031,7 +2031,7 @@ buildPythonPackage rec {
     owner = "syvlorg";
     repo = pname;
     rev = "9fadd8a2ec2f2e7ea9d2b0e8b9e378c34dfc21e8";
-    sha256 = "0xlf3nw2kwyb1899rsbshixpb054l3gpw6xc50ccyjvcqcv28v1z";
+    sha256 = "sha256-P2wkNsNsS88YKKwbft+gpIB1e4R66ZwSCsvzKbgdjnY=";
   };
 
   buildInputs = [ poetry-core ];
@@ -2069,8 +2069,8 @@ buildPythonPackage rec {
   src = fetchFromGitHub {
     owner = "nir0s";
     repo = pname;
-    rev = "master";
-    sha256 = "1i3xj04zxz9vi57gbkmnnyh9cypf3bm966ic685s162p1xhnz2qp";
+    rev = "a1f75c956f669a6175088693802d5392e6bd7e51";
+    sha256 = "sha256-F4tvYQ9XmKALMiwak+oa7nqWoLe2zvVOiTv9/gmQfcQ=";
   };
 
   propagatedBuildInputs = [ colorama ];

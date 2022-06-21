@@ -1,9 +1,10 @@
-{ stdenv, fetchgit, lib }: stdenv.mkDerivation rec {
+{ stdenv, fetchFromGitHub, lib }: stdenv.mkDerivation rec {
     pname = "mdsh";
     version = "1.0.0.0";
 
-    src = fetchgit {
-        url = "https://github.com/bashup/mdsh.git";
+    src = fetchFromGitHub {
+        owner = "bashup";
+        repo = "mdsh";
         rev = "7e7af618a341eebd50e7825b062bc192079ad5fc";
         sha256 = "sha256-l03BHDHjlhwRepVDW9FnKCAXZ8AC6pgHQdQJtYOP5fE=";
     };

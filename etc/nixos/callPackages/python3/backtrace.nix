@@ -12,8 +12,8 @@ buildPythonPackage rec {
   src = fetchFromGitHub {
     owner = "nir0s";
     repo = pname;
-    rev = "master";
-    sha256 = "1i3xj04zxz9vi57gbkmnnyh9cypf3bm966ic685s162p1xhnz2qp";
+    rev = "a1f75c956f669a6175088693802d5392e6bd7e51";
+    sha256 = "sha256-F4tvYQ9XmKALMiwak+oa7nqWoLe2zvVOiTv9/gmQfcQ=";
   };
 
   propagatedBuildInputs = [ colorama ];
