@@ -8,7 +8,7 @@
     variables.encrypted = true;
     networking = {
         hostName = baseNameOf (toString ./.);
-        hostId = "142fd715";
+        hostId = "cd91fb65";
         networkmanager.extraConfig = ''
             [connection]
             wifi.powersave = 2
