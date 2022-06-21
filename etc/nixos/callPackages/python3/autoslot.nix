@@ -10,11 +10,9 @@ buildPythonPackage rec {
   version = "2021.10.1";
   format = "pyproject";
 
-  src = fetchFromGitHub {
-    owner = "cjrh";
-    repo = pname;
-    rev = "a36ea378136bc7dfdc11f3f950186f6ed8bee8c5";
-    sha256 = "sha256-CMBQyGIHmi+5OdfAPHAMjD0cp2/su6AJih2v4nhLurU=";
+  src = fetchTarball {
+    url = "https://github.com/cjrh/${pname}/archive/a36ea378136bc7dfdc11f3f950186f6ed8bee8c5.tar.gz";
+    sha256 = "1dds9dwf5bqxi84s1fzcdykiqgcc1iq3rh6p76wjz6h7cb451h08";
   };
 
   buildInputs = [ flit ];

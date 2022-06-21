@@ -7,11 +7,9 @@ Python.pkgs.buildPythonApplication rec {
   pname = "tailapi";
   version = "1.0.0.0";
 
-  src = fetchFromGitHub {
-    owner = "syvlorg";
-    repo = pname;
-    rev = "ada101b9c2919cfbe365c7d5fe71710d95425ca3";
-    sha256 = "sha256-c2AxH4P/V/YGdp69isG4F3TlhaZm7BliCM7qztek3C8=";
+  src = fetchTarball {
+    url = "https://github.com/syvlorg/${pname}/archive/ada101b9c2919cfbe365c7d5fe71710d95425ca3.tar.gz";
+    sha256 = "0bywlkbwxsnf11i1kv36ls2yax0pp30qmgcyfq3gcmzzhcgk2q3k";
   };
 
   propagatedBuildInputs = with Python.pkgs; [

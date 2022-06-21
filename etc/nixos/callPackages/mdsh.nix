@@ -2,11 +2,9 @@
     pname = "mdsh";
     version = "1.0.0.0";
 
-    src = fetchFromGitHub {
-        owner = "bashup";
-        repo = "mdsh";
-        rev = "7e7af618a341eebd50e7825b062bc192079ad5fc";
-        sha256 = "sha256-l03BHDHjlhwRepVDW9FnKCAXZ8AC6pgHQdQJtYOP5fE=";
+    src = fetchTarball {
+        url = "https://github.com/bashup/${pname}/archive/7e7af618a341eebd50e7825b062bc192079ad5fc.tar.gz";
+        sha256 = "1wg5iy1va2fl843rish2q1kif818cz8mnhwmg88ir5p364fc2kcp";
     };
 
     installPhase = ''

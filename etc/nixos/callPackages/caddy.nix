@@ -23,11 +23,9 @@ in buildGoModule rec {
     runVend = true;
 	subPackages = [ "cmd/caddy" ];
 
-	src = fetchFromGitHub {
-		owner = "caddyserver";
-		repo = "caddy";
-		rev = "v${version}";
-		sha256 = "sha256-Y4GAx/8XcW7+6eXCQ6k4e/3WZ/6MkTr5za1AXp6El9o=";
+	src = fetchTarball {
+		url = "https://github.com/caddyserver/caddy/archive/v${version}.tar.gz";
+		sha256 = "1nlphjg5wh5drpwkm4cczrkxdzbv72ll7hp5x7z6ww8pzz3q10b3";
 	};
 
 	vendorSha256 = "sha256-xu3klc9yb4Ws8fvXRV286IDhi/zQVN1PKCiFKb8VJBo=";

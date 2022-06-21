@@ -1665,11 +1665,9 @@ in buildGoModule rec {
     runVend = true;
 	subPackages = [ "cmd/caddy" ];
 
-	src = fetchFromGitHub {
-		owner = "caddyserver";
-		repo = "caddy";
-		rev = "v${version}";
-		sha256 = "sha256-Y4GAx/8XcW7+6eXCQ6k4e/3WZ/6MkTr5za1AXp6El9o=";
+	src = fetchTarball {
+		url = "https://github.com/caddyserver/caddy/archive/v${version}.tar.gz";
+		sha256 = "1nlphjg5wh5drpwkm4cczrkxdzbv72ll7hp5x7z6ww8pzz3q10b3";
 	};
 
 	vendorSha256 = "sha256-xu3klc9yb4Ws8fvXRV286IDhi/zQVN1PKCiFKb8VJBo=";
@@ -1778,11 +1776,9 @@ Adapted from [[https://github.com/pukkamustard/nixpkgs/blob/guix/pkgs/developmen
     pname = "mdsh";
     version = "1.0.0.0";
 
-    src = fetchFromGitHub {
-        owner = "bashup";
-        repo = "mdsh";
-        rev = "7e7af618a341eebd50e7825b062bc192079ad5fc";
-        sha256 = "sha256-l03BHDHjlhwRepVDW9FnKCAXZ8AC6pgHQdQJtYOP5fE=";
+    src = fetchTarball {
+        url = "https://github.com/bashup/${pname}/archive/7e7af618a341eebd50e7825b062bc192079ad5fc.tar.gz";
+        sha256 = "1wg5iy1va2fl843rish2q1kif818cz8mnhwmg88ir5p364fc2kcp";
     };
 
     installPhase = ''
@@ -1812,11 +1808,9 @@ Python.pkgs.buildPythonApplication rec {
   version = "1.0.0";
   format = "pyproject";
 
-  src = fetchFromGitHub {
-    owner = "abersheeran";
-    repo = pname;
-    rev = "6d3345f488fda4d0f6eed1bd3438ea6207e55e3a";
-    sha256 = "sha256-JNqOBTEMxV2lvJFvIbgigBdx+R0u8Hs6hPwMOaM55x8=";
+  src = fetchTarball {
+    url = "https://github.com/abersheeran/${pname}/archive/6d3345f488fda4d0f6eed1bd3438ea6207e55e3a.tar.gz";
+    sha256 = "07z776ikj37whhx7pw1f3pwp25w04aw22vwipjjmvi8c642qxni4";
   };
 
   propagatedBuildInputs = with Python.pkgs; [ poetry-core ];
@@ -1849,11 +1843,9 @@ Python.pkgs.buildPythonApplication rec {
     pname = "settings";
     version = "1.0.0.0";
 
-    src = fetchFromGitHub {
-        owner = "sylvorg";
-        repo = "settings";
-        rev = "3ce398e9eb5bd054526366d0965119c83265efe2";
-    	sha256 = "sha256-sGof/jMtRcZky3mAHUCXI9w+JcDuSWbUGcGYxrybBzM=";
+    src = fetchTarball {
+        url = "https://github.com/sylvorg/${pname}/archive/3ce398e9eb5bd054526366d0965119c83265efe2.tar.gz";
+    	sha256 = "0cq7kfycd66137a6cjgfq0jkxp13jx01v03rrdjcci9d6gz1ysmh";
     };
 
     phases = [ "installPhase" ];
@@ -1880,11 +1872,9 @@ Python.pkgs.buildPythonApplication rec {
   pname = "tailapi";
   version = "1.0.0.0";
 
-  src = fetchFromGitHub {
-    owner = "syvlorg";
-    repo = pname;
-    rev = "ada101b9c2919cfbe365c7d5fe71710d95425ca3";
-    sha256 = "sha256-c2AxH4P/V/YGdp69isG4F3TlhaZm7BliCM7qztek3C8=";
+  src = fetchTarball {
+    url = "https://github.com/syvlorg/${pname}/archive/ada101b9c2919cfbe365c7d5fe71710d95425ca3.tar.gz";
+    sha256 = "0bywlkbwxsnf11i1kv36ls2yax0pp30qmgcyfq3gcmzzhcgk2q3k";
   };
 
   propagatedBuildInputs = with Python.pkgs; [
@@ -1925,11 +1915,9 @@ buildPythonPackage rec {
   version = "2021.10.1";
   format = "pyproject";
 
-  src = fetchFromGitHub {
-    owner = "cjrh";
-    repo = pname;
-    rev = "a36ea378136bc7dfdc11f3f950186f6ed8bee8c5";
-    sha256 = "sha256-CMBQyGIHmi+5OdfAPHAMjD0cp2/su6AJih2v4nhLurU=";
+  src = fetchTarball {
+    url = "https://github.com/cjrh/${pname}/archive/a36ea378136bc7dfdc11f3f950186f6ed8bee8c5.tar.gz";
+    sha256 = "1dds9dwf5bqxi84s1fzcdykiqgcc1iq3rh6p76wjz6h7cb451h08";
   };
 
   buildInputs = [ flit ];
@@ -1951,7 +1939,6 @@ buildPythonPackage rec {
 
 #+begin_src nix :tangle (meq/tangle-path)
 { buildPythonPackage
-, fetchFromGitHub
 , pythonOlder
 , poetry-core
 , addict
@@ -1973,11 +1960,9 @@ buildPythonPackage rec {
   format = "pyproject";
   disabled = pythonOlder "3.9";
 
-  src = fetchFromGitHub {
-    owner = "syvlorg";
-    repo = "oreo";
-    rev = "6cb1453b0d13613ca1d19bd1b419b107b99a2f6d";
-    sha256 = "sha256-65ODN65dscoZz8CJAlYbqHaACwDeR4SGQl2Dc82FPzI=";
+  src = fetchTarball {
+    url = "https://github.com/syvlorg/${pname}/archive/6cb1453b0d13613ca1d19bd1b419b107b99a2f6d.tar.gz";
+    sha256 = "0cizhp6p70sx8a388iyy005q0xm83db052f0rwcwmcaxmqvq74zb";
   };
 
   buildInputs = [ poetry-core ];
@@ -2027,11 +2012,9 @@ buildPythonPackage rec {
   format = "pyproject";
   disabled = pythonOlder "3.9";
 
-  src = fetchFromGitHub {
-    owner = "syvlorg";
-    repo = pname;
-    rev = "9fadd8a2ec2f2e7ea9d2b0e8b9e378c34dfc21e8";
-    sha256 = "sha256-P2wkNsNsS88YKKwbft+gpIB1e4R66ZwSCsvzKbgdjnY=";
+  src = fetchTarball {
+    url = "https://github.com/syvlorg/${pname}/archive/9fadd8a2ec2f2e7ea9d2b0e8b9e378c34dfc21e8.tar.gz";
+    sha256 = "0xlf3nw2kwyb1899rsbshixpb054l3gpw6xc50ccyjvcqcv28v1z";
   };
 
   buildInputs = [ poetry-core ];
@@ -2066,11 +2049,9 @@ buildPythonPackage rec {
   pname = "backtrace";
   version = "0.2.1";
 
-  src = fetchFromGitHub {
-    owner = "nir0s";
-    repo = pname;
-    rev = "a1f75c956f669a6175088693802d5392e6bd7e51";
-    sha256 = "sha256-F4tvYQ9XmKALMiwak+oa7nqWoLe2zvVOiTv9/gmQfcQ=";
+  src = fetchTarball {
+    url = "https://github.com/nir0s/${pname}/archive/a1f75c956f669a6175088693802d5392e6bd7e51.tar.gz";
+    sha256 = "1i3xj04zxz9vi57gbkmnnyh9cypf3bm966ic685s162p1xhnz2qp";
   };
 
   propagatedBuildInputs = [ colorama ];
@@ -3998,15 +3979,13 @@ Adapted from [[https://www.reddit.com/r/NixOS/comments/ut8j10/nixos_zfs_podman_b
 
 ***** Home-Manager
 
-# TODO: Patch home-manager ~fonts.fontconfig.enable~
-
-#+begin_src nix :noweb-ref no
+#+begin_src nix
 {
     home-manager = {
         useGlobalPkgs = true;
         users = mapAttrs' (designation: user: nameValuePair user {
             home = {
-                activation.setup-yubikey-sudo = lib.hm.dag.entryAfter ["writeBoundary"] "ykpamcfg -2 -v";
+                activation.setup-yubikey-sudo = lib.hm.dag.entryAfter [ "writeBoundary" ] "ykpamcfg -2 -v";
                 homeDirectory = j.attrs.allHomes.${designation};
             };
         }) j.attrs.allUsers;
