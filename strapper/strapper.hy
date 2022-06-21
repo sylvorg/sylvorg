@@ -270,7 +270,7 @@
                          (if (or install all)
                              (nixos-install #* ctx.args
                                             :I (with [f (open (+ resources "/flake.lock"))]
-                                                     f"nixpkgs=https://github.com/nixos/nixpkgs/archive/{(. (.load json f) ["nodes"] ["nixos-22-05"] ["original"] ["ref"])}.tar.gz")
+                                                     #[f[nixpkgs=https://github.com/nixos/nixpkgs/archive/{(. (.load json f) ["nodes"] ["nixos-22-05"] ["original"] ["ref"])}.tar.gz]f])
                                             :m/run True
                                             :show-trace True
                                             :install-bootloader install-bootloader

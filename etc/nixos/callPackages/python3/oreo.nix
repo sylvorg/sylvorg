@@ -21,18 +21,11 @@ buildPythonPackage rec {
   format = "pyproject";
   disabled = pythonOlder "3.9";
 
-#   src = fetchFromGitHub {
-#     owner = "syvlorg";
-#     repo = pname;
-#     rev = "6cb1453b0d13613ca1d19bd1b419b107b99a2f6d";
-#     sha256 = "0cizhp6p70sx8a388iyy005q0xm83db052f0rwcwmcaxmqvq74zb";
-#   };
-
   src = fetchFromGitHub {
     owner = "syvlorg";
     repo = "oreo";
     rev = "6cb1453b0d13613ca1d19bd1b419b107b99a2f6d";
-    sha256 = (fromJSON ''{
+    sha256 = (builtins.fromJSON ''{
     "url": "https://github.com/syvlorg/oreo",
     "rev": "6cb1453b0d13613ca1d19bd1b419b107b99a2f6d",
     "date": "2022-06-06T01:44:35+00:00",
