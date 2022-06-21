@@ -1,4 +1,5 @@
 { buildPythonPackage
+, fetchFromGitHub
 , pythonOlder
 , poetry-core
 , addict
