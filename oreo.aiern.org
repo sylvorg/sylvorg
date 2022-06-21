@@ -4047,7 +4047,8 @@ Adapted from [[https://www.reddit.com/r/NixOS/comments/ut8j10/nixos_zfs_podman_b
 #+begin_src nix
 {
     nix = rec {
-        registry = { inherit (args.inputs or flake.inputs) ${j.attrs.users.primary}; };
+        registry = { "${j.attrs.users.primary}" = (args.inputs or flake.inputs).j.attrs.users.primary; };
+        # registry = { inherit (args.inputs or flake.inputs) <<username>>; };
         package = pkgs.nixUnstable;
         gc = mkMerge [
             { automatic = true; }

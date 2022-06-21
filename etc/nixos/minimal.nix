@@ -418,7 +418,8 @@ in with lib; {
 }
 {
     nix = rec {
-        registry = { inherit (args.inputs or flake.inputs) ${j.attrs.users.primary}; };
+        registry = { "${j.attrs.users.primary}" = (args.inputs or flake.inputs).j.attrs.users.primary; };
+        # registry = { inherit (args.inputs or flake.inputs) shadowrylander; };
         package = pkgs.nixUnstable;
         gc = mkMerge [
             { automatic = true; }
