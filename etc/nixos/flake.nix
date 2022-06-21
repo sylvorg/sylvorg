@@ -140,6 +140,7 @@
                     apps = mapAttrs (n: v: make.nameless.app v) pkgs.overlayed;
                     app = apps.default;
                     defaultApp = app;
+                    packages = flattenTree { inherit (legacyPackages) settings; };
                     package = packages.settings;
                     defaultPackage = package;
                 };

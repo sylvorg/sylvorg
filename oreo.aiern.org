@@ -2622,6 +2622,7 @@ in mapAttrsToList (
                     apps = mapAttrs (n: v: make.nameless.app v) pkgs.overlayed;
                     app = apps.default;
                     defaultApp = app;
+                    packages = flattenTree { inherit (legacyPackages) settings; };
                     package = packages.settings;
                     defaultPackage = package;
                 };
@@ -3012,9 +3013,9 @@ Adapted from [[https://github.com/pukkamustard/nixpkgs/blob/guix/nixos/modules/s
                           "To users who wipe their root directories: persist your `config.services.tailscale.authenticationConfirmationFile'!")
                 (optional (cfg.exitNode.advertise && cfg.acceptDNS)
                           "Advertising this device as an exit node and accepting the preconfigured DNS servers on the tailscale admin page at the same time may result in this device attempting to use itself as a DNS server.")
-                
+
                 # TODO
-                (optional (cfg.routes.accept && (cfg.routes.advertise != null))
+                (optional (((isBool cfg.routes.accept) && cfg.routes.accept) && (cfg.routes.advertise != null))
                           "Advertising this device as a subnet router and accepting the preconfigured subnet routes on the tailscale admin page at the same time may result in this device #TODO")
 
             ];
@@ -3989,7 +3990,7 @@ Adapted from [[https://www.reddit.com/r/NixOS/comments/ut8j10/nixos_zfs_podman_b
 
 ***** Home-Manager
 
-#+begin_src nix
+#+begin_src nix :noweb-ref no
 {
     home-manager = {
         useGlobalPkgs = true;
