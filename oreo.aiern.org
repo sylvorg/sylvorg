@@ -1202,7 +1202,7 @@ Adapted from [[https://nixos.wiki/wiki/NixOS_on_ARM/Raspberry_Pi_3][here]]:
     imports =  [
         ../minimal.nix
         ../profiles/server.nix
-        (import ..).inputs.hardware.raspberry-pi-4
+        (import ../.).inputs.hardware.raspberry-pi-4
     ];
     boot.kernelPackages = lib.mkForce pkgs.linuxPackages_rpi4;
 }
@@ -2641,11 +2641,11 @@ in mapAttrsToList (
                     ];
                 };
 
-                nixosConfiguration = system: { packages.nixosConfigurations = genAttrs (dirCon.dirs ./hosts) (name: make.named.config name system); };
+                nixosConfiguration = system: { packages.nixosConfigurations = genAttrs (j.dirCon.dirs ./hosts) (name: make.named.config name system); };
 
                 # nixosConfiguration = system: { packages.nixosConfigurations = listToAttrs (map
                 #     (name: nameValuePair name (make.named.config name system))
-                #     (dirCon.dirs ./hosts)
+                #     (j.dirCon.dirs ./hosts)
                 # ); };
             };
             both = system: (make.named.nixosConfiguration system) // (make.nameless.outputs system);
@@ -3219,8 +3219,6 @@ in
 
 {
 
-  imports = [ "${(import ..).inputs.nixpkgs}/nixos/modules/system/build.nix" ];
-
   ###### interface
 
   options = {
@@ -3522,7 +3520,8 @@ with builtins; args@{ config, ... }: let
     system = args.system or currentSystem;
     host = args.host or config.networking.hostName;
     inheritanceSet = if (args ? inputs) then args else (flake.make.named.specialArgs host system);
-    inherit (inheritanceSet) lib pkgs;
+    inherit (inheritanceSet) lib;
+    pkgs = inheritanceSet.pkgs.overlayed;
 in with lib; {
     boot = {
         supportedFilesystems = j.attrs.fileSystems.supported;
@@ -3575,7 +3574,8 @@ with builtins; args@{ config, ... }: let
     host = args.host or config.networking.hostName;
     fromFlake = args ? inputs;
     inheritanceSet = if fromFlake then args else (flake.make.named.specialArgs host system);
-    inherit (inheritanceSet) lib pkgs;
+    inherit (inheritanceSet) lib;
+    pkgs = inheritanceSet.pkgs.overlayed;
 
     dir = "<<userrepo>>";
     dirExists = pathExists dir;
@@ -3678,24 +3678,25 @@ in with lib; {
             };
             "/persist" = let
                 redRepoFiles = flatten [
-                    (dirCon.others repo)
+                    (j.dirCon.others repo)
                 ];
                 redRepoDirectories = flatten [
-                    (dirCon.dirs repo)
+                    (j.dirCon.dirs repo)
                 ];
             in {
                 users = mapAttrs' (designation: user: let
                     home = j.attrs.allHomes.${designation};
+                    pHome = "/persist/${home}";
                     userDirSet = {
                         inherit user;
                         group = user;
                     };
                     userFileSet.parentDirectory = userDirSet;
                     predRepoFiles = flatten [
-                        (dirCon.others pHome)
+                        (j.dirCon.others pHome)
                     ];
                     predRepoDirectories = flatten [
-                        (dirCon.dirs pHome)
+                        (j.dirCon.dirs pHome)
                     ];
                 in nameValuePair user {
                     inherit home;

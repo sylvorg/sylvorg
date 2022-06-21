@@ -159,11 +159,11 @@
                     ];
                 };
 
-                nixosConfiguration = system: { packages.nixosConfigurations = genAttrs (dirCon.dirs ./hosts) (name: make.named.config name system); };
+                nixosConfiguration = system: { packages.nixosConfigurations = genAttrs (j.dirCon.dirs ./hosts) (name: make.named.config name system); };
 
                 # nixosConfiguration = system: { packages.nixosConfigurations = listToAttrs (map
                 #     (name: nameValuePair name (make.named.config name system))
-                #     (dirCon.dirs ./hosts)
+                #     (j.dirCon.dirs ./hosts)
                 # ); };
             };
             both = system: (make.named.nixosConfiguration system) // (make.nameless.outputs system);

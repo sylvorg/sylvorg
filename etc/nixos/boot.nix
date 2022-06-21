@@ -3,7 +3,8 @@ with builtins; args@{ config, ... }: let
     system = args.system or currentSystem;
     host = args.host or config.networking.hostName;
     inheritanceSet = if (args ? inputs) then args else (flake.make.named.specialArgs host system);
-    inherit (inheritanceSet) lib pkgs;
+    inherit (inheritanceSet) lib;
+    pkgs = inheritanceSet.pkgs.overlayed;
 in with lib; {
     boot = {
         supportedFilesystems = j.attrs.fileSystems.supported;

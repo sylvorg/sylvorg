@@ -4,7 +4,8 @@ with builtins; args@{ config, ... }: let
     host = args.host or config.networking.hostName;
     fromFlake = args ? inputs;
     inheritanceSet = if fromFlake then args else (flake.make.named.specialArgs host system);
-    inherit (inheritanceSet) lib pkgs;
+    inherit (inheritanceSet) lib;
+    pkgs = inheritanceSet.pkgs.overlayed;
 
     dir = "/home/shadowrylander/aiern";
     dirExists = pathExists dir;
@@ -102,24 +103,25 @@ in with lib; {
             };
             "/persist" = let
                 redRepoFiles = flatten [
-                    (dirCon.others repo)
+                    (j.dirCon.others repo)
                 ];
                 redRepoDirectories = flatten [
-                    (dirCon.dirs repo)
+                    (j.dirCon.dirs repo)
                 ];
             in {
                 users = mapAttrs' (designation: user: let
                     home = j.attrs.allHomes.${designation};
+                    pHome = "/persist/${home}";
                     userDirSet = {
                         inherit user;
                         group = user;
                     };
                     userFileSet.parentDirectory = userDirSet;
                     predRepoFiles = flatten [
-                        (dirCon.others pHome)
+                        (j.dirCon.others pHome)
                     ];
                     predRepoDirectories = flatten [
-                        (dirCon.dirs pHome)
+                        (j.dirCon.dirs pHome)
                     ];
                 in nameValuePair user {
                     inherit home;

@@ -66,8 +66,6 @@ in
 
 {
 
-  imports = [ "${(import ..).inputs.nixpkgs}/nixos/modules/system/build.nix" ];
-
   ###### interface
 
   options = {
