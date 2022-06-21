@@ -1636,17 +1636,6 @@ in with lib; extension.extend (final: prev: extension.foldToSet (attrValues prev
 #+end_src
 
 *** callPackages
-
-#+name: 56570a1c-ade7-4b60-8c2d-3179f062cf32
-#+begin_src emacs-lisp :var owner="" :var repo="" :var rev=""
-(format "src = fetchFromGitHub {
-  owner = \"%s\";
-  repo = \"%s\";
-  rev = \"%s\";
-  sha256 = (builtins.fromJSON ''%s'').sha256;
-};" owner repo rev (shell-command-to-string (format "nix-prefetch-git --fetch-submodules --quiet https://github.com/%s/%s %s" owner repo rev)))
-#+end_src
-
 **** caddy.nix
 
 Adapted from [[https://github.com/NixOS/nixpkgs/issues/14671#issuecomment-1016376290][here]]; allows me to build ~caddy~ with plugins:
@@ -1984,7 +1973,12 @@ buildPythonPackage rec {
   format = "pyproject";
   disabled = pythonOlder "3.9";
 
-  <<56570a1c-ade7-4b60-8c2d-3179f062cf32(owner="syvlorg", repo="oreo", rev="6cb1453b0d13613ca1d19bd1b419b107b99a2f6d")>>
+  src = fetchFromGitHub {
+    owner = "syvlorg";
+    repo = "oreo";
+    rev = "6cb1453b0d13613ca1d19bd1b419b107b99a2f6d";
+    sha256 = "sha256-65ODN65dscoZz8CJAlYbqHaACwDeR4SGQl2Dc82FPzI=";
+  };
 
   buildInputs = [ poetry-core ];
   nativeBuildInputs = buildInputs;
