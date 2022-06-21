@@ -2,8 +2,10 @@
     pname = "settings";
     version = "1.0.0.0";
 
-    src = fetchTarball {
-        url = "https://github.com/sylvorg/${pname}/archive/3ce398e9eb5bd054526366d0965119c83265efe2.tar.gz";
+    src = fetchFromGitHub {
+        owner = "sylvorg";
+        repo = pname;
+        rev = "7b3fc6e974a5c2927b2282b9cb9842f498d5a9ce";
     	sha256 = "0cq7kfycd66137a6cjgfq0jkxp13jx01v03rrdjcci9d6gz1ysmh";
     };
 

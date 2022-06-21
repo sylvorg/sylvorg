@@ -23,8 +23,10 @@ in buildGoModule rec {
     runVend = true;
 	subPackages = [ "cmd/caddy" ];
 
-	src = fetchTarball {
-		url = "https://github.com/caddyserver/caddy/archive/v${version}.tar.gz";
+	src = fetchFromGitHub {
+		owner = "caddyserver";
+        repo = pname;
+        rev = "v${version}";
 		sha256 = "1nlphjg5wh5drpwkm4cczrkxdzbv72ll7hp5x7z6ww8pzz3q10b3";
 	};
 

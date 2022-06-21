@@ -268,14 +268,17 @@
                                          "/mnt/etc/nixos/hardware-configuration.nix"))
                                  (raise (NameError no-host-error-message))))
                          (if (or install all)
-                             (nixos-install #* ctx.args
-                                            :I (with [f (open (+ resources "/flake.lock"))]
-                                                     #[f[nixpkgs=https://github.com/nixos/nixpkgs/archive/{(. (.load json f) ["nodes"] ["nixos-22-05"] ["original"] ["ref"])}.tar.gz]f])
-                                            :m/run True
-                                            :show-trace True
-                                            :install-bootloader install-bootloader
-                                            :option "tarball-ttl 0"
-                             )))))
+                             (let [ options [
+                                        "tarball-ttl 0"
+                                        "build-fallback true"
+                                  ] ]
+                                  (nixos-install #* ctx.args
+                                             :I (with [f (open (+ resources "/flake.lock"))]
+                                                      #[f[nixpkgs=https://github.com/nixos/nixpkgs/archive/{(. (.load json f) ["nodes"] ["nixos-22-05"] ["original"] ["ref"])}.tar.gz]f])
+                                             :m/run True
+                                             :show-trace True
+                                             :install-bootloader install-bootloader
+                                             :option { "repeat-with-values" options }))))))
              (raise (NameError no-host-error-message)))))
 #@((.command strapper :no-args-is-help True)
    (.option click "-B" "--boot-device" :type (, str int))

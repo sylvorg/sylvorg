@@ -11,7 +11,7 @@ with builtins; args@{ config, ... }: let
     dirExists = pathExists dir;
     repo = if dirExists then (fetchGit { url = "file://${dir}"; ref = "main"; }) else flake.inputs.${lib.j.attrs.users.primary};
 
-    nixos = "${(args.inputs or flake.inputs).nixpkgs}/nixos";
+    nixos = "${(args.nixpkgs or inheritanceSet.nixpkgs).overlayed}/nixos";
     nixos-configuration = configuration: import nixos { configuration = import configuration (lib.recursiveUpdate args inheritanceSet); inherit system; };
     nixos-configurations = {
         server = nixos-configuration ./profiles/server.nix;
@@ -377,6 +377,7 @@ in with lib; {
         useGlobalPkgs = true;
         users = mapAttrs' (designation: user: nameValuePair user {
             home = {
+                stateVersion = head (splitString "p" (args.nixpkgs or inheritanceSet.nixpkgs).overlayed.lib.version);
                 activation.setup-yubikey-sudo = lib.hm.dag.entryAfter [ "writeBoundary" ] "ykpamcfg -2 -v";
                 homeDirectory = j.attrs.allHomes.${designation};
             };

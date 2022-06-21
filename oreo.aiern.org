@@ -5,6 +5,7 @@ which was written by [[https://emacs.stackexchange.com/users/2710/andrew-swann][
 
 * shell.nix
 
+#+name: 639828b5-661b-4ec3-91e3-b791753aa4df
 #+begin_src nix :tangle (meq/tangle-path)
 with builtins; let
     flake = import ./etc/nixos;
@@ -398,12 +399,7 @@ This can't use a default value, as that would trigger a rebuild all the time.
                                          "/mnt/etc/nixos/hardware-configuration.nix"))
                                  (raise (NameError no-host-error-message))))
                          (if (or install all)
-                             (nixos-install #* ctx.args
-                                            :I (with [f (open (+ resources "/flake.lock"))]
-                                                     #[f[nixpkgs=https://github.com/nixos/nixpkgs/archive/{(. (.load json f) ["nodes"] ["<<channel>>"] ["original"] ["ref"])}.tar.gz]f])
-                                            :m/run True
-                                            :show-trace True
-                                            :install-bootloader install-bootloader
+                             (let [ options [
 #+end_src
 
 From [[https://github.com/NixOS/nix/issues/2293#issuecomment-405339738][here]], and documented [[https://nixos.org/manual/nix/stable/expressions/builtins.html#:~:text=The%20fetched%20tarball%20is%20cached%20for%20a%20certain%20amount%20of%20time%20(1%20hour%20by%20default)%20in%20~/.cache/nix/tarballs/.%20You%20can%20change%20the%20cache%20timeout%20either%20on%20the%20command%20line%20with%20%2D%2Dtarball%2Dttl%20number%2Dof%2Dseconds%20or%20in%20the%20Nix%20configuration%20file%20by%20adding%20the%20line%20tarball%2Dttl%20%3D%20number%2Dof%2Dseconds.][here]]:
@@ -415,11 +411,24 @@ or in the Nix configuration file by adding the line tarball-ttl = number-of-seco
 #+end_quote
 
 #+begin_src hy
-                                            :option "tarball-ttl 0"
+                                        "tarball-ttl 0"
+#+end_src
+
+Adapted from [[https://github.com/NixOS/nix/issues/807#issuecomment-209895935][here]]:
+
+#+begin_src hy
+                                        "build-fallback true"
 #+end_src
 
 #+begin_src hy
-                             )))))
+                                  ] ]
+                                  (nixos-install #* ctx.args
+                                             :I (with [f (open (+ resources "/flake.lock"))]
+                                                      #[f[nixpkgs=https://github.com/nixos/nixpkgs/archive/{(. (.load json f) ["nodes"] ["<<channel>>"] ["original"] ["ref"])}.tar.gz]f])
+                                             :m/run True
+                                             :show-trace True
+                                             :install-bootloader install-bootloader
+                                             :option { "repeat-with-values" options }))))))
              (raise (NameError no-host-error-message)))))
 #+end_src
 
@@ -1665,8 +1674,10 @@ in buildGoModule rec {
     runVend = true;
 	subPackages = [ "cmd/caddy" ];
 
-	src = fetchTarball {
-		url = "https://github.com/caddyserver/caddy/archive/v${version}.tar.gz";
+	src = fetchFromGitHub {
+		owner = "caddyserver";
+        repo = pname;
+        rev = "v${version}";
 		sha256 = "1nlphjg5wh5drpwkm4cczrkxdzbv72ll7hp5x7z6ww8pzz3q10b3";
 	};
 
@@ -1776,8 +1787,10 @@ Adapted from [[https://github.com/pukkamustard/nixpkgs/blob/guix/pkgs/developmen
     pname = "mdsh";
     version = "1.0.0.0";
 
-    src = fetchTarball {
-        url = "https://github.com/bashup/${pname}/archive/7e7af618a341eebd50e7825b062bc192079ad5fc.tar.gz";
+    src = fetchFromGitHub {
+        owner = "bashup";
+        repo = pname;
+        rev = "7e7af618a341eebd50e7825b062bc192079ad5fc";
         sha256 = "1wg5iy1va2fl843rish2q1kif818cz8mnhwmg88ir5p364fc2kcp";
     };
 
@@ -1808,8 +1821,10 @@ Python.pkgs.buildPythonApplication rec {
   version = "1.0.0";
   format = "pyproject";
 
-  src = fetchTarball {
-    url = "https://github.com/abersheeran/${pname}/archive/6d3345f488fda4d0f6eed1bd3438ea6207e55e3a.tar.gz";
+  src = fetchFromGitHub {
+    owner = "abersheeran";
+    repo = pname;
+    rev = "6d3345f488fda4d0f6eed1bd3438ea6207e55e3a";
     sha256 = "07z776ikj37whhx7pw1f3pwp25w04aw22vwipjjmvi8c642qxni4";
   };
 
@@ -1843,8 +1858,10 @@ Python.pkgs.buildPythonApplication rec {
     pname = "settings";
     version = "1.0.0.0";
 
-    src = fetchTarball {
-        url = "https://github.com/sylvorg/${pname}/archive/3ce398e9eb5bd054526366d0965119c83265efe2.tar.gz";
+    src = fetchFromGitHub {
+        owner = "sylvorg";
+        repo = pname;
+        rev = "7b3fc6e974a5c2927b2282b9cb9842f498d5a9ce";
     	sha256 = "0cq7kfycd66137a6cjgfq0jkxp13jx01v03rrdjcci9d6gz1ysmh";
     };
 
@@ -1872,8 +1889,10 @@ Python.pkgs.buildPythonApplication rec {
   pname = "tailapi";
   version = "1.0.0.0";
 
-  src = fetchTarball {
-    url = "https://github.com/syvlorg/${pname}/archive/ada101b9c2919cfbe365c7d5fe71710d95425ca3.tar.gz";
+  src = fetchFromGitHub {
+    owner = "syvlorg";
+    repo = pname;
+    rev = "ada101b9c2919cfbe365c7d5fe71710d95425ca3";
     sha256 = "0bywlkbwxsnf11i1kv36ls2yax0pp30qmgcyfq3gcmzzhcgk2q3k";
   };
 
@@ -1915,8 +1934,10 @@ buildPythonPackage rec {
   version = "2021.10.1";
   format = "pyproject";
 
-  src = fetchTarball {
-    url = "https://github.com/cjrh/${pname}/archive/a36ea378136bc7dfdc11f3f950186f6ed8bee8c5.tar.gz";
+  src = fetchFromGitHub {
+    owner = "cjrh";
+    repo = pname;
+    repo = "a36ea378136bc7dfdc11f3f950186f6ed8bee8c5";
     sha256 = "1dds9dwf5bqxi84s1fzcdykiqgcc1iq3rh6p76wjz6h7cb451h08";
   };
 
@@ -1960,8 +1981,10 @@ buildPythonPackage rec {
   format = "pyproject";
   disabled = pythonOlder "3.9";
 
-  src = fetchTarball {
-    url = "https://github.com/syvlorg/${pname}/archive/6cb1453b0d13613ca1d19bd1b419b107b99a2f6d.tar.gz";
+  src = fetchFromGitHub {
+    owner = "syvlorg";
+    repo = pname;
+    rev = "6cb1453b0d13613ca1d19bd1b419b107b99a2f6d";
     sha256 = "0cizhp6p70sx8a388iyy005q0xm83db052f0rwcwmcaxmqvq74zb";
   };
 
@@ -2012,8 +2035,10 @@ buildPythonPackage rec {
   format = "pyproject";
   disabled = pythonOlder "3.9";
 
-  src = fetchTarball {
-    url = "https://github.com/syvlorg/${pname}/archive/9fadd8a2ec2f2e7ea9d2b0e8b9e378c34dfc21e8.tar.gz";
+  src = fetchFromGitHub {
+    owner = "syvlorg";
+    repo = pname;
+    rev = "9fadd8a2ec2f2e7ea9d2b0e8b9e378c34dfc21e8";
     sha256 = "0xlf3nw2kwyb1899rsbshixpb054l3gpw6xc50ccyjvcqcv28v1z";
   };
 
@@ -2049,8 +2074,10 @@ buildPythonPackage rec {
   pname = "backtrace";
   version = "0.2.1";
 
-  src = fetchTarball {
-    url = "https://github.com/nir0s/${pname}/archive/a1f75c956f669a6175088693802d5392e6bd7e51.tar.gz";
+  src = fetchFromGitHub {
+    owner = "nir0s";
+    repo = pname;
+    rev = "a1f75c956f669a6175088693802d5392e6bd7e51";
     sha256 = "1i3xj04zxz9vi57gbkmnnyh9cypf3bm966ic685s162p1xhnz2qp";
   };
 
@@ -3571,7 +3598,7 @@ with builtins; args@{ config, ... }: let
     dirExists = pathExists dir;
     repo = if dirExists then (fetchGit { url = "file://${dir}"; ref = "main"; }) else flake.inputs.${lib.j.attrs.users.primary};
 
-    nixos = "${(args.inputs or flake.inputs).nixpkgs}/nixos";
+    nixos = "${(args.nixpkgs or inheritanceSet.nixpkgs).overlayed}/nixos";
     nixos-configuration = configuration: import nixos { configuration = import configuration (lib.recursiveUpdate args inheritanceSet); inherit system; };
     nixos-configurations = {
         server = nixos-configuration ./profiles/server.nix;
@@ -3985,6 +4012,7 @@ Adapted from [[https://www.reddit.com/r/NixOS/comments/ut8j10/nixos_zfs_podman_b
         useGlobalPkgs = true;
         users = mapAttrs' (designation: user: nameValuePair user {
             home = {
+                stateVersion = head (splitString "p" (args.nixpkgs or inheritanceSet.nixpkgs).overlayed.lib.version);
                 activation.setup-yubikey-sudo = lib.hm.dag.entryAfter [ "writeBoundary" ] "ykpamcfg -2 -v";
                 homeDirectory = j.attrs.allHomes.${designation};
             };

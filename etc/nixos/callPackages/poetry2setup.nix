@@ -9,8 +9,10 @@ Python.pkgs.buildPythonApplication rec {
   version = "1.0.0";
   format = "pyproject";
 
-  src = fetchTarball {
-    url = "https://github.com/abersheeran/${pname}/archive/6d3345f488fda4d0f6eed1bd3438ea6207e55e3a.tar.gz";
+  src = fetchFromGitHub {
+    owner = "abersheeran";
+    repo = pname;
+    rev = "6d3345f488fda4d0f6eed1bd3438ea6207e55e3a";
     sha256 = "07z776ikj37whhx7pw1f3pwp25w04aw22vwipjjmvi8c642qxni4";
   };
 

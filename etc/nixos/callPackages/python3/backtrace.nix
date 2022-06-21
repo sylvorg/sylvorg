@@ -9,8 +9,10 @@ buildPythonPackage rec {
   pname = "backtrace";
   version = "0.2.1";
 
-  src = fetchTarball {
-    url = "https://github.com/nir0s/${pname}/archive/a1f75c956f669a6175088693802d5392e6bd7e51.tar.gz";
+  src = fetchFromGitHub {
+    owner = "nir0s";
+    repo = pname;
+    rev = "a1f75c956f669a6175088693802d5392e6bd7e51";
     sha256 = "1i3xj04zxz9vi57gbkmnnyh9cypf3bm966ic685s162p1xhnz2qp";
   };
 

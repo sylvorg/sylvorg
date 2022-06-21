@@ -2,8 +2,10 @@
     pname = "mdsh";
     version = "1.0.0.0";
 
-    src = fetchTarball {
-        url = "https://github.com/bashup/${pname}/archive/7e7af618a341eebd50e7825b062bc192079ad5fc.tar.gz";
+    src = fetchFromGitHub {
+        owner = "bashup";
+        repo = pname;
+        rev = "7e7af618a341eebd50e7825b062bc192079ad5fc";
         sha256 = "1wg5iy1va2fl843rish2q1kif818cz8mnhwmg88ir5p364fc2kcp";
     };
 
