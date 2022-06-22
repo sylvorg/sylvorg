@@ -331,6 +331,7 @@ in with lib; {
             (pass.withExtensions (ext: with ext; [pass-tomb pass-genphrase]))
             (Python.withPackages (ppkgs: with ppkgs; [ bakery nixpkgs ]))
             assh
+            cached-nix-shell
             cachix
             direnv
             exa

@@ -7,7 +7,7 @@
     ];
     networking = {
         hostName = baseNameOf (toString ./.);
-        hostId = "3ade8c69";
+        hostId = "32f729eb";
     };
     swapDevices = [ { device = "/dev/mmcblk2p2"; } ];
 }
