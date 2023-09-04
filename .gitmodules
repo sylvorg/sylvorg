@@ -1,72 +1,12 @@
-[submodule "resources/bashCompletions"]
-    path = resources/bashCompletions
-    url = https://github.com/scop/bash-completion.git
-[submodule "resources/xeroFigletFonts"]
-    path = resources/xeroFigletFonts
-    url = https://github.com/xero/figlet-fonts.git
-[submodule "resources/grml"]
-    path = resources/grml
-    url = https://github.com/grml/grml-etc-core.git
-[submodule "resources/kittyThemes"]
-    path = resources/kittyThemes
-    url = https://github.com/dexpota/kitty-themes.git
-[submodule "resources/aleclearmind"]
-    path = resources/aleclearmind
-    url = https://github.com/aleclearmind/nested-tmux.git
-[submodule "resources/oh-my-tmux"]
-    path = resources/oh-my-tmux
-    url = https://github.com/gpakosz/.tmux.git
-[submodule "resources/powerline"]
-    path = resources/powerline
-    url = https://github.com/powerline/powerline.git
-[submodule "resources/tpm"]
-    path = resources/tpm
-    url = https://github.com/tmux-plugins/tpm.git
-[submodule ".vim"]
-    path = .vim
-    url = https://github.com/SpaceVim/SpaceVim.git
-[submodule ".config/neovim"]
-    path = .config/neovim
-    url = https://github.com/SpaceVim/SpaceVim.git
-[submodule "resources/nix-direnv"]
-    path = resources/nix-direnv
-    url = https://github.com/nix-community/nix-direnv.git
 [submodule "git-subtree"]
     path = git-subtree
     url = https://github.com/shadowrylander/git-subtree.git
-[submodule "resources/bass"]
-    path = resources/bass
-    url = https://github.com/edc/bass.git
-[submodule "resources/nix-env.fish"]
-    path = resources/nix-env.fish
-    url = https://github.com/lilyball/nix-env.fish.git
 [submodule "sylveon"]
     path = sylveon
     url = https://github.com/shadowrylander/sylveon.git
-[submodule "sylvorg.github.io"]
-    path = sylvorg.github.io
-    url = https://github.com/sylvorg/sylvorg.github.io.git
-[submodule "syvlorg.github.io"]
-    path = syvlorg.github.io
-    url = https://github.com/syvlorg/syvlorg.github.io.git
-[submodule "resources/rolling-rhino"]
-    path = resources/rolling-rhino
-    url = https://github.com/wimpysworld/rolling-rhino.git
-[submodule "settings"]
-	path = settings
-	url = https://github.com/sylvorg/settings.git
-[submodule "resources/zsh-syntax-highlighting"]
-	path = resources/zsh-syntax-highlighting
-	url = https://github.com/zsh-users/zsh-syntax-highlighting.git
-[submodule "resources/zsh-history-substring-search"]
-	path = resources/zsh-history-substring-search
-	url = https://github.com/zsh-users/zsh-history-substring-search.git
-[submodule "resources/zsh-autosuggestions"]
-	path = resources/zsh-autosuggestions
-	url = https://github.com/zsh-users/zsh-autosuggestions.git
-[submodule "resources/zsh-autocomplete"]
-	path = resources/zsh-autocomplete
-	url = https://github.com/marlonrichert/zsh-autocomplete.git
+[submodule "bundle"]
+	path = bundle
+	url = https://github.com/sylvorg/bundle.git
 [submodule ".password-store"]
 	path = .password-store
 	url = https://github.com/sylvorg/.password-store

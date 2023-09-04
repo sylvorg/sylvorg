@@ -275,8 +275,6 @@
 black.aiern.org filter=git-crypt diff=git-crypt
 
 etc/nixos/secrets/**/* filter=git-crypt diff=git-crypt
-etc/caddy/**/* filter=git-crypt diff=git-crypt
-etc/tailscale/**/* filter=git-crypt diff=git-crypt
 
 .termux/font.ttf filter=git-crypt diff=git-crypt
 
@@ -293,3 +291,5 @@ etc/tailscale/**/* filter=git-crypt diff=git-crypt
 .config/rclone/rclone.conf filter=git-crypt diff=git-crypt
 
 **/.password.tomb.key filter=git-crypt diff=git-crypt
+etc/caddy/**/* filter=git-crypt diff=git-crypt
+etc/tailscale/**/* filter=git-crypt diff=git-crypt

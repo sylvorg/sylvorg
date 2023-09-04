@@ -1,5 +1,5 @@
 [core]
-    excludesfile = ~/.globalignore
+    excludesfile = ~/.gitignore
     attributesfile = ~/.gitattributes
     fileMode = false
     hookPath = ~/.config/git/hooks
@@ -15,8 +15,8 @@
     commit-user = user cnm
     push-user = user push
     super-user = !git commit-user && git push-user
-    settings = !git -C "$(git rev-parse --show-toplevel)/settings"
-    update-settings = !git settings pull origin main && git add "$(git rev-parse --show-toplevel)/settings" && git commit -m "Updated settings repo"
+    bundle = !git -C "$(git rev-parse --show-toplevel)/bundle"
+    bundle-up = !git bundle pull origin main && git add "$(git rev-parse --show-toplevel)/bundle" && git commit -m "Updated bundle repo"
     usp = !git us && git push
     sub = submodule update --init --recursive --remote
     submerge = sub --merge

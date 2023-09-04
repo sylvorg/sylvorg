@@ -1,6 +1,3 @@
-#+setupfile: ./settings/README.org
-#+include: ./settings/README.org
-
 * makefile
 
 #+begin_src makefile :tangle (meq/tangle-path)

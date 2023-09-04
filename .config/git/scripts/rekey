@@ -1,10 +1,5 @@
 #! /usr/bin/env nix-shell
-#! nix-shell git-shell.nix
-#! nix-shell -i sh
-set -eo pipefail
-root=$(git rev-parse --show-toplevel)
-
-#! nix-shell git-shell.nix
+#! nix-shell -E "(import /etc/nixos).devShells.${builtins.currentSystem}.git-shell"
 #! nix-shell -i sh
 set -eo pipefail
 root=$(git rev-parse --show-toplevel)

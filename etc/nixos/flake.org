@@ -1,0 +1,1502 @@
+#+property: header-args:nix+ :tangle yes
+
+#+begin_src nix
+{
+    description = "<<username>>'s Flake!";
+    inputs = rec {
+        flake-utils.url = github:numtide/flake-utils;
+        flake-compat = {
+            url = "github:edolstra/flake-compat";
+            flake = false;
+        };
+
+        bundle = {
+            url = <<input-path-exists(path="../../bundle", url="https://github/sylvorg/bundle", submodule='t)>>;
+            type = "git";
+            submodules = true;
+        };
+        valiant.follows = "bundle/valiant";
+        nixpkgs.follows = "bundle/nixpkgs";
+        sylveon.url = <<input-path-exists(path="../../sylveon", url="github:shadowrylander/sylveon")>>;
+
+        home-manager.url = github:nix-community/home-manager;
+        kitty-themes = {
+            url = github:dexpota/kitty-themes;
+            flake = false;
+        };
+
+        hardware.url = github:nixos/nixos-hardware;
+        impermanence.url = github:nix-community/impermanence;
+
+        home-manager-config = {
+            url = path:home-manager;
+            inputs.user.follows = "";
+        };
+    };
+    outputs = inputs@{ self, nixpkgs, flake-utils, ... }: with builtins; with inputs.bundle.lib; with flake-utils.lib; let
+#+end_src
+
+With help from [[Henrik Lissner / hlissner][https://github.com/hlissner/dotfiles]]:
+
+#+begin_src nix
+        lib = inputs.bundle.lib.extend (lfinal: lprev: with lfinal; {
+            bundle = iron.fold.merge [
+                bundle
+                (makeExtensible (lself: with lself; {
+                    # TODO: Is this necessary?
+                    mntConvert = dir: let mntDir = "/mnt/" + dir; in if (pathExists mntDir) then mntDir else dir;
+
+                    attrs = {
+                        config = {
+                            nix = let
+                                MG = size: let
+                                    mg = stringToCharacters size;
+                                in toString ((toInt (elemAt mg 0)) * (
+                                    if (elemAt mg 1 == "M") then 1 else 1024
+                                ) * 1024 * 1024);
+                            in ''
+                                <<generate-nix-conf()>>
+                                min-free = ${MG "250M"}
+                                max-free = ${MG "1G"}
+                            '';
+                            services = rec {
+                                mkBase = User: {
+                                    enable = true;
+                                    serviceConfig = rec {
+                                        Restart = "on-failure";
+                                        inherit User;
+                                        Group = User;
+                                        Environment = [ "PATH=/run/wrappers/bin:$PATH" ];
+                                    };
+                                    wantedBy = [ "multi-user.target" ];
+                                };
+                                base = mkBase users.primary;
+                                mkdir = path: "/run/current-system/sw/bin/mkdir -p ${path} &> /dev/null";
+                            };
+                        };
+
+                        users = fromJSON ''
+                            <<users>>
+                        '';
+                        usernames = attrValues users;
+                        designations = attrNames users;
+
+                        excludedUsers = { root = "root"; };
+                        excludedUsernames = attrValues excludedUsers;
+                        excludedDesignations = attrNames excludedUsers;
+
+                        allUsers = recursiveUpdate users excludedUsers;
+                        allUsernames = attrValues allUsers;
+                        allDesignations = attrNames allUsers;
+
+                        homes = fromJSON ''
+                            <<homes>>
+                        '';
+                        excludedHomes = { root = "/root"; };
+                        allHomes = recursiveUpdate homes excludedHomes;
+
+                        datasets = {
+                            backup = [
+                                "system/persist"
+                                "virt"
+                                "omniverse"
+                                users.primary
+                            ];
+                        };
+                        ssh.keys = rec {
+                            "id_rsa.bak" = "<<ssh-pubkey-id-rsa-bak>>";
+                            "id_ed25519.bak" = "<<ssh-pubkey-id-ed25519-bak>>";
+                            jeet_ray_ecdsa = "<<ssh-pubkey-jeet-ray-ecdsa>>";
+                            jeet_ray_ed25519 = "<<ssh-pubkey-jeet-ray-ed25519>>";
+                            jeet_ray_rsa = "<<ssh-pubkey-jeet-ray-rsa>>";
+                            shadowrylander_ecdsa = "<<ssh-pubkey-shadowrylander-ecdsa>>";
+                            shadowrylander_ed25519 = "<<ssh-pubkey-shadowrylander-ed25519>>";
+                            shadowrylander_rsa = "<<ssh-pubkey-shadowrylander-rsa>>";
+                            id_rsa = shadowrylander_rsa;
+                            id_ed25519 = jeet_ray_ed25519;
+                            id_ecdsa = jeet_ray_ecdsa;
+                        };
+                        fileSystems = {
+                            base = {
+                                fsType = "zfs";
+                                options = [ "defaults" "x-systemd.device-timeout=5" "nofail" ];
+                            };
+                            supported = [ "zfs" "xfs" "btrfs" "ext4" "fat" "vfat"
+
+                                # TODO
+                                # "bcachefs"
+
+                            ];
+                        };
+                        commands = {
+                            rebuild = "nixos-rebuild --show-trace";
+                            install = "nixos-install --show-trace";
+                        };
+                    };
+                }))
+            ];
+        });
+        hosts = {
+            bastiodon = { config, pkgs, host, ... }: {
+                imports = toList iron.devices.rpi3;
+                services.tailscale = {
+                    exitNode.advertise = true;
+                    acceptDNS = ! config.services.tailscale.exitNode.advertise;
+                };
+                networking.hostId = readFile (pkgs.runCommandLocal host {} "echo -n $(head -c4 /dev/urandom | od -A none -t x4) > $out");
+                variables.relay = true;
+            };
+            sandshrew = { config, lib, pkgs, host, ... }: {
+                imports =  toList inputs.hardware.microsoft-surface-common;
+                variables.encrypted = true;
+                networking = {
+                    hostId = readFile (pkgs.runCommandLocal host {} "echo -n $(head -c4 /dev/urandom | od -A none -t x4) > $out");
+                    networkmanager.extraConfig = ''
+                        [connection]
+                        wifi.powersave = 2
+
+                        [device]
+                        wifi.scan-rand-mac-address=false
+                    '';
+                };
+
+                # TODO
+                # services.surface-dtx-daemon.detach = mkForce ''
+                #     #!/usr/bin/env sh
+                #     for usb in $(ls /dev/disk/by-id).split("\n"):
+                #         if usb and usb[:4] == "usb-":
+                #             for mnt in $(mount).split("\n"):
+                #                 if mnt and usb in mnt:
+                #                     umount @(mnt.split()[2])
+                # '';
+
+            };
+            siluam = { config, lib, pkgs, host, ... }: {
+                imports = toList inputs.hardware.pine64-pinebook-pro;
+                networking.hostId = readFile (pkgs.runCommandLocal host {} "echo -n $(head -c4 /dev/urandom | od -A none -t x4) > $out");
+                swapDevices = [ { device = "/dev/mmcblk2p2"; } ];
+            };
+            murasame = { config, pkgs, host, ... }: {
+                networking.hostId = readFile (pkgs.runCommandLocal host {} "echo -n $(head -c4 /dev/urandom | od -A none -t x4) > $out");
+            };
+            argus = { config, pkgs, lib, host, ... }: {
+                imports = toList iron.devices.linode;
+                networking.hostId = readFile (pkgs.runCommandLocal host {} "echo -n $(head -c4 /dev/urandom | od -A none -t x4) > $out");
+                variables.relay = true;
+            };
+            yggdrasil = { config, pkgs, host, ... }: {
+                imports = toList iron.devices.rip4;
+                networking.hostId = readFile (pkgs.runCommandLocal host {} "echo -n $(head -c4 /dev/urandom | od -A none -t x4) > $out");
+                variables.zfs = false;
+            };
+            enterprise = { config, pkgs, host, ... }: {
+                imports = toList iron.devices.repi4;
+                networking.hostId = readFile (pkgs.runCommandLocal host {} "echo -n $(head -c4 /dev/urandom | od -A none -t x4) > $out");
+            };
+            # volturnus
+        };
+        nixosModules = rec {
+            baseModules = mapAttrNames (n: v: "base-" + n) (iron.fold.set [
+                iron.nixosModules
+                {
+                    inherit (home-manager.nixosModules) home-manager;
+                    inherit (impermanence.nixosModules) impermanence;
+                    cachix = import ./cachix.nix;
+                }
+                {
+                    options = args@{ config, options, pkgs, ... }: {
+                        options = {
+                            services = {
+                                tailscale = {
+                                    autoconnect = mkOption {
+                                        type = types.bool;
+                                        default = false;
+                                        description = "Automatically run `tailscale up' on boot.";
+                                    };
+                                    openFirewall = mkOption {
+                                        type = types.bool;
+                                        default = false;
+                                        description = "Whether to automatically open the specified port in the firewall.";
+                                    };
+                                    trustInterface = mkOption {
+                                        type = types.bool;
+                                        default = false;
+                                        description = "Whether to automatically trust the specified interface in the firewall.";
+                                    };
+                                    hostName = mkOption {
+                                        type = with types; nullOr nonEmptyStr;
+                                        default = null;
+                                        description = "The hostname for this device; defaults to <code>config.networking.hostName</code>.";
+                                    };
+                                    useUUID = mkOption {
+                                        type = types.bool;
+                                        default = false;
+                                        description = "Use a new UUID as the hostname on every boot; enables <code>config.services.tailscale.api.ephemeral</code> by default.";
+                                    };
+                                    deleteHostBeforeAuth = mkOption {
+                                        type = types.bool;
+                                        default = false;
+                                        description = ''
+                                            Delete the hostname from the tailnet before authentication, if it exists.
+                                            Does nothing if already authenticated.
+                                        '';
+                                    };
+                                    strictReversePathFiltering = mkOption {
+                                        type = types.bool;
+                                        default = true;
+                                        description = "Whether to enable strict reverse path filtering.";
+                                    };
+                                    authkey = mkOption {
+                                        type = types.nullOr types.nonEmptyStr;
+                                        default = null;
+                                        description = ''
+                                            Authentication key.
+
+                                            Warning: Consider using authfile instead if you do not
+                                            want to store the key in the world-readable Nix store.
+                                        '';
+                                    };
+                                    authfile = mkOption {
+                                        example = "/private/tailscale_auth_key";
+                                        type = with types; nullOr nonEmptyStr;
+                                        default = null;
+                                        description = "File with authentication key.";
+                                    };
+                                    api.key = mkOption {
+                                        type = types.nullOr types.nonEmptyStr;
+                                        default = null;
+                                        description = ''
+                                            API key.
+
+                                            Warning: Consider using api.file instead if you do not
+                                            want to store the key in the world-readable Nix store.
+                                        '';
+                                    };
+                                    api.file = mkOption {
+                                        example = "/private/tailscale_api_key";
+                                        type = with types; nullOr nonEmptyStr;
+                                        default = null;
+                                        description = "File with API key.";
+                                    };
+                                    api.tags = mkOption {
+                                        example = [ "relay" "server" ];
+                                        type = types.listOf types.nonEmptyStr;
+                                        default = [ ];
+                                        description = "Tags to be used when creating new auth keys.";
+                                    };
+                                    api.reusable = mkOption {
+                                        type = types.bool;
+                                        default = false;
+                                        description = "Create a reusable auth key.";
+                                    };
+                                    api.ephemeral = mkOption {
+                                        type = with types; nullOr bool;
+                                        default = null;
+                                        description = "Create an ephemeral auth key; is enabled by default by `config.services.tailscale.useUUID'.";
+                                    };
+                                    api.preauthorized = mkOption {
+                                        type = types.bool;
+                                        default = true;
+                                        description = "Create a pre-authorized auth key.";
+                                    };
+                                    state.text = mkOption {
+                                        type = types.nullOr types.lines;
+                                        default = null;
+                                        description = ''
+                                            The state of tailscale, written to /var/lib/tailscale/tailscaled.state
+
+                                            Warning: Consider using state.{file|dir} instead if you do not
+                                            want to store the state in the world-readable Nix store.
+                                        '';
+                                    };
+                                    state.file = mkOption {
+                                        example = "/private/tailscale/tailscaled.state";
+                                        type = with types; nullOr nonEmptyStr;
+                                        default = null;
+                                        description = "File with the state of tailscale.";
+                                    };
+                                    state.dir = mkOption {
+                                        example = "/private/tailscale";
+                                        type = with types; nullOr nonEmptyStr;
+                                        default = null;
+                                        description = "Directory with the state file (tailscaled.state) of tailscale.";
+                                    };
+                                    magicDNS.enable = mkEnableOption "MagicDNS";
+                                    magicDNS.searchDomains = mkOption {
+                                        type = types.listOf types.nonEmptyStr;
+                                        default = [ ];
+                                        description = "MagicDNS search domains.";
+                                    };
+                                    magicDNS.nameservers = mkOption {
+                                        type = types.listOf types.nonEmptyStr;
+                                        default = [ ];
+                                        description = "MagicDNS nameservers.";
+                                    };
+                                    acceptDNS = mkOption {
+                                        type = types.bool;
+                                        default = true;
+                                        description = "Whether this tailscale instance will use the preconfigured DNS servers on the tailscale admin page.";
+                                    };
+                                    routes.accept = mkOption {
+                                        type = with types; nullOr bool;
+                                        default = null;
+                                        description = "Use subnet routers; enabled by default if `config.services.tailscale.routes.advertise' is null.";
+                                    };
+                                    routes.advertise = mkOption {
+                                        type = with types; nullOr nonEmptyStr;
+                                        default = null;
+                                        description = "Start tailscale as a subnet router with the specified subnets.";
+                                    };
+                                    exitNode.advertise = mkOption {
+                                        type = types.bool;
+                                        default = false;
+                                        description = "Whether this tailscale instance will used as an exit node.";
+                                    };
+                                    exitNode.ip = mkOption {
+                                        type = with types; nullOr nonEmptyStr;
+                                        default = null;
+                                        description = "The exit node, as an ip address, to be used with this device.";
+                                    };
+                                    exitNode.hostName = mkOption {
+                                        type = with types; nullOr nonEmptyStr;
+                                        default = null;
+                                        description = "The exit node, as a hostname, to be used with this device; requires an api key provided via `config.services.tailscale.api.{key|file}'.";
+                                    };
+                                    exitNode.allowLANAccess = mkOption {
+                                        type = types.bool;
+                                        default = false;
+                                        description = "Allow direct access to your local network when traffic is routed via an exit node.";
+                                    };
+                                    extraConfig = mkOption {
+                                        type = types.attrs;
+                                        default = { };
+                                        description = "An attribute set of options and values; if an option is a single character, a single dash will be prepended, otherwise two.";
+                                    };
+                                };
+                            };
+                        };
+                        config = mkMerge [
+                            (let cfg = config.services.tailscale; in mkIf cfg.enable {
+                                assertions = flatten [
+                                    (optional ((count (state: state != null) (with cfg.state; [ text file dir ])) > 1)
+                                            "Sorry; only one of `config.services.tailscale.state.{text|file|dir}' may be set!")
+                                    (optional ((cfg.exitNode.ip != null) && (cfg.exitNode.hostName != null))
+                                            "Sorry; only one of `config.services.tailscale.exitNode.{ip|hostName}' may be set!")
+                                    (optional ((cfg.exitNode.hostName != null) && (cfg.api.key == null) && (cfg.api.file == null))
+                                            "Sorry; `config.services.tailscale.api.{key|file}' must be set when using `config.services.tailscale.exitNode.hostName'!")
+                                    (optional ((count (auth: auth != null) (with cfg; [ authkey authfile api.key api.file ])) > 1)
+                                            "Sorry; only one of `config.services.tailscale.{authkey|authfile|api.key|api.file}' may be set!")
+                                    (optional ((cfg.api.domain == null) && ((cfg.api.key != null) || (cfg.api.file != null)))
+                                            "Sorry; `config.services.tailscale.api.domain' must be set when using `config.services.tailscale.api.{key|file}'!")
+                                ];
+                                warnings = flatten [
+                                    (optional (cfg.exitNode.advertise && cfg.acceptDNS)
+                                            "Advertising this device as an exit node and accepting the preconfigured DNS servers on the tailscale admin page at the same time may result in this device attempting to use itself as a DNS server.")
+
+                                    # TODO: Why is this causing an infinite recursion error?
+                                    # (optional (((isBool cfg.routes.accept) && cfg.routes.accept) && (cfg.routes.advertise != null))
+                                    #           "Advertising this device as a subnet router and accepting the preconfigured subnet routes on the tailscale admin page at the same time may result in this device #TODO")
+
+                                ];
+                                services.tailscale = mkBefore {
+                                    api.ephemeral = if (cfg.api.ephemeral == null) then config.services.tailscale.useUUID else cfg.api.ephemeral;
+                                    hostName = if (cfg.hostName == null) then config.networking.hostName else cfg.hostName;
+                                    routes.accept = if (cfg.routes.accept == null) then (cfg.routes.advertise == null) else cfg.routes.accept;
+                                };
+                                environment.vars = let
+                                    nullText = cfg.state.text != null;
+                                    nullFile = cfg.state.file != null;
+                                    nullDir = cfg.state.dir != null;
+                                in optionalAttrs (nullText || nullFile || nullDir) {
+                                    "lib/tailscale/tailscaled.state" = mkIf (nullText || nullFile) {
+                                        ${if nullText then "text" else "source"} = if (nullText) then cfg.state.text else cfg.state.file;
+                                    };
+                                    "lib/tailscale" = mkIf nullDir { source = cfg.state.dir; };
+                                };
+                                networking = {
+                                    nameservers = optionals cfg.magicDNS.enable (flatten [ cfg.magicDNS.nameservers "100.100.100.100" ]);
+                                    search = optionals cfg.magicDNS.enable cfg.magicDNS.searchDomains;
+                                    firewall = {
+                                        ${if cfg.strictReversePathFiltering then null else "checkReversePath"} = "loose";
+                                        trustedInterfaces = optional cfg.trustInterface cfg.interfaceName;
+                                        allowedUDPPorts = optional cfg.openFirewall cfg.port;
+                                    };
+                                };
+                                systemd.services.tailscale-autoconnect = mkIf cfg.autoconnect {
+                                    description = "Automatic connection to Tailscale";
+
+                                    # make sure tailscale is running before trying to connect to tailscale
+                                    after = [ "network-pre.target" "tailscale.service" ];
+                                    wants = [ "network-pre.target" "tailscale.service" ];
+                                    wantedBy = [ "multi-user.target" ];
+
+                                    environment.TAILSCALE_APIKEY = if (cfg.api.key != null) then cfg.api.key else (readFile cfg.api.file);
+
+                                    # set this service as a oneshot job
+                                    serviceConfig = {
+                                        Type = "oneshot";
+                                        ExecStart = let
+                                            extraConfig = mapAttrsToList (opt: val: let
+                                                value = optionalString (! (isBool val)) " ${toString val}";
+                                            in (if ((stringLength opt) == 1) then "-" else "--") + opt + value) cfg.extraConfig;
+                                            connect = authenticating: ''
+                                                # otherwise connect to ${optionalString authenticating "and authenticate with "}tailscale
+                                                echo "Connecting to ${optionalString authenticating "and authenticating with "}Tailscale ..."
+                                                ${cfg.package}/bin/tailscale up --hostname ${if cfg.useUUID then "$(${pkgs.util-linux}/bin/uuidgen)" else cfg.hostName} \
+                                                ${optionalString cfg.acceptDNS "--accept-dns \\"}
+                                                ${optionalString cfg.routes.accept "--accept-routes \\"}
+                                                ${optionalString (cfg.routes.advertise != null) "--advertise-routes ${cfg.routes.advertise} \\"}
+                                                ${optionalString cfg.exitNode.advertise "--advertise-exit-node \\"}
+                                                ${optionalString (cfg.exitNode.ip != null) "--exit-node ${cfg.exitNode.ip} \\"}
+                                                ${optionalString (cfg.exitNode.hostName != null) ''--exit-node $(${pkgs.tailapi}/bin/tailapi \
+                                                                                                   --devices ${cfg.exitNode.hostName} \
+                                                                                                   ip -f4) \''}
+                                                ${optionalString (((cfg.exitNode.ip != null) || (cfg.exitNode.hostName != null)) && cfg.exitNode.allowLANAccess)
+                                                                "--exit-node-allow-lan-access \\"}
+
+                                                ${toString (mapAttrsToList (n: v: let
+                                                    opt = (if ((stringLength n) == 1) then "-" else "--") + n;
+                                                in "${opt} ${v}") extraConfig)} \
+
+                                                ${optionalString (authenticating && (cfg.authkey != null)) "--authkey ${cfg.authkey} \\"}
+                                                ${optionalString (authenticating && (cfg.authfile != null)) "--authkey ${readFile cfg.authfile} \\"}
+                                                ${optionalString authenticating ''--authkey $(${pkgs.tailapi}/bin/tailapi create \
+                                                ${optionalString cfg.api.reusable "--reusable \\"}
+                                                ${optionalString cfg.api.ephemeral "--ephemeral \\"}
+                                                ${optionalString cfg.api.reusable "--preauthorized \\"}
+                                                ${optionalString (cfg.api.tags != null)
+                                                                (toString cfg.api.tags)} \
+                                                --just-key)''}
+                                            '';
+                                        in ''
+                                            # wait for tailscaled to settle
+                                            sleep 2
+
+                                            # check if we are already connected to tailscale
+                                            echo "Waiting for tailscale.service start completion ..."
+                                            status="$(${cfg.package}/bin/tailscale status -json | ${pkgs.jq}/bin/jq -r .BackendState)"
+                                            if [ $status = "Running" ]; then # if so, then do nothing
+                                                echo "Already connected to Tailscale, exiting."
+                                                exit 0
+                                            fi
+
+                                            # Delete host from tailnet if:
+                                            # * `config.services.tailscale.deleteHostBeforeAuth' is enabled
+                                            # * `config.services.tailscale.api.{key|file}' is not null
+                                            # * tailscale is not authenticated
+                                            if [ $status = "NeedsLogin" ]; then
+                                                ${if cfg.deleteHostBeforeAuth then ''${pkgs.coreutils}/bin/cat <<EOF
+                                                                                    Because `config.services.tailscale.deleteHostBeforeAuth' has been enabled,
+                                                                                    any devices with hostname "${config.networking.hostName}" will be deleted before authentication.
+                                                                                    EOF''
+                                                                            else ''${pkgs.coreutils}/bin/cat <<EOF
+                                                                                    Because `config.services.tailscale.deleteHostBeforeAuth' has not been enabled,
+                                                                                    any devices with hostname "${config.networking.hostName}" will not be deleted before authentication.
+                                                                                    EOF''}
+                                                ${optionalString cfg.deleteHostBeforeAuth ''${pkgs.tailapi}/bin/tailapi --devices ${cfg.hostName} \
+                                                                                                                        delete \
+                                                                                                                        --do-not-prompt &> /dev/null && \
+                                                                                            echo Successfully deleted device of hostname \"${config.networking.hostName}\"!"''}
+                                            fi
+
+                                            if [ $status = "NeedsLogin" ]; then
+                                                ${connect true}
+                                            else
+                                                ${connect false}
+                                            fi
+
+                                            ${optionalString ((cfg.state.file != null) && (! (pathExists cfg.state.file))) "cp /var/lib/tailscale/tailscaled.state ${cfg.state.file}"}
+                                            ${optionalString ((cfg.state.dir != null) && ((! (pathExists cfg.state.dir)) || ((length (attrNames (readDir cfg.state.dir))) == 0)))
+                                                            "${pkgs.rsync}/bin/rsync -avvczz /var/lib/tailscale/ ${cfg.state.dir}/"}
+                                        '';
+                                    };
+                                };
+                            })
+                        ];
+                    };
+                }
+            ]);
+            miniModules = iron.fold.set [
+                baseModules
+                (iron.mapAttrNames (n: v: "mini-" + n) {
+                    power = args@{ config, ... }: {
+                        services.logind.lidSwitch = "hybrid-sleep";
+                        powerManagement = mkMerge [
+                            config.configs.hardware.powerManagement
+                            { enable = true; cpuFreqGovernor = mkForce "ondemand"; }
+                        ];
+                    };
+                    nixpkgs = { config, nixpkgs, ... }: { inherit nixpkgs; };
+                    boot = args@{ config, pkgs, ... }: {
+                        boot = {
+                            kernelPackages = mkDefault pkgs.linuxPackages_xanmod;
+                            # kernelPackages = mkDefault pkgs.linuxPackages_lqx;
+                            # kernelPackages = mkDefault pkgs.linuxPackages_zen;
+                            supportedFilesystems = iron.attrs.fileSystems.supported;
+                            initrd = {
+                                inherit (config.configs.hardware.boot.initrd) availableKernelModules kernelModules;
+                                network.ssh.enable = true;
+                                inherit (config.boot) supportedFilesystems;
+                                compressor = "${getBin pkgs.zstd}/bin/zstd";
+                            };
+                            inherit (config.configs.hardware.boot) kernelModules extraModulePackages;
+                            extraModprobeConfig = '' options kvm_intel_nested=1 '';
+                            loader = {
+                                generic-extlinux-compatible.enable = mkForce false;
+                                systemd-boot = {
+                                    configurationLimit = 25;
+                                    editor = mkForce false;
+                                    # enable = mkForce false;
+                                    enable = mkForce true;
+                                };
+                                grub = {
+                                    # enable = mkForce true;
+                                    enable = mkForce false;
+                                    efiSupport = true;
+                                    efiInstallAsRemovable = mkForce false;
+                                    # efiInstallAsRemovable = mkForce true;
+                                    # devices = [ "nodev" ];
+                                    # device = "nodev";
+                                    device = if config.boot.loader.grub.efiSupport then config.boot.loader.efi.efiSysMountPoint else "/boot";
+                                    version = 2;
+                                    useOSProber = true;
+
+                                    # TODO: Get more options
+                                    extraEntries = ''
+                                        menuentry "Reboot" { reboot }
+                                        menuentry "Poweroff" { halt }
+                                    '';
+                                };
+                                efi = {
+                                    canTouchEfiVariables = mkForce true;
+                                    # canTouchEfiVariables = mkForce false;
+                                    efiSysMountPoint = "/boot/efi";
+                                };
+                                timeout = 10;
+
+                                # Used for Bedrock Linux
+                                # Also causing EFI stuff not to be installed
+                                # initScript.enable = mkForce true;
+
+                            };
+                            kernelPatches = flatten [
+
+                                # TODO
+                                # (optionals (elem "bcachefs" config.boot.supportedFilesystems) (filter (set: hasInfix "bcachefs" set.name) pkgs.linuxKernel.kernels.linux_testing_bcachefs.kernelPatches))
+#+end_src
+
+# TODO: Apparently doesn't work with bcachefs
+
+#+begin_src nix :noweb-ref no
+                                {
+                                    name = "Enable ZSTD Compression";
+                                    patch = null;
+                                    extraConfig = ''
+                                        RD_ZSTD y
+                                        KERNEL_ZSTD y
+                                        KERNEL_XZ n
+                                    '';
+                                }
+#+end_src
+
+#+begin_src nix
+                            ];
+                        };
+                    };
+                    zfs = { config, pkgs, host, ... }: mkIf config.variables.zfs (let 
+                        datasets = import ./datasets.nix host;
+                    in {
+                        boot = {
+                            extraModulePackages = with config.boot.kernelPackages; [ zfsUnstable ];
+                            kernelModules = [ "zfs" ];
+                            kernelParams = [ "nohibernate" ];
+                            loader.grub.zfsSupport = true;
+                            initrd = {
+                                postDeviceCommands = mkAfter (concatMapStrings (d: "zfs rollback -r ${d}@blank\n") (filter (iron.has.prefix [
+                                    "${host}/system/home"
+                                    "${host}/system/root"
+                                    # "${host}/system/tmp"
+                                ]) (attrNames datasets)));
+                                kernelModules = [ "zfs" "r8169" ];
+                                availableKernelModules = config.boot.initrd.kernelModules;
+                            };
+                            zfs = {
+                                requestEncryptionCredentials = true;
+                                enableUnstable = true;
+                                devNodes = "/dev/";
+                            };
+                        };
+                        fileSystems = with lib; let
+                            forceMountpoint = dataset: mountpoint: mkForce (recursiveUpdate iron.attrs.fileSystems.base { device = dataset; ${
+                                iron.mif.null ((iron.has.infix [
+                                    iron.attrs.users.primary
+                                    "persist"
+                                    "home"
+                                ] dataset) || (elem dataset [ ])) "neededForBoot"
+                            } = true; });
+                            regularDatasets = filterAttrs (n: v: ! (isList v)) datasets;
+                            filteredDatasets = filterAttrs (n: isList) datasets;
+                            listedDatasets = listToAttrs (flatten (mapAttrsToList (dataset: map (nameValuePair dataset)) filteredDatasets));
+                        in mapAttrs' (dataset: mountpoint: nameValuePair mountpoint (forceMountpoint dataset mountpoint)) (recursiveUpdate regularDatasets listedDatasets);
+                        services = {
+                            sanoid = let
+                                sanoidBase = {
+                                    useTemplate = [ "base" ];
+                                    recursive = true;
+                                };
+                                disabled = { processChildrenOnly = true; };
+                            in {
+                                enable = true;
+                                templates."base" = {
+                                    autoprune = true;
+                                    autosnap = true;
+                                    interval = "30s";
+
+                                    # 6 snapshots an hour
+                                    daily = 144;
+
+                                    # 2 snapshots a minute
+                                    hourly = 120;
+
+                                    # 6 snapshots a day for 28 days
+                                    monthly = 168;
+
+                                    # Twice the weeks in a year
+                                    yearly = 104;
+                                };
+
+                                datasets = listToAttrs (map (dataset: nameValuePair "${host}/${dataset}" sanoidBase) (flatten [
+                                    iron.attrs.datasets.backup
+                                    host
+                                ]));
+                            };
+                            syncoid = let
+                                syncoidBase = mkMerge [{
+                                    recursive = true;
+                                    commonArgs = [
+                                        "--compress zstd-slow"
+                                        "--no-stream"
+                                        "--no-sync-snap"
+                                        "--create-bookmark"
+                                    ];
+                                    }
+                                    (mkIf vars.encrypted {
+                                        sendOptions = "vvwRI";
+                                        recvOptions = "vvFs";
+                                    })
+                                    (mkIf (!vars.encrypted) {
+                                        recvOptions = "vvFds";
+                                        sendOptions = "vvRI";
+                                    })
+                                ];
+                            in {
+                                enable = false;
+                                sshKey = "/root/.ssh/id_ed25519";
+                                commands = listToAttrs (map (dataset: nameValuePair "${host}/${dataset}" (recursiveUpdate syncoidBase { target = ""; })) (flatten [
+                                    iron.attrs.datasets.backup
+                                    host
+                                ]));
+                            };
+                            udev.extraRules = ''
+                                ACTION=="add|change", KERNEL=="sd[a-z]*[0-9]*|mmcblk[0-9]*p[0-9]*|nvme[0-9]*n[0-9]*p[0-9]*", ENV{ID_FS_TYPE}=="zfs_member", ATTR{../queue/scheduler}="none"
+                            ''; # zfs already has its own scheduler. without this my(@Artturin) computer froze for a second when i nix build something.
+                            zfs = {
+                                trim.enable = true;
+                                autoScrub.enable = true;
+
+                                # Managed by Sanoid
+                                autoSnapshot.enable = false;
+                            };
+                        };
+                        systemd.services.zfs-mount.enable = false;
+#+end_src
+
+Adapted from [[https://www.reddit.com/r/NixOS/comments/ut8j10/nixos_zfs_podman_backing_file_system_is/?utm_medium=android_app&utm_source=share][here]]:
+
+#+begin_src nix
+                        virtualisation = {
+                            containers.storage.settings.storage.driver = "zfs";
+                            lxd.zfsSupport = true;
+                            podman.extraPackages = [ pkgs.zfs ];
+                            docker.storageDriver = "zfs";
+                        };
+#+end_src
+
+#+begin_src nix
+                    });
+                    fonts = { config, pkgs, ... }: {
+                        console.font = "Cartograph CF Extra Bold Italic"; keyMap = "us";
+                        fonts = pkgs.nerdfonts.override { fonts = [ "CascadiaCode" ]; };
+                    };
+                    memory = { config, ... }: { zramSwap = { enable = true; algorithm = "zstd"; }; };
+                    fileSystems = args@{ config, ... }: {
+                        fileSystems = let
+                            inherit (iron.attrs.fileSystems) base;
+                        in if config.variables.zfs then (iron.iron.getAttrs [ "/boot" "/boot/efi" ] config.configs.hardware.fileSystems)
+                           else config.configs.hardware.fileSystems;
+                    };
+                    hardware = args@{ config, ... }: {
+                        hardware = {
+                            inherit (config.configs.hardware.hardware) cpu;
+                            enableRedistributableFirmware = lib.mkDefault true;
+                            # Enable sound
+                            pulseaudio.enable = mkForce true;
+                        };
+                        sound.enable = true;
+                    };
+                    programs = { config, ... }: {
+                        environment.pathsToLink = flatten [
+                            (optional (! config.programs.bash.enable) "/share/bash-completion")
+                            (optional (! config.programs.zsh.enable) "/share/zsh")
+                            (optional (! config.programs.fish.enable) "/share/fish")
+                        ];
+                        programs = {
+                            fuse.userAllowOther = true;
+                            mosh = {
+                                enable = true;
+                                openFirewall = true;
+                            };
+                        };
+                    };
+                    services = { config, ... }: {
+                        services = {
+                            tailscale.enable = true;
+                            xserver = {
+                                enable = true;
+                                layout = "us";
+                                # xkbOptions = "eurosign:e";
+                                # Enable touchpad support.
+                                libinput = {
+                                    enable = true;
+                                    touchpad = {
+                                        naturalScrolling = true;
+                                        middleEmulation = true;
+                                        tapping = true;
+                                    };
+                                };
+                                # synaptics.enable = true;
+                                desktopManager.gnome.enable = true;
+                                displayManager = {
+                                    startx.enable = true;
+                                    lightdm.enable = mkForce false;
+                                };
+                                autorun = false;
+                            };
+                        };
+                    };
+                    security = { config, pkgs, ... }: {
+                        environment = {
+                            shellInit = ''
+                                export GPG_TTY="$(tty)"
+                                gpg-connect-agent /bye
+                                export SSH_AUTH_SOCK="/run/user/$UID/gnupg/S.gpg-agent.ssh"
+                                echo UPDATESTARTUPTTY | gpg-connect-agent
+                            '';
+                            systemPackages = with pkgs; [ pinentry-curses ];
+                        };
+                        programs = {
+                            # Some programs need SUID wrappers, can be configured further or are
+                            # started in user sessions.
+                            # mtr.enable = true;
+                            gnupg.agent = {
+                                enable = true;
+                                enableSSHSupport = true;
+                                pinentryFlavor = "curses";
+                            };
+                            ssh.startAgent = ! config.programs.gnupg.agent.enableSSHSupport;
+                        };
+                        security.pam.enableSSHAgentAuth = true;
+                    };
+                    yubikey = { config, pkgs, ... }: mkIf config.variables.client {
+                        # For Yubikey SSH-GPG Authentication
+                        environment = {
+                            systemPackages = with pkgs; [
+                                pcsctools
+                                yubico-pam yubico-piv-tool yubikey-manager yubikey-agent yubikey-personalization yubioath-flutter
+                                yubikey-manager-qt yubikey-personalization-gui
+                            ];
+                        };
+                        security.pam = {
+                            yubico = {
+                                enable = true;
+                                debug = true;
+                                mode = "challenge-response";
+                            };
+                        };
+                        services = {
+                            udev.packages = with pkgs; [
+                                libu2f-host
+                                libyubikey
+                                yubikey-personalization
+                            ];
+                            pcscd.enable = true;
+                        };
+                    };
+                    nix = { config, registry, pkgs, ... }: {
+                        nix = rec {
+                            inherit registry;
+                            package = pkgs.nixUnstable;
+                            gc = mkMerge [
+                                { automatic = true; }
+                                { dates = "monthly"; }
+                                # {
+                                #   dates = "monthly";
+                                #   options = "-d";
+                                # }
+                                # {
+                                #   dates = "daily";
+                                #   options = "--delete-older-than 30d";
+                                # }
+                            ];
+                            optimise = {
+                                automatic = true;
+                                dates = [ "05:00" ];
+                            };
+                            extraOptions = iron.attrs.configs.nix;
+                            settings = {
+                                auto-optimise-store = true;
+                                sandbox = true;
+                            };
+                            # sandboxPaths = [];
+                        };
+                    };
+                    networking = args@{ config, host, ... }: {
+                        networking = {
+                            hostName = host;
+                            networkmanager.enable = mkForce true;
+                            interfaces = mapAttrs (n: flip recursiveUpdate {
+                                useDHCP = mkForce (! config.networking.networkmanager.enable);
+                                wakeOnLan.enable = true;
+                            }) (removeAttrs config.configs.config.networking.interfaces [ "wg0" ]);
+
+                            # The global useDHCP flag is deprecated, therefore explicitly set to false here.
+                            # Per-interface useDHCP will be mandatory in the future, so this generated config
+                            # replicates the default behaviour.
+                            useDHCP = false;
+
+                            # Configure network proxy if necessary
+                            # proxy = {
+                            # default = "http://user:password@proxy:port/";
+                            # noProxy = "127.0.0.1,localhost,internal.domain";
+                            # };
+
+                            wireguard.interfaces.wg0 = {
+                                generatePrivateKeyFile = true;
+                                privateKeyFile = "/persist/etc/wireguard/wg0";
+                            };
+
+                            firewall = recursiveUpdate {
+                                enable = true;
+                            } (if config.variables.relay then {
+                                allowedTCPPorts = [ 80 222 443 2022 8080 9418 ];
+                            } else if config.variables.server then {
+                                allowedTCPPorts = [ ];
+                            } else {
+                                allowedTCPPorts = [ ];
+                            });
+                        };
+                    };
+                    environment = { config, pkgs, ... }: {
+                        environment = {
+                            systemPackages = with pkgs; flatten [
+                                (pass.withExtensions (ext: with ext; [pass-tomb pass-genphrase]))
+                                (Python.withPackages (ppkgs: with ppkgs; [ bakery nixpkgs ]))
+                                assh
+                                cached-nix-shell
+                                cachix
+                                coreutils
+                                direnv
+                                exa
+                                fasd
+                                fd
+                                fzf
+                                git
+                                git-crypt
+                                gnupg
+                                gopass
+                                gum
+                                hub
+                                mosh
+                                sqlite
+                                starship
+                                tailscale
+                                tailapi
+                                uutils-coreutils
+                                yadm
+                                zoxide
+                            ];
+                        };
+                    };
+                    users = { config, pkgs, ... }: {
+                        users = with iron.attrs.users; let
+                            base = {
+                                hashedPassword = "$6$DoC/h6kR66Sa$aZKtTOXAqnan/jAC.4dH9tCYshheiKUZItR4g/kmMMLsfLQh0KslINL9zUTX2IjAZh9DE18eAh1AAz48.n/cm.";
+                                isNormalUser = true;
+                                createHome = true;
+                                extraGroups = [
+                                    "wheel"
+                                    "networkmanager"
+                                    "persist"
+                                    "libvirtd"
+                                    "docker"
+                                    "adbusers"
+                                ];
+                                openssh.authorizedKeys.keys = unique (flatten [
+                                    (attrValues iron.attrs.ssh.keys)
+                                ]);
+                            };
+                        in rec {
+                            users = mkMerge [
+                                (genAttrs iron.attrs.allUsernames (user: base))
+                                {
+                                    "${primary}" = {
+                                        uid = 4362;
+                                        home = iron.attrs.homes.primary;
+                                        description = "Jeet Ray";
+                                        group = primary;
+                                        extraGroups = [ secondary ];
+                                        # shell = pkgs.xonsh;
+                                        shell = pkgs.zsh;
+                                    };
+                                    "${secondary}" = {
+                                        uid = 1111;
+                                        home = iron.attrs.homes.secondary;
+                                        description = "Alicia Summers";
+                                        group = secondary;
+                                        extraGroups = [ primary ];
+                                        shell = pkgs.fish;
+                                    };
+                                    "${nightingale}" = {
+                                        uid = 8888;
+                                        home = iron.attrs.homes.nightingale;
+                                        description = "Curtis Nightingale";
+                                        group = "root";
+                                        extraGroups = [ primary secondary ];
+                                        shell = pkgs.zsh;
+                                    };
+                                    root = {
+                                        shell = mkForce pkgs.zsh;
+                                        home = iron.attrs.allHomes.root;
+                                        isNormalUser = mkForce false;
+                                        isSystemUser = mkForce true;
+                                    };
+                                }
+                            ];
+
+                            mutableUsers = false;
+
+                            groups = {
+                                "${primary}" = {
+                                    gid = config.users.users.${primary}.uid;
+                                    members = [ primary secondary nightingale ];
+                                };
+                                "${secondary}" = {
+                                    gid = config.users.users.${secondary}.uid;
+                                    members = [ primary secondary nightingale ];
+                                };
+                                "${nightingale}" = {
+                                    gid = config.users.users.${nightingale}.uid;
+                                    members = [ nightingale ];
+                                };
+                            };
+                        };
+                    };
+                })
+            ];
+            nixosModules = iron.fold.set [
+                miniModules
+                (rec {
+                    boot = { config, pkgs, ... }: with pkgs; {
+                        boot = {
+                            binfmt.emulatedSystems = [
+                                "armv7l-linux"
+                                "aarch64-linux"
+                            ];
+                            extraModulePackages = with config.boot.kernelPackages; [
+                                # anbox
+                                # wireguard
+                            ];
+                            kernelPatches = let
+                                genCK = ignores: map (name: {
+                                    inherit name;
+                                    patch = "${toString ck}/${name}";
+                                }) (pipe flake.inputs.ck [
+                                    readDir
+                                    attrNames
+                                    (filter (p: ! (elem p (flatten [
+                                        "series"
+                                        "0016-Add-ck1-version.patch"
+                                        ignores
+                                    ]))))
+                                ]);
+                                versionhas.infix = infix: iron.has.infix (toList infix) config.boot.kernelPackages.version;
+
+                            # TODO: Doesn't work with the surface kernel; causes it to overheat during suspend
+                            in unique (flatten [
+                                # (iron.mif.list (versionhas.infix [ "xanmod" "zen" "lqx"]) (genCK [
+                                #     "0001-MultiQueue-Skiplist-Scheduler-v0.210.patch"
+                                #     "0002-Unmask-ondemand-and-conservative-and-allow-schedutil.patch"
+                                #     "0003-Make-preemptible-kernel-default.patch"
+                                #     "0007-Replace-all-schedule-timeout-1-with-schedule_min_hrt.patch"
+                                #     "0011-Make-hrtimer-granularity-and-minimum-hrtimeout-confi.patch"
+                                #     "0012-Make-threaded-IRQs-optionally-the-default-which-can-.patch"
+                                #     "0015-Make-nohz_full-not-be-picked-up-as-a-default-config-.patch"
+                                # ]))
+                                # (iron.mif.list (versionhas.infix "xanmod") (genCK [
+                                #     "0013-Reinstate-default-Hz-of-100-in-combination-with-MuQS.patch"
+                                #     "0014-Swap-sucks.patch"
+                                # ]))
+                                # (genCK [
+                                #     # "0004-Create-highres-timeout-variants-of-schedule_timeout-.patch"
+                                #     # "0005-Special-case-calls-of-schedule_timeout-1-to-use-the-.patch"
+                                #     # "0006-Convert-msleep-to-use-hrtimers-when-active.patch"
+                                #     # "0008-Replace-all-calls-to-schedule_timeout_interruptible-.patch"
+                                #     # "0009-Replace-all-calls-to-schedule_timeout_uninterruptibl.patch"
+                                #     # "0010-Don-t-use-hrtimer-overlay-when-pm_freezing-since-som.patch"
+                                # ])
+                            ]);
+
+                        };
+                    };
+                    caddy = { config, host, ... }: {
+                        services.caddy = mkIf config.variables.relay {
+                            enable = true;
+                            ca = null;
+                            config = readFile "/etc/caddy/files/${host}";
+                            adapter = "yaml";
+                        };
+                    };
+                    environment = { config, pkgs, ... }: with pkgs; {
+                        environment = {
+                            systemPackages = [
+                                # ddar
+                                # haskellPackages.hocker
+                                acpilight
+                                alacritty
+                                asdf-vm
+                                atom
+                                autojump
+                                autossh
+                                bat
+                                bc
+                                btrfs-progs
+                                byobu
+                                cascadia-code
+                                cmake
+                                copyq
+                                coreutils
+                                ctop
+                                curl
+                                darling-dmg
+                                direnv
+                                diskus
+                                distrobox
+                                dos2unix
+                                duf
+                                elvish
+                                emacs
+                                entr
+                                exa
+                                exfat
+                                fasd
+                                fd
+                                fd
+                                fff
+                                ffmpeg
+                                figlet
+                                filet
+                                firefox
+                                fzf
+                                gcc
+                                git
+                                git-filter-repo
+                                git-fire
+                                git-lfs
+                                gitoxide
+                                glances
+                                gnumake
+                                google-chrome google-chrome-beta google-chrome-dev
+                                gotop
+                                gparted
+                                gptfdisk
+                                inetutils
+                                jupyter
+                                keybase-gui kitty
+                                libffi
+                                libguestfs
+                                libsForQt5.qtstyleplugin-kvantum
+                                libtool
+                                lolcat
+                                lorri
+                                man
+                                meld
+                                melt
+                                micro
+                                mkpasswd
+                                monkeysphere
+                                mtr
+                                neo-cowsay
+                                neovim
+                                nickel
+                                niv
+                                nnn
+                                nodePackages.prettier
+                                nox
+                                ntfs3g nixos-shell
+                                pandoc
+                                par2cmdline
+                                parted pmutils
+                                peru
+                                pfetch
+                                pypy
+                                Python
+                                ranger
+                                refind
+                                ripgrep
+                                ripgrep-all
+                                rsync
+                                sd
+                                bundle
+                                shadowfox
+                                shellcheck
+                                silver-searcher
+                                snapper
+                                spacevim
+                                sqlite
+                                starship
+                                sysstat
+                                thefuck
+                                thermald
+                                tmux
+                                tmuxp
+                                tree
+                                udftools
+                                ulauncher
+                                uutils-coreutils
+                                vagrant
+                                vim
+                                vivaldi vivaldi-ffmpeg-codecs vivaldi-widevine
+                                vlc
+                                vscode vscodium
+                                wget
+                                win-qemu
+                                woeusb
+                                wstunnel
+                                wtf
+                                xclip
+                                xclip
+                                xero-figlet-fonts
+                                xfce.thunar
+                                xz
+                                zenith
+                                zoxide
+                            ] ++ (map (pkg: pkgs.gnome."gnome-${pkg}") [
+                                "boxes"
+                                "characters"
+                                "session"
+                                "tweaks"
+                            ]) ++ (map (pkg: pkgs."nix-prefetch-${pkg}") [
+                                "docker"
+                                "github"
+                                "scripts"
+                            ]) ++ (with pkgs.gnome; [
+                                dconf-editor
+                            ]) ++ (with pkgs.gitAndTools; [
+                                gh
+                                git-extras
+                                git-hub
+                                gitflow
+                                hub
+                                lab
+                            ]) ++ (with pkgs.PythonPackages; [
+                                black
+                                black-macchiato
+                                jupyterlab
+                                poetry
+                                pipx
+                            ]);
+                        };
+                    };
+                    fonts = { config, pkgs, ... }: {
+                        fonts.fonts = with pkgs; flatten [
+                            (pkgs.cartograph-cf-all or [])
+                            (nerdfonts.override { fonts = [ "Agave" "CascadiaCode" ]; })
+                        ];
+                    };
+                    miscellaneous = { config, pkgs, system, ... }: {
+                        xdg.portal = {
+                            enable = true;
+                            extraPortals = map (portal: pkgs."xdg-desktop-portal-${portal}") [ "gtk" "kde" ];
+                        };
+                        i18n = {
+                            # Select internationalisation properties.
+                            defaultLocale = "en_US.UTF-8";
+                        };
+                        time.timeZone = "America/Toronto";
+                        system = {
+                            inherit (nixos-configurations.configuration.config.system) stateVersion;
+                            autoUpgrade = {
+                                enable = true;
+                                allowReboot = false;
+                                flake = "https://github.com/nixos/nixpkgs/archive/${inputs.nixpkgs.rev}.tar.gz";
+                            };
+                        };
+                    };
+                    nix-direnv = { config, pkgs, ... }: { environment = { pathsToLink = [ "/share/nix-direnv" ]; systemPackages = [ pkgs.nix-direnv ]; }; };
+                    programs = { config, ... }: { programs = { extra-container.enable = true; }; };
+                    tailscale = { config, host, ... }: {
+                        services.tailscale = {
+                            apifile = "/etc/tailscale/apikeys/jeet.ray";
+                            autoconnet = true;
+                            deleteHostBeforeAuth = true;
+                            # exitNode = mkIf (! config.services.tailscale.exitNode.advertise) {
+                            #     device = "bastiodon";
+                            #     allowLANAccess = true;
+                            # };
+                            magicDns = {
+                                enable = true;
+                                searchDomains = toList "alpaca-python.ts.net";
+                                nameservers = [
+                                    # Cloudflare
+                                    # "1.1.1.1"
+                                    # "1.0.0.1"
+
+                                    # Google
+                                    # "8.8.8.8"
+                                    # "8.8.4.4"
+
+                                    # Quad9
+                                    # "9.9.9.9"
+                                    # "149.112.112.112"
+
+                                    # Adguard
+                                    "94.140.14.14"
+                                    "94.140.15.15"
+                                ];
+                            };
+                            openFirewall = true;
+                            state.file = "/etc/tailscale/states/${host}/tailscaled.state";
+                            trustInterface = true;
+                        };
+                    };
+                    services = { config, pkgs, system, host, ... }: {
+                        services = {
+                            emacs = {
+                                package = pkgs.emacsGcc;
+                                enable = true;
+                                defaultEditor = true;
+                            };
+                            flatpak.enable = true;
+                            guix.enable = true;
+                            printing.enable = true;
+                        };
+                    };
+#+end_src
+
+Maybe one day...
+
+#+begin_src nix :tangle no
+                    systemd = { config, pkgs, ... }: {
+                        systemd.packages = with pkgs; [ runit ];
+                    };
+#+end_src
+
+#+begin_src nix
+                    wstunnel-service = { config, pkgs, ... }: {
+                        systemd = mkMerge (flatten [
+                            {
+                                # wstunnel-http = mkIf config.variables.relay (recursiveUpdate (iron.attrs.configs.services.mkBase "root") {
+                                #     serviceConfig = {
+                                #         ExecStart = "${pkgs.wstunnel}/bin/wstunnel --server ws://0.0.0.0:80 -r 127.0.0.1:880";
+                                #     };
+                                # });
+                                # iodine = mkIf config.variables.relay (recursiveUpdate (iron.attrs.configs.services.mkBase "root") {
+
+                                # });
+                                # wstunnel-tls = mkIf config.variables.relay (recursiveUpdate (iron.attrs.configs.services.mkBase "root") {
+                                wstunnel = mkIf config.variables.relay (recursiveUpdate (iron.attrs.configs.services.mkBase "root") {
+                                    serviceConfig = {
+                                        ExecStart = "${pkgs.wstunnel}/bin/wstunnel wss://0.0.0.0:443 -r 127.0.0.1:32443";
+                                    };
+                                });
+                            }
+                        ]);
+                    };
+                    rclone-service = { config, pkgs, ... }: {
+                        systemd = let
+                            replace = replaceStrings [ "rclone-" ] [ "" ];
+                        in {
+                            services = let
+                                mkBase = n: let
+                                    mountdir = "/mnts/rclone/${n}";
+                                in rec {
+                                    description = "Rclone ${iron.toCapital n} Mount";
+                                    wants = iron.systemd.wants [  ];
+                                    after = wants;
+                                    serviceConfig = {
+                                        ExecStartPre = "/run/current-system/sw/bin/mkdir -p ${mountdir}";
+                                        ExecStop = "/run/wrappers/bin/fusermount -u ${mountdir}";
+                                        RestartSec = "10s";
+                                        Type = "notify";
+                                    };
+                                };
+#+end_src
+
+Adapted from [[https://discourse.nixos.org/t/fusermount-systemd-service-in-home-manager/5157][here]], [[https://gist.github.com/kabili207/2cd2d637e5c7617411a666d8d7e97101?permalink_comment_id=4087768#gistcomment-4087768][here]], and [[https://gist.github.com/shadowrylander/2b993d10c98a84e12284833acf164ab1][here]]:
+
+#+begin_src nix
+                                mkBaseExecStart = mount: let
+                                    dir-cache-time = "96h";
+                                    buffer-size = "512M";
+                                in ''
+                                    ${pkgs.rclone}/bin/rclone mount \
+                                                              ${mount} \
+                                                              /mnts/rclone/${head (splitString ":" mount)} \
+                                                              --config ${iron.attrs.homes.primary}/rclone.conf \
+                                                              --cache-dir /var/rclone \
+                                                              --dir-cache-time ${dir-cache-time} \
+                                                              --vfs-cache-mode full \
+                                                              --vfs-cache-max-age ${dir-cache-time} \
+                                                              --vfs-read-chunk-size 128M \
+                                                              --vfs-read-chunk-size-limit ${buffer-size} \
+                                                              --buffer-size ${buffer-size} \
+                                                              --umask 022 \
+                                                              --allow-other \
+                                                              --allow-root
+                                '';
+#+end_src
+
+#+begin_src nix
+                            in mkMerge (flatten [
+                                (mapAttrs (n: recursiveUpdate (recursiveUpdate iron.attrs.configs.services.base (mkBase (replace n)))) {
+                                    rclone-backblazeB2.serviceConfig.ExecStart = mkBaseExecStart "backblazeB2:borgbackups-53f2bd74-148c-4fe7-bdb5-701d325645a6";
+                                })
+                            ]);
+                        };
+                    };
+#+end_src
+
+Adapted from [[https://www.reddit.com/r/NixOS/comments/ut8j10/nixos_zfs_podman_backing_file_system_is/?utm_medium=android_app&utm_source=share][here]]:
+
+#+begin_src nix
+                    virtualisation = { config, pkgs, ... }: {
+                        virtualisation = {
+                            containers.storage.settings.storage = {
+                                graphroot = "/var/lib/containers/storage";
+                                runroot = "/run/containers/storage";
+                            };
+                            xen.enable = false;
+                            podman = {
+                                enable = true;
+                                dockerCompat = true;
+                            };
+                            oci-containers.backend = "podman";
+                            docker = {
+                                enable = true;
+                                package = pkgs.docker;
+                                enableOnBoot = true;
+                            };
+                            libvirtd.enable = true;
+                        };
+                    };
+#+end_src
+
+#+begin_src nix
+                    minimal = { config, ... }: { imports = attrValues miniModules; };
+                    default = minimal;
+                })
+            ];
+            nixosModule = nixosModules.default;
+            defaultNixosModule = nixosModule;
+        };
+        callPackages = {  };
+        overlays = let
+            calledPackages = mapAttrs (pname: v: final: prev: { "${pname}" = final.callPackage v { inherit pname; }; }) (filterAttrs (n: isFunction) callPackages);
+            default = final: prev { inherit (calledPackages) strapper; };
+        in iron.fold.set [
+            inputs.sylveon.overlays
+            calledPackages
+            {
+                inherit default;
+                lib = final: prev: { inherit lib; };
+                emacs = final: prev: { emacs = final.emacsNativeComp; };
+                xonsh = final: prev: { xonsh = inputs.bundle.mk.mkWithPackages prev.xonsh [
+                    "xontrib-sh"
+                    "xontrib-readable-traceback"
+                    "xontrib-pipeliner"
+                    "xonsh-autoxsh"
+                    "xonsh-direnv"
+                ] "bakery"; };
+            }
+        ];
+        make = system: overlays: let
+            made = inputs.bundle.make system overlays;
+        in iron.fold.set [
+            made
+            (rec {
+                specialArgs = name: iron.fold.set [
+                    made.specialArgs
+                    self
+                    self.${system}
+                    { host = name; inherit inputs; }
+                ];
+                configs = rec {
+                    base = n: v: { inherit system; specialArgs = specialArgs n; };
+                    default = n: v: nixosSystem (iron.fold.set [
+                        (base n v)
+                        {
+                            modules = flatten [
+                                v
+                                (map (path: optional (pathExists path) (getFlake path).nixosModules) [
+                                    ./secrets
+                                ])
+                                (map (dir: optional (pathExists dir) (iron.list {
+                                    inherit dir;
+                                    ignores.elem = [ "flake.nix" ];
+                                })) [
+                                    ./secrets
+                                ])
+                                (map (m: attrValues m.nixosModules) [
+                                    inputs.home-manager-config
+                                    nixosModules
+                                ])
+                            ];
+                        }
+                    ]);
+                    mini = n: v: nixosSystem (iron.fold.set [
+                        (base n v)
+                        { modules = flatten [ v nixosModules.minimal ]; }
+                    ]);
+                };
+            })
+        ];
+    in mkOutputs {
+        inherit inputs self;
+        inherit (inputs.strapper) pname isApp type;
+        callPackage = { bakery, pname }: Python.pkgs.buildPythonPackage rec {
+            inherit pname;
+            version = "1.0.0.0";
+            src = ../../strapper;
+            propagatedBuildInputs = [ bakery ];
+        };
+        inherit overlays make;
+        extraSystemOutputs = oo: system: rec {
+            nixosConfigurations = iron.fold.set [
+                (mapAttrs made.configs.default hosts)
+                (mapAttrs made.configs.mini (iron.mapAttrNames (n: v: "mini-" + n) hosts))
+            ];
+            packages = filterPackages system (iron.fold.set [
+                (made.mkPackages.default nixpkgs)
+                made.mkPackages.python
+            ]);
+            devShells = with pkgs; rec {
+                git-shell = mkShell { buildInputs = [ git-crypt git-filter-repo rsync realpath ]; };
+            };
+        };
+        extraOutputs = iron.fold.set [
+            nixosModules
+            { inherit make lib hosts; }
+        ];
+    };
+}
+#+end_src
